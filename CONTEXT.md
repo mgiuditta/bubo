@@ -80,6 +80,10 @@ _Avoid_: stato, status
 Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e si riprendono solo come nuova **Sessione**.
 _Avoid_: sessioni importate
 
+**Vista delle Sessioni**:
+Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt). La sceglie l'utente.
+_Avoid_: layout, tema, modalità
+
 ### Permessi
 
 **Richiesta di permesso**:

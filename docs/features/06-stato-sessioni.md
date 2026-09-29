@@ -207,6 +207,19 @@ Oggi il riferimento è l'**agent view di Claude Code** (stati chiari e riassunto
 
 ## Mappa
 
+### Vista delle Sessioni (decisa)
+
+Fonte: [Prototipo: le Sessioni nell'HUD](https://github.com/mgiuditta/bubo/issues/22), branch `prototype/sessioni-hud`.
+
+- Tre Viste, scelte in Impostazioni → Aspetto: **Colonna** (predefinita), **Orbita**, **Striscia**. Stessi dati e stesse azioni; cambia solo la disposizione.
+- Colonna: raggruppata per Attività; Attende te in cima, ordinate per tempo di attesa; riga = titolo, attesa, riassunto di una riga, Progetto · branch · Fase; Richiesta di permesso inline.
+- Orbita: Attende te in alto, più grandi e luminose; le altre ai lati; card della Sessione sotto l'Orb; quota come archi sull'anello.
+- Striscia: carte orizzontali sopra il prompt; Attende te allargate con i pulsanti.
+- In tutte: quota 5 h / settimana con reset visibile senza clic; interruttore Domanda ↔ Sessione nel prompt; ⌘N nuova Sessione; ↩ Solo ora, esc No sulla Richiesta aperta.
+- Ordine di costruzione: Colonna, poi Orbita e Striscia.
+
+### Resto della mappa
+
 _da definire_
 
 ## Specifica "migliore di"
