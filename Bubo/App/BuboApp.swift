@@ -16,12 +16,14 @@ struct BuboApp: App {
         Settings {
             SettingsView()
                 .environment(appDelegate.hotKeys)
+                .environment(appDelegate.panel)
         }
 
         MenuBarExtra("Bubo", systemImage: "smallcircle.filled.circle") {
             MenuBarContent()
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
+                .environment(appDelegate.panel)
         }
     }
 }

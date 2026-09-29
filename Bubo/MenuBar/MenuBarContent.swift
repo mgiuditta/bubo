@@ -5,9 +5,12 @@ import SwiftUI
 struct MenuBarContent: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(HotKeyCenter.self) private var hotKeys
+    @Environment(OrbPanelController.self) private var panel
 
     var body: some View {
+        @Bindable var panel = panel
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
+        Toggle("Mostra Panel", isOn: $panel.isShown)
         Divider()
         SettingsLink {
             Text("Impostazioni…")

@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// Login item and Dock icon.
+/// Login item, Dock icon and Panel.
 struct GeneralSettingsView: View {
+    @Environment(OrbPanelController.self) private var panel
     @AppStorage(DockIcon.defaultsKey) private var showsDockIcon = true
     @State private var opensAtLogin = LoginItem.isEnabled
     @State private var loginItemError: String?
 
     var body: some View {
+        @Bindable var panel = panel
         Form {
             Toggle("Apri Bubo al login", isOn: $opensAtLogin)
                 .onChange(of: opensAtLogin) { _, enabled in updateLoginItem(enabled) }
@@ -20,6 +22,7 @@ struct GeneralSettingsView: View {
             Text("Bubo resta sempre nella barra dei menu.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+            Toggle("Mostra il Panel con l'Orb", isOn: $panel.isShown)
         }
         .formStyle(.grouped)
     }
