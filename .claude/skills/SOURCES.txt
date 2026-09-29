@@ -1,0 +1,16 @@
+swiftui-pro <- https://github.com/twostraws/SwiftUI-Agent-Skill @ be297ff
+swift-concurrency-pro <- https://github.com/twostraws/Swift-Concurrency-Agent-Skill @ bee3f69
+swift-testing-pro <- https://github.com/twostraws/Swift-Testing-Agent-Skill @ 2d6bba1
+swiftdata-pro <- https://github.com/twostraws/SwiftData-Agent-Skill @ 922d989
+swiftui-ui-patterns <- https://github.com/Dimillian/Skills @ 05ba982
+swiftui-view-refactor <- https://github.com/Dimillian/Skills @ 05ba982
+swiftui-performance-audit <- https://github.com/Dimillian/Skills @ 05ba982
+swiftui-liquid-glass <- https://github.com/Dimillian/Skills @ 05ba982
+swift-api-design-guidelines-skill <- https://github.com/Erikote04/Swift-API-Design-Guidelines-Agent-Skill @ 36cdc1b
+swift-format-style <- https://github.com/n0an/Swift-FormatStyle-Agent-Skill @ 5cda783
+swiftui-accessibility-auditor <- https://github.com/rgmez/apple-accessibility-skills @ ab6f678
+appkit-accessibility-auditor <- https://github.com/rgmez/apple-accessibility-skills @ ab6f678
+app-intents <- https://github.com/n0an/App-Intents-Agent-Skill @ f754f08
+swift-security-expert <- https://github.com/ivan-magda/swift-security-skill @ bda2e0c
+observability <- https://github.com/n0an/Observability-Agent-Skill @ 4ab4f37
+writing-for-interfaces <- https://github.com/andrewgleave/skills @ d6c72b8
