@@ -115,6 +115,7 @@ _Avoid_: yolo, bypass
 - **Stato**, **Variante** e **Tinta** sono indipendenti; il colore viene sempre dalla **Tinta**, mai dalla Variante: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
 - Un **Progetto** ha molte **Sessioni**; al massimo una lavora direttamente sul checkout principale, le altre ciascuna nella propria copia isolata
 - **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
+- Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 
