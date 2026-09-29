@@ -1,0 +1,615 @@
+<title>Bubo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;500&family=Manrope:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a single HUD stage — orb at the center of a control ring, state + form rail left, router panel right, prompt dock below. Deliberately dark-only. */
+:root{
+  --ink:#0c0a09;
+  --panel:rgba(255,236,224,.035);
+  --line:rgba(255,206,180,.11);
+  --line-hi:rgba(255,190,150,.28);
+  --fg:#f4ebe4;
+  --muted:#9b8a80;
+  --faint:#5f524b;
+  --ember:#d97757;
+  --ember-hi:#ffb089;
+  --ok:#8fd1a8;
+  --f-display:"Unbounded","Avenir Next","Helvetica Neue",sans-serif;
+  --f-body:"Manrope","Avenir Next","Helvetica Neue",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:var(--ink);
+  background-image:
+    radial-gradient(60rem 40rem at 50% 42%, rgba(217,119,87,.10), transparent 60%),
+    radial-gradient(40rem 30rem at 85% 110%, rgba(255,176,137,.05), transparent 70%);
+  color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5;
+  padding-inline:20px;overflow-x:hidden;
+}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:1px solid var(--ember-hi);outline-offset:3px;border-radius:6px}
+
+.app{max-width:1300px;margin:0 auto;min-height:100%;display:grid;grid-template-rows:auto 1fr auto;gap:12px;padding-block:18px 20px}
+
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.mark{display:flex;align-items:center;gap:12px}
+.mark h1{font-family:var(--f-display);font-weight:300;font-size:20px;letter-spacing:.42em;margin:0;padding-left:.2em}
+.mark .glyph{width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--ember-hi),var(--ember) 45%,#6b2c19 100%);box-shadow:0 0 18px rgba(217,119,87,.6)}
+.meta{display:flex;gap:18px;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;flex-wrap:wrap;justify-content:flex-end}
+.meta b{color:var(--fg);font-weight:500}
+.live{display:inline-flex;align-items:center;gap:7px}
+.live i{width:6px;height:6px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+
+.stage{display:grid;grid-template-columns:250px minmax(0,1fr) 280px;gap:20px;align-items:center;min-height:0}
+.rail,.router{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.label{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.label.gap{margin-top:20px;display:flex;justify-content:space-between;gap:8px}
+.label.gap span{color:var(--faint);letter-spacing:.08em}
+
+.states{display:flex;flex-direction:column;gap:2px}
+.state{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;text-align:left;transition:background .25s}
+.state:hover{background:rgba(255,236,224,.04)}
+.state .dot{width:6px;height:6px;border-radius:50%;background:var(--faint);transition:all .3s}
+.state .k{font-family:var(--f-mono);font-size:10px;color:var(--faint)}
+.state .n{color:var(--muted);font-weight:500}
+.state[aria-pressed="true"]{background:rgba(217,119,87,.10)}
+.state[aria-pressed="true"] .dot{background:var(--ember-hi);box-shadow:0 0 10px var(--ember)}
+.state[aria-pressed="true"] .n{color:var(--fg)}
+
+.shapes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.shape{font-size:11.5px;padding:7px 4px;border-radius:8px;color:var(--muted);border:1px solid transparent;text-align:center;transition:all .2s}
+.shape:hover{color:var(--fg);background:rgba(255,236,224,.04)}
+.shape[aria-pressed="true"]{color:var(--fg);border-color:var(--line-hi);background:rgba(217,119,87,.10)}
+.variant{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;margin-top:12px}
+#variant{width:100%;accent-color:var(--ember);min-width:0}
+.vnum{font-family:var(--f-mono);font-size:12px;color:var(--ember-hi);font-variant-numeric:tabular-nums;min-width:4.2ch;text-align:right}
+.dice{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);transition:all .2s}
+.dice:hover{color:var(--fg);border-color:var(--line-hi)}
+.total{margin:10px 2px 0;font-size:11.5px;color:var(--faint)}
+
+.orbwrap{position:relative;width:min(64vh,100%);aspect-ratio:1;max-width:100%;margin:0 auto}
+#orb{position:absolute;inset:12%;width:76%;height:76%}
+.hud{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.hud .spin{transform-origin:50% 50%;animation:spin 60s linear infinite}
+.hud .spin.r{animation-duration:90s;animation-direction:reverse}
+@keyframes spin{to{transform:rotate(360deg)}}
+.formtag{position:absolute;left:50%;top:3%;transform:translateX(-50%);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.formtag b{color:var(--ember-hi);font-weight:500}
+.ring{position:absolute;inset:0;pointer-events:none}
+.chip{position:absolute;left:50%;top:50%;white-space:nowrap;font-family:var(--f-mono);font-size:11px;color:var(--muted);padding:4px 9px;border-radius:999px;border:1px solid transparent;transition:color .2s,border-color .2s,background .2s,box-shadow .2s;will-change:transform,opacity}
+.chip.hot{color:var(--fg);border-color:var(--line-hi);background:rgba(20,14,12,.7)}
+.chip.sel{color:#1a0e09;background:var(--ember-hi);border-color:var(--ember-hi);box-shadow:0 0 22px rgba(255,176,137,.55)}
+.caption{position:absolute;left:50%;bottom:1%;transform:translateX(-50%);width:min(520px,92%);text-align:center;font-size:15px;color:var(--fg);min-height:1.5em;text-wrap:balance;text-shadow:0 1px 12px rgba(0,0,0,.8)}
+.caption .who{font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;color:var(--ember-hi);text-transform:uppercase;display:block;margin-bottom:4px;opacity:.85}
+
+.sel-name{font-family:var(--f-display);font-weight:300;font-size:22px;line-height:1.15;margin:0 0 4px;text-wrap:balance}
+.sel-vendor{color:var(--muted);font-size:12px;margin:0 0 16px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:12.5px}
+dt{color:var(--faint);font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;padding-top:2px}
+dd{margin:0;color:var(--fg);min-width:0;font-variant-numeric:tabular-nums}
+.cost{display:inline-flex;gap:3px}
+.cost i{width:14px;height:4px;border-radius:2px;background:var(--faint)}
+.cost i.on{background:var(--ember-hi)}
+.engine{display:inline-block;font-family:var(--f-mono);font-size:10.5px;padding:2px 7px;border:1px solid var(--line-hi);border-radius:6px;color:var(--ember-hi)}
+.log{margin-top:18px;border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:8px}
+.log-row{display:grid;grid-template-columns:1fr auto;gap:10px;font-size:12px;color:var(--muted);min-width:0}
+.log-row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.log-row span:last-child{font-family:var(--f-mono);font-size:10.5px;color:var(--ember-hi)}
+.log-empty{color:var(--faint);font-size:12px}
+
+.dock{display:flex;justify-content:center}
+form{display:flex;align-items:center;gap:8px;width:min(720px,100%);background:rgba(255,236,224,.045);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 20px;transition:border-color .3s,box-shadow .3s}
+form:focus-within{border-color:var(--line-hi);box-shadow:0 0 0 6px rgba(217,119,87,.06),0 20px 60px -20px rgba(217,119,87,.35)}
+#q{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--fg);font:inherit;font-size:15px;padding:10px 0}
+#q::placeholder{color:var(--faint)}
+.mic,.send{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;flex:none;transition:background .25s,transform .15s}
+.mic{border:1px solid var(--line)}
+.mic:hover{background:rgba(255,236,224,.05)}
+.mic[aria-pressed="true"]{background:rgba(217,119,87,.18);border-color:var(--ember)}
+.send{background:var(--ember);color:#1a0e09}
+.send:hover{background:var(--ember-hi)}
+.send:active,.mic:active{transform:scale(.94)}
+.suggest{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.suggest button{font-size:12px;color:var(--muted);padding:5px 11px;border:1px solid var(--line);border-radius:999px;transition:color .2s,border-color .2s}
+.suggest button:hover{color:var(--fg);border-color:var(--line-hi)}
+
+@media (max-width:1020px){
+  .stage{grid-template-columns:1fr;gap:16px}
+  .orbwrap{order:-1;width:min(92vw,520px)}
+  .rail,.router{max-width:560px;width:100%;margin:0 auto}
+  .states{flex-direction:row;flex-wrap:wrap}
+  .state{grid-template-columns:10px auto;flex:1 1 30%}
+  .state .k{display:none}
+  .shapes{grid-template-columns:repeat(auto-fill,minmax(86px,1fr))}
+}
+@media (max-width:520px){
+  body{padding-inline:16px}
+  .meta span:not(.live){display:none}
+  .chip{font-size:9.5px;padding:3px 7px}
+}
+@media (prefers-reduced-motion:reduce){.hud .spin{animation:none}}
+</style>
+
+<div class="app">
+  <header class="top">
+    <div class="mark"><span class="glyph" aria-hidden="true"></span><h1>BUBO</h1></div>
+    <div class="meta">
+      <span class="live"><i></i><b>Online</b></span>
+      <span>Agent SDK <b>connesso</b></span>
+      <span>Voce <b>on-device</b></span>
+      <span id="clock">--:--</span>
+    </div>
+  </header>
+
+  <main class="stage">
+    <aside class="rail" aria-label="Controlli di Bubo">
+      <p class="label">Stato</p>
+      <div class="states" id="states"></div>
+
+      <p class="label gap">Forma <span id="shapeCount"></span></p>
+      <div class="shapes" id="shapes"></div>
+      <div class="variant">
+        <label for="variant" class="label" style="margin:0">Variante</label>
+        <span class="vnum" id="vnum">#0000</span>
+        <button type="button" class="dice" id="dice" aria-label="Variante casuale">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+        </button>
+      </div>
+      <input type="range" id="variant" min="0" max="999" value="0" aria-label="Variante della forma">
+      <p class="total" id="total"></p>
+    </aside>
+
+    <div class="orbwrap">
+      <svg class="hud" viewBox="0 0 400 400" aria-hidden="true">
+        <g class="spin"><circle cx="200" cy="200" r="186" fill="none" stroke="rgba(255,190,150,.16)" stroke-width=".6" stroke-dasharray="1 5"/></g>
+        <g class="spin r" id="ticks"></g>
+        <circle cx="200" cy="200" r="150" fill="none" stroke="rgba(255,206,180,.06)" stroke-width=".6"/>
+        <path d="M200 8 v10 M200 382 v10 M8 200 h10 M382 200 h10" stroke="rgba(255,190,150,.35)" stroke-width=".8"/>
+      </svg>
+      <div class="formtag" id="formtag">Forma <b>Orb</b></div>
+      <canvas id="orb" aria-label="Orb di Bubo"></canvas>
+      <div class="ring" id="ring"></div>
+      <div class="caption" id="caption" aria-live="polite"></div>
+    </div>
+
+    <aside class="router" aria-label="Router dei modelli">
+      <p class="label">Router · modello attivo</p>
+      <p class="sel-name" id="selName">Claude Sonnet 5.5</p>
+      <p class="sel-vendor" id="selVendor">Anthropic</p>
+      <dl>
+        <dt>Motore</dt><dd><span class="engine" id="selEngine">Gateway</span></dd>
+        <dt>Perché</dt><dd id="selWhy">Modello predefinito, equilibrio tra qualità e velocità.</dd>
+        <dt>Forma</dt><dd id="selShape">Orb</dd>
+        <dt>Latenza</dt><dd id="selLat">~ 0,9 s al primo token</dd>
+        <dt>Costo</dt><dd><span class="cost" id="selCost"></span></dd>
+      </dl>
+      <div class="log" id="log"><span class="log-empty">Nessuna richiesta ancora. Prova un suggerimento qui sotto.</span></div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="dock">
+      <form id="form" autocomplete="off">
+        <input id="q" name="q" placeholder="Chiedi a Bubo…" aria-label="Prompt per Bubo">
+        <button type="button" class="mic" id="mic" aria-pressed="false" aria-label="Simula ascolto vocale">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <button type="submit" class="send" aria-label="Invia">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+    </div>
+    <div class="suggest" id="suggest">
+      <button type="button">Sistema il bug di login nel repo</button>
+      <button type="button">Che meteo fa domani?</button>
+      <button type="button">Metti una playlist per concentrarmi</button>
+      <button type="button">Rispondi alla mail di Luca</button>
+      <button type="button">Fissa una riunione domani</button>
+      <button type="button">Scrivimi una storia breve sul mare</button>
+      <button type="button">Quanto ho speso questo mese?</button>
+      <button type="button">Cerca un volo per Lisbona</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const hex = h => [1,3,5].map(i => parseInt(h.slice(i,i+2),16)/255);
+
+/* ---------- modelli ---------- */
+const MODELS = [
+  {n:"Claude Opus 5.5",v:"Anthropic",c:"#d97757",h:"#ffb089",spike:.15,eng:"Agent SDK",lat:"~ 1,6 s",cost:4},
+  {n:"Claude Sonnet 5.5",v:"Anthropic",c:"#d97757",h:"#ffc3a0",spike:0,eng:"Gateway",lat:"~ 0,9 s",cost:3},
+  {n:"Claude Haiku 4.5",v:"Anthropic",c:"#e38a63",h:"#ffd9c2",spike:0,eng:"Gateway",lat:"~ 0,3 s",cost:1},
+  {n:"Claude Fable 5.1",v:"Anthropic",c:"#c9603f",h:"#ffa27a",spike:.3,eng:"Gateway",lat:"~ 1,8 s",cost:5},
+  {n:"Gemini Pro",v:"Google",c:"#5b7fd9",h:"#b9ccff",spike:.1,eng:"Gateway",lat:"~ 1,1 s",cost:3},
+  {n:"Gemini Flash",v:"Google",c:"#6f95e8",h:"#cfdcff",spike:0,eng:"Gateway",lat:"~ 0,4 s",cost:1},
+  {n:"GPT",v:"OpenAI",c:"#4fae95",h:"#b5f0de",spike:.1,eng:"Gateway",lat:"~ 1,0 s",cost:3},
+  {n:"Llama",v:"Meta",c:"#6f7de0",h:"#c6ccff",spike:.2,eng:"Gateway",lat:"~ 0,6 s",cost:1},
+  {n:"Mistral Large",v:"Mistral",c:"#e0a44a",h:"#ffe0a8",spike:.1,eng:"Gateway",lat:"~ 0,8 s",cost:2},
+  {n:"DeepSeek",v:"DeepSeek",c:"#4d7fc9",h:"#b3cff5",spike:.25,eng:"Gateway",lat:"~ 1,2 s",cost:1},
+  {n:"Qwen",v:"Alibaba",c:"#8b6fe0",h:"#d6c8ff",spike:.2,eng:"Gateway",lat:"~ 0,8 s",cost:1},
+  {n:"Grok",v:"xAI",c:"#b7b0aa",h:"#f2eeea",spike:.35,eng:"Gateway",lat:"~ 1,0 s",cost:3},
+  {n:"Command",v:"Cohere",c:"#d08bb0",h:"#ffd3ea",spike:.1,eng:"Gateway",lat:"~ 0,9 s",cost:2},
+  {n:"Perplexity Sonar",v:"Perplexity",c:"#3fa7b5",h:"#b0eef5",spike:.1,eng:"Gateway",lat:"~ 1,4 s",cost:2},
+];
+const idx = n => MODELS.findIndex(m => m.n === n);
+const RULES = [
+  {re:/bug|codice|repo|refactor|test|build|swift|deploy/i, m:"Claude Opus 5.5", why:"Lavoro sul codice: serve l'agente completo con file, terminale e strumenti."},
+  {re:/foto|immagine|screenshot|whiteboard|video/i, m:"Gemini Pro", why:"Input visivo: modello multimodale con visione forte."},
+  {re:/cerca|novit|notizie|ultime/i, m:"Perplexity Sonar", why:"Serve il web aggiornato con fonti citate."},
+  {re:/storia|poesia|racconto|creativ|slogan/i, m:"Claude Fable 5.1", why:"Scrittura creativa lunga: qualità del testo prima della velocità."},
+  {re:/traduci|veloce|breve|meteo|playlist|musica/i, m:"Claude Haiku 4.5", why:"Compito semplice: risposta quasi istantanea a costo minimo."},
+  {re:/speso|budget|calcola|strategia|dimostra/i, m:"Claude Opus 5.5", why:"Ragionamento a più passaggi su numeri e dati."},
+];
+
+/* ---------- campi di forma: 12 × 1000 varianti procedurali ---------- */
+const FIELDS = [
+  {n:"Orb"},
+  {n:"Codice",re:/codice|bug|repo|refactor|script|build|deploy/i,say:"Apro il repo e controllo il flusso di login. Ti mostro il diff prima di applicarlo."},
+  {n:"Meteo",re:/meteo|pioggia|sole|temperatura|neve|ombrello/i,say:"Controllo le previsioni di domani e ti dico se serve l'ombrello."},
+  {n:"Musica",re:/musica|canzone|playlist|brano|ascoltare/i,say:"Metto una playlist lo-fi per la concentrazione, volume basso."},
+  {n:"Tempo",re:/calendario|riunione|sveglia|promemoria|orario|appuntamento/i,say:"Domani alle 15 sei libero. Blocco lo slot?"},
+  {n:"Mail",re:/mail|email|messaggio|rispondi/i,say:"Ho preparato la bozza di risposta. Te la leggo prima di inviarla."},
+  {n:"Ricerca",re:/cerca|trova|novit|notizie|foto|immagine|whiteboard/i,say:"Cerco e ti riassumo le fonti principali."},
+  {n:"Creativo",re:/storia|poesia|racconto|idea|disegn|creativ/i,say:"Un faro spento, una barca senza nome e una marea che torna ogni notte alla stessa ora…"},
+  {n:"Finanza",re:/soldi|prezzo|borsa|budget|speso|spesa|fattur|euro/i,say:"Metto in fila le spese del mese per categoria."},
+  {n:"Salute",re:/salute|cuore|allenamento|sonno|dieta|palestra/i,say:"Preparo un promemoria per l'allenamento di stasera."},
+  {n:"Viaggi",re:/viaggio|volo|hotel|treno|vacanza|lisbona/i,say:"Confronto voli e treni per le date che mi dai."},
+  {n:"Chat",say:"Ci sono. Dimmi pure come posso aiutarti."},
+  {n:"Agente",say:"Avvio l'agente sul progetto…"},
+];
+const fieldOf = q => { for (let i=1;i<FIELDS.length;i++) if (FIELDS[i].re && FIELDS[i].re.test(q)) return i; return 11; };
+function route(q){
+  for (const r of RULES) if (r.re.test(q)) return {i:idx(r.m), why:r.why};
+  return {i:idx("Claude Sonnet 5.5"), why:"Richiesta generica: modello predefinito, equilibrio tra qualità e velocità."};
+}
+function params(field, seed){
+  let a = (field*1000 + seed + 1) * 2654435761 >>> 0;
+  const r = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  return [[r(),r(),r(),r()],[r(),r(),r(),r()]];
+}
+
+/* ---------- stati ---------- */
+const STATES = [
+  {id:"idle",n:"Riposo",p:{amp:.07,freq:1.5,speed:.3,swirl:0,glow:.9}},
+  {id:"listen",n:"Ascolto",p:{amp:.1,freq:2.1,speed:.8,swirl:0,glow:1.1}},
+  {id:"think",n:"Pensiero",p:{amp:.1,freq:3.0,speed:1.3,swirl:1.4,glow:1.2}},
+  {id:"speak",n:"Parla",p:{amp:.08,freq:1.8,speed:.6,swirl:.1,glow:1.25}},
+  {id:"work",n:"Lavora",p:{amp:.14,freq:3.6,speed:1.0,swirl:.4,glow:1.1}},
+];
+let state = "idle";
+const statesEl = $("#states");
+STATES.forEach((s,k) => {
+  const b = document.createElement("button");
+  b.className = "state"; b.type = "button"; b.dataset.id = s.id;
+  b.innerHTML = `<span class="dot"></span><span class="n">${s.n}</span><span class="k">${k+1}</span>`;
+  b.onclick = () => setState(s.id);
+  statesEl.appendChild(b);
+});
+function setState(id){
+  state = id;
+  statesEl.querySelectorAll(".state").forEach(b => b.setAttribute("aria-pressed", b.dataset.id === id));
+  $("#mic").setAttribute("aria-pressed", id === "listen");
+}
+setState("idle");
+
+/* ---------- morph ---------- */
+const morph = {A:0,B:0,PA:params(0,0),PB:params(0,0),mix:1,seed:0};
+const shapesEl = $("#shapes");
+FIELDS.forEach((f,i) => {
+  const b = document.createElement("button");
+  b.className = "shape"; b.type = "button"; b.textContent = f.n; b.dataset.i = i;
+  b.onclick = () => setShape(i, i === morph.B ? morph.seed : Math.floor(Math.random()*1000));
+  shapesEl.appendChild(b);
+});
+$("#shapeCount").textContent = `${FIELDS.length-1} campi`;
+$("#total").textContent = `${FIELDS.length-1} campi × 1.000 varianti = ${((FIELDS.length-1)*1000).toLocaleString("it-IT")} forme`;
+function setShape(i, seed){
+  const showA = morph.mix < .5;
+  morph.A = showA ? morph.A : morph.B; morph.PA = showA ? morph.PA : morph.PB;
+  morph.B = i; morph.PB = params(i, seed); morph.seed = seed; morph.mix = 0;
+  const tag = i === 0 ? "Orb" : `${FIELDS[i].n} · #${String(seed).padStart(4,"0")}`;
+  $("#formtag").innerHTML = i === 0 ? "Forma <b>Orb</b>" : `Forma <b>${FIELDS[i].n}</b> · #${String(seed).padStart(4,"0")}`;
+  $("#selShape").textContent = tag;
+  $("#vnum").textContent = "#" + String(seed).padStart(4,"0");
+  $("#variant").value = seed;
+  shapesEl.querySelectorAll(".shape").forEach(b => b.setAttribute("aria-pressed", +b.dataset.i === i));
+}
+setShape(0,0);
+$("#variant").addEventListener("input", e => setShape(morph.B === 0 ? 1 : morph.B, +e.target.value));
+$("#dice").addEventListener("click", () => setShape(morph.B === 0 ? 1 + Math.floor(Math.random()*12) : morph.B, Math.floor(Math.random()*1000)));
+
+addEventListener("keydown", e => {
+  if (e.target.tagName === "INPUT") return;
+  const k = +e.key; if (k >= 1 && k <= 5) setState(STATES[k-1].id);
+});
+
+/* ---------- router panel ---------- */
+let sel = idx("Claude Sonnet 5.5");
+function showModel(i, why){
+  const m = MODELS[i];
+  $("#selName").textContent = m.n; $("#selVendor").textContent = m.v;
+  $("#selEngine").textContent = m.eng; $("#selLat").textContent = m.lat + " al primo token";
+  if (why) $("#selWhy").textContent = why;
+  $("#selCost").innerHTML = [1,2,3,4,5].map(x => `<i class="${x<=m.cost?'on':''}"></i>`).join("");
+}
+showModel(sel);
+const logEl = $("#log"); let logN = 0;
+function log(q, m){
+  if (!logN++) logEl.innerHTML = "";
+  const r = document.createElement("div"); r.className = "log-row";
+  r.innerHTML = `<span></span><span></span>`;
+  r.children[0].textContent = q; r.children[1].textContent = m.split(" ").slice(-2).join(" ");
+  logEl.prepend(r);
+  while (logEl.children.length > 4) logEl.lastChild.remove();
+}
+
+/* ---------- HUD ---------- */
+let tk = "";
+for (let a=0;a<360;a+=3){
+  const r1 = 168, r2 = a%30===0 ? 158 : 163, t = a*Math.PI/180;
+  tk += `<line x1="${200+r1*Math.cos(t)}" y1="${200+r1*Math.sin(t)}" x2="${200+r2*Math.cos(t)}" y2="${200+r2*Math.sin(t)}" stroke="rgba(255,190,150,${a%30===0?.4:.14})" stroke-width=".7"/>`;
+}
+$("#ticks").innerHTML = tk;
+const ring = $("#ring");
+const chips = MODELS.map(m => { const c = document.createElement("span"); c.className="chip"; c.textContent=m.n; ring.appendChild(c); return c; });
+let ringAngle = 0, ringSpeed = .08, hot = -1, spinning = false;
+
+/* ---------- WebGL ---------- */
+const cv = $("#orb");
+const gl = cv.getContext("webgl", {premultipliedAlpha:true, alpha:true, antialias:false});
+const VS = `attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}`;
+const FS = `precision highp float;
+uniform vec2 uRes;uniform float uT,uAmp,uFreq,uSpeed,uSwirl,uSpike,uGlow,uAudio,uSA,uSB,uMix;
+uniform vec4 uPA,uQA,uPB,uQB;uniform vec3 uA,uB;
+vec3 m289(vec3 x){return x-floor(x*(1./289.))*289.;}vec4 m289(vec4 x){return x-floor(x*(1./289.))*289.;}
+vec4 perm(vec4 x){return m289(((x*34.)+1.)*x);}vec4 tis(vec4 r){return 1.79284291400159-.85373472095314*r;}
+float sn(vec3 v){const vec2 C=vec2(1./6.,1./3.);const vec4 D=vec4(0.,.5,1.,2.);
+vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.-g;
+vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+C.yyy;vec3 x3=x0-D.yyy;
+i=m289(i);vec4 p=perm(perm(perm(i.z+vec4(0.,i1.z,i2.z,1.))+i.y+vec4(0.,i1.y,i2.y,1.))+i.x+vec4(0.,i1.x,i2.x,1.));
+float n_=.142857142857;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.*x_);
+vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+vec4 s0=floor(b0)*2.+1.;vec4 s1=floor(b1)*2.+1.;vec4 sh=-step(h,vec4(0.));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+vec4 nr=tis(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=nr.x;p1*=nr.y;p2*=nr.z;p3*=nr.w;
+vec4 m=max(.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.);m=m*m;
+return 42.*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
+float sdBox(vec3 p,vec3 b,float r){vec3 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.)-r;}
+float sdTorus(vec3 p,vec2 t){vec2 q=vec2(length(p.xz)-t.x,p.y);return length(q)-t.y;}
+float sdCyl(vec3 p,float h,float r){vec2 d=abs(vec2(length(p.xz),p.y))-vec2(r,h);return min(max(d.x,d.y),0.)+length(max(d,0.));}
+float sdCap(vec3 p,vec3 a,vec3 b,float r){vec3 pa=p-a,ba=b-a;float h=clamp(dot(pa,ba)/dot(ba,ba),0.,1.);return length(pa-ba*h)-r;}
+float dot2(vec2 v){return dot(v,v);}
+float sdHeart(vec2 p){p.x=abs(p.x);if(p.y+p.x>1.)return sqrt(dot2(p-vec2(.25,.75)))-sqrt(2.)/4.;
+return sqrt(min(dot2(p-vec2(0.,1.)),dot2(p-.5*max(p.x+p.y,0.))))*sign(p.x-p.y);}
+float extrude(float d2,float z,float th,float r){return length(vec2(max(d2,0.),max(abs(z)-th,0.)))+min(max(d2,abs(z)-th),0.)-r;}
+
+float shape(vec3 p,float id,vec4 P,vec4 Q){
+  if(id<.5)return length(p)-.92;
+  p.xz*=rot((Q.x-.5)*1.1+uT*(.12+Q.y*.2)*(Q.z>.5?1.:-1.));
+  p.yz*=rot((Q.w-.5)*.7);
+  float s=.92+Q.y*.14;p/=s;
+  float d=1e3;
+  if(id<1.5){ /* codice */
+    vec3 q=p;q.xz*=rot(q.y*(P.x-.5)*2.4);
+    d=sdBox(q,vec3(.55),.04+P.y*.12);
+    float c=min(min(length(q.xy),length(q.yz)),length(q.xz))-(.14+P.w*.16);
+    if(P.z>.3)d=max(d,-c);
+  }else if(id<2.5){ /* meteo */
+    float k=.12+P.y*.18;
+    d=length(p-vec3(-.42,-.06,0.))-(.28+.1*P.x);
+    d=smin(d,length(p-vec3(.02,.16,0.))-(.4+.1*P.z),k);
+    d=smin(d,length(p-vec3(.44,-.04,0.))-(.28+.08*P.w),k);
+    d=smin(d,sdBox(p-vec3(0.,-.2,0.),vec3(.58,.14,.24),.13),k);
+    if(P.x>.55){for(int i=0;i<3;i++){float f=float(i);vec3 c=vec3(-.3+f*.3,-.62-mod(uT*.6+f*.37,1.)*.3,0.);d=min(d,length(p-c)-.055);}}
+  }else if(id<3.5){ /* musica */
+    vec3 q=p.xzy;float a=atan(q.z,q.x);float n=2.+floor(P.z*6.);
+    q.y+=sin(a*n+uT*2.)*P.x*.2;
+    d=sdTorus(q,vec2(.6,.09+P.y*.08));
+    if(P.w>.5)d=min(d,length(p)-.16-P.w*.08);
+  }else if(id<4.5){ /* tempo */
+    vec3 q=p.xzy;d=sdTorus(q,vec2(.68,.06+.05*P.y));
+    float a1=uT*.6+P.x*6.28,a2=uT*.05+P.z*6.28;
+    d=min(d,sdCap(p,vec3(0.),vec3(sin(a1),cos(a1),0.)*.52,.03));
+    d=min(d,sdCap(p,vec3(0.),vec3(sin(a2),cos(a2),0.)*.34,.05));
+    d=min(d,length(p)-.08);
+    if(P.w>.45)d=min(d,sdCyl(q+vec3(0.,.07,0.),.015,.64));
+  }else if(id<5.5){ /* mail */
+    vec3 q=p;q.xy*=rot((P.z-.5)*.6);
+    float w=.66+P.x*.14,h=.42+P.y*.1,v=-.05+P.w*.12;
+    d=sdBox(q,vec3(w,h,.07),.05);
+    d=min(d,sdCap(q,vec3(-w+.06,h-.04,.09),vec3(0.,v,.09),.03));
+    d=min(d,sdCap(q,vec3(w-.06,h-.04,.09),vec3(0.,v,.09),.03));
+  }else if(id<6.5){ /* ricerca */
+    vec3 q=p;q.xy*=rot((P.x-.5)*1.2);
+    float rr=.36+P.y*.1;vec3 c=vec3(-.15,.15,0.);
+    d=sdTorus((q-c).xzy,vec2(rr,.07+P.z*.03));
+    d=min(d,sdCap(q,c+vec3(.7071,-.7071,0.)*(rr+.06),vec3(.62,-.62,0.),.09));
+    if(P.w>.5)d=min(d,sdCyl((q-c).xzy,.012,rr-.03));
+  }else if(id<7.5){ /* creativo */
+    float n=4.+floor(P.z*6.);float a=atan(p.y,p.x);
+    float r=.5+(.12+.18*P.y)*cos(n*a+uT*.3);
+    d=extrude((length(p.xy)-r)*.7,p.z,.08+.1*P.w,.06);
+  }else if(id<8.5){ /* finanza */
+    vec3 q=p;q.yz*=rot(.6);
+    float cnt=2.+floor(P.z*4.);
+    for(int i=0;i<5;i++){float f=float(i);if(f>=cnt)break;
+      vec3 c=q-vec3(sin(f*1.7+P.x*6.)*.07,(f-(cnt-1.)*.5)*.15,cos(f*2.3+P.w*6.)*.07);
+      d=min(d,sdCyl(c,.05,.46+P.y*.08)-.015);}
+  }else if(id<9.5){ /* salute */
+    float pu=1.+.05*sin(uT*5.)*(.4+P.x);
+    vec2 hp=p.xy/(.95*pu)+vec2(0.,.6);
+    d=extrude(sdHeart(hp)*.95*pu,p.z,.12+.1*P.y,.12);
+  }else if(id<10.5){ /* viaggi */
+    vec3 q=p;q.xz*=rot(q.y*(P.x-.5)*2.);
+    vec3 a=abs(q*vec3(1.,.75+P.y*.5,1.));
+    d=(a.x+a.y+a.z-.8)*.5-.02;
+    if(P.z>.5)d=min(d,sdTorus(q,vec2(.82,.022)));
+  }else if(id<11.5){ /* chat */
+    vec3 q=p;
+    d=sdBox(q-vec3(0.,.08,0.),vec3(.62+P.x*.1,.38+P.y*.08,.16),.15);
+    d=smin(d,sdCap(q,vec3(-.3,-.2,0.),vec3(-.5-P.z*.12,-.64,0.),.06),.1);
+    if(P.w>.3){for(int i=0;i<3;i++){float f=float(i);d=max(d,-(length(q-vec3((f-1.)*.26,.08,.26))-.075));}}
+  }else{ /* agente */
+    vec3 q=p;q.xy*=rot(uT*.4);
+    float n=8.+floor(P.z*8.);float a=atan(q.y,q.x);
+    float r=.52+.1*smoothstep(-.3,.3,cos(n*a));
+    float d2=max(length(q.xy)-r,-(length(q.xy)-(.16+P.y*.1)));
+    d=extrude(d2*.8,q.z,.1+P.w*.08,.03);
+  }
+  return d*s;
+}
+float map(vec3 p){
+  vec3 q=p;q.xz*=rot(uSwirl*.7*sin(uT*.6+p.y*2.2)*(1.-uMix*step(.5,uSB))+uT*.12*(1.-step(.5,uSB)));
+  float na=mix(uSA<.5?1.:.28,uSB<.5?1.:.28,uMix);
+  float n=sn(q*uFreq+vec3(0.,0.,uT*uSpeed));
+  float n2=sn(q*uFreq*2.2-vec3(uT*uSpeed*.6));
+  float sp=pow(max(0.,sn(q*4.5+uT*.5)),3.)*uSpike;
+  float a=(uAmp+uAudio*.22)*na;
+  float e=uMix*uMix*(3.-2.*uMix);
+  float d=mix(shape(q,uSA,uPA,uQA),shape(q,uSB,uPB,uQB),e);
+  return d-(n*.7+n2*.3)*a-sp*.4*na;
+}
+void main(){
+  vec2 uv=(gl_FragCoord.xy*2.-uRes)/uRes.y;
+  vec3 ro=vec3(0.,0.,3.),rd=normalize(vec3(uv*.72,-1.6));
+  float t=0.,md=9.;bool hit=false;
+  for(int i=0;i<90;i++){vec3 p=ro+rd*t;float d=map(p);md=min(md,d);if(d<.002){hit=true;break;}t+=d*.6;if(t>6.)break;}
+  vec3 col=vec3(0.);float al=0.;
+  if(hit){
+    vec3 p=ro+rd*t;vec2 e=vec2(.002,0.);
+    vec3 n=normalize(vec3(map(p+e.xyy)-map(p-e.xyy),map(p+e.yxy)-map(p-e.yxy),map(p+e.yyx)-map(p-e.yyx)));
+    vec3 L=normalize(vec3(-.5,.7,.6));
+    float dif=clamp(dot(n,L),0.,1.);float fr=pow(1.-clamp(dot(n,-rd),0.,1.),2.6);
+    float band=sn(p*2.6+vec3(0.,uT*.4,0.))*.5+.5;
+    col=mix(uA*.18,uA*.95,dif*.8+.1);
+    col+=uB*pow(band,3.)*.45;
+    col+=uB*fr*1.35;
+    col+=vec3(1.,.93,.88)*pow(clamp(dot(reflect(-L,n),-rd),0.,1.),28.)*.55;
+    al=1.;
+  }
+  float g=exp(-max(md,0.)*5.5)*uGlow*.55;
+  if(!hit){col=uA*g+uB*g*g*.4;al=clamp(g,0.,1.);}
+  col=col/(1.+col*.35);
+  gl_FragColor=vec4(col,al);
+}`;
+function sh(type, src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))console.error(gl.getShaderInfoLog(s));return s;}
+const U = {};
+if (gl){
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1,3,-1,-1,3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  ["uRes","uT","uAmp","uFreq","uSpeed","uSwirl","uSpike","uGlow","uAudio","uA","uB","uSA","uSB","uMix","uPA","uQA","uPB","uQB"].forEach(k => U[k] = gl.getUniformLocation(pr,k));
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+}
+function resize(){
+  const dpr = Math.min(devicePixelRatio||1, 1.5);
+  const r = cv.getBoundingClientRect();
+  cv.width = Math.max(1, r.width*dpr|0); cv.height = Math.max(1, r.height*dpr|0);
+  gl && gl.viewport(0,0,cv.width,cv.height);
+}
+addEventListener("resize", resize); resize();
+
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const cur = {amp:.07,freq:1.5,speed:.3,swirl:0,glow:.9,spike:0,audio:0};
+const cA = hex(MODELS[sel].c), cB = hex(MODELS[sel].h);
+let last = performance.now(), T = 0;
+
+function frame(now){
+  const dt = Math.min(.05,(now-last)/1000); last = now; T += dt*(reduced?.35:1);
+  const st = STATES.find(s => s.id===state).p, m = MODELS[sel];
+  const k = Math.min(1, dt*3);
+  for (const key in st) cur[key] += (st[key]-cur[key])*k;
+  cur.spike += (m.spike + (state==="work"?.3:0) - cur.spike)*k;
+  const talk = state==="speak"||state==="listen";
+  const au = talk ? Math.max(0,(Math.sin(T*11)*.5+.5)*(Math.sin(T*2.7+1)*.5+.5)*(state==="speak"?1:.7) + Math.sin(T*23)*.08) : 0;
+  cur.audio += (au-cur.audio)*Math.min(1,dt*12);
+  const tA = hex(m.c), tB = hex(m.h);
+  for (let i=0;i<3;i++){ cA[i]+=(tA[i]-cA[i])*k*.8; cB[i]+=(tB[i]-cB[i])*k*.8; }
+  morph.mix = Math.min(1, morph.mix + dt/(reduced?.4:1.1));
+
+  if (gl){
+    gl.clearColor(0,0,0,0); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniform2f(U.uRes,cv.width,cv.height); gl.uniform1f(U.uT,T);
+    gl.uniform1f(U.uAmp,cur.amp); gl.uniform1f(U.uFreq,cur.freq); gl.uniform1f(U.uSpeed,cur.speed);
+    gl.uniform1f(U.uSwirl,cur.swirl); gl.uniform1f(U.uSpike,cur.spike); gl.uniform1f(U.uGlow,cur.glow);
+    gl.uniform1f(U.uAudio,cur.audio); gl.uniform3fv(U.uA,cA); gl.uniform3fv(U.uB,cB);
+    gl.uniform1f(U.uSA,morph.A); gl.uniform1f(U.uSB,morph.B); gl.uniform1f(U.uMix,morph.mix);
+    gl.uniform4fv(U.uPA,morph.PA[0]); gl.uniform4fv(U.uQA,morph.PA[1]);
+    gl.uniform4fv(U.uPB,morph.PB[0]); gl.uniform4fv(U.uQB,morph.PB[1]);
+    gl.drawArrays(gl.TRIANGLES,0,3);
+  }
+
+  ringAngle += ringSpeed*dt*(reduced?.3:1);
+  const W = ring.clientWidth, R = W*.47, N = MODELS.length;
+  chips.forEach((c,i) => {
+    const a = ringAngle + i/N*Math.PI*2;
+    const x = Math.cos(a)*R, y = Math.sin(a)*R*.3 + W*.02, z = Math.sin(a);
+    c.style.transform = `translate(-50%,-50%) translate(${x}px,${y}px) scale(${.72+(z+1)*.2})`;
+    c.style.opacity = (spinning || i===sel) ? (.35+(z+1)*.32) : (.12+(z+1)*.22);
+    c.style.zIndex = z>0 ? 3 : 0;
+    c.classList.toggle("hot", i===hot);
+    c.classList.toggle("sel", i===sel && !spinning);
+  });
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- flusso prompt ---------- */
+const cap = $("#caption");
+let busy = false, typeTimer, backTimer;
+function say(who, text, done){
+  clearInterval(typeTimer);
+  cap.innerHTML = `<span class="who"></span><span class="t"></span>`;
+  cap.querySelector(".who").textContent = who;
+  const t = cap.querySelector(".t"); let i = 0;
+  typeTimer = setInterval(() => { t.textContent = text.slice(0, ++i); if (i >= text.length){ clearInterval(typeTimer); done && setTimeout(done, 1600);} }, 26);
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function ask(q){
+  if (busy || !q.trim()) return; busy = true; clearTimeout(backTimer);
+  setState("think"); if (morph.B !== 0) setShape(0, 0);
+  say("Router", "Analizzo la richiesta…");
+  const r = route(q), f = fieldOf(q);
+  spinning = true; ringSpeed = 2.4;
+  const t0 = performance.now();
+  while (performance.now()-t0 < 1500){ hot = (hot+1) % MODELS.length; await wait(70 + (performance.now()-t0)/14); }
+  hot = -1; spinning = false; ringSpeed = .08;
+  sel = r.i; showModel(sel, r.why); log(q, MODELS[sel].n);
+  const N = MODELS.length, target = Math.PI/2 - sel/N*Math.PI*2;
+  const start = ringAngle, delta = ((target-start)%(Math.PI*2)+Math.PI*3)%(Math.PI*2)-Math.PI;
+  const s0 = performance.now();
+  await new Promise(res => { (function step(){ const p = Math.min(1,(performance.now()-s0)/700), e = 1-Math.pow(1-p,3); ringAngle = start+delta*e; p<1 ? requestAnimationFrame(step) : res(); })(); });
+  if (MODELS[sel].eng === "Agent SDK"){ setState("work"); setShape(12, Math.floor(Math.random()*1000)); say(MODELS[sel].n, FIELDS[12].say); await wait(1900); }
+  setShape(f, Math.floor(Math.random()*1000));
+  setState("speak");
+  say(MODELS[sel].n, FIELDS[f].say, () => {
+    setState("idle"); busy = false;
+    backTimer = setTimeout(() => { if (!busy) setShape(0,0); }, 5000);
+  });
+}
+$("#form").addEventListener("submit", e => { e.preventDefault(); const q = $("#q").value; $("#q").value = ""; ask(q); });
+$("#suggest").addEventListener("click", e => { if (e.target.tagName === "BUTTON") ask(e.target.textContent); });
+$("#mic").addEventListener("click", () => {
+  if (busy) return;
+  if (state === "listen"){ setState("idle"); cap.textContent = ""; return; }
+  setState("listen"); say("In ascolto", "Hey Bubo, che meteo fa domani?");
+  setTimeout(() => { if (state === "listen") ask("Che meteo fa domani?"); }, 3000);
+});
+
+const clock = $("#clock");
+const tick = () => clock.textContent = new Date().toLocaleTimeString("it-IT",{hour:"2-digit",minute:"2-digit"});
+tick(); setInterval(tick, 15000);
+})();
+</script>
