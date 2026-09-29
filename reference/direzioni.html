@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="it">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bubo · Direzioni</title>
+<style>
+/* Confronto delle direzioni di colore: stessa scena, cambiano solo i token del contenitore. L'Orb prende sempre la Tinta del fornitore. */
+:root{
+  --ink:#0a0b0d;--surface:rgba(232,236,242,.035);--line:rgba(226,232,240,.09);--line-hi:rgba(226,232,240,.24);
+  --fg:#eceef1;--muted:#8e939b;--faint:#5a5f66;--sel:#eceef1;--sel-ink:#0a0b0d;--signal:#d6f26b;--ok:#7fc8a0;--danger:#f2555a;
+  --tint:#d97757;--tint-hi:#ffc3a0;
+  color-scheme:dark;
+}
+[data-dir="ossidiana"]{--ink:#0d0c0b;--surface:rgba(239,234,226,.035);--line:rgba(239,234,226,.09);--line-hi:rgba(205,187,147,.34);
+  --fg:#efeae2;--muted:#968f84;--faint:#5e5850;--sel:#cdbb93;--sel-ink:#15120d;--signal:#cdbb93}
+[data-dir="mezzanotte"]{--ink:#070a12;--surface:rgba(214,226,255,.04);--line:rgba(190,210,255,.10);--line-hi:rgba(158,195,255,.32);
+  --fg:#e6ecf7;--muted:#8591a6;--faint:#4f5a6e;--sel:#9ec3ff;--sel-ink:#07101f;--signal:#9ec3ff}
+[data-dir="attuale"]{--ink:#0c0a09;--surface:rgba(255,236,224,.035);--line:rgba(255,206,180,.11);--line-hi:rgba(255,190,150,.28);
+  --fg:#f4ebe4;--muted:#9b8a80;--faint:#5f524b;--sel:#ffb089;--sel-ink:#1a0e09;--signal:#ffb089;--ok:#8fd1a8;--danger:#e0685a}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--ink);color:var(--fg);font:14px/1.5 -apple-system,"SF Pro Text",system-ui,sans-serif;padding:20px 16px;transition:background .4s,color .4s}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+:focus-visible{outline:1px solid var(--fg);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.label{font:500 10px/1 ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:flex;gap:2px;padding:3px;border:1px solid var(--line);border-radius:10px;background:var(--surface);flex-wrap:wrap}
+.seg button{padding:6px 12px;border-radius:7px;color:var(--muted);font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--sel);color:var(--sel-ink)}
+.why{color:var(--muted);max-width:70ch;margin:0;min-height:3em}
+.stage{display:grid;grid-template-columns:230px minmax(0,1fr) 250px;gap:20px;align-items:center}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;backdrop-filter:blur(12px)}
+.row{display:grid;grid-template-columns:8px 1fr auto;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted)}
+.row i{width:6px;height:6px;border-radius:50%;background:var(--faint)}
+.row.on{background:color-mix(in srgb,var(--fg) 6%,transparent);color:var(--fg)}
+.row.on i{background:var(--fg)}
+.row.wait i{background:var(--signal);box-shadow:0 0 8px var(--signal)}
+.row.wait small{color:var(--signal)}
+.row.err i{background:var(--danger)}
+.row small{font:10.5px ui-monospace,"SF Mono",Menlo,monospace;color:var(--faint)}
+.orbwrap{position:relative;aspect-ratio:1;width:min(420px,100%);margin:0 auto;display:grid;place-items:center}
+.ringsvg{position:absolute;inset:0;width:100%;height:100%}
+.ringsvg circle,.ringsvg path{stroke:var(--line-hi)}
+.orb{width:62%;aspect-ratio:1;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,var(--tint-hi),var(--tint) 42%,color-mix(in srgb,var(--tint) 30%,#000) 100%);
+  box-shadow:0 0 90px color-mix(in srgb,var(--tint) 45%,transparent);animation:breathe 6s ease-in-out infinite;transition:background .5s,box-shadow .5s}
+@keyframes breathe{50%{transform:scale(1.03);border-radius:48% 52% 50% 50%}}
+.tag{position:absolute;top:2%;font:10.5px ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.tag b{color:var(--fg);font-weight:500}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:9px 14px;font-size:12.5px}
+dt{color:var(--faint);font:10.5px ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;padding-top:2px}
+dd{margin:0}
+.name{font-size:21px;font-weight:600;letter-spacing:-.01em;margin:0 0 2px}
+.vendor{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:12px;margin:0 0 14px}
+.vendor i{width:8px;height:8px;border-radius:50%;background:var(--tint)}
+.cost{display:inline-flex;gap:3px}.cost i{width:14px;height:4px;border-radius:2px;background:var(--faint)}.cost i.on{background:var(--fg)}
+.dock{display:flex;gap:8px;align-items:center;width:min(680px,100%);margin:0 auto;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 20px}
+.dock input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--fg);font:inherit;font-size:15px;padding:10px 0}
+.dock input::placeholder{color:var(--faint)}
+.send{width:40px;height:40px;border-radius:50%;background:var(--sel);color:var(--sel-ink);display:grid;place-items:center;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.pill.sig{border-color:color-mix(in srgb,var(--signal) 45%,transparent);color:var(--signal)}
+.pill.ok{color:var(--ok)}.pill.bad{color:var(--danger)}
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px}
+.sw{border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:11px}
+.sw div{height:40px}.sw p{margin:0;padding:6px 8px;color:var(--muted)}.sw b{display:block;color:var(--fg);font-weight:500}
+@media (max-width:900px){.stage{grid-template-columns:1fr}.orbwrap{order:-1;width:min(320px,100%)}}
+@media (prefers-reduced-motion:reduce){.orb{animation:none}}
+</style>
+<body data-dir="notte">
+<div class="wrap">
+  <header>
+    <p class="label">Direzione</p>
+    <div class="bar">
+      <div class="seg" id="dirs">
+        <button data-v="notte" aria-pressed="true">Notte · consigliata</button>
+        <button data-v="ossidiana">Ossidiana</button>
+        <button data-v="mezzanotte">Mezzanotte</button>
+        <button data-v="attuale">Attuale</button>
+      </div>
+      <div class="seg" id="tints"></div>
+    </div>
+    <p class="why" id="why"></p>
+  </header>
+
+  <main class="stage">
+    <aside class="panel" aria-label="Sessioni">
+      <p class="label">Sessioni</p>
+      <div class="row on"><i></i><span>Login OAuth</span><small>Lavora</small></div>
+      <div class="row wait"><i></i><span>Refactor router</span><small>Attende te</small></div>
+      <div class="row"><i></i><span>Galassia v2</span><small>Ferma</small></div>
+      <div class="row err"><i></i><span>Migrazione DB</span><small>Errore</small></div>
+      <p class="label" style="margin-top:18px">Segnali</p>
+      <div class="bar"><span class="pill sig">● Attende te</span><span class="pill ok">+128</span><span class="pill bad">−42</span></div>
+    </aside>
+
+    <div class="orbwrap">
+      <svg class="ringsvg" viewBox="0 0 400 400" aria-hidden="true" fill="none">
+        <circle cx="200" cy="200" r="186" stroke-width=".6" stroke-dasharray="1 5"/>
+        <circle cx="200" cy="200" r="150" stroke-width=".4" opacity=".5"/>
+        <path d="M200 8v10M200 382v10M8 200h10M382 200h10" stroke-width=".8"/>
+      </svg>
+      <div class="tag">Forma <b>Blob</b></div>
+      <div class="orb" role="img" aria-label="Orb con la Tinta del fornitore"></div>
+    </div>
+
+    <aside class="panel" aria-label="Router">
+      <p class="label">Router · modello attivo</p>
+      <p class="name" id="mname">Claude Sonnet 5.5</p>
+      <p class="vendor"><i></i><span id="mvendor">Anthropic</span></p>
+      <dl>
+        <dt>Motore</dt><dd>Agent SDK</dd>
+        <dt>Latenza</dt><dd class="mono">0,9 s</dd>
+        <dt>Costo</dt><dd><span class="cost"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></dd>
+      </dl>
+    </aside>
+  </main>
+
+  <div class="dock"><input placeholder="Chiedi a Bubo…" aria-label="Prompt"><button class="send" aria-label="Invia">→</button></div>
+
+  <section>
+    <p class="label">Token della direzione</p>
+    <div class="swatches" id="sw"></div>
+  </section>
+</div>
+<script>
+const WHY={
+  notte:"Contenitore acromatico, grafite fredda e testo color luna. L'unico colore è l'Orb: così ogni Tinta (arancio Anthropic, blu Google, verde OpenAI) si legge senza rivali. Selezione = luminosità, non tinta. Un solo colore di segnale, Lume (chartreuse pallido), riservato a «Attende te»: nessun fornitore lo usa.",
+  ossidiana:"Nero caldo con accento champagne. Molto lusso, ma lo champagne è parente di arancio Anthropic e ambra Mistral: con quelle Tinte il contenitore e l'Orb si confondono.",
+  mezzanotte:"Blu notte con accento ghiaccio. Evoca il gufo notturno, ma il blu è già di Google, Meta e DeepSeek, ed è il cliché «dark AI».",
+  attuale:"Palette di oggi: tutto il contenitore è tinto di arancio Anthropic. Con Tinte non Anthropic l'interfaccia contraddice l'Orb."
+};
+const TINTS=[["Anthropic","Claude Sonnet 5.5","#d97757","#ffc3a0"],["Google","Gemini Pro","#5b7fd9","#b9ccff"],["OpenAI","GPT","#4fae95","#b5f0de"],["Mistral","Mistral Large","#e0a44a","#ffe0a8"],["Alibaba","Qwen","#8b6fe0","#d6c8ff"]];
+const TOK=["ink","fg","muted","faint","sel","signal","ok","danger"];
+const $=s=>document.querySelector(s),b=document.body;
+const tints=$("#tints");
+TINTS.forEach(([v],i)=>{const x=document.createElement("button");x.textContent=v;x.dataset.i=i;x.setAttribute("aria-pressed",i==0);tints.append(x)});
+function paint(){
+  $("#why").textContent=WHY[b.dataset.dir];
+  const cs=getComputedStyle(b);
+  $("#sw").innerHTML=TOK.map(t=>{const c=cs.getPropertyValue("--"+t).trim();return `<div class="sw"><div style="background:${c}"></div><p><b>${t}</b><span class="mono">${c}</span></p></div>`}).join("");
+}
+$("#dirs").onclick=e=>{const x=e.target.closest("button");if(!x)return;b.dataset.dir=x.dataset.v;$("#dirs").querySelectorAll("button").forEach(y=>y.setAttribute("aria-pressed",y==x));paint()};
+tints.onclick=e=>{const x=e.target.closest("button");if(!x)return;const [v,n,c,h]=TINTS[x.dataset.i];b.style.setProperty("--tint",c);b.style.setProperty("--tint-hi",h);$("#mname").textContent=n;$("#mvendor").textContent=v;tints.querySelectorAll("button").forEach(y=>y.setAttribute("aria-pressed",y==x))};
+paint();
+</script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Bubo
 
-App agentica nativa macOS (Swift 6, SwiftUI, AppKit, Metal) con orb 3D, voce, router multi-modello e Claude Agent SDK. Riferimento visivo approvato: `reference/bubo.html`.
+App agentica nativa macOS (Swift 6, SwiftUI, AppKit, Metal) con orb 3D, voce, router multi-modello e Claude Agent SDK. Riferimento visivo: struttura in `reference/bubo.html`, colori e regole in `docs/design-system.md` (direzione Notte, ADR 0004).
 
 ## Agent skills
 
