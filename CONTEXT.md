@@ -105,6 +105,7 @@ _Avoid_: yolo, bypass
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
+- Si vede un solo **Orb** alla volta: quando l'**HUD** è aperto il **Panel** sparisce, e torna quando l'HUD si chiude
 - Lo **Stato** si applica a qualunque forma dell'**Orb**, **Blob** compreso
 - Il **Catalogo** contiene molte **Varianti**; ogni **Variante** appartiene a una sola **Categoria** e usa una sola **Forma**
 - Una **Forma** serve una sola **Variante**: i sinonimi non diventano Varianti nuove
