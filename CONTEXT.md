@@ -80,6 +80,24 @@ _Avoid_: stato, status
 Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e si riprendono solo come nuova **Sessione**.
 _Avoid_: sessioni importate
 
+### Permessi
+
+**Richiesta di permesso**:
+La domanda che Bubo pone prima che l'agente compia un'azione non ancora consentita. Risposte: No, Solo ora, Per questa Sessione, Sempre in questo Progetto.
+_Avoid_: popup, prompt, conferma
+
+**Regola di permesso**:
+Un'autorizzazione salvata che consente o nega un tipo di azione (es. un comando e i suoi argomenti) in un **Progetto** o ovunque.
+_Avoid_: whitelist, eccezione
+
+**Livello di rischio**:
+La gravità di un'azione, da 1 a 5: Lettura, Modifica reversibile, Rete, Distruttivo locale, Irreversibile esterno. Dai livelli 4–5 non nasce mai una **Regola di permesso**.
+_Avoid_: pericolosità, severità
+
+**Modalità autonoma**:
+Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
+_Avoid_: yolo, bypass
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
