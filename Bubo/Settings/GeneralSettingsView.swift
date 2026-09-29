@@ -1,0 +1,36 @@
+import SwiftUI
+
+/// Login item and Dock icon.
+struct GeneralSettingsView: View {
+    @AppStorage(DockIcon.defaultsKey) private var showsDockIcon = true
+    @State private var opensAtLogin = LoginItem.isEnabled
+    @State private var loginItemError: String?
+
+    var body: some View {
+        Form {
+            Toggle("Apri Bubo al login", isOn: $opensAtLogin)
+                .onChange(of: opensAtLogin) { _, enabled in updateLoginItem(enabled) }
+            if let loginItemError {
+                Text(loginItemError)
+                    .font(.callout)
+                    .foregroundStyle(.red)
+            }
+            Toggle("Mostra l'icona nel Dock", isOn: $showsDockIcon)
+                .onChange(of: showsDockIcon) { _, visible in DockIcon.apply(isVisible: visible) }
+            Text("Bubo resta sempre nella barra dei menu.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+        .formStyle(.grouped)
+    }
+
+    private func updateLoginItem(_ enabled: Bool) {
+        do {
+            try LoginItem.setEnabled(enabled)
+            loginItemError = nil
+        } catch {
+            loginItemError = String(localized: "Non riesco a cambiare l'apertura al login: \(error.localizedDescription)")
+            opensAtLogin = LoginItem.isEnabled
+        }
+    }
+}
