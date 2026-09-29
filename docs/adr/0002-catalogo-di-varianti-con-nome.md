@@ -1,0 +1,3 @@
+# Catalogo di Varianti con nome al posto di 12 campi × 1.000 seed
+
+Il brief prevedeva 12 campi, ciascuno con 1.000 varianti parametriche da seed. Abbiamo scelto un Catalogo di ~500 Varianti distinte con nome, ognuna con una Forma scritta a mano, e i 12 campi ridotti a Categorie. Le varianti da seed di una stessa forma sono sorelle quasi indistinguibili: non comunicano cosa sta facendo Bubo. Un nome invece si può far scegliere a un modello (router all'inizio, tag `⟦orb:nome⟧` durante il lavoro, fallback tool → Variante). Il costo è la produzione di centinaia di SDF, fatta a blocchi. Le forme si scrivono da zero: Jarvis (`~/dev/jarvis`) è solo uno spunto, niente port di codice. Niente omaggi a marchi o IP; i personaggi generici sono ammessi.
