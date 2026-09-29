@@ -4,6 +4,8 @@ Assistente agentico nativo per macOS, con un orb 3D che parla, ascolta e prende 
 
 ## Language
 
+### Orb
+
 **Orb**:
 La presenza visiva di Bubo: il corpo 3D animato che si vede sullo schermo, qualunque forma abbia in quel momento.
 _Avoid_: sfera, avatar, Jarvis
@@ -48,15 +50,51 @@ _Avoid_: transizione, blend
 La firma astratta di un fornitore di modelli (colore, texture, carattere) che l'**Orb** assume quando quel fornitore risponde.
 _Avoid_: logo, tema, brand
 
+### Lavoro
+
+**Progetto**:
+Una cartella su cui Bubo lavora, dentro o fuori da un repo git. Se è un repo, è il checkout principale.
+_Avoid_: repo, workspace, cartella di lavoro
+
+**Sessione**:
+Un'unità di lavoro durevole su un **Progetto**, con un titolo, una propria copia isolata del Progetto (se git) e la storia delle conversazioni dell'agente che la compongono.
+_Avoid_: task, workspace, chat, thread
+
+**Conversazione dell'agente**:
+Una singola sessione del motore agentico; una **Sessione** ne contiene una catena (ripresa, fork).
+_Avoid_: sessione (per questo significato)
+
+**Domanda**:
+Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Si può trasformare in **Sessione**.
+_Avoid_: chat, sessione rapida
+
+**Attività**:
+Cosa sta facendo una **Sessione** adesso: Lavora, Attende te, Ferma, Errore.
+_Avoid_: stato (riservato all'Orb)
+
+**Fase**:
+Dove si trova una **Sessione** nella sua vita: Aperta, In revisione, Fusa, Archiviata.
+_Avoid_: stato, status
+
+**Cronologia CLI**:
+Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e si riprendono solo come nuova **Sessione**.
+_Avoid_: sessioni importate
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
 - Lo **Stato** si applica a qualunque forma dell'**Orb**, **Blob** compreso
 - Il **Catalogo** contiene molte **Varianti**; ogni **Variante** appartiene a una sola **Categoria** e usa una sola **Forma**
-- Il router sceglie la **Variante** iniziale; durante il lavoro la **Variante** può cambiare a ogni fase
+- Il router sceglie la **Variante** iniziale; durante il lavoro la **Variante** può cambiare a ogni passo
 - **Stato**, **Variante** e **Tinta** sono indipendenti: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
+- Un **Progetto** ha molte **Sessioni**; al massimo una lavora direttamente sul checkout principale, le altre ciascuna nella propria copia isolata
+- **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
+- Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
+- Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 
 ## Flagged ambiguities
 
 - "campo" nel brief indicava sia la Categoria sia la forma scelta: risolto in **Categoria** (raggruppamento) e **Variante** (la cosa scelta).
 - "orb" indicava sia la presenza sia la forma sferica di riposo: risolto in **Orb** (presenza) e **Blob** (forma di riposo).
+- "stato" per la Sessione si scontrava con lo **Stato** dell'Orb: risolto in **Attività** e **Fase**.
+- "sessione" indicava sia l'unità di lavoro di Bubo sia quella del motore agentico: risolto in **Sessione** e **Conversazione dell'agente**.
