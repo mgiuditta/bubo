@@ -280,11 +280,21 @@ Criteri misurabili candidati:
 
 ## Mappa
 
-_da definire_
+Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16). Decisioni in [Regole di permesso: dove si salvano e come si mostrano](https://github.com/mgiuditta/bubo/issues/20).
+
+- **Moduli**: `Permissions/RiskClassifier` (Livello di rischio 1–5 da strumento, comando, percorso; livelli 4–5 senza "sempre"), `Permissions/RequestCenter` (coda delle Richieste per Sessione, risposta da HUD o notifica), `Permissions/RuleStore` (`localSettings` via SDK nel checkout principale; elenco e revoca dietro un adattatore su `listPermissionRules()`), `Permissions/TrustGate` (dialogo di fiducia alla prima Sessione; regole versionate passate con `settings`/`allowedTools`), `HUD/PermissionView` (comando evidenziato, diff per le scritture, file da cancellare, tieni premuto 1 s per il livello 5).
+- **Flusso**: `canUseTool` → classificazione → Richiesta (inline + notifica) → risposta → eventuale Regola.
+- **Casi limite**: Richiesta mentre la Sessione è in Modalità autonoma (livelli 4–5 chiedono comunque), percorsi critici della CLI (mai approvabili), regola scritta dalla CLI in parallelo, più Sessioni in attesa.
+- **Test**: `RiskClassifier` con una tabella di comandi → livello; compatibilità delle regole con la CLI.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **Nimbalyst** (Deny/Once/Session/Always con anteprima del pattern); Claude Code ha il motore migliore ma nessuna gestione delle regole in GUI.
+Bubo lo supera così:
+- **1 tasto** per Solo ora / No sui livelli 1–3; **0 scorciatoie** a un tasto sui livelli 4–5 (tieni premuto 1 s).
+- Regola sempre mostrata **con file di destinazione e anteprima** delle chiamate che avrebbe coperto; valida in **tutti i worktree** del Progetto.
+- Vedere, modificare e revocare ogni regola con la sua origine in **≤ 2 clic**; **100%** di compatibilità con la CLI nei due sensi (test sui `settings*.json`).
+- Obiettivo d'uso: **< 1 Richiesta ogni 10 chiamate** dopo la prima settimana su un Progetto.
 
 ## Fonti
 

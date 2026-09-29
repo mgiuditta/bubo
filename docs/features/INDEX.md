@@ -8,12 +8,12 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 
 | # | Feature | Stato | Note |
 |---|---|---|---|
-| 01 | Sessioni Claude Code in parallelo in git worktree | in corso | ricerca |
-| 02 | Revisione diff e merge in-app, approvazione per blocco | in corso | ricerca |
-| 03 | Login abbonamento dalla CLI, API key, fallback, uso visibile | in corso | ricerca; premesse in dubbio (credito Agent SDK sospeso, abbonamento in app di terzi soggetto ad approvazione) |
-| 04 | Riuso di `~/.claude`: skill, hook, CLAUDE.md, MCP, cronologia | in corso | ricerca |
-| 05 | Permessi in GUI con regole "consenti sempre" per progetto | in corso | ricerca |
-| 06 | Stato delle sessioni, notifiche native, badge nel Dock | in corso | ricerca |
+| 01 | Sessioni Claude Code in parallelo in git worktree | in corso | specifica pronta; costruzione dopo la shell |
+| 02 | Revisione diff e merge in-app, approvazione per blocco | in corso | specifica pronta; costruzione dopo la shell |
+| 03 | Login abbonamento dalla CLI, API key, fallback, uso visibile | in corso | specifica pronta ([ADR 0003](../adr/0003-login-con-la-cli-claude-dell-utente.md)); costruzione dopo la shell |
+| 04 | Riuso di `~/.claude`: skill, hook, CLAUDE.md, MCP, cronologia | in corso | specifica pronta; costruzione dopo la shell |
+| 05 | Permessi in GUI con regole "consenti sempre" per progetto | in corso | specifica pronta; costruzione dopo la shell |
+| 06 | Stato delle sessioni, notifiche native, badge nel Dock | in corso | specifica pronta; costruzione dopo la shell |
 | 07 | Orb 3D in Metal: stati vocali e Morph | in corso | mappa fase 1–2; Catalogo di Varianti al posto di 12×1.000 (ADR 0002) |
 | 08 | Voce: wake word, dettatura in streaming, risposta parlata, interruzione | da fare | |
 | 09 | Integrazione Finder e sistema | da fare | |
@@ -35,3 +35,22 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 | 25 | Performance nativa: avvio < 1 s, poca RAM, 60 fps con 10 sessioni | da fare | |
 | 26 | Onboarding di 60 secondi | da fare | |
 | 27 | Rifinitura premium e aggiornamenti automatici | da fare | |
+
+## Architettura comune (feature 1–6)
+
+Un solo target app (XcodeGen, cartelle per modulo). I pezzi condivisi si scrivono una volta:
+
+- `Agent/AgentBridge` + `bridge/` (TS, `bun build --compile`): protocollo JSON versionato su stdio; una Conversazione dell'agente per processo figlio; `env` costruito da zero (API key solo lì, `CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS=1`); `cwd` = worktree, `projectConfigRoot` = checkout principale.
+- `Sessions/` (Sessione, Attività, Fase, worktree, porte): base di 1, 2, 6 e più avanti 13, 17, 18.
+- `Git/` (git CLI, niente libgit2): worktree, diff per blocco (`git apply --cached --recount`), `merge-tree --write-tree`, stato via FSEvents, mai polling.
+- `Permissions/`, `Account/`, `Config/`, `System/` (notifiche, badge), `HUD/` (Viste delle Sessioni, revisione, pannelli).
+
+## Ordine di implementazione (feature 1–6)
+
+0. **Shell dell'app** (mappa fase 1–2: [Shell dell'app](https://github.com/mgiuditta/bubo/issues/6)): progetto, design tokens, HUD vuoto. Prerequisito di tutto.
+1. **Ponte agente minimo**: una Conversazione in una cartella, streaming nell'HUD. Serve a 1, 3, 4, 5, 6.
+2. **03 Account e uso** e **04 configurazione `~/.claude`**: poco codice, sbloccano l'uso reale.
+3. **01 Sessioni in worktree**.
+4. **06 Attività, notifiche e badge** (Vista Colonna per prima).
+5. **05 Permessi**.
+6. **02 Revisione e merge**.

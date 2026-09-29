@@ -195,11 +195,24 @@ Fonte: [Prototipo: revisione diff per blocco](https://github.com/mgiuditta/bubo/
 
 ### Resto della mappa
 
-_da definire_ (strategia di merge: [Strategia di merge e conflitti](https://github.com/mgiuditta/bubo/issues/23))
+### Merge (deciso)
+
+Fonte: [Strategia di merge e conflitti](https://github.com/mgiuditta/bubo/issues/23).
+
+- Squash predefinito, merge commit a scelta per Progetto; messaggio proposto dall'agente dai "perché" dei blocchi accettati, modificabile.
+- Conflitti previsti con `merge-tree`: li risolve l'agente nel worktree portando dentro il branch di partenza; la risoluzione arriva come blocchi nuovi da rivedere. Nessun editor di conflitti.
+- Checkout principale con modifiche non salvate sugli stessi file: merge bloccato con spiegazione; su altri file procede. Mai stash automatici.
+- "Fondi" senza conferma aggiuntiva (reversibile), "Annulla merge" per 10 s; mai push automatico.
+- Blocchi rifiutati → "Rimanda all'agente" (niente merge, Sessione continua, accettati restano approvati). "Fondi" solo con tutto accettato; "Fondi gli accettati e scarta il resto" nel menu secondario, con conferma.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **Nimbalyst** (tieni/annulla per modifica) e **Claude Desktop** (diff + PR), ma nessuno approva per blocco, nessuno mostra i conflitti prima e il diff di Claude Desktop è spesso stantio.
+Bubo lo supera così:
+- **1 tasto per blocco** (`a`/`x`), rifiuto rimandato all'agente con nota; revisione di 10 file / 14 blocchi in **≤ 16 azioni** da tastiera.
+- **Conflitti previsti prima del clic** con `merge-tree` in **< 500 ms**; squash-merge locale in **≤ 2 azioni**.
+- Diff aggiornato **< 300 ms** dopo una scrittura; **60 fps** di scroll su 50.000 righe, primo frame **< 200 ms**.
+- **0 processi `git` a riposo**, contro 15–20 al secondo di Claude Desktop.
 
 ## Fonti
 

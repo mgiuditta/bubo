@@ -179,11 +179,20 @@ Tempi e RAM legati a questa feature non sono pubblicati da nessuno.
 
 ## Mappa
 
-_da definire_
+Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16). Decisioni in [ADR 0003](../adr/0003-login-con-la-cli-claude-dell-utente.md).
+
+- **Moduli**: `Account/AuthStatus` (`claude auth status`, exit code + JSON, mai file di credenziali), `Account/UsageMeter` (finestre da `rate_limit_event` e dal metodo di uso dell'SDK senza turno, dietro un adattatore perché sperimentale), `Account/APIKeyStore` (Portachiavi, passata solo nell'`env` del figlio), `Account/LimitAdvisor` (le 3 scelte al limite).
+- **Flusso onboarding**: avvio → auth status → "Collegato come …" oppure "Accedi" (`claude auth login` nel browser) → facoltativo "Usa una API key".
+- **Casi limite**: CLI assente o vecchia (usa il `claude` incluso nel bundle), `ANTHROPIC_API_KEY` già nell'ambiente dell'utente (avviso: paga a consumo), login scaduto, rete assente, API di uso sparita (quota nascosta, non inventata).
+- **Test**: parsing di `auth status` e di `rate_limit_event` su campioni registrati; test che nessun codice legga il Portachiavi di Claude.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **Nimbalyst** (anello d'uso a 0 clic, ma aggiornato ogni 30 min e letto dal Portachiavi, contro i termini) e **app ufficiale** (card al limite).
+Bubo lo supera così (vedi ADR 0003):
+- Finestra di 5 ore e settimanale con reset a **0 clic**, aggiornate **entro 1 s** da ogni `rate_limit_event` e leggibili anche senza Sessione attiva (~1,2 s, 0 costo).
+- Al limite, **entro 1 s**: causa, reset e 3 scelte; **mai** passaggio silenzioso all'API key.
+- **0 letture** di credenziali e 0 endpoint non documentati (test automatico); `claude auth status` **< 1 s** all'avvio, 0 clic se già collegato.
 
 ## Fonti
 

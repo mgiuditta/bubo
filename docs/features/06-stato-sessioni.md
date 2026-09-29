@@ -218,13 +218,23 @@ Fonte: [Prototipo: le Sessioni nell'HUD](https://github.com/mgiuditta/bubo/issue
 - In tutte: quota 5 h / settimana con reset visibile senza clic; interruttore Domanda ↔ Sessione nel prompt; ⌘N nuova Sessione; ↩ Solo ora, esc No sulla Richiesta aperta.
 - Ordine di costruzione: Colonna, poi Orbita e Striscia.
 
-### Resto della mappa
+### Moduli, flussi e casi limite
 
-_da definire_
+Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16).
+
+- **Moduli**: `Sessions/ActivityTracker` (da `session_state_changed` con `CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS=1` e da `canUseTool`), `System/Notifier` (`UNUserNotificationCenter`, categorie con azioni Solo ora / No, `threadIdentifier` per Sessione, silenzio se la Sessione è visibile), `System/DockBadge` (`NSDockTile.badgeLabel`, `requestUserAttention(.informationalRequest)`), `HUD/SessionViews` (Colonna, Orbita, Striscia).
+- **Flusso**: evento SDK → Attività → Vista + Stato dell'Orb + badge + (se non visibile) notifica.
+- **Casi limite**: permesso notifiche negato (solo badge e rimbalzo), Focus attivo, più Richieste nella stessa Sessione, risposta dalla notifica dopo che la Richiesta è scaduta, riavvio di Bubo con Richieste pendenti.
+- **Test**: macchina delle Attività con Swift Testing su sequenze di eventi registrate.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **agent view di Claude Code** (stati e riassunto per riga) e **Nimbalyst** (non letti, ordinamento per attesa); nessuno approva dalla notifica e tutti fanno rumore.
+Bubo lo supera così:
+- Notifica "Attende te" **≤ 1 s** dalla richiesta (Claude Code via hook: ~6 s).
+- **1 clic** dalla notifica per Solo ora / No sui livelli 2–3, senza aprire Bubo.
+- **0 notifiche spurie**: niente "finito" con subagent attivi, al massimo 1 per transizione, silenzio se la Sessione è visibile, **mai** focus rubato.
+- Badge nel Dock = Sessioni in Attende te, allineato **entro 1 s**; tre Viste (Colonna predefinita, Orbita, Striscia).
 
 ## Fonti
 

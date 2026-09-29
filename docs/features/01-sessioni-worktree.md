@@ -231,13 +231,23 @@ Fonte: [Modello di Sessione condiviso](https://github.com/mgiuditta/bubo/issues/
 - **Cronologia CLI** in lista separata, sola lettura; aprirne una crea una nuova Sessione come fork.
 - **Domanda** = richiesta leggera senza Progetto né worktree; trasformabile in Sessione con un clic.
 
-### Resto della mappa
+### Moduli, flussi e casi limite
 
-_da definire_
+Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16).
+
+- **Moduli**: `Sessions/SessionStore` (Sessioni, Attività, Fase, persistenza), `Sessions/WorktreeManager` (`git worktree add`, `clonefile(2)` delle cartelle ignorate, `.worktreeinclude`/`.worktreeignore`, script di setup, rimozione in background), `Sessions/PortAllocator` (10 porte libere per Sessione), `Agent/AgentBridge` (`cwd` = worktree, `projectConfigRoot` = checkout principale).
+- **Flusso**: ⌘N o voce → titolo e branch proposti → worktree + clone → prima Conversazione dell'agente → Attività Lavora.
+- **Casi limite**: repo senza commit, submodule (init nel worktree), LFS, cartella non git (niente worktree), disco pieno, branch già esistente, repo spostato o cancellato mentre Bubo è chiuso, riavvio con Sessioni in Lavora (→ Ferma).
+- **Test**: `WorktreeManager` e `PortAllocator` con Swift Testing su repo finti in una cartella temporanea.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **Conductor** (script setup/avvio/archivio, 10 porte, `.worktreeinclude`), ma prepara le dipendenze con un `install` e non isola nulla oltre alle porte.
+Bubo lo supera così:
+- **Sessione pronta in < 2 s** con 1 GB di dipendenze (`git worktree add` 0,1 s + `clonefile` 1,1 s misurati), contro minuti di install.
+- **1 azione** (⌘N o voce) crea la Sessione, con titolo e branch proposti.
+- **0 conflitti di porta** con 10 Sessioni sullo stesso dev server, senza configurazione.
+- Con 10 Sessioni: app **< 1% CPU a riposo, < 150 MB RAM**, 0 processi `git` periodici (FSEvents); **< 50 MB di disco** in più per Sessione; rimozione del worktree in background.
 
 ## Fonti
 

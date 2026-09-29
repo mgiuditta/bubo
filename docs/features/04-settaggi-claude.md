@@ -111,11 +111,21 @@ Il riferimento è l'**app desktop ufficiale**: stessa config della CLI, zero set
 
 ## Mappa
 
-_da definire_
+Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16).
+
+- **Moduli**: nessuna copia della configurazione: l'SDK la carica da solo. `Config/ConfigInspector` (messaggio `init`, `mcpServerStatus()`, hook `InstructionsLoaded`, `plugin_errors`), `HUD/ConfigPanel` (tutto visibile in 1 clic), `History/CLIHistory` (`listSessions` / `getSessionMessages`, ripresa sempre come fork in una nuova Sessione).
+- **Flusso**: apertura Progetto → `init` → pannello con conteggi ed errori; Cronologia CLI → "Riprendi" → nuova Sessione (fork).
+- **Casi limite**: MCP che chiede OAuth (l'SDK non lo completa: rimandare alla CLI con istruzioni), contesto gonfio da troppe skill (mostrare i token per categoria), transcript con dati sensibili (mai inviati fuori), cronologia cancellata dalla CLI dopo 30 giorni.
+- **Test**: confronto dei conteggi `init` tra Bubo e CLI sulla stessa cartella.
 
 ## Specifica "migliore di"
 
-_da definire_
+Miglior concorrente: **app desktop ufficiale** (stessa configurazione della CLI, `/resume`), ma non mostra cosa carica; Nimbalyst e opcode perdono o corrompono configurazione.
+Bubo lo supera così:
+- **Parità verificata** con la CLI: stesso numero di skill, plugin e MCP (conteggio da `init`), **0 file** di `~/.claude` scritti senza un clic esplicito.
+- **Tutto visibile in 1 clic**: CLAUDE.md, skill, plugin con errori, MCP con stato e sorgente; 0 degradi silenziosi.
+- Cronologia CLI in lista separata ma **ricerca unica** con le Sessioni; primi 50 elementi **< 100 ms**; ripresa come fork in **≤ 2 clic**.
+- `init` con configurazione completa **entro 1 s**.
 
 ## Fonti
 
