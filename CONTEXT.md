@@ -102,6 +102,16 @@ _Avoid_: pericolosità, severità
 Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
 _Avoid_: yolo, bypass
 
+### Memoria
+
+**Memoria di Progetto**:
+Ciò che l'agente ricorda di un **Progetto** tra una **Sessione** e l'altra; è la stessa memoria che vede la riga di comando, non una copia di Bubo.
+_Avoid_: contesto, knowledge base
+
+**Secondo cervello**:
+Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
+_Avoid_: vault (quando non è Obsidian), wiki, archivio
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
