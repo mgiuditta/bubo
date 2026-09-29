@@ -107,8 +107,11 @@ _Avoid_: yolo, bypass
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
 - Lo **Stato** si applica a qualunque forma dell'**Orb**, **Blob** compreso
 - Il **Catalogo** contiene molte **Varianti**; ogni **Variante** appartiene a una sola **Categoria** e usa una sola **Forma**
+- Una **Forma** serve una sola **Variante**: i sinonimi non diventano Varianti nuove
+- Il nome di una **Variante** è stabile: non si rinomina, al massimo si ritira
+- Lo **Stato** non cambia mai la **Forma**; in Riposo l'**Orb** torna al **Blob**
 - Il router sceglie la **Variante** iniziale; durante il lavoro la **Variante** può cambiare a ogni passo
-- **Stato**, **Variante** e **Tinta** sono indipendenti: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
+- **Stato**, **Variante** e **Tinta** sono indipendenti; il colore viene sempre dalla **Tinta**, mai dalla Variante: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
 - Un **Progetto** ha molte **Sessioni**; al massimo una lavora direttamente sul checkout principale, le altre ciascuna nella propria copia isolata
 - **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
