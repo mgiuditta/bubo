@@ -84,6 +84,10 @@ _Avoid_: sessioni importate
 Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt). La sceglie l'utente.
 _Avoid_: layout, tema, modalità
 
+**Galassia**:
+La mappa del **Progetto** in cui ogni cartella è un ammasso a posizione fissa e ogni file una stella; mostra dove lavorano le **Sessioni** e accanto tiene sempre la lista dei file toccati.
+_Avoid_: grafo del repo, città, albero
+
 ### Permessi
 
 **Richiesta di permesso**:
@@ -127,6 +131,7 @@ _Avoid_: vault (quando non è Obsidian), wiki, archivio
 - **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
 - Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
+- Nella **Galassia** le **Sessioni** si distinguono per nome e segno, non per colore: la **Tinta** resta del fornitore, e le Sessioni sono tutte Claude
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 
 ## Flagged ambiguities
