@@ -180,7 +180,22 @@ Risposta breve: **nessuno dei concorrenti principali ha l'approvazione per hunk 
 
 ## Mappa
 
-_da definire_
+### Revisione per blocco (decisa)
+
+Fonte: [Prototipo: revisione diff per blocco](https://github.com/mgiuditta/bubo/issues/21), branch `prototype/diff-blocchi`. Scelta delegata dall'autore.
+
+- **Base**: lista dei file a sinistra (barretta per blocco: accettato, rifiutato, da decidere; ⚠ sui file in conflitto) + diff continuo a destra, righe virtualizzate.
+- **Focus** (`f`): un blocco alla volta, grande, con Rifiuta / Nota / Accetta e la fila dei blocchi sotto.
+- **Affiancato** (`s`): prima e dopo in due colonne, per schermi larghi.
+- Ogni blocco mostra il **perché** scritto dall'agente, `+n −m` e i pulsanti Accetta / Rifiuta.
+- Tastiera: `j`/`k` blocco, `a` accetta, `x` rifiuta, `c` nota all'agente (rifiuta e rimanda con la nota), `⇧A` accetta il file, `⌘↩` fondi.
+- Dopo una decisione il cursore salta al prossimo blocco non deciso.
+- Testata: conflitti previsti con `git merge-tree` prima del merge, progresso `n/N`, "Fondi" attivo solo a blocchi tutti decisi; i rifiutati tornano all'agente come nuovo turno della stessa Sessione.
+- Misura da tenere: azioni e secondi dalla prima decisione al merge (contatore del prototipo).
+
+### Resto della mappa
+
+_da definire_ (strategia di merge: [Strategia di merge e conflitti](https://github.com/mgiuditta/bubo/issues/23))
 
 ## Specifica "migliore di"
 
