@@ -106,9 +106,11 @@ static float map(float3 p, constant Uniforms &u) {
     float a = (u.amp + u.audio * 0.22) * na;
     float d = length(q) - 0.92;
     if (FORMA != 0) d = mix(d, forma(q, u.t), u.morph);
+    d -= (n * 0.7 + n2 * 0.3) * a + sp * 0.4 * na;
     // Grain is not damped on a Forma: it keeps a Tinta recognizable where spikes fade.
-    float gr = u.grain > 0 ? sn(q * 11.0 + float3(0, u.t * 0.15, 0)) * u.grain * 0.022 : 0.0;
-    return d - (n * 0.7 + n2 * 0.3) * a - sp * 0.4 * na - gr;
+    // Only near the surface: far steps skip a fourth noise, and grain (≤ 0.022) is below the band.
+    if (u.grain > 0 && d < 0.06) d -= sn(q * 11.0 + float3(0, u.t * 0.15, 0)) * u.grain * 0.022;
+    return d;
 }
 
 fragment float4 orbFragment(VOut in [[stage_in]], constant Uniforms &u [[buffer(0)]]) {
