@@ -116,7 +116,7 @@ Il riferimento è **Raycast** (selezione, Finder, schermo in un solo gesto) insi
 - **Timeout Servizi a 30 s** [K1]: se Bubo aspetta il modello il servizio fallisce. Accettare e rispondere nel Panel.
 - **Consenso perso a ogni build di sviluppo** con firma diversa: i test su AX vanno fatti con la firma Developer ID o con un profilo stabile.
 - **Finder Sync trascurata da Apple** (interfaccia sparita in 15.0–15.1) [F6]; osservare `/` per avere il menu ovunque va contro l'uso previsto [S3]. Preferire Servizi e Azione rapida.
-- **Scorciatoie in conflitto** (Alfred lo segnala [L1]): ⌥Spazio è anche la scorciatoia di ChatGPT e un'opzione di Claude desktop [C2][A1]; la voce della mappa usa ⌥Spazio tenuto. Serve il rilevamento del conflitto che `GlobalHotKey.register` già segnala (`alreadyInUse`).
+- **Scorciatoie in conflitto** (Alfred lo segnala [L1]): ⌥Spazio è la predefinita di ChatGPT, Raycast e Alfred e un'opzione di Claude desktop [C2][A1]. `GlobalHotKey.register` **non** lo rileva: `alreadyInUse` scatta solo tra registrazioni esclusive, e le altre app non la usano ([#64](https://github.com/mgiuditta/bubo/issues/64)). Difesa nell'onboarding della voce ([08-voce.md](08-voce.md)).
 - **App senza supporto ai Servizi o ad AX** (Electron, terminali): comportamento da misurare in un prototipo su Terminal, VS Code, Slack, Safari, Chrome.
 - **Drop su un Panel minuscolo e su tutti gli Spazi:** area di rilascio, schermo intero, HUD aperto.
 - **Dati verso il cloud:** un file trascinato o selezionato finisce nel prompt. Per il principio della mappa, nessun dato del Progetto al cloud senza consenso: l'ingresso deve mostrare cosa viene inviato e a quale fornitore prima dell'invio, se il router sceglie un fornitore non locale.
@@ -132,7 +132,7 @@ Architettura comune in [INDEX.md](INDEX.md#architettura-comune-feature-16).
 In ordine di costruzione ([#53](https://github.com/mgiuditta/bubo/issues/53)), tutti senza permessi TCC:
 
 1. **Trascinamento sull'Orb** (Panel) e nell'HUD: file, cartelle, testo, URL, immagini.
-2. **Servizio "Chiedi a Bubo"**: testo da qualunque app Cocoa, file e cartelle dal menu contestuale del Finder, con una scorciatoia `NSKeyEquivalent` (⌘ o ⌘⇧ + un carattere) che sostituisce la lettura della selezione via Accessibilità ([#61](https://github.com/mgiuditta/bubo/issues/61)). Se l'app in primo piano usa la stessa combinazione vince l'app; l'utente la cambia in Impostazioni → Tastiera → Abbreviazioni → Servizi, con un suggerimento al primo avvio.
+2. **Servizio "Chiedi a Bubo"**: testo da qualunque app Cocoa, file e cartelle dal menu contestuale del Finder, con scorciatoia predefinita **⌘⇧O** (`NSKeyEquivalent` = `O`, O di Orb) che sostituisce la lettura della selezione via Accessibilità ([#61](https://github.com/mgiuditta/bubo/issues/61), [#64](https://github.com/mgiuditta/bubo/issues/64)). Nessuna ⌘⇧+lettera è libera in tutte le 7 app: ⌘⇧O perde solo in Finder (Documenti, ma lì i file arrivano dal menu contestuale e dal drop) e in VS Code (Go to Symbol), dove resta il menu Servizi. Scartate ⌘⇧X (barrato in Slack e nelle web app), ⌘⇧Y (Stickies), ⌘⇧L (Safari), ⌘⇧A/M (Terminal), ⌘⇧B, ⌘⇧F. Per cambiarla Bubo offre un pulsante che apre Impostazioni → Tastiera → Abbreviazioni → Servizi; nessuna hotkey Carbon doppione, che non riceverebbe la selezione.
 3. **App Intents**: "Chiedi a Bubo" (testo, file facoltativi → Domanda) e "Nuova Sessione" (Progetto, testo → Sessione), da Spotlight con quick key e da Comandi rapidi. Frasi degli App Shortcuts senza dati dell'utente. Altri intent arrivano con le feature che li motivano (es. "Mostra nella Galassia", feature 11).
 4. **"Allega finestra…"** nel prompt: `SCContentSharingPicker` + un solo scatto con `SCScreenshotManager`, subordinato alla prova a inizio costruzione (sotto). Uno screenshot dell'utente trascinato o incollato è già un Allegato e non dipende dalla prova.
 
@@ -194,7 +194,7 @@ Gesto (drop, Servizio, intent, voce, prompt) → Richiesta con Allegati → Pane
 
 ### Casi limite
 
-- Scorciatoia del Servizio già usata dall'app in primo piano: vince l'app; il suggerimento all'avvio spiega come cambiarla.
+- Scorciatoia del Servizio già usata dall'app in primo piano (Finder, VS Code, altre): vince l'app; resta il menu Servizi, e il pulsante in Impostazioni porta dove cambiarla.
 - Servizio invocato con Bubo chiuso: il sistema lo avvia; la Richiesta resta in attesa fino al Panel pronto.
 - Drop a schermo intero e su tutti gli Spazi: il Panel ha `canJoinAllSpaces` + `fullScreenAuxiliary`; `isMovableByWindowBackground` non intercetta il drop ([#60](https://github.com/mgiuditta/bubo/issues/60)).
 - Panel nascosto perché l'HUD è aperto: il drop va all'HUD con la regola della Sessione davanti.
@@ -209,7 +209,7 @@ Gesto (drop, Servizio, intent, voce, prompt) → Richiesta con Allegati → Pane
 
 1. **Disclaim**: `sox` lanciato dall'agente non registra con il permesso Microfono di Bubo; gli avvisi di `claude` per File e cartelle sono comprensibili.
 2. **Selettore**: scatto singolo col filtro di `SCContentSharingPicker` senza consenso TCC su macOS 26, in un'utenza pulita.
-3. **Scorciatoia del Servizio**: scelta della predefinita senza conflitti in Finder, Safari, Chrome, Mail, VS Code, Terminal, Slack (non ⌘⇧Y, già di Stickies).
+3. **Scorciatoia del Servizio**: ⌘⇧O fa partire il Servizio in Safari, Chrome, Mail, Terminal e Slack, anche dentro le web app nei browser.
 4. **Tetto degli Allegati**: misura del contesto utile di Apple FM.
 
 ### Test
@@ -230,7 +230,7 @@ Bubo li supera così:
 - **Servizio**: controllo restituito al sistema in **< 1 s**.
 - **Nessun furto del fuoco**: drop sul Panel e Servizio funzionano nel **100%** delle prove su Finder, Safari, Chrome, Mail, VS Code, Terminal e Slack, anche a schermo intero, con l'app di partenza sempre davanti.
 - **Finder da qualunque posizione**: "Chiedi a Bubo" nel menu contestuale su qualunque file o cartella, con il Finder anche non in primo piano e fuori da cartelle osservate.
-- **Scorciatoia sulla selezione** predefinita senza conflitti nelle stesse 7 app, senza Accessibilità.
+- **Scorciatoia sulla selezione** ⌘⇧O funzionante in 5 app su 7 (tutte tranne Finder e VS Code, dove resta il menu Servizi), senza Accessibilità.
 - **Spotlight**: "Chiedi a Bubo" con quick key, senza aprire l'HUD, risposta nel Panel.
 - **Schermo**: dal clic nel selettore all'Allegato nel prompt **≤ 500 ms**; indicatore di cattura spento dopo lo scatto; **0** catture continue o avviate dall'agente.
 - **Domanda per default**: la Sessione nasce solo su proposta accettata (o dall'intent "Nuova Sessione", o con drop nell'HUD su una Sessione davanti).

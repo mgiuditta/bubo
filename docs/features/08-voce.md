@@ -105,7 +105,7 @@ Criteri candidati per la specifica:
 
 - **Il nome "Bubo" in inglese** viene trascritto male, e il bias del vocabolario non vale per `SpeechTranscriber` [misura B][13]. Questo tocca sia la wake word sia i comandi "apri il progetto Bubo". Opzioni: `DictationTranscriber`, che accetta `contextualStrings` e modelli personalizzati ma con un modello più vecchio [13]; correzione a valle; oppure un nome di attivazione più riconoscibile.
 - **Wake word**: non esiste una API Apple. Porcupine ha costi commerciali e dipende da una AccessKey [18][19]. openWakeWord è solo inglese con modelli non commerciali [20]. Un classificatore Create ML richiede dati propri. Con la wake word sempre attiva il punto arancione resta acceso [29] e il consumo in ascolto continuo non è misurato.
-- **Conflitto su ⌥Spazio** con Superwhisper e ChatGPT [1][5]. Serve rilevarlo o proporre un'alternativa al primo avvio.
+- **Conflitto su ⌥Spazio** con ChatGPT, Raycast e Alfred (predefinita di fabbrica) e spesso Superwhisper [1][5]. Carbon **non lo rileva**: `RegisterEventHotKey` non esclusivo riesce anche se un'altra app ha la stessa combinazione, e la pressione arriva a tutte e due; `eventHotKeyExistsErr` esce solo tra due registrazioni esclusive (header `CarbonEvents.h`, prova su macOS 26.7, [#64](https://github.com/mgiuditta/bubo/issues/64)). Difesa: il passo del primo avvio (Mappa). Prendere ⌥Spazio toglie anche lo spazio indivisibile (U+00A0) nei layout italiano e US.
 - **Senza `.fastResults` non c'è streaming**: il testo arriva solo alle pause [misura B].
 - **Formato audio**: `SpeechAnalyzer` vuole 16 kHz Int16 mono (`bestAvailableAudioFormat`). Un buffer in un formato sbagliato non dà errore e non produce testo [32]. Nelle prove, `AVAudioFile.read` a fine file lancia un'eccezione se non si controlla `framePosition`.
 - **Modelli da scaricare**: il primo uso di una lingua può richiedere un download (`AssetInventory`), e le lingue installate per app sono limitate [14]. Serve un avviso chiaro quando si è offline.
@@ -119,7 +119,8 @@ Criteri candidati per la specifica:
 Architettura comune in [INDEX.md](INDEX.md). La voce è un **ingresso**: dopo il rilascio il testo entra nella pipeline unica degli ingressi, specificata in [09-sistema.md](09-sistema.md). Qui c'è solo il ramo voce.
 
 - **Moduli** (`Voice/`):
-  - `Voice/Hotkey`: estende la hotkey della Shell. Tocco su ⌥Spazio = mostra/nascondi; tenuto oltre ~300 ms = push-to-talk con invio al rilascio; ⌥⇧ tenuto = sola dettatura nel prompt, nessun invio.
+  - `Voice/Hotkey`: estende la hotkey della Shell. Tocco su ⌥Spazio = mostra/nascondi; tenuto oltre ~300 ms = push-to-talk con invio al rilascio; ⌥⇧ tenuto = sola dettatura nel prompt, nessun invio. Un solo registratore in Impostazioni: tocco e push-to-talk usano la combinazione scelta, la sola dettatura aggiunge ⇧; se la scelta contiene già ⇧, la sola dettatura si spegne e il registratore lo dice. Registrazione Carbon non esclusiva, senza permessi ([#64](https://github.com/mgiuditta/bubo/issues/64)).
+  - **Primo avvio, passo "Scorciatoia"**: registratore già su ⌥Spazio. Se `NSWorkspace` trova installati ChatGPT, Raycast, Alfred o Superwhisper (per bundle id, nessun permesso), avviso esplicito: "⌥Spazio aprirà anche <app>", con la scelta di cambiarla qui o nell'altra app. Il registratore avvisa anche per le scorciatoie di sistema abilitate (`CopySymbolicHotKeys`). Nessun tentativo di rilevare il conflitto via Carbon.
   - `Voice/AudioEngine`: un solo `AVAudioEngine` con voice processing sempre attivo (`isVoiceProcessingBypassed` invece del riavvio), livello RMS del microfono e dell'uscita per l'Orb.
   - `Voice/Transcriber`: `SpeechAnalyzer` + `SpeechTranscriber` con `[.volatileResults, .fastResults]`, formato da `bestAvailableAudioFormat`, lingua di sistema o di Impostazioni › Voce, modelli via `AssetInventory`. Nessun rilevamento della lingua, nessun cloud.
   - `Voice/SpeechOutput`: `AVSpeechSynthesizer.write(_:toBufferCallback:)` suonato da un `AVAudioPlayerNode` nello stesso motore (serve alla cancellazione dell'eco). Opt-in cloud: OpenAI `gpt-4o-mini-tts` con la chiave già nel Portachiavi per le Domande.
@@ -138,7 +139,8 @@ Architettura comune in [INDEX.md](INDEX.md). La voce è un **ingresso**: dopo il
   - cuffie Bluetooth, AirPods, microfoni USB: VPIO si comporta in modo diverso, volume in uscita più basso;
   - "Bubo" trascritto male in inglese: nessuna correzione nella v1, il nome non serve all'attivazione;
   - Riduci movimento: Orb fermo, resta un indicatore di livello;
-  - un Morph già iniziato arriva sempre in fondo, anche se l'utente interrompe.
+  - un Morph già iniziato arriva sempre in fondo, anche se l'utente interrompe;
+  - ⌥Spazio condiviso con un'altra app installata dopo l'onboarding: si aprono entrambe; il registratore resta in Impostazioni › Voce, nessun rilevamento automatico.
 - **Test**:
   - latenze p95 con audio registrato a tempo reale (rilascio → testo finale, primo testo → primo audio, interruzione → audio fermo);
   - traffico di rete a zero in modalità locale (Network Link Conditioner o `nettop` durante una sessione vocale completa);
