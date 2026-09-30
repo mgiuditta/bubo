@@ -113,7 +113,7 @@ Per ogni richiesta: **Tipo di richiesta** → modello · sforzo (e fornitore per
 | Sessione · Esplora il codice | Sonnet · basso |
 | Sessione · Revisione | Opus · alto |
 | Domanda · Fatto breve | Apple FM, altrimenti Haiku |
-| Domanda · Riassunto | Haiku (Apple FM se sta in 4.096 token) |
+| Domanda · Riassunto | Haiku (Apple FM se l'Allegato sta in 2.000 token) |
 | Domanda · Scrittura | Sonnet · medio |
 | Domanda · Ragionamento | Opus · medio |
 | Domanda · Ricerca sul web | Sonnet · basso |
@@ -133,9 +133,9 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 
 **Fornitori delle Domande (v1).** Claude via Agent SDK (default); Apple Foundation Models; un solo client OpenAI-compatibile per OpenAI, Gemini (solo con fatturazione attiva, altrimenti avviso), OpenRouter (OAuth PKCE, senza "shared capacity"), Ollama e LM Studio (rilevati su localhost), endpoint personalizzati (xAI solo così). Chiavi nel Portachiavi, chiamate dirette dal Mac, nessun proxy. Le Sessioni restano sempre Claude.
 
-**Scelta automatica di fornitore.** Da solo il router manda solo ai modelli sul Mac (Apple FM, Ollama) i Tipi leggeri; un cloud diverso da Claude solo per "Rifai con…" o preferenza ricordata.
+**Scelta automatica di fornitore.** Da solo il router sceglie, fuori da Claude, solo Apple FM, l'unico modello di qualità nota. Ollama e LM Studio entrano solo per scelta dell'utente: un **Modello locale** unico nelle impostazioni, proposto una volta quando Bubo li rileva ("Hai Ollama con X: usarlo per Fatto breve e Riassunto?", con preselezionato il modello caricato in `/api/ps`, altrimenti il più recente di `/api/tags` o `/v1/models`; il sì diventa "Usa sempre per" su quei due Tipi), poi "Usa sempre per «Tipo»", "Rifai con…" e il ripiego della quota o senza rete. Nessun elenco di modelli consigliati. Un cloud diverso da Claude solo per "Rifai con…" o preferenza ricordata ([#65](https://github.com/mgiuditta/bubo/issues/65), rettifica il #52).
 
-**Quota.** Finestra di 5 ore (feature 03) oltre l'80%: le scelte automatiche scendono di un gradino della Scala e il motivo lo dice; oltre il 95% le Domande vanno in locale se c'è. Mai blocchi, override intatti. Soglie nelle impostazioni.
+**Quota.** Finestra di 5 ore (feature 03) oltre l'80%: le scelte automatiche scendono di un gradino della Scala e il motivo lo dice; oltre il 95%, e senza rete, le Domande vanno al Modello locale se impostato, altrimenti ad Apple FM; le Sessioni restano su Claude. Mai blocchi, override intatti. Soglie nelle impostazioni.
 
 **Privacy.** Contenuti del Progetto solo a Claude e ai modelli sul Mac. Verso un altro cloud: consenso per fornitore alla prima occorrenza, revocabile; senza consenso quel fornitore sparisce da "Rifai con…" per quel turno, con il motivo. Eccezione unica: Jev, con consenso unico all'aggiunta della chiave, e solo per il testo della richiesta.
 
@@ -168,7 +168,8 @@ Richiesta (testo, voce o altro ingresso, vedi [09](09-sistema.md)) → classific
 - Sforzo declassato in silenzio dall'SDK (Haiku senza sforzo, `max` → `high`): la riga mostra l'effettivo.
 - Org con `deniedModels`/`maxEffortLevel`: gradini saltati, mai una scelta rifiutata.
 - Apple Intelligence spenta o non disponibile: solo regole, detto nel motivo.
-- Richiesta oltre 4.096 token per Apple FM: il Riassunto va ad Haiku.
+- Allegato oltre 2.000 token per Apple FM: Fatto breve e Riassunto vanno ad Haiku, e il motivo lo dice ("allegato troppo lungo per Apple FM → Haiku").
+- Modello locale scaricato o server spento: si torna al default del Tipo, detto nel motivo.
 - Cambio a un modello con finestra più piccola a metà Sessione: possibile compattazione.
 - Gemini senza fatturazione in SEE: avviso, niente invio.
 - OpenRouter che ripiega sulla capacità condivisa: spento.

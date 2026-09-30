@@ -158,7 +158,7 @@ Fuori dalla v1: Condividi, Azione rapida, Finder Sync, Accessibilità, Registraz
 - Senza consenso un Allegato va **solo a Claude o a un modello sul Mac**, anche un file fuori da ogni Progetto. Il router da solo sceglie solo modelli sul Mac (feature 10).
 - Se l'utente sceglie un altro fornitore, la chip mostra "allegato → <fornitore>" e chiede conferma una volta per Allegato.
 - Claude riceve i file **per percorso** e l'agente li legge; il trascinamento dà già l'accesso per intento (`com.apple.macl`).
-- Gli altri fornitori ricevono il **contenuto** nel prompt solo per testo e PDF estratto, sotto un tetto di dimensione; oltre il tetto Bubo avvisa e propone Claude. Una cartella passa solo come percorso, quindi solo a Claude. Il valore del tetto si fissa misurando il contesto utile di Apple FM (vedi Decisioni aperte).
+- Gli altri fornitori ricevono il **contenuto** nel prompt solo per testo e PDF estratto, sotto un **tetto** per destinazione: al massimo metà del contesto del modello d'arrivo, il resto a istruzioni, domanda e risposta. Apple FM: ≤ 2.000 token misurati con `tokenCount(for:)` su `contextSize` (4.096); Ollama e LM Studio: metà del contesto letto dal server (`/api/show` per Ollama); client OpenAI-compatibili senza metadati: 32.000 token fissi. Oltre il tetto Bubo avvisa e propone Claude; niente spezzettamento in più passaggi in v1 ([#65](https://github.com/mgiuditta/bubo/issues/65)). Una cartella passa solo come percorso, quindi solo a Claude.
 - Gli screenshot dal selettore seguono le stesse regole.
 
 ### Pipeline unica degli ingressi
@@ -210,7 +210,7 @@ Gesto (drop, Servizio, intent, voce, prompt) → Richiesta con Allegati → Pane
 1. **Disclaim**: `sox` lanciato dall'agente non registra con il permesso Microfono di Bubo; gli avvisi di `claude` per File e cartelle sono comprensibili.
 2. **Selettore**: scatto singolo col filtro di `SCContentSharingPicker` senza consenso TCC su macOS 26, in un'utenza pulita.
 3. **Scorciatoia del Servizio**: ⌘⇧O fa partire il Servizio in Safari, Chrome, Mail, Terminal e Slack, anche dentro le web app nei browser.
-4. **Tetto degli Allegati**: misura del contesto utile di Apple FM.
+4. **Tetto degli Allegati**: 2.000 token su Apple FM lasciano risposte complete per Fatto breve e Riassunto in italiano; si abbassa se la risposta viene troncata.
 
 ### Test
 

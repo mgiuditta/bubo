@@ -102,6 +102,10 @@ _Avoid_: intent, categoria (riservata alle Varianti), compito
 L'ordine dei gradini modello · sforzo che "Rifai più forte" sale uno alla volta, prima lo sforzo poi il modello; si ricava dai modelli disponibili all'utente.
 _Avoid_: tier, livello
 
+**Modello locale**:
+Il modello scelto dall'utente tra quelli di un server sul Mac (Ollama, LM Studio); il router lo usa solo per preferenza dell'utente o come ripiego, mai da solo. Apple FM non è il Modello locale.
+_Avoid_: modello offline, LLM locale
+
 ### Permessi
 
 **Richiesta di permesso**:
