@@ -179,6 +179,13 @@ Richiesta (testo, voce o altro ingresso, vedi [09](09-sistema.md)) → classific
 ### Test
 
 - Set etichettato di 200 richieste (metà it, metà en, 20 per Tipo): accuratezza di Apple FM, regole e Jev; è anche il cancello di adozione di Jev e il test di aggiornamento della sua versione.
+  - File: `BuboTests/Fixtures/richieste-etichettate.json` ([#85](https://github.com/mgiuditta/bubo/issues/85)); controllo: `bun scripts/richieste-check.ts`.
+  - **JSON unico, non JSONL né CSV**: `JSONDecoder` lo legge nei test Swift senza codice in più, e i testi con virgole e virgolette restano leggibili.
+  - **Tipi con id ASCII** (`sessione.correzione-piccola`), come i `nome` del Catalogo: stabili se cambia il nome mostrato.
+  - **Variante `null`** quando nessuna voce del Catalogo di oggi si adatta: è il caso "Blob con la Categoria" del router. Il controllo accetta solo nomi di `catalogo.json`, quindi le etichette crescono con i blocchi del Catalogo.
+  - **Categoria** dall'enum `Categoria.swift`, letta dal controllo: una sola fonte.
+  - **`allegati`** con i soli nomi dei file, il contesto minimo che vede anche Jev; nei Riassunti la richiesta ha senso solo con l'Allegato.
+  - Le Domande che chiedono dati del momento (meteo, cambi, orari) stanno in Ricerca sul web, non in Fatto breve, perché Apple FM non li conosce.
 - Latenza del classificatore p95 (regole, Apple FM, Jev dall'Italia con handshake).
 - Scala su cataloghi finti (`supportedModels()` con e senza Fable, con `deniedModels`, `maxEffortLevel`).
 - Corpo delle richieste a Jev e ai cloud non Claude: 0 byte di file, diff o memoria del Progetto senza consenso.
