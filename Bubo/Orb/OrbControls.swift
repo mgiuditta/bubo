@@ -8,6 +8,8 @@ final class OrbControls {
 
     /// The Stato the Orb eases toward.
     var state: OrbState = .idle
+    /// The Variante whose Forma the Orb takes; `nil` for the Blob.
+    var variante: Variante?
     /// The Panel's latest frame measurements; updated only in Debug builds.
     var frameReading: FrameMeter.Reading?
 }

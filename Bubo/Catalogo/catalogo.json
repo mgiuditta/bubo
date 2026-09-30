@@ -1,0 +1,11 @@
+{
+  "varianti": [
+    {
+      "nome": "lente",
+      "forma": "lente",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo cerca qualcosa: sul web, nei file, tra le note.",
+      "parole": ["cerca", "ricerca", "trova", "lente", "esplora", "indaga"]
+    }
+  ]
+}

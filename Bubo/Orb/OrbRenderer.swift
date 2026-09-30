@@ -8,28 +8,17 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     ///
     /// - Parameters:
     ///   - view: The view to draw into.
-    ///   - controls: Where the Stato comes from and where frame measurements go.
-    /// - Throws: An error if the Metal pipeline cannot be built.
+    ///   - controls: Where the Stato and the Variante come from and where frame measurements go.
+    /// - Throws: An error if the Blob's pipeline cannot be built.
     init(view: MTKView, controls: OrbControls = .shared) throws {
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue(),
               let library = device.makeDefaultLibrary()
         else { throw OrbRendererError.metalUnavailable }
 
-        let descriptor = MTLRenderPipelineDescriptor()
-        descriptor.vertexFunction = library.makeFunction(name: "orbVertex")
-        descriptor.fragmentFunction = library.makeFunction(name: "orbFragment")
-        let color = descriptor.colorAttachments[0]!
-        color.pixelFormat = .bgra8Unorm
-        color.isBlendingEnabled = true
-        color.sourceRGBBlendFactor = .one
-        color.sourceAlphaBlendFactor = .one
-        color.destinationRGBBlendFactor = .oneMinusSourceAlpha
-        color.destinationAlphaBlendFactor = .oneMinusSourceAlpha
-
         self.queue = queue
         self.controls = controls
-        pipeline = try device.makeRenderPipelineState(descriptor: descriptor)
+        pipelines = try OrbPipelines(device: device, library: library)
         super.init()
 
         view.device = device
@@ -41,7 +30,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     }
 
     private let queue: MTLCommandQueue
-    private let pipeline: MTLRenderPipelineState
+    private let pipelines: OrbPipelines
     private let controls: OrbControls
     private var uniforms = OrbUniforms()
     private var animation = OrbAnimation()
@@ -60,13 +49,17 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         lastFrameTime = now
         uniforms.apply(animation)
         uniforms.resolution = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
+        // No Morph yet: a ready Forma shows at once; one still loading leaves the Orb Blob.
+        let forma = controls.variante.flatMap { Forma(rawValue: $0.forma) } ?? .blob
+        let formaPipeline = pipelines.pipeline(for: forma)
+        uniforms.morph = formaPipeline == nil || forma == .blob ? 0 : 1
 
         guard let pass = view.currentRenderPassDescriptor,
               let drawable = view.currentDrawable,
               let commands = queue.makeCommandBuffer(),
               let encoder = commands.makeRenderCommandEncoder(descriptor: pass)
         else { return }
-        encoder.setRenderPipelineState(pipeline)
+        encoder.setRenderPipelineState(formaPipeline ?? pipelines.blob)
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<OrbUniforms>.stride, index: 0)
         encoder.drawPrimitives(type: .triangle, vertexStart: 0, vertexCount: 3)
         encoder.endEncoding()
