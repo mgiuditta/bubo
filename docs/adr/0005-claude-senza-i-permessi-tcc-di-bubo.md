@@ -8,7 +8,9 @@ Abbiamo scelto:
 - **Isolamento**: `claude` si avvia con il "disclaim" della responsabilità (`responsibility_spawnattrs_setdisclaim`, SPI privata usata da Chromium, Firefox, LLDB, Qt Creator ed Electron). `claude` diventa responsabile di sé: non eredita il Microfono di Bubo e chiede a nome proprio File e cartelle per i Progetti in Documenti o Scrivania. Un servizio XPC non basta, perché condivide i permessi dell'app.
 - **Ingressi senza permessi**: testo selezionato con la scorciatoia del Servizio "Chiedi a Bubo", non con l'Accessibilità; schermo con il selettore di ScreenCaptureKit (scatto scelto dall'utente), non con la Registrazione schermo.
 
-Se la SPI sparisce o non isola davvero (prova a inizio costruzione), Bubo accetta l'eredità del solo Microfono e lo dice nelle Impostazioni; Accessibilità e Registrazione schermo restano comunque escluse.
+**Provato** il 30/09/2026 in bundle firmato ([#66](https://github.com/mgiuditta/bubo/issues/66)): il ponte `bubo-agent` parte con il disclaim, e `claude` e i suoi comandi non ereditano Microfono né File e cartelle di Bubo.
+
+Se la SPI sparisce o non isola davvero, Bubo accetta l'eredità del solo Microfono e lo dice nelle Impostazioni; Accessibilità e Registrazione schermo restano comunque escluse.
 
 ## Estensione: ogni processo avviato da Bubo
 
