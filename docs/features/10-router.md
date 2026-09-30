@@ -125,6 +125,7 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 - Con Jev (facoltativo, consigliato all'avvio con il costo): Jev decide Tipo e Variante (due passi: Categoria, poi Variante, per il limite di 255 opzioni) **solo se passa il cancello di adozione**; altrimenti fa da secondo parere. Jev vede solo il testo della richiesta e il contesto minimo (Sessione o Domanda, nomi dei file allegati), mai file, diff o memoria del Progetto. Versione fissata a `jev-1.13.0`. Budget 300 ms: oltre, su errore o offline → Apple FM + regole, detto nel motivo, nessun nuovo tentativo sul turno. Dettagli in [10-router-jev.md](10-router-jev.md).
 - **Incertezza**: confidenza < 0,6 o prime due a meno di 0,15 (con Jev), o incertezza di Apple FM tra due Tipi → default più forte dei due, detto nel motivo ("Correzione 48% / Modifica ampia 41% → Opus medio"). Variante incerta → Blob con la Categoria scelta. Il router non chiede mai. Soglie tarabili.
 - **Livello di rischio**: Jev è solo un segnale che alza, mai abbassa; i livelli 4–5 restano alle regole (feature 05).
+- **Sintesi parlata**: esclusa da Jev, che non genera testo e dovrebbe vedere la risposta; la scrive il modello che risponde ([08](08-voce.md), [#63](https://github.com/mgiuditta/bubo/issues/63)).
 
 **Nella Sessione.** Modello scelto all'avvio (o al `claim` del prewarm); cambia da solo solo al passaggio plan mode ↔ esecuzione (regola `opusplan`) o per override. Lo sforzo si rivaluta a ogni turno con `applyFlagSettings({effortLevel})`.
 
