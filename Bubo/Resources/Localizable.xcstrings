@@ -1,0 +1,376 @@
+{
+  "sourceLanguage": "it",
+  "version": "1.0",
+  "strings": {
+    "API key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        }
+      }
+    },
+    "API key salvata nel Portachiavi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API key saved in the keychain"
+          }
+        }
+      }
+    },
+    "Accedi con Claude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In with Claude"
+          }
+        }
+      }
+    },
+    "Accedi di nuovo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In Again"
+          }
+        }
+      }
+    },
+    "Account": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "Annulla": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        }
+      }
+    },
+    "Bubo non passa da solo alla API key: riprova quando torna la rete.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bubo won't switch to an API key on its own. Try again when you're back online."
+          }
+        }
+      }
+    },
+    "Bubo usa il login della CLI claude e non vede mai i tuoi token.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bubo uses the claude CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Claude": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude"
+          }
+        }
+      }
+    },
+    "Collegato": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed In"
+          }
+        }
+      }
+    },
+    "Collegato come %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as %@"
+          }
+        }
+      }
+    },
+    "Collegato come %@ · %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Signed in as %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Completa l'accesso nel browser.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish signing in in your browser."
+          }
+        }
+      }
+    },
+    "Controllo l'account…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your account…"
+          }
+        }
+      }
+    },
+    "Errore del Portachiavi (%d).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keychain error (%d)."
+          }
+        }
+      }
+    },
+    "Esce anche dalla CLI claude, in ogni terminale.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This also signs out the claude CLI, in every terminal."
+          }
+        }
+      }
+    },
+    "Esci": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Out"
+          }
+        }
+      }
+    },
+    "Esci…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Out…"
+          }
+        }
+      }
+    },
+    "Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional, for when your subscription isn't enough. Bubo never uses it on its own."
+          }
+        }
+      }
+    },
+    "Il Portachiavi è bloccato: sblocca il Mac e riprova.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The keychain is locked. Unlock your Mac and try again."
+          }
+        }
+      }
+    },
+    "Installala dal Terminale con `curl -fsSL https://claude.ai/install.sh | bash`, poi torna qui.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install it in Terminal with `curl -fsSL https://claude.ai/install.sh | bash`, then come back here."
+          }
+        }
+      }
+    },
+    "L'accesso è scaduto.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your sign-in has expired."
+          }
+        }
+      }
+    },
+    "La cancella dal Portachiavi di questo Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes it from this Mac's keychain."
+          }
+        }
+      }
+    },
+    "La chiave resta nel Portachiavi di questo Mac e non va su iCloud. Bubo non la usa mai da solo: si paga a consumo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The key stays in this Mac's keychain and never goes to iCloud. Bubo never uses it on its own, because it's billed per use."
+          }
+        }
+      }
+    },
+    "Manca la CLI claude.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The claude CLI is missing."
+          }
+        }
+      }
+    },
+    "Non sei collegato.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're not signed in."
+          }
+        }
+      }
+    },
+    "Non trovo la CLI claude.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't find the claude CLI."
+          }
+        }
+      }
+    },
+    "Rimuovi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        }
+      }
+    },
+    "Rimuovi…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove…"
+          }
+        }
+      }
+    },
+    "Riprova": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        }
+      }
+    },
+    "Salva": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
+    "Sei offline.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline."
+          }
+        }
+      }
+    },
+    "Usa una API key…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an API Key…"
+          }
+        }
+      }
+    },
+    "Vuoi rimuovere la API key?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the API key?"
+          }
+        }
+      }
+    },
+    "Vuoi uscire dall'account Claude?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign out of your Claude account?"
+          }
+        }
+      }
+    },
+    "claude ha risposto in modo inatteso (codice %d).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "claude gave an unexpected answer (code %d)."
+          }
+        }
+      }
+    },
+    "claude si è fermato con il codice %d.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "claude stopped with code %d."
+          }
+        }
+      }
+    }
+  }
+}

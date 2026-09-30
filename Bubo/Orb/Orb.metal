@@ -11,6 +11,7 @@ struct Uniforms {
     float t, amp, freq, speed, swirl, spike, glow, audio;
     float frame;      // >1 shrinks the Orb in its view, leaving room for the halo
     float morph;      // 0 = Blob, 1 = the pipeline's Forma; already eased
+    float grain, bands, gloss; // Tinta character, 0…1; spikes are in `spike`
     float opacity;    // the whole Orb's, halo included; below 1 only in the Reduce Motion fade
     float3 a, b;      // Tinta: base and highlight
 };
@@ -106,7 +107,11 @@ static float map(float3 p, constant Uniforms &u) {
     float a = (u.amp + u.audio * 0.22) * na;
     float d = length(q) - 0.92;
     if (FORMA != 0) d = mix(d, forma(q, u.t), u.morph);
-    return d - (n * 0.7 + n2 * 0.3) * a - sp * 0.4 * na;
+    d -= (n * 0.7 + n2 * 0.3) * a + sp * 0.4 * na;
+    // Grain is not damped on a Forma: it keeps a Tinta recognizable where spikes fade.
+    // Only near the surface: far steps skip a fourth noise, and grain (≤ 0.022) is below the band.
+    if (u.grain > 0 && d < 0.06) d -= sn(q * 11.0 + float3(0, u.t * 0.15, 0)) * u.grain * 0.022;
+    return d;
 }
 
 fragment float4 orbFragment(VOut in [[stage_in]], constant Uniforms &u [[buffer(0)]]) {
@@ -144,11 +149,11 @@ fragment float4 orbFragment(VOut in [[stage_in]], constant Uniforms &u [[buffer(
         float3 L = normalize(float3(-0.5, 0.7, 0.6));
         float dif = clamp(dot(n, L), 0.0, 1.0);
         float fr = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 2.6);
-        float band = sn(p * 2.6 + float3(0, u.t * 0.4, 0)) * 0.5 + 0.5;
+        float band = sn(p * (2.6 + u.bands * 3.0) + float3(0, u.t * 0.4, 0)) * 0.5 + 0.5;
         col = mix(u.a * 0.18, u.a * 0.95, dif * 0.8 + 0.1);
-        col += u.b * pow(band, 3.0) * 0.45;
+        col += u.b * pow(band, 3.0) * (0.15 + u.bands * 0.7);
         col += u.b * fr * 1.35;
-        col += float3(1.0, 0.93, 0.88) * pow(clamp(dot(reflect(-L, n), -rd), 0.0, 1.0), 28.0) * 0.55;
+        col += float3(1.0, 0.93, 0.88) * pow(clamp(dot(reflect(-L, n), -rd), 0.0, 1.0), mix(10.0, 90.0, u.gloss)) * (0.3 + u.gloss * 0.7);
         al = 1.0;
     }
     float g = exp(-max(md, 0.0) * 5.5) * u.glow * 0.55;

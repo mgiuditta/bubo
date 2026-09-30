@@ -19,6 +19,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         self.queue = queue
         self.controls = controls
+        animation = OrbAnimation(tinta: Tinta(for: controls.provider))
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
         if isMonochrome { uniforms.applyMonochromeTinta() }
@@ -35,7 +36,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private let pipelines: OrbPipelines
     private let controls: OrbControls
     private var uniforms = OrbUniforms()
-    private var animation = OrbAnimation()
+    private var animation: OrbAnimation
     private var director = MorphDirector()
     /// The Variante last passed to the Regia, to request each choice once.
     private var requestedVariante: Variante?
@@ -50,6 +51,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         let reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         animation.state = controls.state
+        animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
@@ -66,6 +68,11 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         director.enter(controls.state, at: now)
         director.reducesMotion = reducesMotion
         director.advance(to: now)
+        if requestedVariante != nil, director.destination == nil {
+            // The Regia went back to the Blob on its own: the same Variante can be chosen again.
+            requestedVariante = nil
+            controls.variante = nil
+        }
         let frame = director.frame
         // A Forma still loading, or not drawn yet, leaves the Orb Blob.
         let formaPipeline = pipelines.pipeline(for: frame.forma)
