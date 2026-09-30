@@ -76,6 +76,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.tests
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Bubo.app/Contents/MacOS/Bubo"
         BUNDLE_LOADER: "$(TEST_HOST)"
+  BuboPerfTests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: BuboPerfTests
+    dependencies:
+      - target: Bubo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.perftests
+        TEST_TARGET_NAME: Bubo
 
 schemes:
   Bubo:
@@ -86,3 +98,13 @@ schemes:
     test:
       targets:
         - BuboTests
+  BuboPerf:
+    build:
+      targets:
+        Bubo: all
+        BuboPerfTests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      targets:
+        - BuboPerfTests

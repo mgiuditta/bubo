@@ -8,4 +8,6 @@ xcodegen generate --quiet
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Debug -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -allowProvisioningUpdates -quiet build
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Debug -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -allowProvisioningUpdates -quiet test
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Release -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -allowProvisioningUpdates -quiet build
+# I test di prestazione (UI test, Release) si compilano qui e si eseguono a parte con lo schema BuboPerf.
+xcodebuild -project Bubo.xcodeproj -scheme BuboPerf -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -allowProvisioningUpdates -quiet build-for-testing
 echo "check: ok"
