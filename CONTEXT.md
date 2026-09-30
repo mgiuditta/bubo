@@ -180,6 +180,20 @@ _Avoid_: recap, log, diario
 La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.
 _Avoid_: database vettoriale, vector store, indice semantico
 
+### Estensioni dell'agente
+
+**Plugin**:
+Un pacchetto di Claude Code (skill, comandi, agenti, hook, **Server MCP**) che l'utente installa da un **Marketplace**; attivo per l'utente, per un **Progetto** o solo per l'utente in quel Progetto. È lo stesso plugin che vede la riga di comando.
+_Avoid_: estensione, add-on, catalogo
+
+**Marketplace**:
+Un elenco di **Plugin** pubblicato in un repository o in una cartella, che l'utente aggiunge a Claude Code; Bubo non ne ha uno proprio.
+_Avoid_: catalogo, store, negozio
+
+**Server MCP**:
+Un programma o un indirizzo che dà all'agente strumenti in più; arriva da un **Plugin** o si aggiunge da solo. I connettori di claude.ai sono Server MCP che arrivano col login.
+_Avoid_: connettore (tranne quelli di claude.ai), estensione, tool server
+
 ### Voce
 
 **Sintesi parlata**:
