@@ -1,10 +1,13 @@
 #if DEBUG
 import SwiftUI
 
-/// The debug panel: sets the Orb's Stato and shows what one frame costs.
+/// The debug panel: sets the Orb's Stato and Variante and shows what one frame costs.
 struct OrbDebugView: View {
     /// The identifier of the debug panel's window.
     static let windowID = "orb-debug"
+
+    /// The bundled Catalogo, loaded once.
+    private static let catalogo = Result { try Catalogo(bundle: .main) }
 
     @Bindable var controls: OrbControls
 
@@ -16,6 +19,21 @@ struct OrbDebugView: View {
                 }
             }
             .pickerStyle(.radioGroup)
+
+            switch Self.catalogo {
+            case .success(let catalogo):
+                Picker("Variante", selection: $controls.variante) {
+                    Text("Blob").tag(Variante?.none)
+                    ForEach(catalogo.varianti) { variante in
+                        Text(variante.label).tag(Optional(variante))
+                    }
+                }
+            case .failure(let error):
+                LabeledContent("Variante") {
+                    Text("Catalogo non valido: \(String(describing: error))")
+                        .foregroundStyle(.red)
+                }
+            }
 
             Section("Misure del Panel") {
                 if let reading = controls.frameReading {
