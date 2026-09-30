@@ -184,6 +184,20 @@ _Avoid_: approvazione remota
 L'ultimo segnale di vita del Mac visto dal **Telecomando**, per sapere quanto sono freschi i dati.
 _Avoid_: heartbeat, ping
 
+### Squadra
+
+**Consegna**:
+Il passaggio di una **Sessione** (conversazione ripulita più ramo) a un altro utente Bubo, che la riprende col proprio account su una sua **Macchina**; una volta consegnata non si revoca.
+_Avoid_: condivisione, handoff, fork, invio
+
+**Biglietto**:
+Il piccolo file con cui un utente Bubo si fa conoscere da un altro per ricevere **Consegne**; vale per una sola **Macchina** e si conferma confrontando un codice di verifica.
+_Avoid_: invito, contatto, chiave
+
+**Risorsa di squadra**:
+Un'**Automazione** o una **Regola di permesso** di Bubo salvata nel repo di un **Progetto**; vale per chi la usa solo dopo che l'ha accettata, e va riaccettata se cambia.
+_Avoid_: impostazione condivisa, preset
+
 ### Memoria
 
 **Memoria di Progetto**:
@@ -236,6 +250,9 @@ _Avoid_: roadmap, MVP2, prossimamente, coming soon
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 - Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
 - Dal **Telecomando** una **Richiesta di permesso** riceve solo No, Solo ora o Per questa Sessione; dai livelli 4–5 solo No o Solo ora. Sempre in questo Progetto si decide solo sul Mac
+
+- Una **Consegna** diventa, per chi la riceve, una **Bozza** che deve avviare lui; il turno gira sempre col suo account
+- Un'**Automazione** arrivata come **Risorsa di squadra** parte disattivata e gira con l'account di chi la attiva
 
 - **Quota**, **Spesa** e **Valore a listino** hanno unità diverse (%, $, $ non pagati) e non si sommano mai
 - Un **Budget** vale solo sulla **Spesa**: l'abbonamento ha la **Quota**, i modelli sul Mac sono gratis
