@@ -130,6 +130,10 @@ _Avoid_: contesto, knowledge base
 Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
 _Avoid_: vault (quando non è Obsidian), wiki, archivio
 
+**Indice**:
+La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.
+_Avoid_: database vettoriale, vector store, indice semantico
+
 ### Voce
 
 **Sintesi parlata**:
