@@ -69,7 +69,7 @@ Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di 
 _Avoid_: chat, sessione rapida
 
 **Allegato**:
-Testo o file che accompagna una richiesta, arrivato da un ingresso di sistema (trascinamento, Servizi, Comandi rapidi) o aggiunto nel prompt.
+Testo, file o screenshot che accompagna una richiesta, arrivato da un ingresso di sistema (trascinamento, Servizi, Comandi rapidi, selettore di finestra) o aggiunto nel prompt.
 _Avoid_: contesto, riferimento
 
 **Attività**:
