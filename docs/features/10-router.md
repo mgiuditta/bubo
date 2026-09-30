@@ -143,9 +143,9 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 
 - **Riga sotto ogni risposta**: pallino della Tinta, modello · sforzo **effettivo** (hook `effort.level`), motivo in una riga, costo stimato. Origine indicata: "(tua preferenza)", "scelto da te", "rifatto da te".
 - **Costo**: Claude in % della finestra di 5 ore (login CLI, ADR 0003); altri fornitori in $ sulla chiave dell'utente; modelli sul Mac "gratis". Il costo di Jev non entra nella riga: totale mensile nelle impostazioni, nessun tetto.
-- **Override sul turno**: "Rifai più forte" ⌘↑ (un gradino della Scala); "Rifai con…" ⌘K (alternative vicine con dove gira, primo token, costo; da qui "Usa sempre per «Tipo»"). Il default non cambia.
+- **Override sul turno**: "Rifai più forte" ⌘↑ (un gradino della Scala); "Rifai con…" ⌘⇧↑ (alternative vicine con dove gira, primo token, costo; da qui "Usa sempre per «Tipo»"). Il default non cambia.
 - **Chip nel prompt** (prima di inviare): previsione modello · sforzo · costo con il motivo sopra; Tab/⇧Tab cambia modello, ⌥↑/⌥↓ lo sforzo, Esc torna al router. Il controllo dello sforzo compare solo se il modello lo supporta.
-- **Voce**: con ⌥Spazio tenuto niente chip (invio al rilascio), solo riga dopo e ⌘↑/⌘K; con ⌥⇧ (dettatura nel prompt) la chip c'è.
+- **Voce**: con ⌥Spazio tenuto niente chip (invio al rilascio), solo riga dopo e ⌘↑/⌘⇧↑; con ⌥⇧ (dettatura nel prompt) la chip c'è.
 - **Variante**: si vede sotto l'Orb ("Variante lente · Tinta Anthropic"), non nella riga, non si sovrascrive.
 - Niente pannello router fisso nell'HUD: le preferenze si gestiscono da "Rifai con…" e dalle impostazioni.
 
@@ -161,7 +161,7 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 
 ### Flusso
 
-Richiesta (testo, voce o altro ingresso, vedi [09](09-sistema.md)) → classificazione (Jev se attivo e sotto 300 ms, altrimenti Apple FM, altrimenti regole) → Tipo + Variante → preferenza o default → vincoli (catalogo, org, quota, consenso) → modello · sforzo · fornitore + motivo → invio (Sessione: `model`/`effort` all'avvio o `setModel`/`applyFlagSettings` al turno; Domanda: SDK, Apple FM o client OpenAI-compatibile) → risposta con riga del motivo → eventuale override ⌘↑/⌘K sul turno successivo.
+Richiesta (testo, voce o altro ingresso, vedi [09](09-sistema.md)) → classificazione (Jev se attivo e sotto 300 ms, altrimenti Apple FM, altrimenti regole) → Tipo + Variante → preferenza o default → vincoli (catalogo, org, quota, consenso) → modello · sforzo · fornitore + motivo → invio (Sessione: `model`/`effort` all'avvio o `setModel`/`applyFlagSettings` al turno; Domanda: SDK, Apple FM o client OpenAI-compatibile) → risposta con riga del motivo → eventuale override ⌘↑/⌘⇧↑ sul turno successivo.
 
 ### Casi limite
 

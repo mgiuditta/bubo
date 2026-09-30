@@ -26,6 +26,10 @@ _Avoid_: overlay, widget
 La finestra di lavoro con l'**Orb** grande al centro e i pannelli di vetro attorno (router, cronologia, sessioni).
 _Avoid_: dashboard, finestra principale
 
+**Palette**:
+L'unica casella, aperta sopra la finestra di Bubo attiva, in cui si cercano insieme comandi, conversazioni e **Secondo cervello**.
+_Avoid_: command palette, ricerca globale, launcher
+
 **Forma**:
 Il solido 3D descritto da una funzione di distanza: la geometria che l'**Orb** assume. Il **Blob** è una Forma.
 _Avoid_: shape, modello 3D, oggetto

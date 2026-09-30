@@ -2,7 +2,7 @@
 
 Obiettivo: per ogni feature, battere il miglior concorrente con criteri misurabili. Ogni feature ha un file `NN-nome.md` con ricerca, mappa e specifica "migliore di".
 
-Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
+Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42), [Bubo — feature 14–19: cronologia, terminale, integrazioni, board, costi, automazioni](https://github.com/mgiuditta/bubo/issues/125). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
 
 Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 
@@ -21,17 +21,17 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 | 11 | Galassia: mappa 2,5D del Progetto con le Sessioni al lavoro e diff in vetro | in corso | specifica pronta; finestra a sé |
 | 12 | Secondo cervello: qualunque cartella Markdown, Obsidian facoltativo | in corso | specifica pronta; legge solo via [Indice](indice-semantico.md) |
 | 13 | Memoria di Progetto visibile e Riassunto di Sessione | in corso | specifica pronta; dopo Indice e 12 |
-| 14 | Cronologia ricercabile per significato | da fare | |
-| 15 | Terminale, editor, anteprima server, browser in-app | da fare | |
-| 16 | Integrazioni GitHub e Linear | da fare | |
-| 17 | Task board / kanban delle sessioni, anche 3D | da fare | |
-| 18 | Dashboard di costo e uso, budget e avvisi | da fare | |
-| 19 | Agenti personalizzati e automazioni programmate | da fare | |
+| 14 | Cronologia ricercabile per significato | in corso | specifica pronta ([ADR 0006](../adr/0006-bubo-conserva-le-conversazioni.md)); Palette ⌘K sopra l'Indice |
+| 15 | Terminale, anteprima del server, apri nell'editor | in corso | specifica pronta; niente editor vero né browser generico |
+| 16 | Integrazioni GitHub e Linear | in corso | specifica pronta; solo issue → Sessione e Sessione → PR, il resto via MCP |
+| 17 | Board delle Sessioni con le Bozze | in corso | specifica pronta; il 3D è la Vista Orbita |
+| 18 | Costi e uso, Budget e avvisi | in corso | specifica pronta; Quota, Spesa e Valore a listino mai sommati |
+| 19 | Agenti personalizzati e Automazioni programmate | in corso | specifica pronta; solo con Bubo aperto, niente demone |
 | 20 | Marketplace di skill, MCP e agenti | da fare | |
-| 21 | App iPhone compagna | da fare | |
+| 21 | App iPhone compagna | da fare | in fondo alla coda |
 | 22 | Esecuzione in sandbox o container | da fare | |
-| 23 | Workspace remoti e cloud | da fare | |
-| 24 | Multiplayer | da fare | |
+| 23 | Workspace remoti e cloud | da fare | in fondo alla coda |
+| 24 | Multiplayer | da fare | in fondo alla coda |
 | 25 | Performance nativa: avvio < 1 s, poca RAM, 60 fps con 10 sessioni | da fare | |
 | 26 | Onboarding di 60 secondi | da fare | |
 | 27 | Rifinitura premium e aggiornamenti automatici | da fare | |
@@ -81,3 +81,30 @@ Parte dopo l'ordine delle feature 1–6 e il PRD fase 1–2 (Stati, Tinte, Catal
 8. **11 Galassia**: indipendente da voce, router e Indice; dopo 01, 02 e 06. Ticket: [#119](https://github.com/mgiuditta/bubo/issues/119), [#120](https://github.com/mgiuditta/bubo/issues/120), [#121](https://github.com/mgiuditta/bubo/issues/121), [#122](https://github.com/mgiuditta/bubo/issues/122), [#123](https://github.com/mgiuditta/bubo/issues/123).
 9. **Jev** (10): solo dopo il cancello di adozione (+5 punti su Apple FM in italiano, 200 richieste). Ticket: [#124](https://github.com/mgiuditta/bubo/issues/124).
 
+## Architettura comune (feature 14–19)
+
+Stesso target, stesse regole: locale per default, `gh` e `~/.claude` dell'utente riusati, ogni processo avviato con disclaim ([ADR 0005](../adr/0005-claude-senza-i-permessi-tcc-di-bubo.md), esteso a terminale, server e `gh`), conversazioni conservate con una copia a specchio ([ADR 0006](../adr/0006-bubo-conserva-le-conversazioni.md)). Nessuna nuova scorciatoia globale: tutto passa da menu e **Palette**. Pezzi condivisi nuovi:
+
+- `Palette/` (⌘K, [14](14-cronologia.md)): una casella per comandi, conversazioni e Secondo cervello, da HUD e Panel. Ogni feature registra i suoi comandi in `CommandCatalog`.
+- `History/ConversationStore` ([14](14-cronologia.md)): copia a specchio via `sessionStore` delle Sessioni e della Cronologia CLI; la leggono 14 e 18.
+- `Sessions/BoardColumn` e `Sessions/DraftStore` ([17](17-board.md)): regola fissa delle colonne da Fase e Attività, e Bozze. Le usano 16 (Bozze da issue, colonna PR aperta) e 19 (risultati in "Da guardare").
+- `Costs/CostLedger` e `Costs/BudgetGuard` ([18](18-costi-budget.md)): registro di ogni turno e stop morbido. Li usano `Router/ModelRouter` (10) e 19.
+- `Agent/ProcessSpawner` e `Sessions/PortAllocator` estesi ([15](15-terminale-anteprima.md)): terminale, server e porte per Sessione; server MCP dell'Anteprima nel `bridge/`.
+
+Moduli per feature: `History/` (14), `Terminal/`, `Servers/`, `Preview/`, `Viewer/`, `Editor/` (15), `Integrations/` (16), `HUD/SessionViews/BoardView` (17), `Costs/` (18), `Agents/`, `Automations/` (19).
+
+## Ordine di implementazione (feature 14–19)
+
+Parte dopo gli ordini delle feature 1–6 e 8–13. I passi rimandano all'`Ordine di costruzione` di ogni spec.
+
+1. **14 Conservazione** (passo 1): copia a specchio con `sessionStore`. Subito dopo il ponte agente e 01: ogni giorno di ritardo sono conversazioni perse dalla CLI.
+2. **18 Registro dei turni e prezzi** (passi 1–2): il totale della Sessione e lo storico devono accumularsi dal primo turno. Dopo 03 e 10.
+3. **17 Board** (passi 1–2): regola delle colonne, card, Bozze a mano, ⌘4. Dopo 01, 05, 06.
+4. **15 Terminale, server e Anteprima** (passi 1–3). Dopo il ponte con disclaim e 01.
+5. **16 GitHub e Linear** (passi 1–5) insieme a **17** (passi 3–4): ⌘I, Apri PR, CI e Correggi, Bozze da issue, `gh` mancante. Dopo 02, 13, 15 e 17.
+6. **14 Palette e Cronologia** (passi 2–4): dopo l'Indice ([#111](https://github.com/mgiuditta/bubo/issues/111)–[#113](https://github.com/mgiuditta/bubo/issues/113)) e 12. Da qui ogni comando delle 14–19 entra nella Palette.
+7. **18 Finestra Costi e Budget** (passi 3–4): dopo 1 e 06.
+8. **15 L'agente pilota l'Anteprima, visore, editor, Allegati dal terminale** (passi 4–6): dopo 05, `Intake/` e la Palette.
+9. **19 Agenti e Automazioni** (passi 1–5), con **18** passo 5 (Automazioni saltate a Budget esaurito): dopo 17 e i Budget.
+
+Dopo le 14–19: 20, 22, 25, 26, 27, ciascuna con la sua mappa. **21, 23 e 24 in fondo alla coda**, dopo tutte le altre.
