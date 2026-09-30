@@ -12,10 +12,10 @@ enum PerfBudgets {
     static let warmLaunch = Measurement(value: 500, unit: UnitDuration.milliseconds)
 
     /// Launches measured for the warm launch.
-    static let launchIterations = 5
+    static let launchIterations = 10
 
     /// Bubo at rest: HUD and Orb, no Sessions, Index not loaded.
-    static let idleMemory = Measurement(value: 100, unit: UnitInformationStorage.megabytes)
+    static let idleMemory = Measurement(value: 100, unit: UnitInformationStorage.mebibytes)
 
     /// `claude` processes under Bubo after launch: an invariant.
     static let claudeProcessesAfterLaunch = 0
