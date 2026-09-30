@@ -116,6 +116,12 @@ _Avoid_: contesto, knowledge base
 Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
 _Avoid_: vault (quando non è Obsidian), wiki, archivio
 
+### Voce
+
+**Sintesi parlata**:
+Le una o due frasi che Bubo dice ad alta voce quando gli si è parlato; il testo completo della risposta resta scritto nel **Panel**.
+_Avoid_: lettura, TTS (per il contenuto)
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
