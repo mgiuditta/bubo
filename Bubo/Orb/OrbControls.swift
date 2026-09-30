@@ -10,6 +10,8 @@ final class OrbControls {
     var state: OrbState = .idle
     /// The Variante whose Forma the Orb takes; `nil` for the Blob.
     var variante: Variante?
+    /// The provider whose Tinta the Orb takes; `nil` for one outside the list.
+    var provider: Provider? = .anthropic
     /// The Panel's latest frame measurements; updated only in Debug builds.
     var frameReading: FrameMeter.Reading?
 }

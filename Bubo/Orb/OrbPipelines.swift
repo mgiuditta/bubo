@@ -24,18 +24,35 @@ final class OrbPipelines {
     private let compiler: MTL4Compiler
     private let archive: MTL4Archive?
     private var ready: [Forma: MTLRenderPipelineState] = [:]
-    private var requested: Set<Forma> = [.blob]
+    private var loads: [Forma: Task<MTLRenderPipelineState?, Never>] = [:]
 
     /// The pipeline of `forma` if it is ready; otherwise `nil`, after starting to load it.
     func pipeline(for forma: Forma) -> MTLRenderPipelineState? {
         if forma == .blob { return blob }
         if let pipeline = ready[forma] { return pipeline }
-        guard requested.insert(forma).inserted else { return nil }
-        Task { [library, archive, compiler] in
-            // A Forma that fails to build stays requested, so the Orb stays Blob instead of retrying every frame.
-            ready[forma] = try? await Self.loadPipeline(for: forma, library: library, archive: archive, compiler: compiler)
-        }
+        load(forma)
         return nil
+    }
+
+    /// The pipeline of `forma`, waiting for it to load if needed; `nil` if it fails to build.
+    func loadedPipeline(for forma: Forma) async -> MTLRenderPipelineState? {
+        if forma == .blob { return blob }
+        if let pipeline = ready[forma] { return pipeline }
+        return await load(forma).value
+    }
+
+    /// Starts loading `forma` unless it already started, and returns that load.
+    @discardableResult
+    private func load(_ forma: Forma) -> Task<MTLRenderPipelineState?, Never> {
+        if let load = loads[forma] { return load }
+        let load = Task { [library, archive, compiler] in
+            // A Forma that fails to build keeps its load, so the Orb stays Blob instead of retrying every frame.
+            let pipeline = try? await Self.loadPipeline(for: forma, library: library, archive: archive, compiler: compiler)
+            ready[forma] = pipeline
+            return pipeline
+        }
+        loads[forma] = load
+        return load
     }
 
     @concurrent

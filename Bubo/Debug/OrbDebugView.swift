@@ -1,7 +1,7 @@
 #if DEBUG
 import SwiftUI
 
-/// The debug panel: sets the Orb's Stato and Variante and shows what one frame costs.
+/// The debug panel: sets the Orb's Stato, Variante and provider, shows what one frame costs, and holds the Galleria del Catalogo.
 struct OrbDebugView: View {
     /// The identifier of the debug panel's window.
     static let windowID = "orb-debug"
@@ -12,6 +12,24 @@ struct OrbDebugView: View {
     @Bindable var controls: OrbControls
 
     var body: some View {
+        TabView {
+            Tab("Orb", systemImage: "circle.fill") {
+                controlsForm
+            }
+            Tab("Galleria", systemImage: "square.grid.3x3") {
+                switch Self.catalogo {
+                case .success(let catalogo):
+                    GalleriaView(catalogo: catalogo)
+                case .failure(let error):
+                    Text("Catalogo non valido: \(String(describing: error))")
+                        .foregroundStyle(.red)
+                        .padding()
+                }
+            }
+        }
+    }
+
+    private var controlsForm: some View {
         Form {
             Picker("Stato", selection: $controls.state) {
                 ForEach(OrbState.allCases) { state in
@@ -33,6 +51,13 @@ struct OrbDebugView: View {
                     Text("Catalogo non valido: \(String(describing: error))")
                         .foregroundStyle(.red)
                 }
+            }
+
+            Picker("Fornitore", selection: $controls.provider) {
+                ForEach(Provider.allCases) { provider in
+                    Text(verbatim: provider.name).tag(Optional(provider))
+                }
+                Text("Fuori elenco").tag(Provider?.none)
             }
 
             Section("Misure del Panel") {
