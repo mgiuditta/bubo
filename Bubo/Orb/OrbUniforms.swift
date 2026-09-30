@@ -13,6 +13,8 @@ struct OrbUniforms {
     var frame: Float = 1.3
     /// How far the Orb has turned from the Blob into the pipeline's Forma: 0 is Blob, 1 is the Forma.
     var morph: Float = 0
+    /// How opaque the whole Orb is, halo included: below 1 only while fading with Reduce Motion on.
+    var opacity: Float = 1
     // ponytail: provisional Anthropic Tinta; the provider palette comes with the Tinte ticket.
     var base = SIMD3<Float>(0xD9, 0x77, 0x57) / 255
     var highlight = SIMD3<Float>(0xFF, 0xC3, 0xA0) / 255

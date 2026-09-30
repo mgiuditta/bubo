@@ -11,6 +11,7 @@ struct Uniforms {
     float t, amp, freq, speed, swirl, spike, glow, audio;
     float frame;      // >1 shrinks the Orb in its view, leaving room for the halo
     float morph;      // 0 = Blob, 1 = the pipeline's Forma; already eased
+    float opacity;    // the whole Orb's, halo included; below 1 only in the Reduce Motion fade
     float3 a, b;      // Tinta: base and highlight
 };
 
@@ -153,5 +154,5 @@ fragment float4 orbFragment(VOut in [[stage_in]], constant Uniforms &u [[buffer(
     float g = exp(-max(md, 0.0) * 5.5) * u.glow * 0.55;
     if (!hit) { col = u.a * g + u.b * g * g * 0.4; al = clamp(g, 0.0, 1.0); }
     col = col / (1.0 + col * 0.35);
-    return float4(col, al);
+    return float4(col, al) * u.opacity; // premultiplied
 }

@@ -34,6 +34,9 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private let controls: OrbControls
     private var uniforms = OrbUniforms()
     private var animation = OrbAnimation()
+    private var director = MorphDirector()
+    /// The Variante last passed to the Regia, to request each choice once.
+    private var requestedVariante: Variante?
     private var lastFrameTime = CACurrentMediaTime()
     #if DEBUG
     private var meter = FrameMeter()
@@ -43,16 +46,29 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
+        let reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         animation.state = controls.state
-        animation.reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        animation.reducesMotion = reducesMotion
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
         uniforms.apply(animation)
         uniforms.resolution = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
-        // No Morph yet: a ready Forma shows at once; one still loading leaves the Orb Blob.
-        let forma = controls.variante.flatMap { Forma(rawValue: $0.forma) } ?? .blob
-        let formaPipeline = pipelines.pipeline(for: forma)
-        uniforms.morph = formaPipeline == nil || forma == .blob ? 0 : 1
+
+        if controls.variante != requestedVariante {
+            requestedVariante = controls.variante
+            if let forma = controls.variante.flatMap({ Forma(rawValue: $0.forma) }) {
+                _ = pipelines.pipeline(for: forma) // starts loading it while the Orb holds or morphs
+            }
+            director.request(controls.variante, at: now)
+        }
+        director.enter(controls.state, at: now)
+        director.reducesMotion = reducesMotion
+        director.advance(to: now)
+        let frame = director.frame
+        // A Forma still loading, or not drawn yet, leaves the Orb Blob.
+        let formaPipeline = pipelines.pipeline(for: frame.forma)
+        uniforms.morph = formaPipeline == nil || frame.forma == .blob ? 0 : frame.morph
+        uniforms.opacity = frame.opacity
 
         guard let pass = view.currentRenderPassDescriptor,
               let drawable = view.currentDrawable,
