@@ -175,6 +175,6 @@ Moduli per feature: `BuboQuickLook` (estensione), `Settings/DeliveriesPane`, fog
 
 Dopo la v1, tranne il cancello, che non tocca l'app e può partire subito. Consegna e Risorse di squadra sono indipendenti. I passi rimandano all'`Ordine di costruzione` della spec.
 
-1. **24 Cancello** (passo 1), con una persona: due Mac, due account di organizzazioni diverse, ripresa di una Sessione ripulita e HPKE auth nel Secure Enclave.
-2. **24 Consegna** (passi 2–5): Biglietto e tipo `.bubo`, pulizia e scanner, foglio di Consegna, apertura e Bozza. Dopo 1, 01, 14, 17 e gli entitlement della 27.
-3. **24 Risorse di squadra** (passi 6–7): regole, poi Automazioni. Dopo 05 con la fiducia del repo decisa ([#266](https://github.com/mgiuditta/bubo/issues/266)) e 19.
+1. **24 Cancello** (passo 1), con una persona: due Mac, due account di organizzazioni diverse, ripresa di una Sessione ripulita e HPKE auth nel Secure Enclave. Ticket: [#274](https://github.com/mgiuditta/bubo/issues/274).
+2. **24 Consegna** (passi 2–5): Biglietto e tipo `.bubo`, pulizia e scanner, foglio di Consegna, apertura e Bozza. Dopo 1, 01, 14, 17 e gli entitlement della 27. Ticket: [#275](https://github.com/mgiuditta/bubo/issues/275), [#276](https://github.com/mgiuditta/bubo/issues/276), [#277](https://github.com/mgiuditta/bubo/issues/277), [#278](https://github.com/mgiuditta/bubo/issues/278).
+3. **24 Risorse di squadra** (passi 6–7): regole, poi Automazioni. Dopo 05 con la fiducia del repo decisa ([#266](https://github.com/mgiuditta/bubo/issues/266)) e 19. Ticket: [#279](https://github.com/mgiuditta/bubo/issues/279), [#280](https://github.com/mgiuditta/bubo/issues/280).

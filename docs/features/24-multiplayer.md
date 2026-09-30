@@ -295,13 +295,13 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 ### Ordine di costruzione
 
-1. **Cancello: ripresa con un secondo account vero e HPKE auth nel Secure Enclave**, con una persona, due Mac e due account. Non tocca il codice dell'app: può partire subito. Esito nel ticket.
-2. **Chiave della Macchina, Biglietto e tipo `.bubo`**: `DeliveryKit`, `MachineKey`, `TicketStore`, Impostazioni › Consegne, import con codice, chiave cambiata, tipo esportato e Quick Look. Dipende da 1 e dagli entitlement della 27 ([#219](https://github.com/mgiuditta/bubo/issues/219)).
-3. **Pulizia del transcript e scanner dei segreti**: `TranscriptCleaner`, `SecretScanner`, corpus di prova, ripresa in CI. Dipende da 1.
-4. **Foglio di Consegna**: `BranchBundler`, `DeliveryBuilder`, foglio B con il pezzo di C, Condividi di macOS, avviso nella Sessione. Dipende da 2, 3, 01 e 14.
-5. **Apertura, Bozza e ripresa**: `DeliveryOpener`, i tre errori, foglio "Consegna ricevuta", ramo `consegna/…`, Bozza con chip, Avvia con `resume` (anche su una Macchina remota); "Consegna di una Sessione" esce da In arrivo. Dipende da 4 e da 17.
-6. **Regole di permesso di squadra**: `.bubo/regole.json`, `TeamResourceReader`, `TrustLedger`, foglio Risorse di squadra per le regole, Condividi con la squadra. Dipende da 05 e da [#266](https://github.com/mgiuditta/bubo/issues/266); indipendente dalla Consegna.
-7. **Automazioni di squadra**: `.bubo/automazioni/`, Automazione "dal repo" in pausa, Saltata "Cambiata nel repo", Condividi con la squadra; "Risorse di squadra nel repo" esce da In arrivo. Dipende da 6 e da 19.
+1. **Cancello: ripresa con un secondo account vero e HPKE auth nel Secure Enclave**, con una persona, due Mac e due account. Non tocca il codice dell'app: può partire subito. Esito nel ticket. Ticket: [#274](https://github.com/mgiuditta/bubo/issues/274).
+2. **Chiave della Macchina, Biglietto e tipo `.bubo`**: `DeliveryKit`, `MachineKey`, `TicketStore`, Impostazioni › Consegne, import con codice, chiave cambiata, tipo esportato e Quick Look. Dipende da 1 e dagli entitlement della 27 ([#219](https://github.com/mgiuditta/bubo/issues/219)). Ticket: [#275](https://github.com/mgiuditta/bubo/issues/275).
+3. **Pulizia del transcript e scanner dei segreti**: `TranscriptCleaner`, `SecretScanner`, corpus di prova, ripresa in CI. Dipende da 1. Ticket: [#276](https://github.com/mgiuditta/bubo/issues/276).
+4. **Foglio di Consegna**: `BranchBundler`, `DeliveryBuilder`, foglio B con il pezzo di C, Condividi di macOS, avviso nella Sessione. Dipende da 2, 3, 01 e 14. Ticket: [#277](https://github.com/mgiuditta/bubo/issues/277).
+5. **Apertura, Bozza e ripresa**: `DeliveryOpener`, i tre errori, foglio "Consegna ricevuta", ramo `consegna/…`, Bozza con chip, Avvia con `resume` (anche su una Macchina remota); "Consegna di una Sessione" esce da In arrivo. Dipende da 4 e da 17. Ticket: [#278](https://github.com/mgiuditta/bubo/issues/278).
+6. **Regole di permesso di squadra**: `.bubo/regole.json`, `TeamResourceReader`, `TrustLedger`, foglio Risorse di squadra per le regole, Condividi con la squadra. Dipende da 05 e da [#266](https://github.com/mgiuditta/bubo/issues/266); indipendente dalla Consegna. Ticket: [#279](https://github.com/mgiuditta/bubo/issues/279).
+7. **Automazioni di squadra**: `.bubo/automazioni/`, Automazione "dal repo" in pausa, Saltata "Cambiata nel repo", Condividi con la squadra; "Risorse di squadra nel repo" esce da In arrivo. Dipende da 6 e da 19. Ticket: [#280](https://github.com/mgiuditta/bubo/issues/280).
 
 ## Specifica "migliore di"
 
