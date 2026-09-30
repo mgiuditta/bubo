@@ -48,12 +48,12 @@ Un solo target app (XcodeGen, cartelle per modulo). I pezzi condivisi si scrivon
 ## Ordine di implementazione (feature 1–6)
 
 0. **Shell dell'app** (mappa fase 1–2: [Shell dell'app](https://github.com/mgiuditta/bubo/issues/6)): progetto, design tokens, HUD vuoto. Prerequisito di tutto.
-1. **Ponte agente minimo**: una Conversazione in una cartella, streaming nell'HUD. Serve a 1, 3, 4, 5, 6.
-2. **03 Account e uso** e **04 configurazione `~/.claude`**: poco codice, sbloccano l'uso reale.
-3. **01 Sessioni in worktree**.
-4. **06 Attività, notifiche e badge** (Vista Colonna per prima).
-5. **05 Permessi**.
-6. **02 Revisione e merge**.
+1. **Ponte agente minimo**: una Conversazione in una cartella, streaming nell'HUD. Serve a 1, 3, 4, 5, 6. Ticket: [#66](https://github.com/mgiuditta/bubo/issues/66).
+2. **03 Account e uso** e **04 configurazione `~/.claude`**: poco codice, sbloccano l'uso reale. Ticket: [#67](https://github.com/mgiuditta/bubo/issues/67), [#68](https://github.com/mgiuditta/bubo/issues/68) (03), [#73](https://github.com/mgiuditta/bubo/issues/73), [#74](https://github.com/mgiuditta/bubo/issues/74) (04).
+3. **01 Sessioni in worktree**. Ticket: [#69](https://github.com/mgiuditta/bubo/issues/69), [#70](https://github.com/mgiuditta/bubo/issues/70), [#71](https://github.com/mgiuditta/bubo/issues/71), [#72](https://github.com/mgiuditta/bubo/issues/72).
+4. **06 Attività, notifiche e badge** (Vista Colonna per prima). Ticket: [#75](https://github.com/mgiuditta/bubo/issues/75), [#76](https://github.com/mgiuditta/bubo/issues/76), [#77](https://github.com/mgiuditta/bubo/issues/77).
+5. **05 Permessi**. Ticket: [#78](https://github.com/mgiuditta/bubo/issues/78), [#79](https://github.com/mgiuditta/bubo/issues/79), [#80](https://github.com/mgiuditta/bubo/issues/80).
+6. **02 Revisione e merge**. Ticket: [#81](https://github.com/mgiuditta/bubo/issues/81), [#82](https://github.com/mgiuditta/bubo/issues/82), [#83](https://github.com/mgiuditta/bubo/issues/83), [#84](https://github.com/mgiuditta/bubo/issues/84).
 
 ## Architettura comune (feature 8–13)
 
@@ -70,14 +70,14 @@ Moduli per feature: `Voice/` (08), `System/Services`, `System/Intents`, `System/
 
 Parte dopo l'ordine delle feature 1–6 e il PRD fase 1–2 (Stati, Tinte, Catalogo e Morph dell'Orb). Pezzi condivisi prima.
 
-0. **Ponte agente con disclaim** (ADR 0005): prerequisito di tutto ciò che avvia `claude`.
-1. **Pipeline degli ingressi + classificatore** (`Intake/` e `Router/RequestClassifier`, senza Jev): nascono insieme, perché il classificatore produce la Variante e la pipeline lo chiama. Primo ingresso: il prompt scritto.
-2. **10 Router**: `ModelRouter`, riga del motivo, chip, "Rifai con…", Domande su Apple FM e client OpenAI-compatibile.
-3. **09 Sistema**: trascinamento sull'Orb, poi Servizio, poi App Intents, poi selettore di finestra.
-4. **08 Voce**: push-to-talk nella pipeline, poi Sintesi parlata, poi interruzione; barge-in dietro spike.
-5. **Indice**: prima FTS5 (parole), poi vettori e `cerca`.
-6. **12 Secondo cervello**: cartella, `NoteWriter`, lettura via `cerca`.
-7. **13 Memoria e Riassunto**: il pannello della Memoria di Progetto può partire subito dopo il ponte; il Riassunto di Sessione dopo 12.
-8. **11 Galassia**: indipendente da voce, router e Indice; dopo 01, 02 e 06.
-9. **Jev** (10): solo dopo il cancello di adozione (+5 punti su Apple FM in italiano, 200 richieste).
+0. **Ponte agente con disclaim** (ADR 0005): prerequisito di tutto ciò che avvia `claude`. È lo stesso ticket del ponte agente minimo: [#66](https://github.com/mgiuditta/bubo/issues/66).
+1. **Pipeline degli ingressi + classificatore** (`Intake/` e `Router/RequestClassifier`, senza Jev): nascono insieme, perché il classificatore produce la Variante e la pipeline lo chiama. Primo ingresso: il prompt scritto. Ticket: [#85](https://github.com/mgiuditta/bubo/issues/85), [#86](https://github.com/mgiuditta/bubo/issues/86), [#87](https://github.com/mgiuditta/bubo/issues/87).
+2. **10 Router**: `ModelRouter`, riga del motivo, chip, "Rifai con…", Domande su Apple FM e client OpenAI-compatibile. Ticket: [#88](https://github.com/mgiuditta/bubo/issues/88), [#89](https://github.com/mgiuditta/bubo/issues/89), [#90](https://github.com/mgiuditta/bubo/issues/90), [#91](https://github.com/mgiuditta/bubo/issues/91), [#92](https://github.com/mgiuditta/bubo/issues/92), [#93](https://github.com/mgiuditta/bubo/issues/93), [#94](https://github.com/mgiuditta/bubo/issues/94), [#95](https://github.com/mgiuditta/bubo/issues/95), [#96](https://github.com/mgiuditta/bubo/issues/96), [#97](https://github.com/mgiuditta/bubo/issues/97).
+3. **09 Sistema**: trascinamento sull'Orb, poi Servizio, poi App Intents, poi selettore di finestra. Ticket: [#98](https://github.com/mgiuditta/bubo/issues/98), [#99](https://github.com/mgiuditta/bubo/issues/99), [#100](https://github.com/mgiuditta/bubo/issues/100), [#101](https://github.com/mgiuditta/bubo/issues/101), [#102](https://github.com/mgiuditta/bubo/issues/102), [#103](https://github.com/mgiuditta/bubo/issues/103).
+4. **08 Voce**: push-to-talk nella pipeline, poi Sintesi parlata, poi interruzione; barge-in dietro spike. Ticket: [#104](https://github.com/mgiuditta/bubo/issues/104), [#105](https://github.com/mgiuditta/bubo/issues/105), [#106](https://github.com/mgiuditta/bubo/issues/106), [#107](https://github.com/mgiuditta/bubo/issues/107), [#108](https://github.com/mgiuditta/bubo/issues/108), [#109](https://github.com/mgiuditta/bubo/issues/109), [#110](https://github.com/mgiuditta/bubo/issues/110).
+5. **Indice**: prima FTS5 (parole) con `cerca`, poi vettori, poi conversazioni. Ticket: [#111](https://github.com/mgiuditta/bubo/issues/111), [#112](https://github.com/mgiuditta/bubo/issues/112), [#113](https://github.com/mgiuditta/bubo/issues/113).
+6. **12 Secondo cervello**: cartella, `NoteWriter`, lettura via `cerca`. Ticket: [#114](https://github.com/mgiuditta/bubo/issues/114), [#115](https://github.com/mgiuditta/bubo/issues/115).
+7. **13 Memoria e Riassunto**: il pannello della Memoria di Progetto può partire subito dopo il ponte; il Riassunto di Sessione dopo 12. Ticket: [#116](https://github.com/mgiuditta/bubo/issues/116), [#117](https://github.com/mgiuditta/bubo/issues/117), [#118](https://github.com/mgiuditta/bubo/issues/118).
+8. **11 Galassia**: indipendente da voce, router e Indice; dopo 01, 02 e 06. Ticket: [#119](https://github.com/mgiuditta/bubo/issues/119), [#120](https://github.com/mgiuditta/bubo/issues/120), [#121](https://github.com/mgiuditta/bubo/issues/121), [#122](https://github.com/mgiuditta/bubo/issues/122), [#123](https://github.com/mgiuditta/bubo/issues/123).
+9. **Jev** (10): solo dopo il cancello di adozione (+5 punti su Apple FM in italiano, 200 richieste). Ticket: [#124](https://github.com/mgiuditta/bubo/issues/124).
 
