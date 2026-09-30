@@ -32,6 +32,7 @@ targets:
       - path: Bubo
         excludes:
           - Resources/Fonts
+          - "**/*.md"
       - path: Bubo/Resources/Fonts
         type: folder
         buildPhase: resources

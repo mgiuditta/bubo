@@ -9,8 +9,9 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     /// - Parameters:
     ///   - view: The view to draw into.
     ///   - controls: Where the Stato and the Variante come from and where frame measurements go.
+    ///   - isMonochrome: Whether to draw in greys instead of the Tinta, as the Galleria del Catalogo does.
     /// - Throws: An error if the Blob's pipeline cannot be built.
-    init(view: MTKView, controls: OrbControls = .shared) throws {
+    init(view: MTKView, controls: OrbControls = .shared, isMonochrome: Bool = false) throws {
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue(),
               let library = device.makeDefaultLibrary()
@@ -20,6 +21,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         self.controls = controls
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
+        if isMonochrome { uniforms.applyMonochromeTinta() }
 
         view.device = device
         view.colorPixelFormat = .bgra8Unorm
