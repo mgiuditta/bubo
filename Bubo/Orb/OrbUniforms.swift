@@ -43,4 +43,10 @@ extension OrbUniforms {
         base = animation.tinta.base
         highlight = animation.tinta.highlight
     }
+
+    /// Swaps the Tinta for greys, as the Galleria del Catalogo draws: there only silhouette and halo count.
+    mutating func applyMonochromeTinta() {
+        base = SIMD3(repeating: 0.6)
+        highlight = SIMD3(repeating: 0.92)
+    }
 }
