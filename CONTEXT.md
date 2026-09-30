@@ -162,6 +162,10 @@ _Avoid_: pericolosità, severità
 Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
 _Avoid_: yolo, bypass
 
+**Sandbox**:
+Il confine che il sistema impone ai comandi e alle scritture dell'agente in una **Sessione**: scrive solo nella copia del **Progetto** e nei percorsi ammessi, in rete raggiunge solo i domini ammessi.
+_Avoid_: contenitore, container, isolamento
+
 ### Memoria
 
 **Memoria di Progetto**:
@@ -199,6 +203,12 @@ _Avoid_: connettore (tranne quelli di claude.ai), estensione, tool server
 **Sintesi parlata**:
 Le una o due frasi che Bubo dice ad alta voce quando gli si è parlato; il testo completo della risposta resta scritto nel **Panel**.
 _Avoid_: lettura, TTS (per il contenuto)
+
+### Aggiornamenti
+
+**Canale**:
+La serie di versioni di Bubo che un utente riceve: la stabile per tutti, la beta per chi la sceglie. Chi lascia la beta aspetta la stabile successiva, non torna indietro.
+_Avoid_: ramo, track, release channel
 
 ## Relationships
 
