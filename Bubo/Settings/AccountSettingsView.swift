@@ -17,7 +17,7 @@ struct AccountSettingsView: View {
                 } else if let state = account.state {
                     content(for: state)
                 } else {
-                    ProgressView("Controllo l'account…")
+                    LoadingLabel("Controllo l'account…")
                 }
                 if let failure = account.failure {
                     Text(failure)
@@ -119,9 +119,7 @@ struct AccountSettingsView: View {
 
     private var signingIn: some View {
         HStack {
-            ProgressView()
-                .controlSize(.small)
-            Text("Completa l'accesso nel browser.")
+            LoadingLabel("Completa l'accesso nel browser.")
             Spacer()
             Button("Annulla") { signInAttempt = nil }
         }

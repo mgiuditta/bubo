@@ -171,6 +171,16 @@
         }
       }
     },
+    "Categoria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category"
+          }
+        }
+      }
+    },
     "Claude" : {
       "localizations" : {
         "en" : {
@@ -311,6 +321,26 @@
         }
       }
     },
+    "Fornitore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provider"
+          }
+        }
+      }
+    },
+    "Fuori elenco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlisted"
+          }
+        }
+      }
+    },
     "GPU a 60 fps" : {
       "localizations" : {
         "en" : {
@@ -327,6 +357,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GPU per frame"
+          }
+        }
+      }
+    },
+    "Galleria" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gallery"
           }
         }
       }
@@ -531,6 +571,16 @@
         }
       }
     },
+    "Orb" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orb"
+          }
+        }
+      }
+    },
     "Orb di Bubo, a riposo" : {
       "localizations" : {
         "en" : {
@@ -667,6 +717,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "State"
+          }
+        }
+      }
+    },
+    "Tutte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         }
       }
