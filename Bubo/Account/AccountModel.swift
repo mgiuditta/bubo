@@ -30,11 +30,11 @@ final class AccountModel {
         defer { isSigningIn = false }
         do {
             try await cli.signIn()
-        } catch is CancellationError {
-            // The user stopped waiting for the browser.
-        } catch {
+        } catch where !Task.isCancelled {
             failure = error.localizedDescription
-        }
+        } catch {}
+        // The user stopped waiting for the browser: the account is as before, and this task can't run the CLI any more.
+        guard !Task.isCancelled else { return }
         await refresh()
     }
 

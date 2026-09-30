@@ -41,7 +41,7 @@ private func runProcess(_ executable: URL, arguments: [String]) async throws -> 
         for await code in exits { exitCode = code }
         return ProcessOutput(exitCode: exitCode, standardOutput: try await standardOutput, standardError: try await standardError)
     } onCancel: {
-        kill(pid, SIGTERM)
+        kill(pid, SIGKILL) // an interactive shell ignores SIGTERM
     }
 }
 
