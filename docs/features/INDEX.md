@@ -2,9 +2,9 @@
 
 Obiettivo: per ogni feature, battere il miglior concorrente con criteri misurabili. Ogni feature ha un file `NN-nome.md` con ricerca, mappa e specifica "migliore di".
 
-Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42), [Bubo — feature 14–19: cronologia, terminale, integrazioni, board, costi, automazioni](https://github.com/mgiuditta/bubo/issues/125), [Bubo — feature 20, 22, 25–27: marketplace, sandbox, prestazioni, onboarding, rifinitura](https://github.com/mgiuditta/bubo/issues/178). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
+Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42), [Bubo — feature 14–19: cronologia, terminale, integrazioni, board, costi, automazioni](https://github.com/mgiuditta/bubo/issues/125), [Bubo — feature 20, 22, 25–27: marketplace, sandbox, prestazioni, onboarding, rifinitura](https://github.com/mgiuditta/bubo/issues/178), [Bubo — feature 21, 23, 24: iPhone, remoti e cloud, multiplayer](https://github.com/mgiuditta/bubo/issues/231). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
 
-Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
+Stati: **da fare**, **in corso**, **fatta**, **bloccata**, **v2** (decisa per la versione 2: spec breve, nessun ticket di costruzione, in app come **In arrivo** in Impostazioni › Aggiornamenti).
 
 | # | Feature | Stato | Note |
 |---|---|---|---|
@@ -28,10 +28,10 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 | 18 | Costi e uso, Budget e avvisi | in corso | specifica pronta; Quota, Spesa e Valore a listino mai sommati |
 | 19 | Agenti personalizzati e Automazioni programmate | in corso | specifica pronta; solo con Bubo aperto, niente demone |
 | 20 | Marketplace di plugin e Server MCP | in corso | specifica pronta; scrive solo la CLI `claude`, nessun catalogo di Bubo |
-| 21 | App iPhone compagna | da fare | in fondo alla coda |
+| 21 | App iPhone compagna: il Telecomando | in corso | specifica pronta ([ADR 0007](../adr/0007-telecomando-su-cloudkit-senza-server.md)); CloudKit cifrato senza server, non Remote Control; cancello di latenza come primo ticket |
 | 22 | Esecuzione in Sandbox | in corso | specifica pronta; sandbox di Claude Code + cancello di Bubo, accesa di default nelle Automazioni |
-| 23 | Workspace remoti e cloud | da fare | in fondo alla coda |
-| 24 | Multiplayer | da fare | in fondo alla coda |
+| 23 | Sessioni remote via SSH e sessioni cloud | in corso | specifica pronta; Macchina SSH con il `claude` dell'host, dal cloud solo "Porta in Bubo"; cancello con spawn SSH reale |
+| 24 | Multiplayer | v2 | spec breve con le domande per la mappa v2; in v1 solo la voce In arrivo |
 | 25 | Performance nativa: avvio < 1 s, poca RAM, 60 fps con 10 sessioni | in corso | specifica pronta; tabella unica dei budget, Sessioni inattive sospese |
 | 26 | Onboarding di 60 secondi | in corso | specifica pronta; l'Orb guida nell'HUD, nessun `claude` nel bundle (supera la 03 su questo punto) |
 | 27 | Rifinitura premium e aggiornamenti automatici | in corso | specifica pronta; Developer ID, Sparkle 2, Canali stabile e beta; checklist di rifinitura come definizione di fatto |
@@ -137,3 +137,26 @@ La misura e le regole di rifinitura partono presto, perché valgono per tutto ci
 6. **20 Plugin e Server MCP** (passi 1–8): dopo 04, la Palette e la finestra Agenti della 19. Ticket: [#206](https://github.com/mgiuditta/bubo/issues/206), [#207](https://github.com/mgiuditta/bubo/issues/207), [#208](https://github.com/mgiuditta/bubo/issues/208), [#209](https://github.com/mgiuditta/bubo/issues/209), [#210](https://github.com/mgiuditta/bubo/issues/210), [#211](https://github.com/mgiuditta/bubo/issues/211), [#212](https://github.com/mgiuditta/bubo/issues/212), [#213](https://github.com/mgiuditta/bubo/issues/213).
 7. **27 Release e aggiornamenti** (passi 3–8): pipeline firmata, Sparkle, appcast, promemoria, versione minima di `claude`, smoke notturno. Ticket: [#221](https://github.com/mgiuditta/bubo/issues/221), [#222](https://github.com/mgiuditta/bubo/issues/222), [#223](https://github.com/mgiuditta/bubo/issues/223), [#224](https://github.com/mgiuditta/bubo/issues/224), [#225](https://github.com/mgiuditta/bubo/issues/225), [#226](https://github.com/mgiuditta/bubo/issues/226).
 8. **Prima della beta** (con una persona davanti): profilazione reale (25), misura dei 60 secondi con 5 persone (26), icona e glifo, audit completo e `v0.1.0-beta.1` (27). Ticket: [#200](https://github.com/mgiuditta/bubo/issues/200), [#205](https://github.com/mgiuditta/bubo/issues/205), [#228](https://github.com/mgiuditta/bubo/issues/228), [#229](https://github.com/mgiuditta/bubo/issues/229).
+
+## Architettura comune (feature 21, 23, 24)
+
+Stesse regole: locale per default, solo canali dell'utente (iCloud, SSH, git/GitHub), nessun server né relay di Bubo, credenziali mai lette né condivise, disclaim ([ADR 0005](../adr/0005-claude-senza-i-permessi-tcc-di-bubo.md)). Pezzi condivisi nuovi:
+
+- `RemoteKit` ([21](21-iphone-compagna.md)): pacchetto condiviso tra l'app Mac e il target iOS `BuboRemote`. Tipi dei record CloudKit, cifratura per coppia Mac–iPhone, firma e verifica dei Verdetti, versione del protocollo. Trasporto scelto nell'[ADR 0007](../adr/0007-telecomando-su-cloudkit-senza-server.md).
+- `Remote/` ([21](21-iphone-compagna.md)): `RemoteBridge`, `PairingController`, `PresenceMonitor`, `SleepGuard`. `Permissions/RequestCenter` accetta un Verdetto come risposta, sullo stesso percorso dell'HUD.
+- `Machines/` ([23](23-sessioni-remote.md)): **Macchina** del Progetto, `SSHConnection` (un ControlMaster per Macchina), `HostKeyGate` sopra `~/.ssh/known_hosts`, `MachineShell` con `LocalShell` e `SSHShell`. Git, worktree, Terminale, server e Sandbox passano da `MachineShell`: il resto di Bubo non sa se il Progetto è locale.
+- `Cloud/TeleportController` ([23](23-sessioni-remote.md)): "Porta in Bubo" in una copia isolata.
+- **In arrivo** ([24](24-multiplayer.md)): elenco statico nel bundle in Impostazioni › Aggiornamenti (27), aggiornato a ogni release.
+
+Moduli per feature: `BuboRemote` (target iOS), `RemoteKit`, `Remote/`, `Settings/RemotePane` (21), `Machines/`, `Cloud/`, `Settings/MachinesPane` (23).
+
+## Ordine di implementazione (feature 21, 23, 24)
+
+In fondo alla coda, dopo tutte le altre. Prima la 21, poi la 23; la 24 è in v2. I passi rimandano all'`Ordine di costruzione` di ogni spec.
+
+1. **21 Cancello di latenza** (passo 1), con una persona: CloudKit con Developer ID e 100 push misurate. Serve il lavoro umano sugli account della 27 ([#220](https://github.com/mgiuditta/bubo/issues/220)). Ticket: [#244](https://github.com/mgiuditta/bubo/issues/244).
+2. **21 Telecomando** (passi 2–6): accoppiamento, Sessioni e Battito, Richieste, Rispondi/Domanda/Ferma, notifiche passive e stop. Dopo 05, 06, 09, 18 e 19. Ticket: [#245](https://github.com/mgiuditta/bubo/issues/245), [#246](https://github.com/mgiuditta/bubo/issues/246), [#247](https://github.com/mgiuditta/bubo/issues/247), [#248](https://github.com/mgiuditta/bubo/issues/248), [#249](https://github.com/mgiuditta/bubo/issues/249).
+3. **23 Cancello SSH** (passo 1), con un host Linux reale. Può partire in parallelo alla 21 appena c'è il ponte. Ticket: [#250](https://github.com/mgiuditta/bubo/issues/250).
+4. **23 Macchina, `claude` sull'host, git remoto, caduta** (passi 2–5). Dopo 01, 02, 14 (copia a specchio), 15 (Terminale) e 26. Ticket: [#251](https://github.com/mgiuditta/bubo/issues/251), [#252](https://github.com/mgiuditta/bubo/issues/252), [#253](https://github.com/mgiuditta/bubo/issues/253), [#254](https://github.com/mgiuditta/bubo/issues/254).
+5. **23 Terminale, Anteprima, Sandbox, Automazioni remote e Porta in Bubo** (passi 6–8). Dopo 15, 19 e 22. Ticket: [#255](https://github.com/mgiuditta/bubo/issues/255), [#256](https://github.com/mgiuditta/bubo/issues/256), [#257](https://github.com/mgiuditta/bubo/issues/257).
+6. **24 In arrivo**: la sezione in Impostazioni › Aggiornamenti, subito dopo Sparkle nell'app ([#222](https://github.com/mgiuditta/bubo/issues/222)); può uscire prima della 21. Ticket: [#258](https://github.com/mgiuditta/bubo/issues/258). La 24 vera si pianifica in una mappa v2.
