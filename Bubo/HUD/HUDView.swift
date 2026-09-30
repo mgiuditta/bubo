@@ -4,6 +4,8 @@ import SwiftUI
 struct HUDView: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(\.openWindow) private var openWindow
+    /// The Domanda under the Orb.
+    let questions: QuestionModel
 
     var body: some View {
         VStack(spacing: 0) {
@@ -12,6 +14,8 @@ struct HUDView: View {
             OrbPlaceholder()
                 .frame(maxWidth: 520, maxHeight: 520)
                 .padding(Spacing.large)
+            QuestionView(model: questions)
+                .frame(maxWidth: 560)
             Spacer(minLength: Spacing.large)
         }
         .padding(.horizontal, Spacing.large)
@@ -26,6 +30,6 @@ struct HUDView: View {
 }
 
 #Preview {
-    HUDView()
+    HUDView(questions: QuestionModel())
         .environment(HUDPresenter())
 }
