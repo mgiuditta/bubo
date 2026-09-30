@@ -40,8 +40,10 @@ final class OrbPanelController {
 
     /// Builds the window and starts following the HUD and the Panel's occlusion.
     ///
-    /// - Parameter openHUD: Called when VoiceOver presses the Orb.
-    func start(openingHUD openHUD: @escaping () -> Void) {
+    /// - Parameters:
+    ///   - openHUD: Called when the Orb is clicked or pressed by VoiceOver.
+    ///   - menu: The menu of a right click on the Orb, the same as the menu bar's.
+    func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu) {
         let frame = CGRect(origin: .zero, size: CGSize(width: Self.side, height: Self.side))
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
@@ -51,6 +53,8 @@ final class OrbPanelController {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        // Clicks go through until the pointer enters the click circle.
+        panel.ignoresMouseEvents = true
 
         let view = OrbPanelView(frame: frame, device: MTLCreateSystemDefaultDevice())
         view.autoResizeDrawable = false
@@ -58,6 +62,8 @@ final class OrbPanelController {
         view.preferredFramesPerSecond = 60
         view.onPress = openHUD
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
+        view.onPointerMove = { [weak self] in self?.updateClickThrough() }
+        view.menu = menu
         do {
             renderer = try OrbRenderer(view: view)
         } catch {
@@ -81,6 +87,14 @@ final class OrbPanelController {
             forName: NSWindow.didChangeOcclusionStateNotification, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.updateVisibility() }
+        }
+        // The pointer over other apps or over Bubo's windows: the Panel takes clicks only inside the circle.
+        NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
+            MainActor.assumeIsolated { self?.updateClickThrough() }
+        }
+        NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+            self?.updateClickThrough()
+            return event
         }
         updateVisibility()
     }
@@ -117,6 +131,13 @@ final class OrbPanelController {
         let origin = spot.panelOrigin(side: Self.side)
         panel?.setFrame(CGRect(origin: origin, size: CGSize(width: Self.side, height: Self.side)),
                         display: true, animate: animated)
+        updateClickThrough()
+    }
+
+    /// Lets clicks through to the windows below unless the pointer is in the click circle.
+    private func updateClickThrough() {
+        guard let panel else { return }
+        panel.ignoresMouseEvents = !PanelClickCircle.contains(NSEvent.mouseLocation, inPanel: panel.frame)
     }
 
     private var isHUDOpen: Bool {
