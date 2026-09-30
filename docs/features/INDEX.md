@@ -2,7 +2,7 @@
 
 Obiettivo: per ogni feature, battere il miglior concorrente con criteri misurabili. Ogni feature ha un file `NN-nome.md` con ricerca, mappa e specifica "migliore di".
 
-Mappa wayfinder delle feature 1–6: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
+Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
 
 Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 
@@ -15,12 +15,12 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**.
 | 05 | Permessi in GUI con regole "consenti sempre" per progetto | in corso | specifica pronta; costruzione dopo la shell |
 | 06 | Stato delle sessioni, notifiche native, badge nel Dock | in corso | specifica pronta; costruzione dopo la shell |
 | 07 | Orb 3D in Metal: stati vocali e Morph | in corso | mappa fase 1–2; Catalogo di Varianti al posto di 12×1.000 (ADR 0002) |
-| 08 | Voce: wake word, dettatura in streaming, risposta parlata, interruzione | da fare | |
-| 09 | Integrazione Finder e sistema | da fare | |
-| 10 | Router multi-modello con scelta spiegata e override | da fare | |
-| 11 | Galassia 3D del repo con agenti e diff in vetro | da fare | |
-| 12 | Secondo cervello su Obsidian | da fare | |
-| 13 | Memoria per progetto e riassunto di fine sessione | da fare | |
+| 08 | Voce: push-to-talk, dettatura locale, Sintesi parlata, interruzione | in corso | specifica pronta; wake word fuori v1; barge-in dietro spike |
+| 09 | Integrazione Finder e sistema | in corso | specifica pronta ([ADR 0005](../adr/0005-claude-senza-i-permessi-tcc-di-bubo.md)); pipeline degli ingressi condivisa con 08 e 10 |
+| 10 | Router multi-modello con scelta spiegata e override | in corso | specifica pronta ([ricerca Jev](10-router-jev.md)); Jev facoltativo dietro cancello di adozione |
+| 11 | Galassia: mappa 2,5D del Progetto con le Sessioni al lavoro e diff in vetro | in corso | specifica pronta; finestra a sé |
+| 12 | Secondo cervello: qualunque cartella Markdown, Obsidian facoltativo | in corso | specifica pronta; legge solo via [Indice](indice-semantico.md) |
+| 13 | Memoria di Progetto visibile e Riassunto di Sessione | in corso | specifica pronta; dopo Indice e 12 |
 | 14 | Cronologia ricercabile per significato | da fare | |
 | 15 | Terminale, editor, anteprima server, browser in-app | da fare | |
 | 16 | Integrazioni GitHub e Linear | da fare | |
@@ -54,3 +54,30 @@ Un solo target app (XcodeGen, cartelle per modulo). I pezzi condivisi si scrivon
 4. **06 Attività, notifiche e badge** (Vista Colonna per prima).
 5. **05 Permessi**.
 6. **02 Revisione e merge**.
+
+## Architettura comune (feature 8–13)
+
+Stesso target, stesse regole: locale per default, nessun contenuto del Progetto a fornitori diversi da Claude senza consenso, `claude` avviato senza i permessi TCC di Bubo ([ADR 0005](../adr/0005-claude-senza-i-permessi-tcc-di-bubo.md)). Pezzi condivisi nuovi:
+
+- `Intake/` (**pipeline degli ingressi**, [09](09-sistema.md)): ogni ingresso (voce, trascinamento, Servizio, App Intent) diventa una Domanda con Allegati, passa dal classificatore e arriva all'Orb. `AttachmentPolicy` decide cosa può andare a quale fornitore.
+- `Router/` ([10](10-router.md)): `RequestClassifier` (Apple FM + regole, Jev facoltativo) produce insieme Tipo di richiesta e Variante; `ModelRouter` sceglie modello e sforzo; `Providers` con un solo client OpenAI-compatibile.
+- `Index/` + strumento MCP `cerca` (**Indice**, [indice-semantico.md](indice-semantico.md)): SQLite di sistema + FTS5 + vettori in Accelerate su Secondo cervello, Memoria di Progetto e conversazioni. Serve 12, 13 e più avanti 14.
+- `Agent/ProcessSpawner`: avvio di `claude` con disclaim, parte del ponte agente minimo.
+
+Moduli per feature: `Voice/` (08), `System/Services`, `System/Intents`, `System/ScreenCapture`, `Panel/OrbDropTarget` (09), `HUD/RouterLine` e `HUD/RouterChip` (10), `Galaxy/` (11), `SecondBrain/` (12), `Memory/`, `HUD/MemoryPanel` (13).
+
+## Ordine di implementazione (feature 8–13)
+
+Parte dopo l'ordine delle feature 1–6 e il PRD fase 1–2 (Stati, Tinte, Catalogo e Morph dell'Orb). Pezzi condivisi prima.
+
+0. **Ponte agente con disclaim** (ADR 0005): prerequisito di tutto ciò che avvia `claude`.
+1. **Pipeline degli ingressi + classificatore** (`Intake/` e `Router/RequestClassifier`, senza Jev): nascono insieme, perché il classificatore produce la Variante e la pipeline lo chiama. Primo ingresso: il prompt scritto.
+2. **10 Router**: `ModelRouter`, riga del motivo, chip, "Rifai con…", Domande su Apple FM e client OpenAI-compatibile.
+3. **09 Sistema**: trascinamento sull'Orb, poi Servizio, poi App Intents, poi selettore di finestra.
+4. **08 Voce**: push-to-talk nella pipeline, poi Sintesi parlata, poi interruzione; barge-in dietro spike.
+5. **Indice**: prima FTS5 (parole), poi vettori e `cerca`.
+6. **12 Secondo cervello**: cartella, `NoteWriter`, lettura via `cerca`.
+7. **13 Memoria e Riassunto**: il pannello della Memoria di Progetto può partire subito dopo il ponte; il Riassunto di Sessione dopo 12.
+8. **11 Galassia**: indipendente da voce, router e Indice; dopo 01, 02 e 06.
+9. **Jev** (10): solo dopo il cancello di adozione (+5 punti su Apple FM in italiano, 200 richieste).
+
