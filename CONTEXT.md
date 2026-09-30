@@ -166,6 +166,10 @@ _Avoid_: pericolosità, severità
 Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
 _Avoid_: yolo, bypass
 
+**Sandbox**:
+Il confine che il sistema impone ai comandi e alle scritture dell'agente in una **Sessione**: scrive solo nella copia del **Progetto** e nei percorsi ammessi, in rete raggiunge solo i domini ammessi.
+_Avoid_: contenitore, container, isolamento
+
 ### Telecomando
 
 **Telecomando**:
@@ -216,11 +220,31 @@ _Avoid_: recap, log, diario
 La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.
 _Avoid_: database vettoriale, vector store, indice semantico
 
+### Estensioni dell'agente
+
+**Plugin**:
+Un pacchetto di Claude Code (skill, comandi, agenti, hook, **Server MCP**) che l'utente installa da un **Marketplace**; attivo per l'utente, per un **Progetto** o solo per l'utente in quel Progetto. È lo stesso plugin che vede la riga di comando.
+_Avoid_: estensione, add-on, catalogo
+
+**Marketplace**:
+Un elenco di **Plugin** pubblicato in un repository o in una cartella, che l'utente aggiunge a Claude Code; Bubo non ne ha uno proprio.
+_Avoid_: catalogo, store, negozio
+
+**Server MCP**:
+Un programma o un indirizzo che dà all'agente strumenti in più; arriva da un **Plugin** o si aggiunge da solo. I connettori di claude.ai sono Server MCP che arrivano col login.
+_Avoid_: connettore (tranne quelli di claude.ai), estensione, tool server
+
 ### Voce
 
 **Sintesi parlata**:
 Le una o due frasi che Bubo dice ad alta voce quando gli si è parlato; il testo completo della risposta resta scritto nel **Panel**.
 _Avoid_: lettura, TTS (per il contenuto)
+
+### Aggiornamenti
+
+**Canale**:
+La serie di versioni di Bubo che un utente riceve: la stabile per tutti, la beta per chi la sceglie. Chi lascia la beta aspetta la stabile successiva, non torna indietro.
+_Avoid_: ramo, track, release channel
 
 ### Prodotto
 
