@@ -51,6 +51,26 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
     postBuildScripts:
+      - name: Ponte agente
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          bun=$(command -v bun || echo "$HOME/.bun/bin/bun")
+          helper="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/bubo-agent"
+          mkdir -p "${helper:h}"
+          cd "$SRCROOT/bridge"
+          # Niente dipendenze opzionali: il binario claude dell'SDK non serve, si usa quello dell'utente (ADR 0003).
+          "$bun" install --frozen-lockfile --omit=optional
+          "$bun" build --compile --minify src/main.ts --outfile "$helper"
+          # Firmato prima dell'app, con runtime rafforzato e il solo allow-jit che serve a Bun.
+          codesign --force --options runtime --entitlements entitlements.plist --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$helper"
+        inputFiles:
+          - $(SRCROOT)/bridge/src/main.ts
+          - $(SRCROOT)/bridge/package.json
+          - $(SRCROOT)/bridge/bun.lock
+          - $(SRCROOT)/bridge/entitlements.plist
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-agent
       - name: Archivio Metal 4 delle Forme
         shell: /bin/zsh
         script: |

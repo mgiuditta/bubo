@@ -8,7 +8,7 @@ struct BuboApp: App {
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
-            HUDView()
+            HUDView(questions: appDelegate.questions)
                 .environment(appDelegate.hud)
         }
         .windowStyle(.hiddenTitleBar)

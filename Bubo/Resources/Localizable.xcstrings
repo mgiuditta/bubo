@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "it",
   "strings" : {
+    "%@" : {
+      "shouldTranslate" : false
+    },
     "%@ è già usata da un'altra app. Scegline un'altra." : {
       "localizations" : {
         "en" : {
@@ -181,12 +184,52 @@
         }
       }
     },
+    "Chiedi qualcosa a Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Claude something"
+          }
+        }
+      }
+    },
+    "Chiedo a Claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asking Claude…"
+          }
+        }
+      }
+    },
     "Claude" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude"
+          }
+        }
+      }
+    },
+    "Claude Code non trovato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code not found"
+          }
+        }
+      }
+    },
+    "Claude non ha risposto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude didn't answer"
           }
         }
       }
@@ -321,6 +364,26 @@
         }
       }
     },
+    "Ferma" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        }
+      }
+    },
+    "Ferma la risposta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop the answer"
+          }
+        }
+      }
+    },
     "Fornitore" : {
       "localizations" : {
         "en" : {
@@ -391,6 +454,26 @@
         }
       }
     },
+    "Il collegamento con Claude non è aggiornato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection to Claude is out of date"
+          }
+        }
+      }
+    },
+    "Il collegamento con Claude si è interrotto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection to Claude stopped"
+          }
+        }
+      }
+    },
     "Impostazioni…" : {
       "localizations" : {
         "en" : {
@@ -407,6 +490,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for the Panel's first frame."
+          }
+        }
+      }
+    },
+    "Installa la CLI claude, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install the claude CLI, then try again."
           }
         }
       }
@@ -641,6 +734,16 @@
         }
       }
     },
+    "Reinstalla Bubo, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
     "Rimuovi" : {
       "localizations" : {
         "en" : {
@@ -677,6 +780,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try Again"
+          }
+        }
+      }
+    },
+    "Riprova: Bubo lo riavvia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again: Bubo restarts it."
+          }
+        }
+      }
+    },
+    "Risposta di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's answer"
           }
         }
       }
