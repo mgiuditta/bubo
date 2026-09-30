@@ -1,0 +1,108 @@
+# Smoke notturno del ponte contro il claude dell'utente (spec 27, #226): l'ultima dell'installer nativo
+# e la minima di bridge/compat.json da npm. Se fallisce apre un'issue needs-triage, una sola per versione.
+# Segreto (#220): ANTHROPIC_API_KEY per i turni con Haiku.
+name: Smoke notturno di claude
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+    inputs:
+      variant:
+        description: "Quale claude provare"
+        type: choice
+        options: [tutte, ultima, minima]
+        default: tutte
+      minimum:
+        description: "Minima al posto di compat.json (prova del fallimento)"
+        type: string
+        required: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: macos-26
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [ultima, minima]
+    steps:
+      - name: Variante scelta
+        id: pick
+        env:
+          CHOSEN: ${{ inputs.variant || 'tutte' }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          if [[ "$CHOSEN" == tutte || "$CHOSEN" == "$VARIANT" ]]; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        if: steps.pick.outputs.run == 'true'
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.pick.outputs.run == 'true'
+        with:
+          bun-version: 1.3.11
+
+      - name: Dipendenze del ponte
+        if: steps.pick.outputs.run == 'true'
+        working-directory: bridge
+        run: bun install --frozen-lockfile --omit=optional
+
+      - name: claude
+        id: claude
+        if: steps.pick.outputs.run == 'true'
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          if [[ "$VARIANT" == ultima ]]; then
+            curl -fsSL https://claude.ai/install.sh | bash
+            path="$HOME/.local/bin/claude"
+          else
+            minimum=$(jq -r .minimumClaudeVersion bridge/compat.json)
+            npm install -g "@anthropic-ai/claude-code@$minimum"
+            path="$(npm prefix -g)/bin/claude"
+          fi
+          version=$("$path" --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke
+        if: steps.pick.outputs.run == 'true'
+        working-directory: bridge
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BUBO_CLAUDE_PATH: ${{ steps.claude.outputs.path }}
+          SMOKE_MINIMUM: ${{ inputs.minimum }}
+        run: |
+          set -o pipefail
+          bun smoke/smoke.ts 2>&1 | tee "$RUNNER_TEMP/smoke.log"
+
+      - name: Issue needs-triage, una per versione
+        if: failure() && steps.pick.outputs.run == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VARIANT: ${{ matrix.variant }}
+          VERSION: ${{ steps.claude.outputs.version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          title="Smoke notturno: il ponte non passa con claude ${VERSION:-($VARIANT, non installata)}"
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 200 \
+            --search "\"$title\" in:title" --json title --jq "map(select(.title == \"$title\")) | length")
+          if [[ "$existing" != 0 ]]; then
+            echo "Issue già aperta per questa versione: nessuna nuova."
+            exit 0
+          fi
+          {
+            echo "Lo smoke notturno del ponte è fallito con \`claude\` ${VERSION:-non installata} ($VARIANT)."
+            echo
+            echo "Esecuzione: $RUN_URL"
+            echo
+            echo '```'
+            tail -n 80 "$RUNNER_TEMP/smoke.log" 2>/dev/null || echo "nessun log: il job si è fermato prima dello smoke"
+            echo '```'
+          } > "$RUNNER_TEMP/issue.md"
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" --label needs-triage --body-file "$RUNNER_TEMP/issue.md"
