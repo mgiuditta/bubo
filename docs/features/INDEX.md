@@ -97,14 +97,14 @@ Moduli per feature: `History/` (14), `Terminal/`, `Servers/`, `Preview/`, `Viewe
 
 Parte dopo gli ordini delle feature 1–6 e 8–13. I passi rimandano all'`Ordine di costruzione` di ogni spec.
 
-1. **14 Conservazione** (passo 1): copia a specchio con `sessionStore`. Subito dopo il ponte agente e 01: ogni giorno di ritardo sono conversazioni perse dalla CLI.
-2. **18 Registro dei turni e prezzi** (passi 1–2): il totale della Sessione e lo storico devono accumularsi dal primo turno. Dopo 03 e 10.
-3. **17 Board** (passi 1–2): regola delle colonne, card, Bozze a mano, ⌘4. Dopo 01, 05, 06.
-4. **15 Terminale, server e Anteprima** (passi 1–3). Dopo il ponte con disclaim e 01.
-5. **16 GitHub e Linear** (passi 1–5) insieme a **17** (passi 3–4): ⌘I, Apri PR, CI e Correggi, Bozze da issue, `gh` mancante. Dopo 02, 13, 15 e 17.
-6. **14 Palette e Cronologia** (passi 2–4): dopo l'Indice ([#111](https://github.com/mgiuditta/bubo/issues/111)–[#113](https://github.com/mgiuditta/bubo/issues/113)) e 12. Da qui ogni comando delle 14–19 entra nella Palette.
-7. **18 Finestra Costi e Budget** (passi 3–4): dopo 1 e 06.
-8. **15 L'agente pilota l'Anteprima, visore, editor, Allegati dal terminale** (passi 4–6): dopo 05, `Intake/` e la Palette.
-9. **19 Agenti e Automazioni** (passi 1–5), con **18** passo 5 (Automazioni saltate a Budget esaurito): dopo 17 e i Budget.
+1. **14 Conservazione** (passo 1): copia a specchio con `sessionStore`. Subito dopo il ponte agente e 01: ogni giorno di ritardo sono conversazioni perse dalla CLI. Ticket: [#141](https://github.com/mgiuditta/bubo/issues/141).
+2. **18 Registro dei turni e prezzi** (passi 1–2): il totale della Sessione e lo storico devono accumularsi dal primo turno. Dopo 03 e 10. Ticket: [#142](https://github.com/mgiuditta/bubo/issues/142), [#143](https://github.com/mgiuditta/bubo/issues/143).
+3. **17 Board** (passi 1–2): regola delle colonne, card, Bozze a mano, ⌘4. Dopo 01, 05, 06. Ticket: [#144](https://github.com/mgiuditta/bubo/issues/144), [#145](https://github.com/mgiuditta/bubo/issues/145).
+4. **15 Terminale, server e Anteprima** (passi 1–3). Dopo il ponte con disclaim e 01. Ticket: [#147](https://github.com/mgiuditta/bubo/issues/147), [#148](https://github.com/mgiuditta/bubo/issues/148), [#149](https://github.com/mgiuditta/bubo/issues/149).
+5. **16 GitHub e Linear** (passi 1–5) insieme a **17** (passi 3–4): ⌘I, Apri PR, CI e Correggi, Bozze da issue, `gh` mancante. Dopo 02, 13, 15 e 17. Ticket: [#146](https://github.com/mgiuditta/bubo/issues/146), [#151](https://github.com/mgiuditta/bubo/issues/151), [#152](https://github.com/mgiuditta/bubo/issues/152), [#153](https://github.com/mgiuditta/bubo/issues/153), [#154](https://github.com/mgiuditta/bubo/issues/154), [#155](https://github.com/mgiuditta/bubo/issues/155), [#156](https://github.com/mgiuditta/bubo/issues/156).
+6. **14 Palette e Cronologia** (passi 2–4): dopo l'Indice ([#111](https://github.com/mgiuditta/bubo/issues/111)–[#113](https://github.com/mgiuditta/bubo/issues/113)) e 12. Da qui ogni comando delle 14–19 entra nella Palette. Ticket: [#157](https://github.com/mgiuditta/bubo/issues/157), [#158](https://github.com/mgiuditta/bubo/issues/158), [#159](https://github.com/mgiuditta/bubo/issues/159), [#160](https://github.com/mgiuditta/bubo/issues/160), [#161](https://github.com/mgiuditta/bubo/issues/161).
+7. **18 Finestra Costi e Budget** (passi 3–4): dopo 1 e 06. Ticket: [#162](https://github.com/mgiuditta/bubo/issues/162), [#163](https://github.com/mgiuditta/bubo/issues/163), [#164](https://github.com/mgiuditta/bubo/issues/164), [#165](https://github.com/mgiuditta/bubo/issues/165).
+8. **15 L'agente pilota l'Anteprima, visore, editor, Allegati dal terminale** (passi 4–6): dopo 05, `Intake/` e la Palette. Ticket: [#166](https://github.com/mgiuditta/bubo/issues/166), [#150](https://github.com/mgiuditta/bubo/issues/150), [#167](https://github.com/mgiuditta/bubo/issues/167).
+9. **19 Agenti e Automazioni** (passi 1–5), con **18** passo 5 (Automazioni saltate a Budget esaurito): dopo 17 e i Budget. Ticket: [#168](https://github.com/mgiuditta/bubo/issues/168), [#169](https://github.com/mgiuditta/bubo/issues/169), [#170](https://github.com/mgiuditta/bubo/issues/170), [#171](https://github.com/mgiuditta/bubo/issues/171), [#172](https://github.com/mgiuditta/bubo/issues/172), [#173](https://github.com/mgiuditta/bubo/issues/173), [#174](https://github.com/mgiuditta/bubo/issues/174), [#175](https://github.com/mgiuditta/bubo/issues/175).
 
 Dopo le 14–19: 20, 22, 25, 26, 27, ciascuna con la sua mappa. **21, 23 e 24 in fondo alla coda**, dopo tutte le altre.
