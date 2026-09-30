@@ -9,3 +9,7 @@ Abbiamo scelto:
 - **Ingressi senza permessi**: testo selezionato con la scorciatoia del Servizio "Chiedi a Bubo", non con l'Accessibilità; schermo con il selettore di ScreenCaptureKit (scatto scelto dall'utente), non con la Registrazione schermo.
 
 Se la SPI sparisce o non isola davvero (prova a inizio costruzione), Bubo accetta l'eredità del solo Microfono e lo dice nelle Impostazioni; Accessibilità e Registrazione schermo restano comunque escluse.
+
+## Estensione: ogni processo avviato da Bubo
+
+La regola vale per tutto ciò che Bubo avvia, non solo per `claude`: shell del terminale, dev server, CLI dell'editor ("apri nell'editor"). Tutti partono con il disclaim. Una shell ha bisogno anche di un terminale di controllo, che `posix_spawn` non dà: un piccolo lanciatore nel bundle fa `setsid` + `TIOCSCTTY` + `exec`, e lui stesso parte con il disclaim. Per questo il terminale usa SwiftTerm solo come vista, con un PTY di Bubo: `LocalProcess` di SwiftTerm e libghostty completo creano i processi con `fork`, dove il disclaim non si può mettere. Nessun concorrente lo fa: VS Code, Cursor e Claude desktop usano `node-pty` senza disclaim ([Terminale e anteprima: cosa entra in v1](https://github.com/mgiuditta/bubo/issues/133)).

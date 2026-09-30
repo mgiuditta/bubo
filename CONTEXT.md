@@ -81,12 +81,24 @@ Dove si trova una **Sessione** nella sua vita: Aperta, In revisione, Fusa, Archi
 _Avoid_: stato, status
 
 **Cronologia CLI**:
-Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e si riprendono solo come nuova **Sessione**.
+Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e si riprendono solo come nuova **Sessione**. Bubo ne conserva una copia anche dopo che la riga di comando le cancella, salvo scelta contraria dell'utente.
 _Avoid_: sessioni importate
 
 **Vista delle Sessioni**:
-Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt). La sceglie l'utente.
+Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt), Board (colonne derivate da **Fase** e **Attività**, più le **Bozze** da iniziare). La sceglie l'utente.
 _Avoid_: layout, tema, modalità
+
+**Bozza**:
+Un lavoro da iniziare su un **Progetto**: titolo e testo che diventeranno il prompt. Si scrive a mano o nasce da un'issue GitHub o Linear; con Avvia diventa una **Sessione**.
+_Avoid_: compito, task, backlog, ticket
+
+**Automazione**:
+Una richiesta programmata dall'utente che, all'ora stabilita e solo con Bubo aperto, parte come nuova **Sessione** su un **Progetto**.
+_Avoid_: cron, routine, job
+
+**Anteprima**:
+La vista web, dentro Bubo, di un server locale avviato da una **Sessione**; ogni Sessione ha la sua, con i suoi cookie. La vedono e la usano sia l'utente sia l'agente.
+_Avoid_: browser, preview
 
 **Galassia**:
 La mappa del **Progetto** in cui ogni cartella è un ammasso a posizione fissa e ogni file una stella; mostra dove lavorano le **Sessioni** e accanto tiene sempre la lista dei file toccati.
