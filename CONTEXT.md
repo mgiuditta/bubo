@@ -104,6 +104,24 @@ _Avoid_: browser, preview
 La mappa del **Progetto** in cui ogni cartella è un ammasso a posizione fissa e ogni file una stella; mostra dove lavorano le **Sessioni** e accanto tiene sempre la lista dei file toccati.
 _Avoid_: grafo del repo, città, albero
 
+### Costi
+
+**Quota**:
+La parte usata dei limiti dell'abbonamento Claude (finestra di 5 ore, settimana), in percentuale; non è denaro.
+_Avoid_: limite, crediti, uso
+
+**Spesa**:
+I dollari pagati a un fornitore a consumo (API key, OpenRouter, crediti extra dell'abbonamento), esatti o stimati dai token.
+_Avoid_: costo (da solo), uso
+
+**Valore a listino**:
+Quanto costerebbe a consumo il lavoro fatto con l'abbonamento; si mostra ma non si paga e non si somma mai alla **Spesa**.
+_Avoid_: risparmio, costo equivalente
+
+**Budget**:
+Il tetto mensile di **Spesa** che l'utente fissa per un fornitore a consumo, per un **Progetto** o in totale; alla soglia avvisa, al limite ferma e chiede.
+_Avoid_: limite, tetto, quota
+
 ### Router
 
 **Tipo di richiesta**:
@@ -180,6 +198,9 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 - Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
+
+- **Quota**, **Spesa** e **Valore a listino** hanno unità diverse (%, $, $ non pagati) e non si sommano mai
+- Un **Budget** vale solo sulla **Spesa**: l'abbonamento ha la **Quota**, i modelli sul Mac sono gratis
 
 ## Flagged ambiguities
 
