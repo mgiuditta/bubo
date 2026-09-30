@@ -15,7 +15,7 @@ struct GalleriaThumbnail: View {
             if let image {
                 Image(decorative: image, scale: displayScale)
             } else {
-                ProgressView().controlSize(.small)
+                Color.clear // a snapshot takes a frame or two; the Galleria has no text
             }
         }
         .frame(width: 64, height: 64)

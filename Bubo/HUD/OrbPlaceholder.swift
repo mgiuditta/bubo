@@ -23,5 +23,6 @@ struct OrbPlaceholder: View {
         .aspectRatio(1, contentMode: .fit)
         .accessibilityElement()
         .accessibilityLabel("Orb di Bubo, a riposo")
+        .accessibilityAddTraits(.isImage)
     }
 }
