@@ -1,0 +1,116 @@
+# Release firmata e notarizzata sul tag vX.Y.Z o vX.Y.Z-beta.N (spec 27, #221).
+# Segreti (#220): DEVELOPER_ID_P12_BASE64, DEVELOPER_ID_P12_PASSWORD, ASC_API_KEY_P8_BASE64,
+# ASC_API_KEY_ID, ASC_API_ISSUER_ID, BUBO_RELEASES_TOKEN (scrittura solo su mgiuditta/bubo-releases).
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      RELEASES_REPO: mgiuditta/bubo-releases
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Versione dal tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)(-beta\.[0-9]+)?$ ]]; then
+            echo "::error::tag $TAG fuori formato: vX.Y.Z o vX.Y.Z-beta.N"
+            exit 1
+          fi
+          {
+            echo "marketing=${BASH_REMATCH[1]}"
+            echo "name=${TAG#v}"
+            echo "prerelease=$([[ -n "${BASH_REMATCH[2]}" ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+
+      - name: XcodeGen
+        run: brew install xcodegen
+
+      - name: Segreti presenti
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          BUBO_RELEASES_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+        run: |
+          missing=0
+          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD ASC_API_KEY_P8_BASE64 ASC_API_KEY_ID ASC_API_ISSUER_ID BUBO_RELEASES_TOKEN; do
+            if [[ -z "${!name}" ]]; then echo "::error::segreto $name mancante (#220)"; missing=1; fi
+          done
+          exit $missing
+
+      - name: Portachiavi e chiave di App Store Connect
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+        run: |
+          scripts/release/keychain.sh create
+          key="$RUNNER_TEMP/AuthKey.p8"
+          printf '%s' "$ASC_API_KEY_P8_BASE64" | base64 --decode > "$key"
+          echo "ASC_API_KEY_PATH=$key" >> "$GITHUB_ENV"
+
+      - name: Build e export Developer ID
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          MARKETING: ${{ steps.version.outputs.marketing }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: scripts/release/build.sh "$MARKETING" "$BUILD_NUMBER" "$RUNNER_TEMP/build"
+
+      - name: Firma dall'interno verso l'esterno
+        run: scripts/release/sign.sh "$RUNNER_TEMP/build/export/Bubo.app"
+
+      - name: Velocità del ponte firmato
+        run: scripts/release/bridge-speed.sh
+
+      - name: DMG firmato
+        env:
+          NAME: ${{ steps.version.outputs.name }}
+        run: scripts/release/dmg.sh "$RUNNER_TEMP/build/export/Bubo.app" "$RUNNER_TEMP/Bubo-$NAME.dmg"
+
+      - name: Notarizzazione e stapling
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          NAME: ${{ steps.version.outputs.name }}
+        run: scripts/release/notarize.sh "$RUNNER_TEMP/Bubo-$NAME.dmg"
+
+      - name: Release in bubo-releases
+        env:
+          GH_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          NAME: ${{ steps.version.outputs.name }}
+          PRERELEASE: ${{ steps.version.outputs.prerelease }}
+        run: |
+          flags=()
+          [[ "$PRERELEASE" == true ]] && flags+=(--prerelease)
+          gh release create "$TAG" "$RUNNER_TEMP/Bubo-$NAME.dmg" \
+            --repo "$RELEASES_REPO" --title "Bubo $NAME" --notes "Bubo $NAME" "${flags[@]}"
+
+      - name: Pulizia
+        if: always()
+        run: |
+          scripts/release/keychain.sh delete
+          rm -f "$RUNNER_TEMP/AuthKey.p8"
