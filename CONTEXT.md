@@ -57,8 +57,12 @@ _Avoid_: logo, tema, brand
 ### Lavoro
 
 **Progetto**:
-Una cartella su cui Bubo lavora, dentro o fuori da un repo git. Se è un repo, è il checkout principale.
+Una cartella su cui Bubo lavora, dentro o fuori da un repo git, su una **Macchina**. Se è un repo, è il checkout principale.
 _Avoid_: repo, workspace, cartella di lavoro
+
+**Macchina**:
+Dove sta un **Progetto** e girano le sue **Sessioni**: il Mac di Bubo o un computer dell'utente raggiunto via SSH, con il suo `claude` e il suo login.
+_Avoid_: server, host, remoto (come sostantivo)
 
 **Sessione**:
 Un'unità di lavoro durevole su un **Progetto**, con un titolo, una propria copia isolata del Progetto (se git) e la storia delle conversazioni dell'agente che la compongono.
@@ -93,7 +97,7 @@ Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), 
 _Avoid_: layout, tema, modalità
 
 **Bozza**:
-Un lavoro da iniziare su un **Progetto**: titolo e testo che diventeranno il prompt. Si scrive a mano o nasce da un'issue GitHub o Linear; con Avvia diventa una **Sessione**.
+Un lavoro da iniziare su un **Progetto**: titolo e testo che diventeranno il prompt. Si scrive a mano, nasce da un'issue GitHub o Linear o arriva con una **Consegna**; con Avvia diventa una **Sessione**.
 _Avoid_: compito, task, backlog, ticket
 
 **Automazione**:
@@ -162,6 +166,38 @@ _Avoid_: pericolosità, severità
 Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
 _Avoid_: yolo, bypass
 
+### Telecomando
+
+**Telecomando**:
+L'app iPhone di Bubo che segue le **Sessioni** di un Mac e risponde alle sue **Richieste di permesso**; il lavoro resta sempre sul Mac.
+_Avoid_: app mobile, companion
+
+**Dispositivo accoppiato**:
+Un iPhone autorizzato a comandare un Mac, con una chiave propria; si revoca da entrambi i lati.
+_Avoid_: device, client
+
+**Verdetto**:
+La risposta firmata del **Telecomando** a una **Richiesta di permesso**; scade dopo 10 minuti e non vale se la Richiesta è già risolta sul Mac.
+_Avoid_: approvazione remota
+
+**Battito**:
+L'ultimo segnale di vita del Mac visto dal **Telecomando**, per sapere quanto sono freschi i dati.
+_Avoid_: heartbeat, ping
+
+### Squadra
+
+**Consegna**:
+Il passaggio di una **Sessione** (conversazione ripulita più ramo) a un altro utente Bubo, che la riprende col proprio account su una sua **Macchina**; una volta consegnata non si revoca.
+_Avoid_: condivisione, handoff, fork, invio
+
+**Biglietto**:
+Il piccolo file con cui un utente Bubo si fa conoscere da un altro per ricevere **Consegne**; vale per una sola **Macchina** e si conferma confrontando un codice di verifica.
+_Avoid_: invito, contatto, chiave
+
+**Risorsa di squadra**:
+Un'**Automazione** o una **Regola di permesso** di Bubo salvata nel repo di un **Progetto**; vale per chi la usa solo dopo che l'ha accettata, e va riaccettata se cambia.
+_Avoid_: impostazione condivisa, preset
+
 ### Memoria
 
 **Memoria di Progetto**:
@@ -186,6 +222,12 @@ _Avoid_: database vettoriale, vector store, indice semantico
 Le una o due frasi che Bubo dice ad alta voce quando gli si è parlato; il testo completo della risposta resta scritto nel **Panel**.
 _Avoid_: lettura, TTS (per il contenuto)
 
+### Prodotto
+
+**In arrivo**:
+Una funzione decisa per la v2 di Bubo: elencata in Impostazioni › Aggiornamenti con nome e una riga, senza date, ma non usabile. Non ci entrano le cose escluse o condizionate a terzi.
+_Avoid_: roadmap, MVP2, prossimamente, coming soon
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
@@ -198,6 +240,7 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Il router sceglie la **Variante** iniziale; durante il lavoro la **Variante** può cambiare a ogni passo
 - **Stato**, **Variante** e **Tinta** sono indipendenti; il colore viene sempre dalla **Tinta**, mai dalla Variante: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
 - Un **Progetto** ha molte **Sessioni**; al massimo una lavora direttamente sul checkout principale, le altre ciascuna nella propria copia isolata
+- Un **Progetto** sta su una sola **Macchina**, e tutte le sue **Sessioni** girano lì
 - **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
 - Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
@@ -206,6 +249,10 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 - Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
+- Dal **Telecomando** una **Richiesta di permesso** riceve solo No, Solo ora o Per questa Sessione; dai livelli 4–5 solo No o Solo ora. Sempre in questo Progetto si decide solo sul Mac
+
+- Una **Consegna** diventa, per chi la riceve, una **Bozza** che deve avviare lui; il turno gira sempre col suo account
+- Un'**Automazione** arrivata come **Risorsa di squadra** parte disattivata e gira con l'account di chi la attiva
 
 - **Quota**, **Spesa** e **Valore a listino** hanno unità diverse (%, $, $ non pagati) e non si sommano mai
 - Un **Budget** vale solo sulla **Spesa**: l'abbonamento ha la **Quota**, i modelli sul Mac sono gratis
