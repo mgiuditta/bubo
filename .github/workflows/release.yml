@@ -1,6 +1,7 @@
 # Release firmata e notarizzata sul tag vX.Y.Z o vX.Y.Z-beta.N (spec 27, #221).
 # Segreti (#220): DEVELOPER_ID_P12_BASE64, DEVELOPER_ID_P12_PASSWORD, ASC_API_KEY_P8_BASE64,
-# ASC_API_KEY_ID, ASC_API_ISSUER_ID, BUBO_RELEASES_TOKEN (scrittura solo su mgiuditta/bubo-releases).
+# ASC_API_KEY_ID, ASC_API_ISSUER_ID, SPARKLE_ED_PRIVATE_KEY, BUBO_RELEASES_TOKEN (scrittura solo su
+# mgiuditta/bubo-releases, con Pages sul ramo gh-pages).
 name: Release
 
 on:
@@ -42,6 +43,13 @@ jobs:
         with:
           bun-version: 1.3.11
 
+      - name: Note di rilascio in ogni lingua
+        env:
+          NAME: ${{ steps.version.outputs.name }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/notes"
+          bun scripts/release/appcast.ts notes "$NAME" "$RUNNER_TEMP/notes" "Bubo-$NAME"
+
       - name: XcodeGen
         run: brew install xcodegen
 
@@ -52,10 +60,11 @@ jobs:
           ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
           BUBO_RELEASES_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
         run: |
           missing=0
-          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD ASC_API_KEY_P8_BASE64 ASC_API_KEY_ID ASC_API_ISSUER_ID BUBO_RELEASES_TOKEN; do
+          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD ASC_API_KEY_P8_BASE64 ASC_API_KEY_ID ASC_API_ISSUER_ID SPARKLE_ED_PRIVATE_KEY BUBO_RELEASES_TOKEN; do
             if [[ -z "${!name}" ]]; then echo "::error::segreto $name mancante (#220)"; missing=1; fi
           done
           exit $missing
@@ -104,10 +113,24 @@ jobs:
           NAME: ${{ steps.version.outputs.name }}
           PRERELEASE: ${{ steps.version.outputs.prerelease }}
         run: |
-          flags=()
-          [[ "$PRERELEASE" == true ]] && flags+=(--prerelease)
-          gh release create "$TAG" "$RUNNER_TEMP/Bubo-$NAME.dmg" \
-            --repo "$RELEASES_REPO" --title "Bubo $NAME" --notes "Bubo $NAME" "${flags[@]}"
+          dmg="$RUNNER_TEMP/Bubo-$NAME.dmg"
+          # Rilancio del job dopo un appcast fallito: la release c'è già, si sostituisce il DMG.
+          if gh release view "$TAG" --repo "$RELEASES_REPO" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$dmg" --repo "$RELEASES_REPO" --clobber
+          else
+            flags=()
+            [[ "$PRERELEASE" == true ]] && flags+=(--prerelease)
+            gh release create "$TAG" "$dmg" --repo "$RELEASES_REPO" --title "Bubo $NAME" \
+              --notes-file "$RUNNER_TEMP/notes/Bubo-$NAME.md" "${flags[@]}"
+          fi
+
+      - name: Appcast su Pages
+        env:
+          GH_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+          TAG: ${{ github.ref_name }}
+          NAME: ${{ steps.version.outputs.name }}
+        run: scripts/release/appcast.sh "$RUNNER_TEMP/Bubo-$NAME.dmg" "$TAG"
 
       - name: Pulizia
         if: always()
