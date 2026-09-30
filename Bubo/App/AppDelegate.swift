@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 
 /// Owns the app-wide services that must exist before any window appears.
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -17,7 +18,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         DockIcon.apply(isVisible: UserDefaults.standard.bool(forKey: DockIcon.defaultsKey))
         _ = hotKeys
-        panel.start(openingHUD: { [hud] in hud.show() })
+        // The same SwiftUI menu as the menu bar's, so the two never drift apart.
+        let menu = NSHostingMenu(rootView: MenuBarContent()
+            .environment(hud)
+            .environment(hotKeys)
+            .environment(panel))
+        panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
