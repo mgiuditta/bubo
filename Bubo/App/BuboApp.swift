@@ -17,6 +17,7 @@ struct BuboApp: App {
             SettingsView()
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
+                .environment(appDelegate.account)
         }
 
         MenuBarExtra("Bubo", systemImage: "smallcircle.filled.circle") {

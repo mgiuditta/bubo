@@ -1,0 +1,232 @@
+{
+  "sourceLanguage": "it",
+  "strings": {
+    "Account": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account"
+          }
+        }
+      }
+    },
+    "Bubo usa il login di Claude Code e non vede mai password né token.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bubo uses your Claude Code login and never sees passwords or tokens."
+          }
+        }
+      }
+    },
+    "Uscire da Claude?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log out of Claude?"
+          }
+        }
+      }
+    },
+    "Esci": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log Out"
+          }
+        }
+      }
+    },
+    "Esci…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log Out…"
+          }
+        }
+      }
+    },
+    "Le Sessioni si fermano finché non accedi di nuovo. Vale anche per `claude` nel Terminale.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sessions stop until you log in again. This also logs out `claude` in Terminal."
+          }
+        }
+      }
+    },
+    "Controllo l'account…": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking your account…"
+          }
+        }
+      }
+    },
+    "Collegato come %@ · %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logged in as %1$@ · %2$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collegato come %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Collegato come %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Logged in as %@"
+          }
+        }
+      }
+    },
+    "Non collegato": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not logged in"
+          }
+        }
+      }
+    },
+    "Accedi con Claude": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log In with Claude"
+          }
+        }
+      }
+    },
+    "Si apre il browser sulla pagina di accesso di Anthropic.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your browser opens Anthropic's login page."
+          }
+        }
+      }
+    },
+    "Il login è scaduto": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your login has expired"
+          }
+        }
+      }
+    },
+    "Accedi di nuovo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log In Again"
+          }
+        }
+      }
+    },
+    "Claude Code non è installato": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code isn't installed"
+          }
+        }
+      }
+    },
+    "Installalo dal Terminale, poi scegli Riprova:": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install it from Terminal, then choose Try Again:"
+          }
+        }
+      }
+    },
+    "Sei offline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline"
+          }
+        }
+      }
+    },
+    "Claude risponde quando torna la rete. Bubo non passa alla API key.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude answers when you're back online. Bubo won't switch to your API key."
+          }
+        }
+      }
+    },
+    "Non riesco a leggere lo stato dell'account": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't read your account status"
+          }
+        }
+      }
+    },
+    "Riprova": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try Again"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let hud = HUDPresenter()
     /// The always-on-top Panel with the Orb.
     let panel = OrbPanelController()
+    let account = ClaudeAccount()
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
