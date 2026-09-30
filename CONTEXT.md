@@ -88,6 +88,16 @@ _Avoid_: layout, tema, modalità
 La mappa del **Progetto** in cui ogni cartella è un ammasso a posizione fissa e ogni file una stella; mostra dove lavorano le **Sessioni** e accanto tiene sempre la lista dei file toccati.
 _Avoid_: grafo del repo, città, albero
 
+### Router
+
+**Tipo di richiesta**:
+La classe, da un elenco chiuso, in cui il router colloca ciò che l'utente chiede (per le Sessioni: Pianifica, Correzione piccola, Modifica ampia, Esplora il codice, Revisione; per le Domande: Fatto breve, Riassunto, Scrittura, Ragionamento, Ricerca sul web). Guida la scelta di modello e sforzo e dà il nome alle preferenze ricordate.
+_Avoid_: intent, categoria (riservata alle Varianti), compito
+
+**Scala**:
+L'ordine dei gradini modello · sforzo che "Rifai più forte" sale uno alla volta, prima lo sforzo poi il modello; si ricava dai modelli disponibili all'utente.
+_Avoid_: tier, livello
+
 ### Permessi
 
 **Richiesta di permesso**:
@@ -138,6 +148,7 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
 - Nella **Galassia** le **Sessioni** si distinguono per nome e segno, non per colore: la **Tinta** resta del fornitore, e le Sessioni sono tutte Claude
+- Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 
 ## Flagged ambiguities
