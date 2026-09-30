@@ -18,6 +18,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         self.queue = queue
         self.controls = controls
+        animation = OrbAnimation(tinta: Tinta(for: controls.provider))
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
 
@@ -33,7 +34,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private let pipelines: OrbPipelines
     private let controls: OrbControls
     private var uniforms = OrbUniforms()
-    private var animation = OrbAnimation()
+    private var animation: OrbAnimation
     private var lastFrameTime = CACurrentMediaTime()
     #if DEBUG
     private var meter = FrameMeter()
@@ -44,6 +45,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
         animation.state = controls.state
+        animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
