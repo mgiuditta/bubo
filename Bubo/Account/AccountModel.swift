@@ -10,12 +10,49 @@ final class AccountModel {
     private(set) var isSigningIn = false
     /// Why the last login or logout failed, if it did.
     private(set) var failure: String?
+    /// Whether an API key is in the keychain; `nil` until the first read ends.
+    private(set) var hasAPIKey: Bool?
+    /// Why the last API key operation failed, if it did. Never contains the key.
+    private(set) var apiKeyFailure: String?
 
     private let cli: ClaudeCLI
+    private let apiKeys: APIKeyStore
 
-    /// Creates a model that talks to `cli`.
-    init(cli: ClaudeCLI = ClaudeCLI()) {
+    /// Creates a model that talks to `cli` and keeps the API key in `apiKeys`.
+    init(cli: ClaudeCLI = ClaudeCLI(), apiKeys: APIKeyStore = APIKeyStore()) {
         self.cli = cli
+        self.apiKeys = apiKeys
+    }
+
+    /// Reads again whether an API key is saved, without reading the key.
+    func refreshAPIKey() async {
+        do {
+            hasAPIKey = try await apiKeys.containsKey()
+        } catch {
+            apiKeyFailure = error.localizedDescription
+        }
+    }
+
+    /// Saves `key` in the keychain, replacing any saved key.
+    func saveAPIKey(_ key: String) async {
+        do {
+            try await apiKeys.save(key)
+            apiKeyFailure = nil
+        } catch {
+            apiKeyFailure = error.localizedDescription
+        }
+        await refreshAPIKey()
+    }
+
+    /// Deletes the saved API key.
+    func removeAPIKey() async {
+        do {
+            try await apiKeys.delete()
+            apiKeyFailure = nil
+        } catch {
+            apiKeyFailure = error.localizedDescription
+        }
+        await refreshAPIKey()
     }
 
     /// Reads the state again from `claude auth status`.

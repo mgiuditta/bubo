@@ -6,6 +6,8 @@ struct AccountSettingsView: View {
     /// Set while a login runs; clearing it cancels the login.
     @State private var signInAttempt: UUID?
     @State private var isConfirmingSignOut = false
+    @State private var isEnteringAPIKey = false
+    @State private var isConfirmingKeyRemoval = false
 
     var body: some View {
         Form {
@@ -29,9 +31,16 @@ struct AccountSettingsView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+            apiKeySection
         }
         .formStyle(.grouped)
         .task { await account.refresh() }
+        .task { await account.refreshAPIKey() }
+        .sheet(isPresented: $isEnteringAPIKey) {
+            APIKeySheet { key in
+                Task { await account.saveAPIKey(key) }
+            }
+        }
         .task(id: signInAttempt) {
             guard signInAttempt != nil else { return }
             await account.signIn()
@@ -72,6 +81,39 @@ struct AccountSettingsView: View {
         case .unknownError(let exitCode):
             Label("claude ha risposto in modo inatteso (codice \(exitCode)).", systemImage: "questionmark.circle")
             retryButton
+        }
+    }
+
+    private var apiKeySection: some View {
+        Section {
+            switch account.hasAPIKey {
+            case true?:
+                Label("API key salvata nel Portachiavi", systemImage: "key")
+                Button("Rimuovi…") { isConfirmingKeyRemoval = true }
+                    .confirmationDialog("Vuoi rimuovere la API key?", isPresented: $isConfirmingKeyRemoval) {
+                        Button("Rimuovi", role: .destructive) {
+                            Task { await account.removeAPIKey() }
+                        }
+                    } message: {
+                        Text("La cancella dal Portachiavi di questo Mac.")
+                    }
+            case false?:
+                Button("Usa una API key…") { isEnteringAPIKey = true }
+                    .buttonStyle(.link)
+            case nil:
+                EmptyView()
+            }
+            if let failure = account.apiKeyFailure {
+                Text(failure)
+                    .font(.callout)
+                    .foregroundStyle(.red)
+            }
+        } header: {
+            Text("API key")
+        } footer: {
+            Text("Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
         }
     }
 
