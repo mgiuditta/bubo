@@ -162,6 +162,24 @@ _Avoid_: pericolosità, severità
 Una **Sessione** che lavora senza **Richieste di permesso** fino al livello 3; possibile solo in una copia isolata del **Progetto**.
 _Avoid_: yolo, bypass
 
+### Telecomando
+
+**Telecomando**:
+L'app iPhone di Bubo che segue le **Sessioni** di un Mac e risponde alle sue **Richieste di permesso**; il lavoro resta sempre sul Mac.
+_Avoid_: app mobile, companion
+
+**Dispositivo accoppiato**:
+Un iPhone autorizzato a comandare un Mac, con una chiave propria; si revoca da entrambi i lati.
+_Avoid_: device, client
+
+**Verdetto**:
+La risposta firmata del **Telecomando** a una **Richiesta di permesso**; scade dopo 10 minuti e non vale se la Richiesta è già risolta sul Mac.
+_Avoid_: approvazione remota
+
+**Battito**:
+L'ultimo segnale di vita del Mac visto dal **Telecomando**, per sapere quanto sono freschi i dati.
+_Avoid_: heartbeat, ping
+
 ### Memoria
 
 **Memoria di Progetto**:
@@ -206,6 +224,7 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 - Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
+- Dal **Telecomando** una **Richiesta di permesso** riceve solo No, Solo ora o Per questa Sessione; dai livelli 4–5 solo No o Solo ora. Sempre in questo Progetto si decide solo sul Mac
 
 - **Quota**, **Spesa** e **Valore a listino** hanno unità diverse (%, $, $ non pagati) e non si sommano mai
 - Un **Budget** vale solo sulla **Spesa**: l'abbonamento ha la **Quota**, i modelli sul Mac sono gratis
