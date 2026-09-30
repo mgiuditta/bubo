@@ -13,15 +13,14 @@ settings:
     SWIFT_APPROACHABLE_CONCURRENCY: YES
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: U38D796ZBJ
-    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_STYLE: Automatic
+    # Developer ID arriva all'export dell'archivio (xcodebuild -exportArchive), che crea il suo profile.
+    CODE_SIGN_IDENTITY: "Apple Development"
     ENABLE_HARDENED_RUNTIME: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
     SWIFT_EMIT_LOC_STRINGS: YES
   configs:
-    Debug:
-      CODE_SIGN_IDENTITY: "Apple Development"
     Release:
-      CODE_SIGN_IDENTITY: "Developer ID Application"
       SWIFT_TREAT_WARNINGS_AS_ERRORS: YES
 
 targets:
@@ -32,9 +31,15 @@ targets:
       - path: Bubo
         excludes:
           - Resources/Fonts
+          - "**/*.md"
       - path: Bubo/Resources/Fonts
         type: folder
         buildPhase: resources
+    entitlements:
+      path: Bubo/Bubo.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.mgiuditta.bubo
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
@@ -71,6 +76,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.tests
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Bubo.app/Contents/MacOS/Bubo"
         BUNDLE_LOADER: "$(TEST_HOST)"
+  BuboPerfTests:
+    type: bundle.ui-testing
+    platform: macOS
+    sources:
+      - path: BuboPerfTests
+    dependencies:
+      - target: Bubo
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.perftests
+        TEST_TARGET_NAME: Bubo
   BuboUITests:
     type: bundle.ui-testing
     platform: macOS
@@ -95,3 +112,13 @@ schemes:
       targets:
         - BuboTests
         - BuboUITests
+  BuboPerf:
+    build:
+      targets:
+        Bubo: all
+        BuboPerfTests: [test]
+    test:
+      config: Release
+      gatherCoverageData: false
+      targets:
+        - BuboPerfTests

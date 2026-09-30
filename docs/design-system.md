@@ -23,6 +23,24 @@ Il contenitore è acromatico; il colore è dell'**Orb**. Una vista non usa mai u
 | Pericolo | `danger` | `#F2555A` | errori, rimozioni, Livello di rischio 4–5 |
 | Tinta | per fornitore | vedi Tinte | Orb, pallino accanto al nome del fornitore; mai sul contenitore |
 
+### Tinte
+
+Una per fornitore, non per modello; valori in `Bubo/Design/Tinte.swift`. Il carattere (punte, grana, bande, lucido) è il secondo segnale dopo il colore: sulle Forme le punte sono smorzate a 0,28, quindi nessun fornitore si firma solo con le punte. L'Orb sfuma verso la nuova Tinta in 1,2 s (smoothstep); con Riduci movimento, dissolvenza 0,4 s.
+
+| Fornitore | Colore | Carattere |
+|---|---|---|
+| Anthropic | `#D97757` | bande morbide |
+| Mistral | `#E0A040` | punte leggere, bande |
+| DeepSeek | `#8DB548` | grana fine |
+| OpenAI | `#3FAE8F` | vetroso, lucido |
+| Perplexity | `#36A9C0` | grana e lucido |
+| Google | `#4F7FE0` | bande fitte |
+| Meta | `#6A62DE` | grana media |
+| Alibaba | `#9A66DD` | bande e lucido |
+| Cohere | `#D07FB0` | opaco, morbido |
+| xAI | `#C8CCD4` | argento freddo: lucido alto, grana leggera, punte |
+| Fuori elenco | `#9C918A` | grigio caldo neutro, opaco, senza carattere |
+
 Regole: niente gradienti di marca, niente alone colorato dietro i pannelli (l'unico alone è quello dell'Orb, nella sua Tinta). Il fondo può riprendere la Tinta attiva al massimo al 6%, in un solo radiale attorno all'Orb.
 
 ## Tipografia

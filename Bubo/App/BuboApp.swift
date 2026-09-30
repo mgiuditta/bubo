@@ -3,6 +3,8 @@ import SwiftUI
 @main
 struct BuboApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    /// The miniature Orb of the menu bar, drawn once.
+    private let menuBarIcon = MenuBarOrb.makeImage()
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
@@ -19,11 +21,17 @@ struct BuboApp: App {
                 .environment(appDelegate.panel)
         }
 
-        MenuBarExtra("Bubo", systemImage: "smallcircle.filled.circle") {
+        MenuBarExtra {
             MenuBarContent()
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
+        } label: {
+            Label {
+                Text(MenuBarOrb.accessibilityDescription)
+            } icon: {
+                Image(nsImage: menuBarIcon)
+            }
         }
 
         #if DEBUG

@@ -20,6 +20,8 @@ struct HUDView: View {
         .background { HUDBackground() }
         .foregroundStyle(Palette.textPrimary)
         .onAppear { hud.openWindow = openWindow }
+        // Runs after the first appearance, once the main thread is free again.
+        .task { Signposts.markHUDInteractive() }
     }
 }
 
