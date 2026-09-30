@@ -57,8 +57,12 @@ _Avoid_: logo, tema, brand
 ### Lavoro
 
 **Progetto**:
-Una cartella su cui Bubo lavora, dentro o fuori da un repo git. Se è un repo, è il checkout principale.
+Una cartella su cui Bubo lavora, dentro o fuori da un repo git, su una **Macchina**. Se è un repo, è il checkout principale.
 _Avoid_: repo, workspace, cartella di lavoro
+
+**Macchina**:
+Dove sta un **Progetto** e girano le sue **Sessioni**: il Mac di Bubo o un computer dell'utente raggiunto via SSH, con il suo `claude` e il suo login.
+_Avoid_: server, host, remoto (come sostantivo)
 
 **Sessione**:
 Un'unità di lavoro durevole su un **Progetto**, con un titolo, una propria copia isolata del Progetto (se git) e la storia delle conversazioni dell'agente che la compongono.
@@ -216,6 +220,7 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Il router sceglie la **Variante** iniziale; durante il lavoro la **Variante** può cambiare a ogni passo
 - **Stato**, **Variante** e **Tinta** sono indipendenti; il colore viene sempre dalla **Tinta**, mai dalla Variante: un **Orb** a forma di `lente` può essere in Pensiero con la Tinta di un altro fornitore
 - Un **Progetto** ha molte **Sessioni**; al massimo una lavora direttamente sul checkout principale, le altre ciascuna nella propria copia isolata
+- Un **Progetto** sta su una sola **Macchina**, e tutte le sue **Sessioni** girano lì
 - **Attività** e **Fase** sono indipendenti: una **Sessione** In revisione può essere Ferma o Lavora
 - Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
