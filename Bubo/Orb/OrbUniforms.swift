@@ -19,6 +19,8 @@ struct OrbUniforms {
     var bands: Float = 0
     /// The Tinta's specular gloss.
     var gloss: Float = 0
+    /// How opaque the whole Orb is, halo included: below 1 only while fading with Reduce Motion on.
+    var opacity: Float = 1
     /// The Tinta's base and highlight colors.
     var base = Tinta.neutral.base
     var highlight = Tinta.neutral.highlight
