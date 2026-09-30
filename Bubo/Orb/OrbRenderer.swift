@@ -18,6 +18,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         self.queue = queue
         self.controls = controls
+        animation = OrbAnimation(tinta: Tinta(for: controls.provider))
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
 
@@ -33,7 +34,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private let pipelines: OrbPipelines
     private let controls: OrbControls
     private var uniforms = OrbUniforms()
-    private var animation = OrbAnimation()
+    private var animation: OrbAnimation
     private var director = MorphDirector()
     /// The Variante last passed to the Regia, to request each choice once.
     private var requestedVariante: Variante?
@@ -48,6 +49,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         let reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         animation.state = controls.state
+        animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
