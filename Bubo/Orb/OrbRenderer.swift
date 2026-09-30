@@ -64,6 +64,11 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         director.enter(controls.state, at: now)
         director.reducesMotion = reducesMotion
         director.advance(to: now)
+        if requestedVariante != nil, director.destination == nil {
+            // The Regia went back to the Blob on its own: the same Variante can be chosen again.
+            requestedVariante = nil
+            controls.variante = nil
+        }
         let frame = director.frame
         // A Forma still loading, or not drawn yet, leaves the Orb Blob.
         let formaPipeline = pipelines.pipeline(for: frame.forma)
