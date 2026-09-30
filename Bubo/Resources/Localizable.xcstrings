@@ -2,6 +2,26 @@
   "sourceLanguage": "it",
   "version": "1.0",
   "strings": {
+    "API key": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API Key"
+          }
+        }
+      }
+    },
+    "API key salvata nel Portachiavi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "API key saved in the keychain"
+          }
+        }
+      }
+    },
     "Accedi con Claude": {
       "localizations": {
         "en": {
@@ -122,6 +142,16 @@
         }
       }
     },
+    "Errore del Portachiavi (%d).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keychain error (%d)."
+          }
+        }
+      }
+    },
     "Esce anche dalla CLI claude, in ogni terminale.": {
       "localizations": {
         "en": {
@@ -152,6 +182,26 @@
         }
       }
     },
+    "Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional, for when your subscription isn't enough. Bubo never uses it on its own."
+          }
+        }
+      }
+    },
+    "Il Portachiavi è bloccato: sblocca il Mac e riprova.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The keychain is locked. Unlock your Mac and try again."
+          }
+        }
+      }
+    },
     "Installala dal Terminale con `curl -fsSL https://claude.ai/install.sh | bash`, poi torna qui.": {
       "localizations": {
         "en": {
@@ -168,6 +218,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Your sign-in has expired."
+          }
+        }
+      }
+    },
+    "La cancella dal Portachiavi di questo Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This deletes it from this Mac's keychain."
+          }
+        }
+      }
+    },
+    "La chiave resta nel Portachiavi di questo Mac e non va su iCloud. Bubo non la usa mai da solo: si paga a consumo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The key stays in this Mac's keychain and never goes to iCloud. Bubo never uses it on its own, because it's billed per use."
           }
         }
       }
@@ -202,6 +272,26 @@
         }
       }
     },
+    "Rimuovi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove"
+          }
+        }
+      }
+    },
+    "Rimuovi…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove…"
+          }
+        }
+      }
+    },
     "Riprova": {
       "localizations": {
         "en": {
@@ -212,12 +302,42 @@
         }
       }
     },
+    "Salva": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        }
+      }
+    },
     "Sei offline.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "You're offline."
+          }
+        }
+      }
+    },
+    "Usa una API key…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an API Key…"
+          }
+        }
+      }
+    },
+    "Vuoi rimuovere la API key?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove the API key?"
           }
         }
       }
