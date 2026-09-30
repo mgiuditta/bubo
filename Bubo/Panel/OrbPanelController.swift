@@ -53,6 +53,8 @@ final class OrbPanelController {
         panel.backgroundColor = .clear
         panel.hasShadow = false
         panel.hidesOnDeactivate = false
+        // Borderless windows have no title, so VoiceOver would announce a nameless dialog.
+        panel.setAccessibilityLabel(String(localized: "Panel di Bubo"))
         // Clicks go through until the pointer enters the click circle.
         panel.ignoresMouseEvents = true
 
