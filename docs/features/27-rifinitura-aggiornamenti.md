@@ -233,7 +233,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 ### Flusso
 
-1. **Release**: tag `vX.Y.Z[-beta.N]` → `release.yml` su `macos-26` → controllo della freschezza dell'SDK → ponte compilato e firmato con `bridge.entitlements` → build Release con versione e numero di build → firma dall'interno verso l'esterno → `verify-entitlements.sh` e `bridge-speed.sh` sul bundle firmato → DMG UDZO firmato → `notarytool --wait` + log → `stapler staple` → firma EdDSA → release in `bubo-releases` → `appcast.sh` (delta, note per lingua, canale, gradualità, critico, feed firmato) → Pages → controllo che ogni URL dell'appcast risponda.
+1. **Release**: tag `vX.Y.Z[-beta.N]` → `release.yml` su `macos-26` → controllo della freschezza dell'SDK → ponte compilato e firmato con `bridge/entitlements.plist` → build Release con versione e numero di build → firma dall'interno verso l'esterno → `verify-entitlements.sh` e `bridge-speed.sh` sul bundle firmato → DMG UDZO firmato → `notarytool --wait` + log → `stapler staple` → firma EdDSA → release in `bubo-releases` → `appcast.sh` (delta, note per lingua, canale, gradualità, critico, feed firmato) → Pages → controllo che ogni URL dell'appcast risponda.
 2. **Sul Mac dell'utente**: ogni 24 ore Sparkle legge l'appcast → voce ammessa dal Canale e dal gruppo del rilascio graduale → download in background (delta se possibile) → `willInstallUpdateOnQuit` → promemoria nell'HUD (se c'è stata la prima risposta).
 3. **Riavvia**: `RelaunchGate` → nessun lavoro? installa e riavvia : "Riavvio appena le Sessioni finiscono" → ultima Sessione Ferma o Esecuzione finita → installa e riavvia.
 4. **Uscita**: Sparkle installa; alla riapertura `WhatsNew` mostra la scheda.
