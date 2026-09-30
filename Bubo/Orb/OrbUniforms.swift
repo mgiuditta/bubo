@@ -2,7 +2,6 @@
 struct OrbUniforms {
     var resolution: SIMD2<Float> = .zero
     var time: Float = 0
-    // ponytail: parameters of Riposo only; Stati interpolate these with the debug panel ticket.
     var amplitude: Float = 0.07
     var frequency: Float = 1.5
     var speed: Float = 0.3
@@ -15,4 +14,18 @@ struct OrbUniforms {
     // ponytail: provisional Anthropic Tinta; the provider palette comes with the Tinte ticket.
     var base = SIMD3<Float>(0xD9, 0x77, 0x57) / 255
     var highlight = SIMD3<Float>(0xFF, 0xC3, 0xA0) / 255
+}
+
+extension OrbUniforms {
+    /// Copies the clock and the Stato's motion and light from `animation`.
+    mutating func apply(_ animation: OrbAnimation) {
+        time = animation.time
+        amplitude = animation.motion.amplitude
+        frequency = animation.motion.frequency
+        speed = animation.motion.speed
+        swirl = animation.motion.swirl
+        glow = animation.motion.glow
+        spike = animation.motion.spike
+        audio = animation.audio
+    }
 }

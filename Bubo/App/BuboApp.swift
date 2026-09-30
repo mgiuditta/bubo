@@ -25,5 +25,13 @@ struct BuboApp: App {
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         }
+
+        #if DEBUG
+        Window("Debug Orb", id: OrbDebugView.windowID) {
+            OrbDebugView(controls: .shared)
+        }
+        .windowResizability(.contentSize)
+        .defaultLaunchBehavior(.suppressed)
+        #endif
     }
 }
