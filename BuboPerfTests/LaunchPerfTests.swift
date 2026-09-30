@@ -44,9 +44,6 @@ nonisolated final class LaunchPerfTests: XCTestCase {
         // XCTest's "kB" are 1024 bytes.
         let kibibytes = try XCTUnwrap(RecordedMeasurements.values(for: Self.memoryIdentifier).last)
         let memory = Measurement(value: kibibytes, unit: UnitInformationStorage.kibibytes)
-        let knownIssue = XCTExpectedFailure.Options()
-        knownIssue.isStrict = false // passes again on its own once #287 lands
-        XCTExpectFailure("Orb/Metal oltre il budget: #287", options: knownIssue)
         check(memory.converted(to: .mebibytes), against: PerfBudgets.idleMemory, named: "Memoria a riposo")
     }
 
