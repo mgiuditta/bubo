@@ -208,6 +208,12 @@ _Avoid_: database vettoriale, vector store, indice semantico
 Le una o due frasi che Bubo dice ad alta voce quando gli si è parlato; il testo completo della risposta resta scritto nel **Panel**.
 _Avoid_: lettura, TTS (per il contenuto)
 
+### Prodotto
+
+**In arrivo**:
+Una funzione decisa per la v2 di Bubo: elencata in Impostazioni › Aggiornamenti con nome e una riga, senza date, ma non usabile. Non ci entrano le cose escluse o condizionate a terzi.
+_Avoid_: roadmap, MVP2, prossimamente, coming soon
+
 ## Relationships
 
 - L'**Orb** vive in un **Panel** oppure in un **HUD**: è lo stesso Orb, cambia solo il contenitore
