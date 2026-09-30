@@ -96,6 +96,10 @@ _Avoid_: compito, task, backlog, ticket
 Una richiesta programmata dall'utente che, all'ora stabilita e solo con Bubo aperto, parte come nuova **Sessione** su un **Progetto**.
 _Avoid_: cron, routine, job
 
+**Esecuzione**:
+Uno scatto di un'**Automazione**. Se parte diventa una **Sessione**; esito Fatta, Senza modifiche, Saltata o Interrotta.
+_Avoid_: run, job
+
 **Anteprima**:
 La vista web, dentro Bubo, di un server locale avviato da una **Sessione**; ogni Sessione ha la sua, con i suoi cookie. La vedono e la usano sia l'utente sia l'agente.
 _Avoid_: browser, preview
@@ -143,7 +147,7 @@ La domanda che Bubo pone prima che l'agente compia un'azione non ancora consenti
 _Avoid_: popup, prompt, conferma
 
 **Regola di permesso**:
-Un'autorizzazione salvata che consente o nega un tipo di azione (es. un comando e i suoi argomenti) in un **Progetto** o ovunque.
+Un'autorizzazione salvata che consente o nega un tipo di azione (es. un comando e i suoi argomenti) in un **Progetto**, in un'**Automazione** o ovunque.
 _Avoid_: whitelist, eccezione
 
 **Livello di rischio**:
