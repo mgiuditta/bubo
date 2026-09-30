@@ -68,6 +68,10 @@ _Avoid_: sessione (per questo significato)
 Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Si può trasformare in **Sessione**.
 _Avoid_: chat, sessione rapida
 
+**Allegato**:
+Testo o file che accompagna una richiesta, arrivato da un ingresso di sistema (trascinamento, Servizi, Comandi rapidi) o aggiunto nel prompt.
+_Avoid_: contesto, riferimento
+
 **Attività**:
 Cosa sta facendo una **Sessione** adesso: Lavora, Attende te, Ferma, Errore.
 _Avoid_: stato (riservato all'Orb)
@@ -150,6 +154,7 @@ _Avoid_: lettura, TTS (per il contenuto)
 - Nella **Galassia** le **Sessioni** si distinguono per nome e segno, non per colore: la **Tinta** resta del fornitore, e le Sessioni sono tutte Claude
 - Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
+- Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
 
 ## Flagged ambiguities
 
