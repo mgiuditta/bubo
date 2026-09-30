@@ -2,9 +2,9 @@
 
 Obiettivo: per ogni feature, battere il miglior concorrente con criteri misurabili. Ogni feature ha un file `NN-nome.md` con ricerca, mappa e specifica "migliore di".
 
-Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42), [Bubo — feature 14–19: cronologia, terminale, integrazioni, board, costi, automazioni](https://github.com/mgiuditta/bubo/issues/125), [Bubo — feature 20, 22, 25–27: marketplace, sandbox, prestazioni, onboarding, rifinitura](https://github.com/mgiuditta/bubo/issues/178), [Bubo — feature 21, 23, 24: iPhone, remoti e cloud, multiplayer](https://github.com/mgiuditta/bubo/issues/231). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
+Mappe wayfinder: [Bubo — feature 1–6: base competitiva](https://github.com/mgiuditta/bubo/issues/11), [Bubo — feature 8–13: voce, sistema, router, galassia, memoria](https://github.com/mgiuditta/bubo/issues/42), [Bubo — feature 14–19: cronologia, terminale, integrazioni, board, costi, automazioni](https://github.com/mgiuditta/bubo/issues/125), [Bubo — feature 20, 22, 25–27: marketplace, sandbox, prestazioni, onboarding, rifinitura](https://github.com/mgiuditta/bubo/issues/178), [Bubo — feature 21, 23, 24: iPhone, remoti e cloud, multiplayer](https://github.com/mgiuditta/bubo/issues/231), [Bubo v2 — feature 24: consegna, risorse di squadra, condivisione dal vivo](https://github.com/mgiuditta/bubo/issues/259). Si costruisce sopra [Bubo — fase 1 e 2: fondamenta e Orb](https://github.com/mgiuditta/bubo/issues/1).
 
-Stati: **da fare**, **in corso**, **fatta**, **bloccata**, **v2** (decisa per la versione 2: spec breve, nessun ticket di costruzione, in app come **In arrivo** in Impostazioni › Aggiornamenti).
+Stati: **da fare**, **in corso**, **fatta**, **bloccata**, **v2** (decisa per la versione 2: in app come **In arrivo** in Impostazioni › Aggiornamenti; si pianifica in una mappa v2 e si costruisce dopo la v1).
 
 | # | Feature | Stato | Note |
 |---|---|---|---|
@@ -31,7 +31,7 @@ Stati: **da fare**, **in corso**, **fatta**, **bloccata**, **v2** (decisa per la
 | 21 | App iPhone compagna: il Telecomando | in corso | specifica pronta ([ADR 0007](../adr/0007-telecomando-su-cloudkit-senza-server.md)); CloudKit cifrato senza server, non Remote Control; cancello di latenza come primo ticket |
 | 22 | Esecuzione in Sandbox | in corso | specifica pronta; sandbox di Claude Code + cancello di Bubo, accesa di default nelle Automazioni |
 | 23 | Sessioni remote via SSH e sessioni cloud | in corso | specifica pronta; Macchina SSH con il `claude` dell'host, dal cloud solo "Porta in Bubo"; cancello con spawn SSH reale |
-| 24 | Multiplayer | v2 | spec breve con le domande per la mappa v2; in v1 solo la voce In arrivo |
+| 24 | Multiplayer: Consegna e Risorse di squadra | v2 | specifica pronta ([ADR 0008](../adr/0008-consegna-come-file-hpke-verso-una-macchina.md), [ADR 0009](../adr/0009-risorse-di-squadra-con-fiducia-per-voce.md)); Consegna come file `.bubo` HPKE auth verso una Macchina, Risorse di squadra in `.bubo/` con fiducia per voce, dal vivo fuori; cancello con un secondo account vero come primo ticket; in v1 solo la voce In arrivo |
 | 25 | Performance nativa: avvio < 1 s, poca RAM, 60 fps con 10 sessioni | in corso | specifica pronta; tabella unica dei budget, Sessioni inattive sospese |
 | 26 | Onboarding di 60 secondi | in corso | specifica pronta; l'Orb guida nell'HUD, nessun `claude` nel bundle (supera la 03 su questo punto) |
 | 27 | Rifinitura premium e aggiornamenti automatici | in corso | specifica pronta; Developer ID, Sparkle 2, Canali stabile e beta; checklist di rifinitura come definizione di fatto |
@@ -159,4 +159,22 @@ In fondo alla coda, dopo tutte le altre. Prima la 21, poi la 23; la 24 è in v2.
 3. **23 Cancello SSH** (passo 1), con un host Linux reale. Può partire in parallelo alla 21 appena c'è il ponte. Ticket: [#250](https://github.com/mgiuditta/bubo/issues/250).
 4. **23 Macchina, `claude` sull'host, git remoto, caduta** (passi 2–5). Dopo 01, 02, 14 (copia a specchio), 15 (Terminale) e 26. Ticket: [#251](https://github.com/mgiuditta/bubo/issues/251), [#252](https://github.com/mgiuditta/bubo/issues/252), [#253](https://github.com/mgiuditta/bubo/issues/253), [#254](https://github.com/mgiuditta/bubo/issues/254).
 5. **23 Terminale, Anteprima, Sandbox, Automazioni remote e Porta in Bubo** (passi 6–8). Dopo 15, 19 e 22. Ticket: [#255](https://github.com/mgiuditta/bubo/issues/255), [#256](https://github.com/mgiuditta/bubo/issues/256), [#257](https://github.com/mgiuditta/bubo/issues/257).
-6. **24 In arrivo**: la sezione in Impostazioni › Aggiornamenti, subito dopo Sparkle nell'app ([#222](https://github.com/mgiuditta/bubo/issues/222)); può uscire prima della 21. Ticket: [#258](https://github.com/mgiuditta/bubo/issues/258). La 24 vera si pianifica in una mappa v2.
+6. **24 In arrivo**: la sezione in Impostazioni › Aggiornamenti, subito dopo Sparkle nell'app ([#222](https://github.com/mgiuditta/bubo/issues/222)); può uscire prima della 21. Ticket: [#258](https://github.com/mgiuditta/bubo/issues/258). La 24 vera è in v2: ordine qui sotto.
+
+## Architettura comune (feature 24, v2)
+
+Stesse regole delle 21 e 23: nessun server né relay di Bubo, solo canali dell'utente, ogni turno con l'account di chi lo manda, credenziali mai lette né condivise. Pezzi condivisi nuovi:
+
+- `DeliveryKit` ([24](24-multiplayer.md)): formato `.bubo` (intestazione in chiaro, HPKE auth P-256 a pezzi), codice di verifica del Biglietto. Scelta nell'[ADR 0008](../adr/0008-consegna-come-file-hpke-verso-una-macchina.md).
+- `Deliveries/` ([24](24-multiplayer.md)): `MachineKey` (Secure Enclave), `TicketStore`, `TranscriptCleaner` e `SecretScanner` (codice puro), `BranchBundler`, `DeliveryBuilder`, `DeliveryOpener`. Legge dalla copia a specchio (14) e crea Bozze (17); una Sessione consegnata riparte con `resume` anche su una Macchina remota (23).
+- `Team/` ([24](24-multiplayer.md)): `TeamResourceReader` su `.bubo/`, `TrustLedger` con l'hash accettato per voce, sopra `Permissions/TrustGate` (05) e `Automations/` (19). Scelta nell'[ADR 0009](../adr/0009-risorse-di-squadra-con-fiducia-per-voce.md).
+
+Moduli per feature: `BuboQuickLook` (estensione), `Settings/DeliveriesPane`, fogli di Consegna, ricezione, errori e Biglietto, `Team/TeamResourcesSheet`.
+
+## Ordine di implementazione (feature 24, v2)
+
+Dopo la v1, tranne il cancello, che non tocca l'app e può partire subito. Consegna e Risorse di squadra sono indipendenti. I passi rimandano all'`Ordine di costruzione` della spec.
+
+1. **24 Cancello** (passo 1), con una persona: due Mac, due account di organizzazioni diverse, ripresa di una Sessione ripulita e HPKE auth nel Secure Enclave.
+2. **24 Consegna** (passi 2–5): Biglietto e tipo `.bubo`, pulizia e scanner, foglio di Consegna, apertura e Bozza. Dopo 1, 01, 14, 17 e gli entitlement della 27.
+3. **24 Risorse di squadra** (passi 6–7): regole, poi Automazioni. Dopo 05 con la fiducia del repo decisa ([#266](https://github.com/mgiuditta/bubo/issues/266)) e 19.

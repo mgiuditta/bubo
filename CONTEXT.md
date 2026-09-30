@@ -97,7 +97,7 @@ Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), 
 _Avoid_: layout, tema, modalità
 
 **Bozza**:
-Un lavoro da iniziare su un **Progetto**: titolo e testo che diventeranno il prompt. Si scrive a mano o nasce da un'issue GitHub o Linear; con Avvia diventa una **Sessione**.
+Un lavoro da iniziare su un **Progetto**: titolo e testo che diventeranno il prompt. Si scrive a mano, nasce da un'issue GitHub o Linear o arriva con una **Consegna**; con Avvia diventa una **Sessione**.
 _Avoid_: compito, task, backlog, ticket
 
 **Automazione**:
