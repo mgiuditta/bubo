@@ -1,12 +1,16 @@
 // The Orb: SDF raymarch ported 1:1 from the WebGL shader in reference/bubo.html.
-// Blob only for now; Forme and Morph arrive with the Catalogo.
+// One pipeline per Forma: the FORMA function constant picks the Forma's SDF, and every
+// pipeline includes the Blob, so a Morph blends the two. FORMA 0 is the Blob alone.
 #include <metal_stdlib>
 using namespace metal;
+
+constant int FORMA [[function_constant(0)]];
 
 struct Uniforms {
     float2 res;
     float t, amp, freq, speed, swirl, spike, glow, audio;
     float frame;      // >1 shrinks the Orb in its view, leaving room for the halo
+    float morph;      // 0 = Blob, 1 = the pipeline's Forma; already eased
     float3 a, b;      // Tinta: base and highlight
 };
 
@@ -61,15 +65,47 @@ static float sn(float3 v) {
 
 static float2x2 rot(float a) { float c = cos(a), s = sin(a); return float2x2(float2(c, -s), float2(s, c)); }
 
-// map() of the reference with uSA = uSB = 0 (Blob) and uMix = 1.
-static float map(float3 p, constant Uniforms &u) {
+static float sdSegment(float3 p, float3 a, float3 b, float r) { float3 pa = p - a, ba = b - a; float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0); return length(pa - ba * h) - r; }
+
+// --- Forme: one SDF per Forma, named as `forma` in catalogo.json. ---
+// Each must be nearly exact outside the solid (gradient close to 1): the halo reads the
+// ray's closest distance, and an underestimate shows up as streaks.
+
+// Ricerca: a magnifying glass. Ring and handle are exact; the glass is a thin disc.
+static float lente(float3 p) {
+    const float scale = 1.2;                           // uniform scale keeps the SDF exact
+    p /= scale;
+    float3 c = float3(-0.14, 0.16, 0);
+    float3 q = p - c;
+    float ring = length(float2(length(q.xy) - 0.40, q.z)) - 0.08;
+    float glass = max(length(q.xy) - 0.36, abs(q.z) - 0.015);
+    float handle = sdSegment(p, c + float3(0.34, -0.34, 0), float3(0.62, -0.64, 0), 0.10);
+    return min(min(ring, glass), handle) * scale;
+}
+
+// The pipeline's Forma, gently swaying so it reads as 3D.
+static float forma(float3 p, float t) {
     float3 q = p;
-    q.xz = q.xz * rot(u.swirl * 0.7 * sin(u.t * 0.6 + p.y * 2.2) + u.t * 0.12);
+    q.xz = q.xz * rot(sin(t * 0.5) * 0.45);
+    switch (FORMA) {
+        case 1: return lente(q);
+        default: return length(p) - 0.92;
+    }
+}
+
+// map() of the reference: the Blob blended toward the Forma by u.morph.
+static float map(float3 p, constant Uniforms &u) {
+    float blob = 1.0 - u.morph;                        // swirl and turn belong to the Blob
+    float3 q = p;
+    q.xz = q.xz * rot((u.swirl * 0.7 * sin(u.t * 0.6 + p.y * 2.2) + u.t * 0.12) * blob);
+    float na = mix(1.0, 0.28, u.morph);                // a Forma keeps a little of the Stato's ripple
     float n = sn(q * u.freq + float3(0, 0, u.t * u.speed));
     float n2 = sn(q * u.freq * 2.2 - float3(u.t * u.speed * 0.6));
     float sp = u.spike > 0 ? pow(max(0.0, sn(q * 4.5 + u.t * 0.5)), 3.0) * u.spike : 0.0;
-    float a = u.amp + u.audio * 0.22;
-    return (length(q) - 0.92) - (n * 0.7 + n2 * 0.3) * a - sp * 0.4;
+    float a = (u.amp + u.audio * 0.22) * na;
+    float d = length(q) - 0.92;
+    if (FORMA != 0) d = mix(d, forma(q, u.t), u.morph);
+    return d - (n * 0.7 + n2 * 0.3) * a - sp * 0.4 * na;
 }
 
 fragment float4 orbFragment(VOut in [[stage_in]], constant Uniforms &u [[buffer(0)]]) {

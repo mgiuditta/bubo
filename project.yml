@@ -45,6 +45,19 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
+    postBuildScripts:
+      - name: Archivio Metal 4 delle Forme
+        shell: /bin/zsh
+        script: |
+          [[ "$CONFIGURATION" == Release ]] || exit 0
+          resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
+          "$SRCROOT/scripts/metal-archive.sh" "$resources/default.metallib" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources/Forme.mtl4archive"
+        inputFiles:
+          - $(SRCROOT)/scripts/metal-archive.sh
+          - $(SRCROOT)/Bubo/Orb/Orb.metal
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/default.metallib
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Forme.mtl4archive
   BuboTests:
     type: bundle.unit-test
     platform: macOS

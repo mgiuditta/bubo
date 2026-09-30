@@ -1,0 +1,24 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "lente" : {
+      "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnifier"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lente"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
