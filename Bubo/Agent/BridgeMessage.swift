@@ -16,8 +16,10 @@ enum BridgeCommand: Equatable {
     /// Progetto's settings, `.mcp.json` and `.claude/`. `model` is an alias of `claude`, such as `sonnet`;
     /// without it, the model the user chose in `claude` answers. `environment` adds to the one `claude` gets.
     /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork.
+    /// `keeping` is the id of the agent's conversation, given by Bubo, to copy in Bubo's database (ADR 0006);
+    /// without it nothing of the conversation is written.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
-             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil)
+             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -32,17 +34,24 @@ enum BridgeCommand: Equatable {
     case readTranscript(id: String, conversation: String)
     /// Answers the Richiesta di permesso `request`: the call runs only when `allows`.
     case answerPermission(request: String, allows: Bool)
+    /// Copies in Bubo's database the conversations of the Cronologia CLI not copied yet, or changed since.
+    case keepHistory(id: String)
+    /// Deletes the copies of `conversations`.
+    case forget(conversations: [String])
+    /// Deletes the copies of the Cronologia CLI.
+    case forgetHistory(id: String)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
             if !environment.isEmpty { object["env"] = environment }
             object["resume"] = resuming
+            object["keep"] = keeping
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -58,6 +67,12 @@ enum BridgeCommand: Equatable {
             object = ["type": "transcript", "id": id, "conversation": conversation]
         case let .answerPermission(request, allows):
             object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
+        case let .keepHistory(id):
+            object = ["type": "keep", "id": id]
+        case let .forget(conversations):
+            object = ["type": "forget", "conversations": conversations]
+        case let .forgetHistory(id):
+            object = ["type": "forgetHistory", "id": id]
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -92,6 +107,10 @@ enum BridgeEvent: Equatable, Decodable {
     case history(id: String, [CLIConversation])
     /// The messages of a conversation, asked by `readTranscript` `id`.
     case transcript(id: String, [CLIConversation.Message])
+    /// `count` conversations of the Cronologia CLI copied, asked by `keepHistory` `id`.
+    case kept(id: String, count: Int)
+    /// The copies of the Cronologia CLI are gone, asked by `forgetHistory` `id`.
+    case forgot(id: String)
     /// The conversation `id` waits for the user to answer a Richiesta di permesso.
     case permission(id: String, PermissionRequest)
     /// The conversation `id` no longer waits for the Richiesta `request`.
@@ -101,7 +120,7 @@ enum BridgeEvent: Equatable, Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages,
-             request, file, lines
+             request, file, lines, count
     }
 
     init(from decoder: any Decoder) throws {
@@ -141,6 +160,9 @@ enum BridgeEvent: Equatable, Decodable {
                                         try container.decode([CLIConversation].self, forKey: .conversations))
         case "transcript": self = .transcript(id: try container.decode(String.self, forKey: .id),
                                               try container.decode([CLIConversation.Message].self, forKey: .messages))
+        case "kept": self = .kept(id: try container.decode(String.self, forKey: .id),
+                                  count: try container.decode(Int.self, forKey: .count))
+        case "forgot": self = .forgot(id: try container.decode(String.self, forKey: .id))
         case "permission": self = .permission(id: try container.decode(String.self, forKey: .id),
                                               try PermissionRequest(from: decoder))
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),

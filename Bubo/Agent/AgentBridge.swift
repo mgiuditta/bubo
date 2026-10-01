@@ -72,11 +72,13 @@ final class AgentBridge {
     ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
     ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
+    ///   - kept: The id, a UUID, to give the agent's conversation so that Bubo keeps a copy of it (ADR 0006);
+    ///     `nil` writes nothing of it.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
-             forkingFrom conversation: String? = nil,
+             forkingFrom conversation: String? = nil, keeping kept: String? = nil,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
@@ -95,7 +97,8 @@ final class AgentBridge {
                                             settingSources: trustGate.settingSources(for: directory),
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
-                                            model: model, environment: environment, resuming: conversation)
+                                            model: model, environment: environment, resuming: conversation,
+                                            keeping: kept)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -141,6 +144,28 @@ final class AgentBridge {
                                                                     id: id)
         else { throw AgentBridgeError.failed(message: "unexpected event") }
         return messages
+    }
+
+    /// Copies in Bubo's database the Cronologia CLI not copied yet, or changed since, and returns how many conversations.
+    func keepHistory() async throws -> Int {
+        let id = UUID().uuidString
+        guard case let .kept(_, count) = try await request(.keepHistory(id: id), id: id) else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+        return count
+    }
+
+    /// Deletes the copies of the Cronologia CLI from Bubo's database, and returns once they are gone.
+    func forgetHistory() async throws {
+        let id = UUID().uuidString
+        guard case .forgot = try await request(.forgetHistory(id: id), id: id) else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+    }
+
+    /// Deletes the copies of `conversations` from Bubo's database.
+    func forget(_ conversations: [String]) throws {
+        try runningProcess().input.write(contentsOf: BridgeCommand.forget(conversations: conversations).line())
     }
 
     /// Sends `command` and waits for the one event that answers it.
@@ -249,7 +274,7 @@ final class AgentBridge {
             permissionHandlers[id]?(.withdrawn(request))
         case let .quota(reported):
             quota(reported)
-        case let .configuration(id, _), let .history(id, _), let .transcript(id, _):
+        case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id):
             requests.removeValue(forKey: id)?.resume(returning: event)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))

@@ -67,6 +67,29 @@ struct BridgeMessageTests {
             == #"{"conversation":"c-1","id":"t1","type":"transcript","v":3}"# + "\n")
     }
 
+    @Test func askKeepingAConversationCarriesItsId() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         keeping: "k-1").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","keep":"k-1","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
+    }
+
+    @Test func theCopiesAreKeptAndForgottenByCommand() throws {
+        #expect(String(decoding: try BridgeCommand.keepHistory(id: "k1").line(), as: UTF8.self)
+            == #"{"id":"k1","type":"keep","v":3}"# + "\n")
+        #expect(String(decoding: try BridgeCommand.forget(conversations: ["c-1", "c-2"]).line(), as: UTF8.self)
+            == #"{"conversations":["c-1","c-2"],"type":"forget","v":3}"# + "\n")
+        #expect(String(decoding: try BridgeCommand.forgetHistory(id: "f1").line(), as: UTF8.self)
+            == #"{"id":"f1","type":"forgetHistory","v":3}"# + "\n")
+    }
+
+    @Test func theCopyEventsDecode() throws {
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(#"{"v":3,"type":"kept","id":"k1","count":4}"#.utf8))
+            == .kept(id: "k1", count: 4))
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(#"{"v":3,"type":"forgot","id":"f1"}"#.utf8))
+            == .forgot(id: "f1"))
+    }
+
     @Test func theHistoryAndATranscriptDecode() throws {
         let history = #"""
             {"v":3,"type":"history","id":"h1","conversations":[

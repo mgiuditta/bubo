@@ -185,6 +185,20 @@ struct AgentBridgeTests {
         #expect(messages == [CLIConversation.Message(isFromUser: true, text: "Ciao")])
     }
 
+    @Test func theCLIHistoryIsCopiedAndForgotten() async throws {
+        let bridge = Self.bridge(#"""
+            while read line; do
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"type":"keep"'*) echo "{\"v\":3,\"type\":\"kept\",\"id\":\"$id\",\"count\":2}" ;;
+                    *'"type":"forgetHistory"'*) echo "{\"v\":3,\"type\":\"forgot\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#)
+        #expect(try await bridge.keepHistory() == 2)
+        try await bridge.forgetHistory()
+    }
+
     @Test func aMissingExecutableFailsToSpawn() async {
         let bridge = AgentBridge(executable: URL(filePath: "/nonexistent/bubo-agent"), environment: [:]) { _, _ in "" }
         await #expect(throws: AgentBridgeError.spawnFailed(errno: ENOENT)) {

@@ -87,8 +87,38 @@ final class SessionStore {
     }
 
     /// The Cronologia CLI, most recent first: the 50 most recent, or all of it when `isComplete`.
+    ///
+    /// The Sessioni's own conversations are never in it, even if `claude` lists them.
     func history(isComplete: Bool = false) async throws -> [CLIConversation] {
-        try await Signposts.measure(.cliHistory) { try await bridge().history(isComplete: isComplete) }
+        let history = try await Signposts.measure(.cliHistory) { try await bridge().history(isComplete: isComplete) }
+        let own = Set(sessions.flatMap(\.conversations))
+        return history.filter { !own.contains($0.id) }
+    }
+
+    /// Copies the Cronologia CLI in Bubo's database now, then every `ConversationStore.refreshInterval`, while the
+    /// user keeps it on; until the task is cancelled.
+    func keepCLIHistoryFresh() async {
+        while !Task.isCancelled {
+            if UserDefaults.standard.bool(forKey: ConversationStore.keepsCLIHistoryKey) {
+                do {
+                    let count = try await keepCLIHistory()
+                    Logger.sessions.notice("Cronologia CLI copied: \(count) conversations")
+                } catch {
+                    Logger.sessions.error("Cronologia CLI not copied: \(String(describing: error), privacy: .private)")
+                }
+            }
+            try? await Task.sleep(for: ConversationStore.refreshInterval)
+        }
+    }
+
+    /// Copies in Bubo's database the Cronologia CLI not copied yet, or changed since; returns how many conversations.
+    func keepCLIHistory() async throws -> Int {
+        try await bridge().keepHistory()
+    }
+
+    /// Deletes the copies of the Cronologia CLI from Bubo's database; the Sessioni's stay.
+    func forgetCLIHistory() async throws {
+        try await bridge().forgetHistory()
     }
 
     /// The latest messages of a Cronologia CLI conversation, oldest first.
@@ -350,7 +380,7 @@ final class SessionStore {
         return await worktrees.lostChanges(in: workspace, of: session.project)
     }
 
-    /// Deletes a Sessione with its worktree and its branch, in the background.
+    /// Deletes a Sessione with its worktree, its branch and the copies of its conversations, in the background.
     func delete(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), !session.isRunning else { return }
         merges.removeValue(forKey: id)?.finishing.cancel()
@@ -359,6 +389,15 @@ final class SessionStore {
         permissions.forget(id)
         save()
         followActivity()
+        if !session.conversations.isEmpty {
+            Task {
+                do {
+                    try await bridge().forget(session.conversations)
+                } catch {
+                    Logger.sessions.error("Conversations not forgotten: \(String(describing: error), privacy: .private)")
+                }
+            }
+        }
         guard let workspace = session.workspace else { return }
         Task { await worktrees.remove(workspace, of: session.project, deletingBranch: true) }
     }
@@ -404,8 +443,11 @@ final class SessionStore {
                 turns[id] = nil
                 permissions.clear(id)
             }
+            // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
+            let conversation = UUID().uuidString.lowercased()
+            update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
-                                   forkingFrom: session.forkedFrom) { [weak self] progress in
+                                   forkingFrom: session.forkedFrom, keeping: conversation) { [weak self] progress in
                 self?.update(id) { $0.apply(progress) }
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
