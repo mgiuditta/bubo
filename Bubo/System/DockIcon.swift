@@ -8,5 +8,6 @@ enum DockIcon {
     /// Applies the preference to the running app.
     static func apply(isVisible: Bool) {
         NSApp.setActivationPolicy(isVisible ? .regular : .accessory)
+        if isVisible { DockBadge.reapply() }
     }
 }

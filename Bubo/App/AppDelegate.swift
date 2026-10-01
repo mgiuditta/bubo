@@ -22,18 +22,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {
-            return try SessionStore.makeDefault { [questions] in try await questions.readyBridge() }
+            let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
+                                       withdraw: notifier.withdraw)
+            return try SessionStore.makeDefault(alerts: alerts) { [questions] in try await questions.readyBridge() }
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")
             return nil
         }
     }()
+    /// The notifications of the Sessioni in Attende te; a click opens the HUD.
+    private lazy var notifier = Notifier { [hud] in hud.show() }
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         FontRegistry.registerBundledFonts()
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true])
+        notifier.start()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {

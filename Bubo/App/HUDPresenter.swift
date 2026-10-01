@@ -24,10 +24,16 @@ final class HUDPresenter {
         show()
     }
 
+    /// Whether the HUD is in front of the user: visible, key, with Bubo active.
+    var isFrontmost: Bool {
+        guard let window = hudWindow else { return false }
+        return window.isVisible && window.isKeyWindow && NSApp.isActive
+    }
+
     /// Brings the HUD to the front, or hides it if it is already frontmost.
     func toggle() {
-        if let window = hudWindow, window.isVisible, window.isKeyWindow, NSApp.isActive {
-            window.orderOut(nil)
+        if isFrontmost {
+            hudWindow?.orderOut(nil)
         } else {
             show()
         }
