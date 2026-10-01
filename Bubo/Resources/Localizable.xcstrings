@@ -126,6 +126,22 @@
         }
       }
     },
+    "%lld righe aggiunte, %lld tolte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld lines added, %2$lld removed"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld righe aggiunte, %2$lld tolte"
+          }
+        }
+      }
+    },
     "%lld/%lld blocchi" : {
       "localizations" : {
         "en" : {
@@ -490,6 +506,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
+          }
+        }
+      }
+    },
+    "Board" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Board"
           }
         }
       }
@@ -990,6 +1016,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Undecided"
+          }
+        }
+      }
+    },
+    "Da guardare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To review"
           }
         }
       }
@@ -2306,6 +2342,16 @@
         }
       }
     },
+    "PR aperta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PR"
+          }
+        }
+      }
+    },
     "Panel di Bubo" : {
       "localizations" : {
         "en" : {
@@ -3078,6 +3124,16 @@
         }
       }
     },
+    "Tutti i Progetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Projects"
+          }
+        }
+      }
+    },
     "Usa la API key" : {
       "localizations" : {
         "en" : {
@@ -3553,6 +3609,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“About”: a model without a known price is counted at the default model's price."
+          }
+        }
+      }
+    },
+    "… %lld altre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "… %lld more"
           }
         }
       }

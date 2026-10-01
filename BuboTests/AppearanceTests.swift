@@ -21,12 +21,12 @@ struct AppearanceTests {
     }
 
     @Test func vistaRawValuesStayStableForUserDefaults() {
-        #expect(VistaDelleSessioni.allCases.map(\.rawValue) == ["colonna", "orbita", "striscia"])
+        #expect(VistaDelleSessioni.allCases.map(\.rawValue) == ["colonna", "orbita", "striscia", "board"])
     }
 
     @Test func theHUDOpensInColonnaUntilAVistaIsChosen() {
         #expect(VistaDelleSessioni.chosen(in: defaults) == .colonna)
-        defaults.set("board", forKey: VistaDelleSessioni.defaultsKey)
+        defaults.set("galassia", forKey: VistaDelleSessioni.defaultsKey)
         #expect(VistaDelleSessioni.chosen(in: defaults) == .colonna)
     }
 

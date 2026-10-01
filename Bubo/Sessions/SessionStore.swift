@@ -184,6 +184,15 @@ final class SessionStore {
         return try await Signposts.measure(.reviewDiff) { try await worktrees.changes(in: workspace) }
     }
 
+    /// The lines the Sessione `id` added and removed since its branch started, for its card on the Board; `nil`
+    /// when it has no copy yet or git fails.
+    func lineCounts(of id: UUID) async -> (added: Int, removed: Int)? {
+        guard let workspace = sessions.first(where: { $0.id == id })?.workspace,
+              let hunks = try? await worktrees.changes(in: workspace).flatMap(\.hunks)
+        else { return nil }
+        return (hunks.reduce(0) { $0 + $1.added }, hunks.reduce(0) { $0 + $1.removed })
+    }
+
     /// Records `decision` on the blocchi `hunks` of the Sessione `id`; `nil` makes them undecided again.
     func decide(_ decision: HunkDecision?, on hunks: [String], in id: UUID) {
         update(id) { session in
@@ -249,7 +258,10 @@ final class SessionStore {
         let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy,
                                               keepingOnly: discardingRest ? accepted : nil)
         Logger.sessions.notice("Sessione merged with \(strategy.rawValue, privacy: .public)")
-        update(id) { $0.phase = .fusa }
+        update(id) { session in
+            session.phase = .fusa
+            session.mergedAt = .now
+        }
         undoDeadlines[id] = .now + TimeInterval(Self.undoWindow.components.seconds)
         let finishing = Task { [weak self] in
             try? await Task.sleep(for: Self.undoWindow)
@@ -348,7 +360,10 @@ final class SessionStore {
             finishMerge(id)
             throw error
         }
-        update(id) { $0.phase = .aperta }
+        update(id) { session in
+            session.phase = .aperta
+            session.mergedAt = nil
+        }
     }
 
     /// Archives the Fusa Sessione `id`: its worktree and its branch go in the background, its ports are free again.

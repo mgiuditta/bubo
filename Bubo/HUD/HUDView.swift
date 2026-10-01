@@ -65,6 +65,9 @@ struct HUDView: View {
             Spacer(minLength: Spacing.large)
             if hud.vista == .orbita, let sessions = visibleSessions {
                 SessionOrbit(store: sessions, quota: questions.quota)
+            } else if hud.vista == .board, let sessions = visibleSessions {
+                SessionBoard(store: sessions)
+                    .padding(.bottom, Spacing.small)
             } else {
                 OrbPlaceholder()
                     .frame(maxWidth: 520, maxHeight: 520)
