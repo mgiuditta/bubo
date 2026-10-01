@@ -20,6 +20,7 @@ struct OnboardingStage: View {
                 .foregroundStyle(Palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.orbLine")
+            if flow.needsRemedy { FixCard(flow: flow) }
             if flow.readiness != nil { projects }
             input
             suggestions

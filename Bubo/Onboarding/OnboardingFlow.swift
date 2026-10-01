@@ -27,10 +27,15 @@ final class OnboardingFlow {
     private(set) var project: URL?
     /// The recent Progetti offered; empty until loaded.
     private(set) var recents: [RecentProject] = []
-    /// The `claude` that will answer; `nil` while detecting.
+    /// The `claude` that will answer; `nil` while detecting. Signed out counts as ready once the user chose the API key.
     var readiness: ClaudeReadiness? {
-        didSet { startIfReady() }
+        didSet {
+            if usesAPIKey, case let .signedOut(version) = readiness { readiness = .ready(version: version, method: "API key") }
+            startIfReady()
+        }
     }
+    /// Whether the user chose to answer with the API key, until Bubo quits.
+    private(set) var usesAPIKey = false
     /// What the user is typing in the input bar.
     var draft = ""
 
@@ -40,10 +45,18 @@ final class OnboardingFlow {
     ///   - hasSessions: Whether a Sessione exists. With no question waiting the user is past the onboarding; with one,
     ///     Bubo quit during the first turn and the onboarding lasts until that Sessione answers.
     ///   - defaults: Where the flow keeps its state.
+    ///   - checkInterval: The shortest time between two checks of `claude`.
+    ///   - detect: Finds out whether `claude` can answer.
+    ///   - moveToAPIKey: Moves the Sessioni to the API key saved in the keychain.
     ///   - start: Starts the first Sessione with the question in the Progetto.
-    init(hasSessions: Bool, defaults: UserDefaults = .standard,
+    init(hasSessions: Bool, defaults: UserDefaults = .standard, checkInterval: Duration = .seconds(1),
+         detect: @escaping () async -> ClaudeReadiness = { await ClaudeReadiness.detect() },
+         moveToAPIKey: @escaping () -> Void = {},
          start: @escaping (_ question: String, _ project: URL) throws -> Void) {
         self.defaults = defaults
+        self.checkInterval = checkInterval
+        self.detect = detect
+        self.moveToAPIKey = moveToAPIKey
         self.start = start
         pendingQuestion = defaults.string(forKey: Self.pendingQuestionKey)
         isCompleted = defaults.bool(forKey: Self.completedKey)
@@ -52,6 +65,14 @@ final class OnboardingFlow {
 
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let start: (String, URL) throws -> Void
+    @ObservationIgnored private let checkInterval: Duration
+    @ObservationIgnored private let detect: () async -> ClaudeReadiness
+    @ObservationIgnored private let moveToAPIKey: () -> Void
+    /// When the last check of `claude` started.
+    @ObservationIgnored private var lastCheck: ContinuousClock.Instant?
+    @ObservationIgnored private var isChecking = false
+    /// Whether something changed during a check, which then runs again.
+    @ObservationIgnored private var needsCheck = false
     /// Whether the first Sessione started in this launch.
     @ObservationIgnored private var hasStarted = false
 
@@ -60,6 +81,52 @@ final class OnboardingFlow {
         if readiness == nil { return "Controllo cosa c'è sul Mac…" }
         if pendingQuestion != nil && project == nil { return "In quale Progetto?" }
         return "Su cosa lavoriamo?"
+    }
+
+    /// Whether `claude` was found and can answer.
+    var isClaudeReady: Bool {
+        if case .ready = readiness { true } else { false }
+    }
+
+    /// Whether `claude` was found not ready: missing, signed out or outdated, with a remedy to show.
+    var needsRemedy: Bool {
+        readiness != nil && !isClaudeReady
+    }
+
+    /// Finds out for the first time whether `claude` can answer.
+    func detectClaude() async {
+        lastCheck = .now
+        readiness = await Signposts.measure(.claudeDetection) { await detect() }
+    }
+
+    /// Checks `claude` again while it is not ready, at most once per `checkInterval`.
+    ///
+    /// A call during a check runs one more check when it ends, so a change in the middle is not missed.
+    func recheck() async {
+        guard needsRemedy else { return }
+        guard !isChecking else {
+            needsCheck = true
+            return
+        }
+        isChecking = true
+        defer { isChecking = false }
+        repeat {
+            needsCheck = false
+            if let lastCheck { try? await Task.sleep(until: lastCheck + checkInterval) }
+            guard !Task.isCancelled else { return }
+            lastCheck = .now
+            readiness = await detect()
+        } while needsCheck && needsRemedy
+    }
+
+    /// Answers with the API key the user saved: `claude` no longer needs its own login.
+    ///
+    /// Called only when the user chooses it (ADR 0003).
+    func useAPIKey() async {
+        moveToAPIKey()
+        usesAPIKey = true
+        let readiness = readiness
+        self.readiness = readiness
     }
 
     /// Shows `recents` as the Progetti to choose from.

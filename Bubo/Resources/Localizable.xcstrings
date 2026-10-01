@@ -280,6 +280,16 @@
         }
       }
     },
+    "Accedi a Claude Code" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Claude Code"
+          }
+        }
+      }
+    },
     "Accedi con Claude" : {
       "localizations" : {
         "en" : {
@@ -306,6 +316,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign in again in Settings › Account."
+          }
+        }
+      }
+    },
+    "Accedi nel Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign In in Terminal"
           }
         }
       }
@@ -376,6 +396,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agents"
+          }
+        }
+      }
+    },
+    "Aggiorna Claude Code" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update Claude Code"
+          }
+        }
+      }
+    },
+    "Aggiorna nel Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update in Terminal"
           }
         }
       }
@@ -994,6 +1034,16 @@
         }
       }
     },
+    "Bubo risponde con Claude Code, che non è su questo Mac. Installalo dal Terminale con questo comando:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo answers with Claude Code, which isn't on this Mac. Install it from Terminal with this command:"
+          }
+        }
+      }
+    },
     "Bubo scrive questa voce in %@. Le altre voci del file restano com'erano." : {
       "localizations" : {
         "en" : {
@@ -1270,6 +1320,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code not found: install the claude CLI."
+          }
+        }
+      }
+    },
+    "Claude Code è installato ma non hai ancora fatto l'accesso. Accedi nel Terminale: Bubo se ne accorge da solo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code is installed, but you haven't signed in yet. Sign in from Terminal: Bubo notices on its own."
           }
         }
       }
@@ -1610,6 +1670,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Covered"
+          }
+        }
+      }
+    },
+    "Copia e apri Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy and Open Terminal"
           }
         }
       }
@@ -2782,6 +2852,16 @@
         }
       }
     },
+    "La API key è salvata, ma serve comunque Claude Code." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The API key is saved, but Claude Code is still needed."
+          }
+        }
+      }
+    },
     "La Sessione viene tolta dall'elenco. I file del Progetto non vengono toccati." : {
       "localizations" : {
         "en" : {
@@ -2832,6 +2912,16 @@
         }
       }
     },
+    "La chiave resta nel Portachiavi di questo Mac e si paga a consumo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key stays in this Mac's keychain, and you pay per use."
+          }
+        }
+      }
+    },
     "La chiede un subagente." : {
       "localizations" : {
         "en" : {
@@ -2848,6 +2938,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Session's isolated copy is no longer at %@. Delete the Session to remove it from the list."
+          }
+        }
+      }
+    },
+    "La tua domanda aspetta qui e parte da sola appena Claude Code è pronto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your question waits here and starts on its own as soon as Claude Code is ready."
+          }
+        }
+      }
+    },
+    "La versione %@ di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code %@ is too old for Bubo. Update it from Terminal."
           }
         }
       }
@@ -4988,6 +5098,16 @@
         }
       }
     },
+    "Se l'hai già installato, Bubo lo cerca di nuovo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you've already installed it, Bubo looks for it again."
+          }
+        }
+      }
+    },
     "Se ti fidi, Claude usa le impostazioni del repo, che possono eseguire comandi sul tuo Mac." : {
       "localizations" : {
         "en" : {
@@ -5064,6 +5184,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No rule"
+          }
+        }
+      }
+    },
+    "Serve Claude Code" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code Is Needed"
           }
         }
       }
@@ -5580,6 +5710,16 @@
         }
       }
     },
+    "Usa quella salvata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the Saved One"
+          }
+        }
+      }
+    },
     "Usa questo Progetto" : {
       "localizations" : {
         "en" : {
@@ -5606,6 +5746,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use an API Key…"
+          }
+        }
+      }
+    },
+    "Uso una API key" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I Use an API Key"
           }
         }
       }

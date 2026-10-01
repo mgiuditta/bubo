@@ -115,11 +115,18 @@ final class QuestionModel {
             failure = .unexpected
             return
         }
+        moveToAPIKey()
+        start(lastPrompt)
+    }
+
+    /// Moves the Domande and the Sessioni to the saved API key until Bubo quits, asking nothing again.
+    ///
+    /// Called only when the user chooses it (ADR 0003).
+    func moveToAPIKey() {
         usesAPIKey = true
         // Conversations in progress end on the old bridge; the next one starts with the key.
         bridge?.closeWhenIdle()
         bridge = nil
-        start(lastPrompt)
     }
 
     /// Reads the Quota without a Domanda, at most once a minute; with no answer it stays hidden.
