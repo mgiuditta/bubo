@@ -3,14 +3,19 @@ import SwiftUI
 /// A Richiesta di permesso inside its Sessione: the Livello di rischio, what `claude` wants to do, and the answers.
 ///
 /// Levels 1–3 take one key: ↩ Solo ora, esc No. Levels 4–5 open on No and approve only with a 1-second press,
-/// with no "Per questa Sessione".
+/// with no "Per questa Sessione" nor "Sempre in questo Progetto", which first shows the rule it would save.
 struct PermissionRequestView: View {
     let pending: RequestCenter.Pending
+    /// The folder of the Sessione's Progetto, where "Sempre in questo Progetto" saves its rule.
+    let project: URL
     /// How many more Richieste of the Sessione wait behind this one.
     let queued: Int
     /// Whether ↩ and esc answer it: only the oldest Richiesta across the Sessioni, so one key never answers two.
     let hasKeyboard: Bool
     let answer: (PermissionAnswer) -> Void
+    /// Saves the Richiesta's rule in the Progetto, then allows the call.
+    var allowInProject: () throws -> Void = {}
+    @State private var isShowingRule = false
 
     private var request: PermissionRequest { pending.request }
     private var color: Color { pending.risk.level.isDangerous ? Palette.danger : Palette.attention }
@@ -80,6 +85,9 @@ struct PermissionRequestView: View {
                 if pending.allowsSessionRule {
                     Button("Per questa Sessione") { answer(.allowForSession) }
                 }
+                if pending.projectRule != nil {
+                    Button("Sempre in questo Progetto…") { isShowingRule = true }
+                }
             }
             Spacer(minLength: 0)
             if hasKeyboard {
@@ -92,6 +100,11 @@ struct PermissionRequestView: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
+        .sheet(isPresented: $isShowingRule) {
+            if let rule = pending.projectRule {
+                ProjectRuleSheet(rule: rule, project: project, save: allowInProject)
+            }
+        }
     }
 
     /// `subject` line by line, each with every control and invisible character escaped as in the trust dialog.
@@ -141,11 +154,11 @@ private struct HoldToAllowButton: View {
         PermissionRequestView(
             pending: .init(request: PermissionRequest(id: "1", tool: "Bash", command: "npm test"),
                            risk: Risk(level: .modifica), since: .now),
-            queued: 2, hasKeyboard: true) { _ in }
+            project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 2, hasKeyboard: true) { _ in }
         PermissionRequestView(
             pending: .init(request: PermissionRequest(id: "2", tool: "Bash", command: "git push --force origin main"),
                            risk: Risk(level: .irreversibile), since: .now),
-            queued: 0, hasKeyboard: false) { _ in }
+            project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
     }
     .frame(width: 320)
     .padding()

@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The trust dialog, shown by `NewSessionSheet`, before the first Sessione in a folder that is not trusted (#266).
+/// The trust dialog, shown by `NewSessionSheet` before the first Sessione in a folder that is not trusted (#266), and by
+/// `ProjectRuleSheet` before a Regola di permesso is saved there (#79).
 ///
 /// It lists what the repo would turn on, verbatim and escaped. Fidati writes the trust in
 /// `~/.claude.json`; Non ora starts with the user's settings only and asks again next time.
@@ -10,8 +11,8 @@ struct TrustSheet: View {
     let folder: URL
     /// What the folder would turn on.
     let activations: RepoActivations
-    /// Starts the Sessione, after either choice.
-    let start: () -> Void
+    /// Goes on after either choice, told whether the folder is now trusted.
+    let start: (_ isTrusted: Bool) -> Void
     var gate = TrustGate()
     @Environment(\.dismiss) private var dismiss
     @State private var failed = false
@@ -51,7 +52,7 @@ struct TrustSheet: View {
             HStack {
                 Spacer()
                 Button("Non ora") {
-                    start()
+                    start(false)
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
@@ -81,7 +82,7 @@ struct TrustSheet: View {
         do {
             try gate.trust(folder)
             failed = false
-            start()
+            start(true)
             dismiss()
         } catch {
             failed = true
@@ -94,5 +95,5 @@ struct TrustSheet: View {
                activations: RepoActivations(hooks: ["SessionStart: ./scripts/setup.sh"], environment: ["DEBUG"],
                                             mcpServers: [#"db: npx -y @acme/mcp-db\u{202E}"#],
                                             allowRules: ["Bash(npm test:*)"]),
-               start: {})
+               start: { _ in })
 }

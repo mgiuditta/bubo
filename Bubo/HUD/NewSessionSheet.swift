@@ -22,7 +22,8 @@ struct NewSessionSheet: View {
 
     var body: some View {
         if isAskingTrust, let project {
-            TrustSheet(folder: project, activations: RepoActivations(folder: project), start: start, gate: gate)
+            TrustSheet(folder: project, activations: RepoActivations(folder: project), start: { _ in start() },
+                       gate: gate)
         } else {
             form
         }

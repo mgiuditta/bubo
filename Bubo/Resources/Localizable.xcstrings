@@ -570,6 +570,16 @@
         }
       }
     },
+    "Consente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allows"
+          }
+        }
+      }
+    },
     "Consenti solo ora" : {
       "localizations" : {
         "en" : {
@@ -606,6 +616,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continues the Question"
+          }
+        }
+      }
+    },
+    "Controlla %@, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check %@, then try again."
           }
         }
       }
@@ -816,6 +836,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trust"
+          }
+        }
+      }
+    },
+    "File" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File"
           }
         }
       }
@@ -1252,16 +1282,16 @@
     },
     "Livello %lld · %@" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Livello %1$lld · %2$@"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Level %lld · %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Livello %1$lld · %2$@"
           }
         }
       }
@@ -1312,6 +1342,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel Metrics"
+          }
+        }
+      }
+    },
+    "Modifica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
           }
         }
       }
@@ -1416,6 +1456,16 @@
         }
       }
     },
+    "Nessuna regola: Claude chiede ogni volta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rules: Claude asks every time."
+          }
+        }
+      }
+    },
     "No" : {
       "localizations" : {
         "en" : {
@@ -1452,6 +1502,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't change the Open at Login setting: %@"
+          }
+        }
+      }
+    },
+    "Non riesco a cambiare la regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t change the rule"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere %@: Claude salta le sue regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t read %@: Claude skips its rules."
           }
         }
       }
@@ -1496,6 +1566,16 @@
         }
       }
     },
+    "Non riesco a salvare la regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t save the rule"
+          }
+        }
+      }
+    },
     "Non sei collegato." : {
       "localizations" : {
         "en" : {
@@ -1522,6 +1602,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New Session…"
+          }
+        }
+      }
+    },
+    "Ogni chiamata allo strumento %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every call to the tool %@."
+          }
+        }
+      }
+    },
+    "Ogni pagina di %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every page of %@."
           }
         }
       }
@@ -1662,6 +1762,16 @@
         }
       }
     },
+    "Progetto, condivisa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project, shared"
+          }
+        }
+      }
+    },
     "Quota %@: %@ usata" : {
       "localizations" : {
         "en" : {
@@ -1682,6 +1792,26 @@
         }
       }
     },
+    "Regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rule"
+          }
+        }
+      }
+    },
+    "Regole di permesso · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission rules · %lld"
+          }
+        }
+      }
+    },
     "Reinstalla Bubo, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -1698,6 +1828,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Network"
+          }
+        }
+      }
+    },
+    "Revoca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke"
+          }
+        }
+      }
+    },
+    "Ricarica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
           }
         }
       }
@@ -1842,6 +1992,16 @@
         }
       }
     },
+    "Salva regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Rule"
+          }
+        }
+      }
+    },
     "Scegli cartella…" : {
       "localizations" : {
         "en" : {
@@ -1898,6 +2058,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You're offline."
+          }
+        }
+      }
+    },
+    "Sempre in questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always in This Project"
+          }
+        }
+      }
+    },
+    "Sempre in questo Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always in This Project…"
           }
         }
       }
@@ -1994,6 +2174,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Just this time"
+          }
+        }
+      }
+    },
+    "Solo questo comando, scritto esattamente così." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only this command, written exactly like this."
           }
         }
       }
@@ -2114,6 +2304,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "User"
+          }
+        }
+      }
+    },
+    "Vale in tutte le Sessioni del Progetto, anche nelle copie isolate, e in claude dal Terminale. La revochi da Configurazione di Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to every Session of the Project, isolated copies included, and to claude in Terminal. Revoke it from Claude Configuration."
           }
         }
       }
