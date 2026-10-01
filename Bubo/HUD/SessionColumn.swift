@@ -254,6 +254,8 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            SessionCostTotal(total: store.ledger.total(of: session.id),
+                             lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
             if let failure = session.failure, !isArchived {
                 Text(verbatim: failure)
                     .font(Typography.body(size: 12))

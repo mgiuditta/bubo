@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, type CanUseTool, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -13,6 +13,7 @@ import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 import { ConversationStore } from "./store";
+import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 3;
 
@@ -46,7 +47,8 @@ type Event =
   | { type: "kept"; id: string; count: number }
   | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
-  | { type: "permissionWithdrawn"; id: string; request: string };
+  | { type: "permissionWithdrawn"; id: string; request: string }
+  | ({ type: "usage"; id: string } & TurnUsage);
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -143,6 +145,7 @@ function buboTools() {
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string) {
   const mirrored = keep !== undefined && store !== undefined;
+  const restored = resume === undefined ? undefined : await restoredOf(resume);
   const conversation = query({
     prompt,
     options: {
@@ -168,8 +171,15 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   let succeeded = false;
   // Le conversazioni a cui la copia ha perso un pezzo: si rifanno dal transcript a fine turno.
   const torn = new Set<string>();
+  // Le cifre del turno: abbonamento o API key secondo la credenziale che `claude` dice di usare.
+  let usage: UsageReader | undefined;
   try {
     for await (const message of conversation) {
+      if (message.type === "system" && message.subtype === "init") {
+        usage ??= new UsageReader(message.apiKeySource === "none" ? "subscription" : "apiKey", restored);
+      }
+      const turn = usage?.read(message);
+      if (turn) send({ type: "usage", id, ...turn });
       if (message.type === "system" && message.subtype === "mirror_error") {
         console.error("Copia della conversazione incompleta:", message.error);
         torn.add(message.key.sessionId);
@@ -195,11 +205,30 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
     if (succeeded) send({ type: "done", id });
   } catch (error) {
+    // Interrotto senza un `result` valido: i token visti finora, con la cifra segnata incompleta.
+    const turn = usage?.turn();
+    if (turn && !turn.complete) send({ type: "usage", id, ...turn });
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {
     running.delete(id);
     for (const session of torn) await repair(session);
   }
+}
+
+// Il totale che `resume` ripristina dal transcript di `session` (`cost-state`), da togliere al turno: quei turni sono
+// della Cronologia CLI. Dalla copia se la CLI l'ha già cancellato; senza `cost-state` `resume` non ripristina nulla.
+async function restoredOf(session: string): Promise<Restored | undefined> {
+  const entries: SessionStoreEntry[] = [];
+  try {
+    await importSessionToStore(session, {
+      append: async (key, read) => { if (!key.subpath) entries.push(...read); },
+      load: async () => null,
+    });
+  } catch (error) {
+    console.error("Transcript da riprendere non letto:", error instanceof Error ? error.message : error);
+  }
+  if (!entries.length && store) entries.push(...store.entries(session));
+  return restoredFrom(entries);
 }
 
 async function repair(session: string) {

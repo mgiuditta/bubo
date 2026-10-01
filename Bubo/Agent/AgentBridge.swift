@@ -57,6 +57,8 @@ final class AgentBridge {
     private var progressHandlers: [String: (AgentProgress) -> Void] = [:]
     /// What receives the Richieste di permesso of each answer in `answers`; without one, they are refused.
     private var permissionHandlers: [String: (PermissionEvent) -> Void] = [:]
+    /// What receives the tokens and the figure of each answer in `answers`.
+    private var usageHandlers: [String: (TurnUsage) -> Void] = [:]
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
     private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
@@ -77,10 +79,13 @@ final class AgentBridge {
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
+    ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
+    ///     latest replaces the ones before.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil,
              progress: @escaping (AgentProgress) -> Void = { _ in },
-             permissions: ((PermissionEvent) -> Void)? = nil) -> AsyncThrowingStream<String, any Error> {
+             permissions: ((PermissionEvent) -> Void)? = nil,
+             usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -92,6 +97,7 @@ final class AgentBridge {
             answers[id] = continuation
             progressHandlers[id] = progress
             permissionHandlers[id] = permissions
+            usageHandlers[id] = usage
             // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
@@ -272,6 +278,8 @@ final class AgentBridge {
             }
         case let .permissionWithdrawn(id, request):
             permissionHandlers[id]?(.withdrawn(request))
+        case let .usage(id, usage):
+            usageHandlers[id]?(usage)
         case let .quota(reported):
             quota(reported)
         case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id):
@@ -287,6 +295,7 @@ final class AgentBridge {
     private func removeAnswer(_ id: String) -> AsyncThrowingStream<String, any Error>.Continuation? {
         progressHandlers[id] = nil
         permissionHandlers[id] = nil
+        usageHandlers[id] = nil
         return answers.removeValue(forKey: id)
     }
 
@@ -295,6 +304,7 @@ final class AgentBridge {
         answers = [:]
         progressHandlers = [:]
         permissionHandlers = [:]
+        usageHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
         let waiting = requests
         requests = [:]

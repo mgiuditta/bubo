@@ -115,6 +115,8 @@ enum BridgeEvent: Equatable, Decodable {
     case permission(id: String, PermissionRequest)
     /// The conversation `id` no longer waits for the Richiesta `request`.
     case permissionWithdrawn(id: String, request: String)
+    /// The tokens and the figure of the conversation `id` so far; each one replaces the one before.
+    case usage(id: String, TurnUsage)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
@@ -167,6 +169,7 @@ enum BridgeEvent: Equatable, Decodable {
                                               try PermissionRequest(from: decoder))
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
                                                                 request: try container.decode(String.self, forKey: .request))
+        case "usage": self = .usage(id: try container.decode(String.self, forKey: .id), try TurnUsage(from: decoder))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }
