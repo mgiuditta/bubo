@@ -406,7 +406,7 @@ struct ReviewSheet: View {
     }
 
     /// What to tell the user about `error` from Fondi or Annulla merge.
-    private static func explanation(of error: any Error) -> String {
+    static func explanation(of error: any Error) -> String {
         switch error {
         case let error as MergeError: error.localizedDescription
         case let WorktreeError.git(message):

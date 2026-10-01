@@ -62,6 +62,12 @@ nonisolated enum BoardColumn: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// Whether its Sessioni show Fondi… and Archivia: only once the agent has finished, never while they wait for
+    /// the user or failed, which stay in Attende te until the user acts.
+    var hasNextStep: Bool {
+        self == .daGuardare || self == .prAperta
+    }
+
     /// The column's title on the Board and in the Colonna.
     var title: LocalizedStringResource {
         switch self {
