@@ -57,6 +57,8 @@ struct AgentsWindow: View {
                 NewAgentSheet(project: project, user: user, files: files, open: openNewAgent)
             }
         }
+        // Last, so the sheet gets it too: selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
     }
 
     private var header: some View {

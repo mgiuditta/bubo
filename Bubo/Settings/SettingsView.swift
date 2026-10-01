@@ -23,5 +23,7 @@ struct SettingsView: View {
         }
         .frame(width: 480)
         .scenePadding()
+        // System controls, but selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
     }
 }
