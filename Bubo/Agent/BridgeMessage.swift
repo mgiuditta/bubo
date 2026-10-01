@@ -19,10 +19,11 @@ enum BridgeCommand: Equatable {
     /// `keeping` is the id of the agent's conversation, given by Bubo, to copy in Bubo's database (ADR 0006);
     /// without it nothing of the conversation is written. `sandbox` runs the commands of `claude` in the Sandbox;
     /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
-    /// Sessione already has a server.
+    /// Sessione already has a server. `teamRules` are the Progetto's Risorse di squadra in force,
+    /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
-             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false)
+             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules())
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -53,7 +54,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview):
+                      sandbox, offersPreview, teamRules):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -62,6 +63,9 @@ enum BridgeCommand: Equatable {
             object["keep"] = keeping
             object["sandbox"] = sandbox?.jsonObject
             if offersPreview { object["preview"] = true }
+            if teamRules != TeamRules() {
+                object["rules"] = ["allow": teamRules.allow, "deny": teamRules.deny, "ask": teamRules.ask]
+            }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
