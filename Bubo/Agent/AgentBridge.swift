@@ -45,6 +45,8 @@ final class AgentBridge {
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
+    /// What receives the progress of each answer in `answers`.
+    private var progressHandlers: [String: (AgentProgress) -> Void] = [:]
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
     private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
@@ -60,8 +62,10 @@ final class AgentBridge {
     ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
     ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
+    ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
-             forkingFrom conversation: String? = nil) -> AsyncThrowingStream<String, any Error> {
+             forkingFrom conversation: String? = nil,
+             progress: @escaping (AgentProgress) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -71,6 +75,7 @@ final class AgentBridge {
         do {
             let process = try runningProcess()
             answers[id] = continuation
+            progressHandlers[id] = progress
             // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
@@ -81,7 +86,7 @@ final class AgentBridge {
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
         } catch {
-            answers[id] = nil
+            removeAnswer(id)
             continuation.finish(throwing: error)
         }
         return answer
@@ -158,7 +163,7 @@ final class AgentBridge {
     }
 
     private func cancel(_ id: String) {
-        guard answers.removeValue(forKey: id) != nil, let process else { return }
+        guard removeAnswer(id) != nil, let process else { return }
         try? process.input.write(contentsOf: BridgeCommand.cancel(id: id).line())
         closeIfIdle()
     }
@@ -194,16 +199,18 @@ final class AgentBridge {
         case let .text(id, text):
             answers[id]?.yield(text)
         case let .done(id):
-            answers.removeValue(forKey: id)?.finish()
+            removeAnswer(id)?.finish()
+        case let .progress(id, progress):
+            progressHandlers[id]?(progress)
         case let .error(id?, message):
-            answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.failed(message: message))
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.failed(message: message))
             requests.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
         case let .error(nil, message):
             finishAll(throwing: .failed(message: message))
         case let .limit(id, limit):
-            answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.limitReached(limit))
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.limitReached(limit))
         case let .signInRequired(id):
-            answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.signInRequired)
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .search(id, query, project):
             Task {
                 let text = await search(query, project)
@@ -219,9 +226,17 @@ final class AgentBridge {
         closeIfIdle()
     }
 
+    /// Stops following the answer `id`, returning its continuation if it was still open.
+    @discardableResult
+    private func removeAnswer(_ id: String) -> AsyncThrowingStream<String, any Error>.Continuation? {
+        progressHandlers[id] = nil
+        return answers.removeValue(forKey: id)
+    }
+
     private func finishAll(throwing error: AgentBridgeError) {
         let pending = answers
         answers = [:]
+        progressHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
         let waiting = requests
         requests = [:]

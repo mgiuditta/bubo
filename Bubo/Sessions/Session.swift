@@ -2,13 +2,14 @@ import Foundation
 
 /// A durable unit of work on a Progetto, in its own copy of the Progetto when it is a git repo.
 nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
-    /// What a Sessione is doing now.
-    enum Activity: String, Codable, Sendable {
-        case lavora, ferma, errore
+    /// What a Sessione is doing now, in the order of the Colonna's groups.
+    enum Activity: String, Codable, CaseIterable, Sendable {
+        case attende, errore, lavora, ferma
 
         /// The Attività's name in the HUD; keyed, since "Ferma" is also a button.
         var title: LocalizedStringResource {
             switch self {
+            case .attende: LocalizedStringResource("attivita.attendeTe", defaultValue: "Attende te")
             case .lavora: LocalizedStringResource("attivita.lavora", defaultValue: "Lavora")
             case .ferma: LocalizedStringResource("attivita.ferma", defaultValue: "Ferma")
             case .errore: LocalizedStringResource("attivita.errore", defaultValue: "Errore")
@@ -38,6 +39,10 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Where the Sessione works; `nil` while its copy is being prepared.
     var workspace: Workspace?
     var activity = Activity.lavora
+    /// When the Sessione entered its Attività; `nil` in Sessioni saved before it was kept.
+    var activitySince: Date?
+    /// What the Sessione did or said last, in one line.
+    var summary: String?
     /// Why the Sessione is in Errore, as git or `claude` wrote it.
     var failure: String?
     /// The Sessione's own ports, for its dev servers; `nil` when none was free.
@@ -53,6 +58,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isOnCheckout = false
     /// The Cronologia CLI conversation the Sessione continues as a fork: `claude` resumes it, never in place.
     var forkedFrom: String?
+
+    /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
+    var isRunning: Bool { activity == .lavora || activity == .attende }
 
     /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
     /// `BUBO_PORTS` all of them as `first-last`.
@@ -81,7 +89,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 }
 
 nonisolated extension Session {
-    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout and its fork were kept.
+    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout, its fork and its summary were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -89,6 +97,8 @@ nonisolated extension Session {
         project = try container.decode(URL.self, forKey: .project)
         workspace = try container.decodeIfPresent(Workspace.self, forKey: .workspace)
         activity = try container.decode(Activity.self, forKey: .activity)
+        activitySince = try container.decodeIfPresent(Date.self, forKey: .activitySince)
+        summary = try container.decodeIfPresent(String.self, forKey: .summary)
         failure = try container.decodeIfPresent(String.self, forKey: .failure)
         ports = try container.decodeIfPresent(Range<Int>.self, forKey: .ports)
         setupFailure = try container.decodeIfPresent(String.self, forKey: .setupFailure)

@@ -45,6 +45,24 @@ struct AgentBridgeTests {
         #expect(answer == "notarizzazione in /p")
     }
 
+    @Test func theProgressArrivesBeforeTheAnswerEndsAndNotAfter() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":3,\"type\":\"state\",\"id\":\"$id\",\"state\":\"running\"}"
+            echo "{\"v\":3,\"type\":\"summary\",\"id\":\"$id\",\"text\":\"Leggo i file\"}"
+            echo "{\"v\":3,\"type\":\"state\",\"id\":\"$id\",\"state\":\"idle\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            echo "{\"v\":3,\"type\":\"state\",\"id\":\"$id\",\"state\":\"running\"}"
+            read line; id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var received: [AgentProgress] = []
+        _ = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")) { received.append($0) })
+        // A second answer: once it ends, the bridge has read the late `running` of the first.
+        _ = try await Self.collect(bridge.ask("y", in: URL(filePath: "/tmp")))
+        #expect(received == [.state(.running), .summary("Leggo i file"), .state(.idle)])
+    }
+
     @Test func aSilentBridgeDoesNotStallAnother() async throws {
         let silent = Self.bridge("sleep 30")
         let pending = silent.ask("x", in: URL(filePath: "/tmp"))

@@ -1,9 +1,8 @@
 import os
 import SwiftUI
 
-/// The Colonna Vista of the HUD: one row per Sessione, newest first, then the Cronologia CLI apart;
-/// one search filters both.
-// ponytail: minimal Colonna; grouping by Attività, waits and summaries come with #75.
+/// The Colonna Vista of the HUD: the open Sessioni grouped by Attività, Attende te first and the longest wait on top,
+/// the others newest first; then the archived ones, then the Cronologia CLI apart. One search filters them all.
 struct SessionColumn: View {
     let store: SessionStore
     @Environment(HUDPresenter.self) private var hud
@@ -23,6 +22,14 @@ struct SessionColumn: View {
         }
     }
 
+    /// The groups shown, in order, without the empty ones.
+    private var groups: [(title: LocalizedStringResource, sessions: [Session])] {
+        let open = Session.grouped(sessions.filter { $0.phase == .aperta })
+            .map { (title: $0.activity.title, sessions: $0.sessions) }
+        let archived = sessions.filter { $0.phase == .archiviata }
+        return archived.isEmpty ? open : open + [(title: "Archiviate", sessions: archived)]
+    }
+
     private var conversations: [CLIConversation] {
         query.isEmpty ? history : history.filter { $0.matches(query) }
     }
@@ -34,16 +41,14 @@ struct SessionColumn: View {
                 .padding([.horizontal, .top], Spacing.small)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
-                    ForEach(sessions) { session in
-                        SessionRow(session: session, store: store)
+                    ForEach(groups, id: \.title.key) { group in
+                        GroupHeader(title: Text("\(Text(group.title)) · \(group.sessions.count)"))
+                        ForEach(group.sessions) { session in
+                            SessionRow(session: session, store: store)
+                        }
                     }
                     if !conversations.isEmpty {
-                        Text("Cronologia CLI")
-                            .font(Typography.mono(size: 10, weight: .medium))
-                            .textCase(.uppercase)
-                            .foregroundStyle(Palette.textSecondary)
-                            .padding([.horizontal, .top], Spacing.xSmall)
-                            .accessibilityAddTraits(.isHeader)
+                        GroupHeader(title: Text("Cronologia CLI"))
                         ForEach(conversations) { conversation in
                             CLIConversationRow(conversation: conversation) {
                                 hud.createSession(from: SessionDraft(conversation: conversation))
@@ -83,6 +88,51 @@ struct SessionColumn: View {
         } catch {
             Logger.sessions.error("Cronologia CLI not read: \(String(describing: error), privacy: .private)")
         }
+    }
+}
+
+/// The title of a group in the Colonna.
+private struct GroupHeader: View {
+    let title: Text
+
+    var body: some View {
+        title
+            .font(Typography.mono(size: 10, weight: .medium))
+            .textCase(.uppercase)
+            .foregroundStyle(Palette.textSecondary)
+            .padding([.horizontal, .top], Spacing.xSmall)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+/// How long a Sessione has been in its Attività, minute by minute; in Lume when it waits for the user.
+private struct ActivityWait: View {
+    let since: Date
+    let isWaitingForUser: Bool
+
+    var body: some View {
+        TimelineView(.everyMinute) { context in
+            let elapsed = Duration.seconds(max(0, context.date.timeIntervalSince(since)))
+            if elapsed < .seconds(60) {
+                label(Text("adesso"), spoken: Text("adesso"))
+            } else {
+                let wide = elapsed.formatted(Self.style(width: .wide))
+                label(Text(verbatim: elapsed.formatted(Self.style(width: .abbreviated))),
+                      spoken: isWaitingForUser ? Text("Attende da \(wide)") : Text(verbatim: wide))
+            }
+        }
+    }
+
+    private static func style(width: Duration.UnitsFormatStyle.UnitWidth) -> Duration.UnitsFormatStyle {
+        .units(allowed: [.days, .hours, .minutes], width: width, maximumUnitCount: 2)
+    }
+
+    private func label(_ text: Text, spoken: Text) -> some View {
+        text
+            .font(Typography.mono(size: 10, weight: .medium))
+            .foregroundStyle(isWaitingForUser ? Palette.attention : Palette.textSecondary)
+            .lineLimit(1)
+            .accessibilityLabel(spoken)
     }
 }
 
@@ -131,8 +181,9 @@ private struct CLIConversationRow: View {
     }
 }
 
-/// A Sessione in the Colonna: title, Attività or Fase, and Progetto · branch; Riprendi after Bubo's quitting
-/// interrupted it, Archivia, Cancella… and the configuration of Claude in its Progetto in its menu.
+/// A Sessione in the Colonna: title, how long it has been in its Attività, the one-line summary, and
+/// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Archivia, Cancella… and the configuration
+/// of Claude in its Progetto in its menu.
 private struct SessionRow: View {
     let session: Session
     let store: SessionStore
@@ -145,18 +196,28 @@ private struct SessionRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
+                Circle()
+                    .fill(dotColor)
+                    .frame(width: 6, height: 6)
+                    .accessibilityHidden(true)
                 Text(verbatim: session.title)
                     .font(Typography.body(size: 13, weight: .semibold))
                     .lineLimit(1)
                 Spacer(minLength: Spacing.xSmall)
-                Text(isArchived ? session.phase.title : session.activity.title)
-                    .font(Typography.mono(size: 10, weight: .medium))
-                    .textCase(.uppercase)
-                    .foregroundStyle(session.activity == .errore && !isArchived ? Palette.danger : Palette.textSecondary)
+                if let since = session.activitySince {
+                    ActivityWait(since: since, isWaitingForUser: session.activity == .attende && !isArchived)
+                }
+            }
+            if let summary = session.summary {
+                Text(verbatim: summary)
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
             }
             Text(verbatim: [session.project.lastPathComponent,
-                            session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch]
+                            session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch,
+                            String(localized: session.phase.title)]
                 .compactMap(\.self).joined(separator: " · "))
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
@@ -189,14 +250,14 @@ private struct SessionRow: View {
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !isArchived {
                 Button("Archivia") { store.archive(session.id) }
-                    .disabled(session.activity == .lavora)
+                    .disabled(session.isRunning)
             }
             Button("Cancella…", role: .destructive, action: confirmDeletion)
-                .disabled(session.activity == .lavora)
+                .disabled(session.isRunning)
         }
         .accessibilityActions {
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
-            if session.activity != .lavora {
+            if !session.isRunning {
                 if !isArchived { Button("Archivia") { store.archive(session.id) } }
                 Button("Cancella…", action: confirmDeletion)
             }
@@ -208,6 +269,16 @@ private struct SessionRow: View {
             Button("Cancella", role: .destructive) { store.delete(session.id) }
         } message: {
             Text(deletionMessage)
+        }
+    }
+
+    /// The dot before the title: Lume only for Attende te, danger for Errore, faint once it stops.
+    private var dotColor: Color {
+        switch session.activity {
+        case .attende: Palette.attention
+        case .errore: Palette.danger
+        case .lavora: Palette.textPrimary
+        case .ferma: Palette.textFaint
         }
     }
 
@@ -237,16 +308,21 @@ private struct SessionRow: View {
     let file = folder.appending(path: "SessionColumnPreview.json")
     var interrupted = Session(id: UUID(), title: "Correggi il login", project: folder,
                               workspace: Workspace(folder: folder, branch: "bubo/correggi-il-login"),
-                              activity: .lavora,
+                              activity: .lavora, activitySince: .now.addingTimeInterval(-600),
+                              summary: "Ho corretto il redirect dopo il login; mancano i test.",
                               setupFailure: "Lo script di setup è uscito con codice 1.\nnpm error code ENOENT")
     interrupted.prompt = "Correggi il login"
-    var archived = Session(id: UUID(), title: "Aggiorna le dipendenze", project: folder, activity: .ferma)
+    var archived = Session(id: UUID(), title: "Aggiorna le dipendenze", project: folder, activity: .ferma,
+                           activitySince: .now.addingTimeInterval(-7_200))
     archived.phase = .archiviata
     try? JSONEncoder().encode([
         archived,
         interrupted,
+        Session(id: UUID(), title: "Pulizia branch vecchi", project: folder,
+                workspace: Workspace(folder: folder, branch: "bubo/pulizia-branch-vecchi"), activity: .attende,
+                activitySince: .now.addingTimeInterval(-240), summary: "Vuole cancellare 14 branch remoti già fusi."),
         Session(id: UUID(), title: "Rinomina il modulo", project: folder, activity: .errore,
-                failure: "fatal: a branch named 'bubo/x' already exists"),
+                activitySince: .now.addingTimeInterval(-1_200), failure: "fatal: a branch named 'bubo/x' already exists"),
     ]).write(to: file)
     return SessionColumn(store: SessionStore(file: file, worktrees: WorktreeManager(root: folder)) {
         throw CancellationError()
