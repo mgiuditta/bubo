@@ -428,6 +428,26 @@
         }
       }
     },
+    "Avvia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "Avvia ↩" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start ↩"
+          }
+        }
+      }
+    },
     "Azione rischiosa: con il puntatore, tieni premuto per un secondo." : {
       "localizations" : {
         "en" : {
@@ -516,6 +536,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Board"
+          }
+        }
+      }
+    },
+    "Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draft"
           }
         }
       }
@@ -1030,6 +1060,16 @@
         }
       }
     },
+    "Da iniziare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To start"
+          }
+        }
+      }
+    },
     "Debug Orb" : {
       "localizations" : {
         "en" : {
@@ -1076,6 +1116,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Questions and sessions are billed per use to your API key until you quit Bubo."
+          }
+        }
+      }
+    },
+    "Elimina Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Draft"
           }
         }
       }
@@ -1482,6 +1532,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project is no longer at %@. Move the folder back or delete the Session."
+          }
+        }
+      }
+    },
+    "Il Progetto non è più in %@. Riporta lì la cartella o elimina la Bozza." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project is no longer at %@. Move the folder back or delete the Draft."
           }
         }
       }
@@ -2282,6 +2342,36 @@
         }
       }
     },
+    "Nuova Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft"
+          }
+        }
+      }
+    },
+    "Nuova Bozza (⌥⌘N)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft (⌥⌘N)"
+          }
+        }
+      }
+    },
+    "Nuova Bozza…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft…"
+          }
+        }
+      }
+    },
     "Nuova Sessione…" : {
       "localizations" : {
         "en" : {
@@ -2788,6 +2878,16 @@
         }
       }
     },
+    "Salva Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Draft"
+          }
+        }
+      }
+    },
     "Salva regola" : {
       "localizations" : {
         "en" : {
@@ -3130,6 +3230,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Projects"
+          }
+        }
+      }
+    },
+    "Una Sessione parte sempre in Lavora: la colonna segue quello che fa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session always starts in Working: its column follows what it does."
           }
         }
       }

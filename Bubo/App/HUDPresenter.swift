@@ -15,6 +15,9 @@ final class HUDPresenter {
     /// Whether the HUD shows the new Sessione sheet.
     var isCreatingSession = false
 
+    /// Whether the HUD shows the new Bozza sheet.
+    var isCreatingDraft = false
+
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
 
@@ -42,6 +45,13 @@ final class HUDPresenter {
     func createSession(from draft: SessionDraft = SessionDraft()) {
         sessionDraft = draft
         isCreatingSession = true
+        show()
+    }
+
+    /// Brings the HUD to the front on the Board, where the Bozze are, with the new Bozza sheet (⌥⌘N).
+    func createDraft() {
+        switchVista(to: .board)
+        isCreatingDraft = true
         show()
     }
 

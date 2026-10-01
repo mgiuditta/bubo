@@ -16,6 +16,9 @@ struct BuboApp: App {
                 Button("Nuova Sessione…") { appDelegate.hud.createSession() }
                     .keyboardShortcut("n")
                     .disabled(appDelegate.sessions == nil)
+                Button("Nuova Bozza…") { appDelegate.hud.createDraft() }
+                    .keyboardShortcut("n", modifiers: [.option, .command])
+                    .disabled(appDelegate.sessions == nil)
             }
             CommandGroup(before: .toolbar) {
                 Section("Vista delle Sessioni") {

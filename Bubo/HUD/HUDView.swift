@@ -65,7 +65,7 @@ struct HUDView: View {
             Spacer(minLength: Spacing.large)
             if hud.vista == .orbita, let sessions = visibleSessions {
                 SessionOrbit(store: sessions, quota: questions.quota)
-            } else if hud.vista == .board, let sessions = visibleSessions {
+            } else if hud.vista == .board, let sessions, !sessions.sessions.isEmpty || !sessions.drafts.drafts.isEmpty {
                 SessionBoard(store: sessions)
                     .padding(.bottom, Spacing.small)
             } else {
@@ -82,6 +82,10 @@ struct HUDView: View {
             Spacer(minLength: Spacing.large)
         }
         .padding(.vertical, Spacing.medium)
+        // Here, not next to the new Sessione's: one sheet modifier per view.
+        .sheet(isPresented: Bindable(hud).isCreatingDraft) {
+            if let sessions { NewDraftSheet(store: sessions) }
+        }
     }
 }
 
