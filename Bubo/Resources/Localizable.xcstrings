@@ -344,6 +344,26 @@
         }
       }
     },
+    "Cerca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        }
+      }
+    },
+    "Cerca nelle Sessioni e nella Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Sessions and CLI History"
+          }
+        }
+      }
+    },
     "Chiedi qualcosa a Claude" : {
       "localizations" : {
         "en" : {
@@ -504,6 +524,16 @@
         }
       }
     },
+    "Continua da dove ti eri fermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick up where you left off."
+          }
+        }
+      }
+    },
     "Continua da qui, lavorando nel Progetto." : {
       "localizations" : {
         "en" : {
@@ -570,6 +600,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Create"
+          }
+        }
+      }
+    },
+    "Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI History"
           }
         }
       }
@@ -1074,12 +1114,32 @@
         }
       }
     },
+    "Leggi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read"
+          }
+        }
+      }
+    },
     "Leggo la configurazione di Claude…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reading Claude's configuration…"
+          }
+        }
+      }
+    },
+    "Leggo la conversazione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the conversation…"
           }
         }
       }
@@ -1260,6 +1320,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't read Claude's configuration"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere la conversazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the conversation"
           }
         }
       }
@@ -1506,6 +1576,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Idle"
+          }
+        }
+      }
+    },
+    "Riprende dalla Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumes from CLI History"
           }
         }
       }
@@ -1782,6 +1862,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn into Session"
+          }
+        }
+      }
+    },
+    "Tu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You"
           }
         }
       }

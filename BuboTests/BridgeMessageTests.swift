@@ -53,6 +53,40 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/w","id":"c1","projectConfigRoot":"/tmp/repo","settingSources":["user"],"type":"config","v":3}"# + "\n")
     }
 
+    @Test func askResumingAConversationCarriesIt() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         resuming: "c-1").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","resume":"c-1","settingSources":[],"type":"ask","v":3}"# + "\n")
+    }
+
+    @Test func readHistoryAsksForTheFirstPageOrAll() throws {
+        #expect(String(decoding: try BridgeCommand.readHistory(id: "h1", isComplete: false).line(), as: UTF8.self)
+            == #"{"all":false,"id":"h1","type":"history","v":3}"# + "\n")
+        #expect(String(decoding: try BridgeCommand.readTranscript(id: "t1", conversation: "c-1").line(), as: UTF8.self)
+            == #"{"conversation":"c-1","id":"t1","type":"transcript","v":3}"# + "\n")
+    }
+
+    @Test func theHistoryAndATranscriptDecode() throws {
+        let history = #"""
+            {"v":3,"type":"history","id":"h1","conversations":[
+             {"id":"c-1","title":"Correggi il login","cwd":"/r/app","branch":"main","lastModified":1790846145117},
+             {"id":"c-2","title":"Senza cartella","lastModified":0}]}
+            """#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(history.utf8)) == .history(id: "h1", [
+            CLIConversation(id: "c-1", title: "Correggi il login", folder: URL(filePath: "/r/app", directoryHint: .isDirectory),
+                            branch: "main", lastModified: Date(timeIntervalSince1970: 1_790_846_145.117)),
+            CLIConversation(id: "c-2", title: "Senza cartella", folder: nil, branch: nil,
+                            lastModified: Date(timeIntervalSince1970: 0)),
+        ]))
+        let transcript = #"""
+            {"v":3,"type":"transcript","id":"t1","messages":[{"role":"user","text":"Ciao"},{"role":"assistant","text":"Eccomi"}]}
+            """#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(transcript.utf8)) == .transcript(id: "t1", [
+            CLIConversation.Message(isFromUser: true, text: "Ciao"), CLIConversation.Message(isFromUser: false, text: "Eccomi"),
+        ]))
+    }
+
     @Test func theConfigurationDecodes() throws {
         let line = #"""
             {"v":3,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0"},{"name":"locale"}],

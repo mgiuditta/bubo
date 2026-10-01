@@ -135,6 +135,38 @@ struct AgentBridgeTests {
         }
     }
 
+    @Test func aForkCarriesTheConversationItResumes() async throws {
+        // Echoes the conversation it was asked to resume, so the test can read it.
+        let bridge = Self.bridge(Self.answering(#"""
+            resume=$(echo "$line" | sed 's/.*"resume":"\([^"]*\)".*/\1/')
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$resume\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), forkingFrom: "c-1"))
+        #expect(answer == "c-1")
+    }
+
+    @Test func theHistoryIsReadWhole() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "$line" | grep -q '"all":true' \
+                && echo "{\"v\":3,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"c-1\",\"title\":\"Prova\",\"lastModified\":0}]}"
+            read _
+            """#))
+        let history = try await bridge.history(isComplete: true)
+        #expect(history.map(\.id) == ["c-1"])
+    }
+
+    @Test func aTranscriptIsReadForItsConversation() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "$line" | grep -q '"conversation":"c-1"' \
+                && echo "{\"v\":3,\"type\":\"transcript\",\"id\":\"$id\",\"messages\":[{\"role\":\"user\",\"text\":\"Ciao\"}]}"
+            read _
+            """#))
+        let messages = try await bridge.transcript(of: "c-1")
+        #expect(messages == [CLIConversation.Message(isFromUser: true, text: "Ciao")])
+    }
+
     @Test func aMissingExecutableFailsToSpawn() async {
         let bridge = AgentBridge(executable: URL(filePath: "/nonexistent/bubo-agent"), environment: [:]) { _, _ in "" }
         await #expect(throws: AgentBridgeError.spawnFailed(errno: ENOENT)) {

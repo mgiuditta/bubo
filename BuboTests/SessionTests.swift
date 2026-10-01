@@ -128,10 +128,32 @@ struct SessionTests {
         #expect(store.sessions.isEmpty)
     }
 
+    @MainActor
+    @Test func aSessionFromTheCLIHistoryKeepsTheConversationItForks() throws {
+        let store = try makeStore(saving: [])
+        let conversation = CLIConversation(id: "c-1", title: "Correggi il login", folder: URL(filePath: "/tmp"),
+                                           branch: nil, lastModified: .now)
+
+        try store.start("Continua", title: "Correggi il login", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                        forkingFrom: conversation)
+
+        #expect(store.sessions.map(\.forkedFrom) == ["c-1"])
+    }
+
+    @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
+        let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
+                                                               lastModified: .now))
+        #expect(draft.canStartEmpty)
+        #expect(draft.firstPrompt("Aggiungi i test") == "Aggiungi i test")
+        #expect(draft.firstPrompt("") == String(localized: "Continua da dove ti eri fermato."))
+        #expect(!SessionDraft().canStartEmpty)
+    }
+
     @Test func aSessionSavedBeforeItsPhaseWasKeptIsOpen() throws {
         let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
         let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
         #expect(sessions.map(\.phase) == [.aperta])
         #expect(sessions.map(\.isInterrupted) == [false])
+        #expect(sessions.map(\.forkedFrom) == [nil])
     }
 }

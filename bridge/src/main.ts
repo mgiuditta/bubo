@@ -1,23 +1,26 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
+  createSdkMcpServer, getSessionMessages, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
 import { configuration, type Configuration, type Instructions } from "./config";
+import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
-  | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown };
+  | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
+  | { v: number; type: "history"; id: string; all?: unknown }
+  | { v: number; type: "transcript"; id: string; conversation: string };
 
 type Event =
   | { type: "ready" }
@@ -28,7 +31,9 @@ type Event =
   | { type: "signInRequired"; id: string }
   | { type: "search"; id: string; query: string; project?: string }
   | ({ type: "quota" } & Quota)
-  | ({ type: "config"; id: string } & Configuration);
+  | ({ type: "config"; id: string } & Configuration)
+  | { type: "history"; id: string; conversations: Conversation[] }
+  | { type: "transcript"; id: string; messages: Message[] };
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -76,8 +81,10 @@ function buboTools() {
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
+// `resume` è una conversazione della Cronologia CLI: si riprende sempre come fork, con un id nuovo.
+// Il transcript è quello che la CLI ha già scritto; con `persistSession: false` il fork non si scrive in ~/.claude.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string, env: Record<string, string> = {}) {
+                   model?: string, env: Record<string, string> = {}, resume?: string) {
   const conversation = query({
     prompt,
     options: {
@@ -90,6 +97,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       mcpServers: { bubo: buboTools() },
       allowedTools: ["mcp__bubo__cerca"],
       includePartialMessages: true,
+      resume,
+      forkSession: resume !== undefined,
       persistSession: false,
     },
   });
@@ -177,6 +186,25 @@ async function inspect(id: string, cwd: string, sources: SettingSource[], projec
   }
 }
 
+// La Cronologia CLI come `/resume` della CLI: solo le conversazioni interattive, le più recenti prima.
+// Senza `all`, la prima pagina; la ricerca le chiede tutte.
+async function history(id: string, all: boolean) {
+  try {
+    const sessions = await listSessions({ limit: all ? undefined : firstPage, includeProgrammatic: false });
+    send({ type: "history", id, conversations: sessions.map(conversation) });
+  } catch (error) {
+    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+async function transcript(id: string, session: string) {
+  try {
+    send({ type: "transcript", id, messages: messages(await getSessionMessages(session)) });
+  } catch (error) {
+    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
 if (!claudePath) {
   send({ type: "error", message: "BUBO_CLAUDE_PATH mancante" });
   process.exit(1);
@@ -202,7 +230,8 @@ lines.on("line", (line) => {
       const model = typeof command.model === "string" ? command.model : undefined;
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env);
+      const resume = typeof command.resume === "string" ? command.resume : undefined;
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume);
       break;
     }
     case "config": {
@@ -211,6 +240,8 @@ lines.on("line", (line) => {
       void inspect(command.id, command.cwd, settingSources(command.settingSources), root);
       break;
     }
+    case "history": void history(command.id, command.all === true); break;
+    case "transcript": void transcript(command.id, command.conversation); break;
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
     case "quota": void quota(); break;
