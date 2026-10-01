@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type PermissionMode, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type PermissionMode, type Query, type SandboxSettings, type SDKAPIRetryMessage, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
@@ -9,6 +9,7 @@ import { createInterface } from "node:readline";
 import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
+import { turnFailure, type TurnFailure } from "./failure";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
@@ -56,7 +57,7 @@ type Event =
   | (Remembered & { id: string })
   | (Recalled & { id: string })
   | (Read & { id: string })
-  | { type: "error"; id?: string; message: string }
+  | ({ type: "error"; id?: string; message: string } & TurnFailure)
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
@@ -325,6 +326,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   // Perché il turno si è fermato: un limite rifiutato o un accesso non valido diventano eventi a sé.
   let limit: Limit | undefined;
   let failure: SDKAssistantMessageError | undefined;
+  let retry: SDKAPIRetryMessage | undefined;
   let succeeded = false;
   // Le conversazioni a cui la copia ha perso un pezzo: si rifanno dal transcript a fine turno.
   const torn = new Set<string>();
@@ -337,6 +339,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       }
       const turn = usage?.read(message);
       if (turn) send({ type: "usage", id, ...turn });
+      if (message.type === "system" && message.subtype === "api_retry") retry = message;
       if (message.type === "system" && message.subtype === "mirror_error") {
         console.error("Copia della conversazione incompleta:", message.error);
         torn.add(message.key.sessionId);
@@ -359,7 +362,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         if (message.subtype === "success" && !message.is_error) succeeded = true;
         else if (limit) send({ type: "limit", id, ...limit });
         else if (failure === "authentication_failed") send({ type: "signInRequired", id });
-        else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype });
+        else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype,
+                    ...turnFailure(failure, retry) });
       }
     }
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.

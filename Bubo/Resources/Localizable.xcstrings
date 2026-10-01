@@ -528,6 +528,26 @@
         }
       }
     },
+    "Accedi con l'abbonamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign In with Your Subscription"
+          }
+        }
+      }
+    },
+    "Accedi con un altro account" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign In with Another Account"
+          }
+        }
+      }
+    },
     "Accedi di nuovo" : {
       "localizations" : {
         "en" : {
@@ -1592,6 +1612,16 @@
         }
       }
     },
+    "Cambia chiave" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Key"
+          }
+        }
+      }
+    },
     "Cambiato fuori da Bubo · %@" : {
       "localizations" : {
         "en" : {
@@ -1872,6 +1902,26 @@
         }
       }
     },
+    "Claude Code chiede un nuovo accesso. Si fa nel Terminale, poi la tua domanda riparte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code needs you to sign in again. Do it in Terminal, then your question starts again on its own."
+          }
+        }
+      }
+    },
+    "Claude Code non ha nessun accesso. Si fa nel Terminale, poi la tua domanda riparte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code isn't signed in. Sign in in Terminal, then your question starts again on its own."
+          }
+        }
+      }
+    },
     "Claude Code non trovato" : {
       "localizations" : {
         "en" : {
@@ -1898,6 +1948,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code is installed, but you haven't signed in yet. Sign in from Terminal: Bubo notices on its own."
+          }
+        }
+      }
+    },
+    "Claude ha rifiutato la API key: forse non è valida o è senza credito. Cambiala o accedi con l'abbonamento, poi la tua domanda riparte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude refused the API key: it may be invalid or out of credit. Change it or sign in with your subscription, then your question starts again on its own."
           }
         }
       }
@@ -1958,6 +2018,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude didn't answer"
+          }
+        }
+      }
+    },
+    "Claude non risponde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Isn't Responding"
+          }
+        }
+      }
+    },
+    "Claude non è raggiungibile da questo Mac. Controlla la connessione e premi Riprova: la tua domanda è ancora qui." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac can't reach Claude. Check your connection and click Try Again: your question is still here."
           }
         }
       }
@@ -3856,6 +3936,16 @@
         }
       }
     },
+    "La chiave non funziona" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Key Doesn't Work"
+          }
+        }
+      }
+    },
     "La chiave resta nel Portachiavi di questo Mac e non va su iCloud. Bubo non la usa mai da solo: si paga a consumo." : {
       "localizations" : {
         "en" : {
@@ -4246,6 +4336,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Local"
+          }
+        }
+      }
+    },
+    "Login scaduto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-In Expired"
           }
         }
       }
@@ -5350,6 +5450,16 @@
         }
       }
     },
+    "Non è ancora arrivata nessuna risposta. Riprova, oppure usa Diagnostica per controllare Claude Code nel Terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No answer has arrived yet. Try again, or use Diagnostics to check Claude Code in Terminal."
+          }
+        }
+      }
+    },
     "Non è un file di testo." : {
       "localizations" : {
         "en" : {
@@ -5868,6 +5978,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When Claude should use it"
+          }
+        }
+      }
+    },
+    "Questo account non include Claude Code" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Account Doesn't Include Claude Code"
+          }
+        }
+      }
+    },
+    "Questo account non può usare Claude Code. Controlla il piano su claude.ai, oppure accedi con un altro account o usa una API key: la tua domanda riparte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account can't use Claude Code. Check your plan on claude.ai, or sign in with another account or use an API key: your question starts again on its own."
           }
         }
       }
@@ -6644,6 +6774,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Write Not Undone"
+          }
+        }
+      }
+    },
+    "Scrive claude doctor nel Terminale: premi Invio per avviarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Types claude doctor in Terminal: press Return to run it."
           }
         }
       }

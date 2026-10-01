@@ -138,8 +138,17 @@ final class QuestionModel {
     ///
     /// Called only when the user chooses it (ADR 0003).
     func moveToAPIKey() {
-        usesAPIKey = true
-        // Conversations in progress end on the old bridge; the next one starts with the key.
+        moveCredential(toAPIKey: true)
+    }
+
+    /// Moves the Domande and the Sessioni back to the login of `claude`, after a refused API key.
+    func moveToSubscription() {
+        moveCredential(toAPIKey: false)
+    }
+
+    private func moveCredential(toAPIKey: Bool) {
+        usesAPIKey = toAPIKey
+        // Conversations in progress end on the old bridge; the next one starts with the new credential.
         bridge?.closeWhenIdle()
         bridge = nil
     }

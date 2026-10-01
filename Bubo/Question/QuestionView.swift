@@ -87,6 +87,8 @@ struct QuestionView: View {
                         actionTitle: "Riprova", action: model.retry)
         case .bridge(.failed(let message)):
             ErrorNotice("Claude non ha risposto", remedy: "\(message)", actionTitle: "Riprova", action: model.retry)
+        case .bridge(.turnFailed(let failure)):
+            ErrorNotice("Claude non ha risposto", remedy: "\(failure.message)", actionTitle: "Riprova", action: model.retry)
         // A Domanda never runs in the Sandbox: `sandboxUnavailable` cannot reach it.
         case .bridge(.bridgeExited), .bridge(.spawnFailed), .bridge(.sandboxUnavailable), .unexpected:
             ErrorNotice("Il collegamento con Claude si è interrotto", remedy: "Riprova: Bubo lo riavvia.",

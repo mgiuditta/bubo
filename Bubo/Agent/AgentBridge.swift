@@ -9,6 +9,8 @@ enum AgentBridgeError: Error, Equatable {
     case bridgeExited(status: Int32)
     /// The bridge or `claude` reported this failure.
     case failed(message: String)
+    /// `claude` reported this failure of a turn, with the SDK's reasons.
+    case turnFailed(TurnFailure)
     /// The bridge speaks another protocol version.
     case unsupportedVersion(Int)
     /// `claude` stopped at a subscription limit.
@@ -350,6 +352,8 @@ final class AgentBridge {
         case let .error(id?, message):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.failed(message: message))
             requests.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
+        case let .turnFailed(id, failure):
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.turnFailed(failure))
         case let .error(nil, message):
             finishAll(throwing: .failed(message: message))
         case let .limit(id, limit):

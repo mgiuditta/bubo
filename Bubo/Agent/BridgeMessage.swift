@@ -144,6 +144,8 @@ enum BridgeEvent: Equatable, Decodable {
     case progress(id: String, AgentProgress)
     /// The conversation `id`, or the bridge itself when `id` is `nil`, failed.
     case error(id: String?, message: String)
+    /// The conversation `id` failed, with the SDK's reasons besides the text.
+    case turnFailed(id: String, TurnFailure)
     /// The conversation `id` stopped at a subscription limit.
     case limit(id: String, reached: Quota.Limit)
     /// The conversation `id` stopped because the login of `claude` is no longer valid.
@@ -186,7 +188,7 @@ enum BridgeEvent: Equatable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
-             rules, conversation, before, after, mode, memories, files
+             rules, conversation, before, after, mode, memories, files, status, noResponse
     }
 
     init(from decoder: any Decoder) throws {
@@ -225,8 +227,17 @@ enum BridgeEvent: Equatable, Decodable {
                              .memory(.recalled(MemoryRecall(
                                 isSynthesis: try container.decode(String.self, forKey: .mode) == "synthesize",
                                 memories: try container.decode([MemoryRecall.Memory].self, forKey: .memories)))))
-        case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
-                                    message: try container.decode(String.self, forKey: .message))
+        case "error":
+            let id = try container.decodeIfPresent(String.self, forKey: .id)
+            let failure = TurnFailure(message: try container.decode(String.self, forKey: .message),
+                                      reason: try container.decodeIfPresent(String.self, forKey: .reason),
+                                      status: try container.decodeIfPresent(Int.self, forKey: .status),
+                                      hadNoResponse: try container.decodeIfPresent(Bool.self, forKey: .noResponse) ?? false)
+            if let id, failure != TurnFailure(message: failure.message) {
+                self = .turnFailed(id: id, failure)
+            } else {
+                self = .error(id: id, message: failure.message)
+            }
         case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),
                                     reached: Quota.Limit(window: try container.decodeIfPresent(String.self, forKey: .window),
                                                         resetsAt: try container.decodeIfPresent(Double.self, forKey: .resetsAt)
