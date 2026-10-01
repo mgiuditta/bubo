@@ -15,7 +15,7 @@ xcodegen generate --quiet
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Release \
     -destination 'generic/platform=macOS' -archivePath $out/Bubo.xcarchive \
     ARCHS=arm64 ONLY_ACTIVE_ARCH=NO MARKETING_VERSION=$version CURRENT_PROJECT_VERSION=$build \
-    $auth -quiet archive
+    -skipPackagePluginValidation $auth -quiet archive
 
 cat > $out/ExportOptions.plist <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -29,7 +29,7 @@ cat > $out/ExportOptions.plist <<PLIST
 </plist>
 PLIST
 xcodebuild -exportArchive -archivePath $out/Bubo.xcarchive -exportPath $out/export \
-    -exportOptionsPlist $out/ExportOptions.plist $auth -quiet
+    -exportOptionsPlist $out/ExportOptions.plist -skipPackagePluginValidation $auth -quiet
 
 app=$out/export/Bubo.app
 [[ $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' $app/Contents/Info.plist) == $version ]] \
