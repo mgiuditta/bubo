@@ -150,6 +150,16 @@
         }
       }
     },
+    "Apri Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Bubo"
+          }
+        }
+      }
+    },
     "Apri Bubo al login" : {
       "localizations" : {
         "en" : {
@@ -1696,6 +1706,16 @@
         }
       }
     },
+    "Per approvarla, apri Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To approve it, open Bubo."
+          }
+        }
+      }
+    },
     "Per questa Sessione" : {
       "localizations" : {
         "en" : {
@@ -2204,6 +2224,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strip"
+          }
+        }
+      }
+    },
+    "Testo troncato: apri Bubo per leggerlo tutto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text shortened: open Bubo to read it all."
           }
         }
       }

@@ -62,6 +62,17 @@ nonisolated struct RequestCenter: Equatable {
         return answer.allows
     }
 
+    /// Answers from its notification the Richiesta `id` of `session`, the one the notification was posted for.
+    ///
+    /// - Returns: Whether the call may run; `nil` if it was not waiting, or if `allows` but the notification could not
+    ///   offer Solo ora: then it keeps waiting for the HUD.
+    mutating func answerFromNotification(_ id: PermissionRequest.ID, in session: UUID, allows: Bool) -> Bool? {
+        guard let pending = pending(id, in: session), !allows || PermissionNotice(pending).offersAllowOnce else {
+            return nil
+        }
+        return answer(id, in: session, with: allows ? .allowOnce : .deny)
+    }
+
     /// The Richiesta `id` waiting in `session`, if any.
     func pending(_ id: PermissionRequest.ID, in session: UUID) -> Pending? {
         queues[session]?.first { $0.id == id }

@@ -9,6 +9,8 @@ struct WaitingAlertsTests {
     final class Log {
         var badges: [Int] = []
         var announced: [String] = []
+        /// The Richiesta of each announcement, `nil` for none.
+        var requests: [PermissionRequest.ID?] = []
         var withdrawn: [UUID] = []
         var bounces = 0
     }
@@ -16,8 +18,9 @@ struct WaitingAlertsTests {
     let log = Log()
 
     func makeAlerts(isSeen: Bool = false, isAllowed: Bool = true) -> WaitingAlerts {
-        WaitingAlerts(isSeen: { isSeen }, announce: { [log] session in
+        WaitingAlerts(isSeen: { isSeen }, announce: { [log] session, pending in
             log.announced.append(session.title)
+            log.requests.append(pending?.id)
             return isAllowed
         }, withdraw: { [log] in log.withdrawn.append($0) }, badge: { [log] in log.badges.append($0) },
         bounce: { [log] in log.bounces += 1 })
@@ -101,5 +104,44 @@ struct WaitingAlertsTests {
 
         #expect(log.badges.isEmpty)
         #expect(log.announced.isEmpty)
+    }
+
+    @Test func theNotificationFollowsTheOldestRichiestaAndNeverOutlivesIt() async {
+        let alerts = makeAlerts()
+        let session = Self.session("a", .attende)
+        var requests = RequestCenter()
+        _ = requests.receive(PermissionRequest(id: "1", tool: "Bash", command: "ls"), in: session.id,
+                             risk: Risk(level: .lettura))
+        _ = requests.receive(PermissionRequest(id: "2", tool: "Bash", command: "npm test"), in: session.id,
+                             risk: Risk(level: .modifica))
+
+        alerts.follow([session], requests: requests)
+        await alerts.announcing?.value
+        _ = requests.answer("1", in: session.id, with: .allowOnce)
+        alerts.follow([session], requests: requests)
+        await alerts.announcing?.value
+        _ = requests.answer("2", in: session.id, with: .deny)
+        alerts.follow([session], requests: requests)
+        await alerts.announcing?.value
+
+        #expect(log.requests == ["1", "2"])
+        // Withdrawn before Richiesta 2 is posted, and when no Richiesta is left.
+        #expect(log.withdrawn == [session.id, session.id])
+        #expect(log.badges == [1])
+    }
+
+    @Test func aRichiestaThatArrivesAfterTheWaitIsAnnouncedWithIt() async {
+        let alerts = makeAlerts()
+        let session = Self.session("a", .attende)
+        var requests = RequestCenter()
+
+        alerts.follow([session], requests: requests)
+        await alerts.announcing?.value
+        _ = requests.receive(PermissionRequest(id: "1", tool: "Bash", command: "ls"), in: session.id,
+                             risk: Risk(level: .lettura))
+        alerts.follow([session], requests: requests)
+        await alerts.announcing?.value
+
+        #expect(log.requests == [nil, "1"])
     }
 }
