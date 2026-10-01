@@ -20,7 +20,8 @@ struct SandboxTests {
         #expect(domains.contains("registry.npmjs.org"))
         #expect(!domains.contains { $0.contains("github") })
         #expect(network["allowLocalBinding"] as? Bool == true)
-        #expect(network["strictAllowlist"] as? Bool == true)
+        // A host outside the list becomes a Richiesta "Rete: host" (#216), no longer a denial.
+        #expect(network["strictAllowlist"] as? Bool == false)
     }
 
     @Test func itNeverRunsWithoutTheSandbox() {

@@ -27,7 +27,7 @@ nonisolated struct RiskClassifier {
             let path = request.path.flatMap(resolved)
             let isInside = path.map { $0 == workingDirectory || $0.hasPrefix(workingDirectory + "/") } ?? false
             risk = Risk(level: !isInside || path.map(isProtected) == true ? .distruttivo : .modifica)
-        case "WebFetch", "WebSearch":
+        case "WebFetch", "WebSearch", PermissionRequest.networkTool:
             risk = Risk(level: .rete)
         case let tool where request.mcpSource == "sdk" && Self.previewChanges.contains(tool):
             // Bubo's Anteprima: reading the page is Lettura, changing it Modifica reversibile (spec 15).

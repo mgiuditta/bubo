@@ -19,7 +19,7 @@ nonisolated struct PermissionNotice: Equatable {
     /// The notice of `pending`.
     init(_ pending: RequestCenter.Pending) {
         let request = pending.request
-        let subject = request.command ?? request.path ?? request.url
+        let subject = request.subject
         // Every invisible or control character written out, as in the HUD: a notification never hides one.
         let shown = RepoActivations.escaped(subject ?? request.title ?? request.tool)
         let isCut = shown.count > Self.maxLength

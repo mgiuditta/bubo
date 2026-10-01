@@ -13,6 +13,8 @@ struct ConfigPanel: View {
     let sandbox: SandboxStore
     /// Reads the configuration `claude` loads in a folder.
     let read: (URL) async throws -> ClaudeConfiguration
+    /// Reads the Regole di permesso of `claude` in a folder that widen its Sandbox.
+    var readSandboxRules: (URL) async throws -> [SandboxWideningRule] = { _ in [] }
     @Environment(\.dismiss) private var dismiss
     @State private var configuration: ClaudeConfiguration?
     @State private var failed = false
@@ -21,7 +23,8 @@ struct ConfigPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             if let configuration {
-                ConfigurationForm(project: project, configuration: configuration, sandbox: sandbox)
+                ConfigurationForm(project: project, configuration: configuration, sandbox: sandbox,
+                                  readSandboxRules: readSandboxRules)
             } else if failed {
                 ErrorNotice("Non riesco a leggere la configurazione di Claude",
                             remedy: "Controlla che la CLI claude funzioni nel Terminale, poi riprova.",
@@ -61,6 +64,7 @@ private struct ConfigurationForm: View {
     let project: URL
     let configuration: ClaudeConfiguration
     let sandbox: SandboxStore
+    let readSandboxRules: (URL) async throws -> [SandboxWideningRule]
 
     var body: some View {
         Form {
@@ -77,7 +81,7 @@ private struct ConfigurationForm: View {
                 Text("Configurazione di Claude")
             }
 
-            ProjectSandboxSection(project: project, store: sandbox)
+            ProjectSandboxSection(project: project, store: sandbox, readRules: readSandboxRules)
 
             ProjectRulesSection(project: project)
             TeamResourcesSection(project: project)

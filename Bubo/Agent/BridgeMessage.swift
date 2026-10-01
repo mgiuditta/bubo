@@ -44,8 +44,12 @@ enum BridgeCommand: Equatable {
     case readHistory(id: String, isComplete: Bool)
     /// Reads the messages of `conversation` in the Cronologia CLI.
     case readTranscript(id: String, conversation: String)
-    /// Answers the Richiesta di permesso `request`: the call runs only when `allows`.
-    case answerPermission(request: String, allows: Bool)
+    /// Answers the Richiesta di permesso `request`: the call runs only when `allows`. `isLasting` says the user allowed
+    /// it for the rest of the Sessione: a host outside the Sandbox then comes with its session rule
+    /// `WebFetch(domain:)`.
+    case answerPermission(request: String, allows: Bool, isLasting: Bool = false)
+    /// Lists the Regole di permesso of `claude` in `directory` that widen the Sandbox, without a turn of the model.
+    case readSandboxRules(id: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
     /// Answers the gate's question `request`: whether the call is level 4 or 5, so that it asks anyway.
     case answerRisk(request: String, isDangerous: Bool)
     /// Copies in Bubo's database the conversations of the Cronologia CLI not copied yet, or changed since.
@@ -96,8 +100,12 @@ enum BridgeCommand: Equatable {
             object = ["type": "history", "id": id, "all": isComplete]
         case let .readTranscript(id, conversation):
             object = ["type": "transcript", "id": id, "conversation": conversation]
-        case let .answerPermission(request, allows):
+        case let .answerPermission(request, allows, isLasting):
             object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
+            if allows && isLasting { object["scope"] = "session" }
+        case let .readSandboxRules(id, directory, settingSources, projectConfigRoot):
+            object = ["type": "sandboxRules", "id": id, "cwd": directory.path, "settingSources": settingSources]
+            object["projectConfigRoot"] = projectConfigRoot?.path
         case let .answerRisk(request, isDangerous):
             object = ["type": "risk", "request": request, "dangerous": isDangerous]
         case let .keepHistory(id):
@@ -169,12 +177,15 @@ enum BridgeEvent: Equatable, Decodable {
     case risk(id: String, PermissionRequest)
     /// The tokens and the figure of the conversation `id` so far; each one replaces the one before.
     case usage(id: String, TurnUsage)
+    /// The Regole di permesso that widen the Sandbox, answering the request `id`.
+    case sandboxRules(id: String, [SandboxWideningRule])
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
-             conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y
+             conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
+             rules
     }
 
     init(from decoder: any Decoder) throws {
@@ -197,6 +208,10 @@ enum BridgeEvent: Equatable, Decodable {
                                       .edit(file: try container.decode(String.self, forKey: .file),
                                             lines: try container.decode([String].self, forKey: .lines)))
         case "ran": self = .progress(id: try container.decode(String.self, forKey: .id), .ranCommand)
+        case "sandboxBlock": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                              .sandboxBlock(try SandboxBlock(from: decoder)))
+        case "sandboxRules": self = .sandboxRules(id: try container.decode(String.self, forKey: .id),
+                                                  try container.decode([SandboxWideningRule].self, forKey: .rules))
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
         case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),

@@ -430,6 +430,36 @@
         }
       }
     },
+    "Aggiunge l'host ai domini della Sandbox di questo Progetto, in Bubo. Lo togli dalla configurazione del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds the host to this Project's Sandbox domains, in Bubo. You can remove it from the Project's configuration."
+          }
+        }
+      }
+    },
+    "Aggiunge l'host ai domini della Sandbox di questo Progetto, in Bubo. Vale dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds the host to this Project's Sandbox domains, in Bubo. Applies from the next turn."
+          }
+        }
+      }
+    },
+    "Aggiunge questa cartella a quelle in cui la Sandbox di questo Progetto scrive, in Bubo. Vale dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adds this folder to those this Project's Sandbox can write to, in Bubo. Applies from the next turn."
+          }
+        }
+      }
+    },
     "Aggiungi a .bubo/regole.json" : {
       "localizations" : {
         "en" : {
@@ -466,6 +496,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "More actions"
+          }
+        }
+      }
+    },
+    "Altri blocchi in questo turno: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More blocks this turn: %lld"
           }
         }
       }
@@ -892,6 +932,56 @@
         }
       }
     },
+    "Bloccato dalla sandbox: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked by the sandbox: %@"
+          }
+        }
+      }
+    },
+    "Bloccato dalla sandbox: %@ su %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked by the sandbox: %1$@ on %2$@"
+          }
+        }
+      }
+    },
+    "Bloccato dalla sandbox: lettura di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked by the sandbox: reading %@"
+          }
+        }
+      }
+    },
+    "Bloccato dalla sandbox: rete verso %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked by the sandbox: network to %@"
+          }
+        }
+      }
+    },
+    "Bloccato dalla sandbox: scrittura in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked by the sandbox: writing to %@"
+          }
+        }
+      }
+    },
     "Blocchi" : {
       "localizations" : {
         "en" : {
@@ -908,6 +998,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "App hangs"
+          }
+        }
+      }
+    },
+    "Blocchi della Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox blocks"
           }
         }
       }
@@ -1010,6 +1110,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo typed the command below. Press Return to run it, or close the window."
+          }
+        }
+      }
+    },
+    "Bubo le mostra soltanto: allargano anche la Sandbox dei comandi e si cambiano nelle impostazioni di Claude. Edit e Write restano comunque nella cartella della Sessione e nelle cartelle consentite." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo only shows them: they also widen the commands' Sandbox and are changed in Claude's settings. Edit and Write still stay in the Session's folder and the allowed folders."
           }
         }
       }
@@ -1524,12 +1634,42 @@
         }
       }
     },
+    "Consenti in questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow in this Project"
+          }
+        }
+      }
+    },
     "Consenti solo ora" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow just this time"
+          }
+        }
+      }
+    },
+    "Consentiti in questo Progetto · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed in this Project · %lld"
+          }
+        }
+      }
+    },
+    "Consentito in questo Progetto dal prossimo turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed in this Project from the next turn"
           }
         }
       }
@@ -2446,6 +2586,16 @@
         }
       }
     },
+    "Host" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Host"
+          }
+        }
+      }
+    },
     "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
       "localizations" : {
         "en" : {
@@ -2486,12 +2636,12 @@
         }
       }
     },
-    "I comandi di Claude scrivono solo nella cartella della Sessione, nelle cartelle temporanee e nelle cache dei pacchetti, raggiungono solo i registri dei pacchetti e non leggono ~/.ssh, ~/.aws, ~/.gnupg e ~/.netrc. Se la Sandbox non parte, la Sessione non parte. Il terminale e i server non sono in Sandbox. Vale dal prossimo turno." : {
+    "I comandi di Claude scrivono solo nella cartella della Sessione, nelle cartelle temporanee e nelle cache dei pacchetti, raggiungono solo i registri dei pacchetti e non leggono ~/.ssh, ~/.aws, ~/.gnupg e ~/.netrc. Un host nuovo diventa una Richiesta. Se la Sandbox non parte, la Sessione non parte. Il terminale e i server non sono in Sandbox. Vale dal prossimo turno." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, reach only the package registries, and can't read ~/.ssh, ~/.aws, ~/.gnupg or ~/.netrc. If the Sandbox can't start, neither does the Session. The terminal and the servers aren't in the Sandbox. Takes effect from the next turn."
+            "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, reach only the package registries and can't read ~/.ssh, ~/.aws, ~/.gnupg or ~/.netrc. A new host becomes a Request. If the Sandbox doesn't start, neither does the Session. The terminal and the servers aren't in the Sandbox. Applies from the next turn."
           }
         }
       }
@@ -2682,6 +2832,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The terminal didn't start: %@"
+          }
+        }
+      }
+    },
+    "Impostazioni condivise del Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project's shared settings"
+          }
+        }
+      }
+    },
+    "Impostazioni dell'organizzazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organization settings"
+          }
+        }
+      }
+    },
+    "Impostazioni locali del Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project's local settings"
           }
         }
       }
@@ -3130,6 +3310,16 @@
         }
       }
     },
+    "Le tue impostazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your settings"
+          }
+        }
+      }
+    },
     "Leggi" : {
       "localizations" : {
         "en" : {
@@ -3196,6 +3386,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reading the conversation…"
+          }
+        }
+      }
+    },
+    "Leggo le Regole di Claude Code…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Claude Code's rules…"
           }
         }
       }
@@ -3706,6 +3906,16 @@
         }
       }
     },
+    "Nessun host né cartella: li aggiungi da una Richiesta di rete o da un blocco della Sandbox." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hosts or folders yet: add them from a network Request or a Sandbox block."
+          }
+        }
+      }
+    },
     "Nessun messaggio nella console" : {
       "localizations" : {
         "en" : {
@@ -3752,6 +3962,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No API key saved"
+          }
+        }
+      }
+    },
+    "Nessuna Regola Edit, Write o WebFetch nelle impostazioni di Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Edit, Write or WebFetch rules in Claude's settings."
           }
         }
       }
@@ -4012,6 +4232,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't read the conversation"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere le Regole di Claude Code." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read Claude Code's rules."
           }
         }
       }
@@ -4572,6 +4802,16 @@
         }
       }
     },
+    "Registri dei pacchetti e cache" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Package registries and caches"
+          }
+        }
+      }
+    },
     "Regola" : {
       "localizations" : {
         "en" : {
@@ -4588,6 +4828,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow rules · %lld"
+          }
+        }
+      }
+    },
+    "Regole di Claude Code che allargano la Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code rules that widen the Sandbox"
           }
         }
       }
@@ -4628,6 +4878,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Network"
+          }
+        }
+      }
+    },
+    "Rete: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network: %@"
           }
         }
       }
@@ -5238,6 +5498,16 @@
         }
       }
     },
+    "Sempre consentiti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always allowed"
+          }
+        }
+      }
+    },
     "Sempre in questo Progetto" : {
       "localizations" : {
         "en" : {
@@ -5564,6 +5834,16 @@
         }
       }
     },
+    "Temporanea e cache dell'utente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User's temporary folder and cache"
+          }
+        }
+      }
+    },
     "Terminale" : {
       "localizations" : {
         "en" : {
@@ -5620,6 +5900,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Title"
+          }
+        }
+      }
+    },
+    "Togli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove"
+          }
+        }
+      }
+    },
+    "Togli %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
           }
         }
       }
