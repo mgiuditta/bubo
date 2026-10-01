@@ -748,6 +748,16 @@
         }
       }
     },
+    "Apre la revisione di questa Sessione su questo file, blocco per blocco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens this Session's review at this file, block by block"
+          }
+        }
+      }
+    },
     "Apre un'altra shell nella cartella della Sessione" : {
       "localizations" : {
         "en" : {
@@ -894,6 +904,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open in Viewer"
+          }
+        }
+      }
+    },
+    "Apri nella revisione della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in the Session's review"
           }
         }
       }
@@ -1550,6 +1570,16 @@
         }
       }
     },
+    "Chiudi il diff" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the diff"
+          }
+        }
+      }
+    },
     "Chiudi la scheda" : {
       "localizations" : {
         "en" : {
@@ -2186,6 +2216,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Diagnostics"
+          }
+        }
+      }
+    },
+    "Diff di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diff of %@"
           }
         }
       }
@@ -4018,6 +4058,16 @@
         }
       }
     },
+    "Mostra il diff di questa Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show this Session's diff"
+          }
+        }
+      }
+    },
     "Mostra il terminale" : {
       "localizations" : {
         "en" : {
@@ -4238,6 +4288,16 @@
         }
       }
     },
+    "Nessun diff: il Progetto non usa git, quindi manca la versione del file da cui è partita la Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No diff: the Project doesn't use git, so there's no version of the file from before the Session."
+          }
+        }
+      }
+    },
     "Nessun editor trovato. Installa VS Code, Cursor, Zed o Xcode, o scegli un'altra app." : {
       "localizations" : {
         "en" : {
@@ -4344,6 +4404,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Edit, Write or WebFetch rules in Claude's settings."
+          }
+        }
+      }
+    },
+    "Nessuna differenza rispetto all'inizio della Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No difference from the start of the Session."
           }
         }
       }

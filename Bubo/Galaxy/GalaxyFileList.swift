@@ -61,7 +61,8 @@ struct GalaxyFileList: View {
             List(selection: $selection) {
                 if let stars = model.layout?.stars {
                     ForEach(model.rows, id: \.self) { index in
-                        GalaxyFileRow(path: stars[index].path, writers: model.sessionsWriting(index))
+                        GalaxyFileRow(path: stars[index].path, writers: model.sessionsWriting(index),
+                                      lineCounts: model.lineCounts(of: index))
                             .accessibilityAction(named: Text("Apri nel Visore")) { open(index) }
                     }
                 }

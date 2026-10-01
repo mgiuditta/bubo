@@ -14,6 +14,9 @@ import SwiftUI
 struct ReviewSheet: View {
     let sessionID: UUID
     let store: SessionStore
+    /// The file whose first blocco the cursor starts on, by path in the Sessione's folder; `nil` for the first
+    /// undecided blocco.
+    var file: String?
     @Environment(\.dismiss) private var dismiss
     @State private var review = Review()
     @State private var isLoaded = false
@@ -481,7 +484,8 @@ struct ReviewSheet: View {
             failed = false
             if session?.phase == .aperta { await refreshPreview() }
             if cursor.flatMap(review.row(of:)) == nil {
-                cursor = review.hunkIDs.first { decisions[$0] == nil } ?? review.hunkIDs.first
+                cursor = file.flatMap(review.firstHunk(inFileAt:))
+                    ?? review.hunkIDs.first { decisions[$0] == nil } ?? review.hunkIDs.first
             }
         } catch is CancellationError {
             return

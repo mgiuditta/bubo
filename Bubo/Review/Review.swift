@@ -63,6 +63,11 @@ nonisolated struct Review: Sendable {
         return (file, file.hunks[place.hunk])
     }
 
+    /// The first blocco of the file at `path`; `nil` when the diff does not have the file.
+    func firstHunk(inFileAt path: String) -> String? {
+        files.first { $0.path == path }?.hunks.first?.id
+    }
+
     /// The index of the file of the blocco `id`.
     func fileIndex(of id: String) -> Int? {
         places[id]?.file

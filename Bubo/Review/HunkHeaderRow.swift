@@ -29,7 +29,7 @@ struct HunkHeaderRow: View {
                     .font(Typography.mono(size: 11))
                     .foregroundStyle(Palette.textSecondary)
                     .monospacedDigit()
-                Text(verbatim: reason ?? fallback)
+                Text(verbatim: reason ?? Self.fallback(for: hunk, in: file))
                     .font(Typography.body(size: 12, weight: reason == nil ? .regular : .medium))
                     .foregroundStyle(reason == nil ? Palette.textSecondary : Palette.textPrimary)
                     .lineLimit(1)
@@ -39,9 +39,9 @@ struct HunkHeaderRow: View {
                     .font(Typography.mono(size: 11))
                     .foregroundStyle(Palette.textSecondary)
                     .monospacedDigit()
-                Text(state)
+                Text(Self.state(of: decision))
                     .font(Typography.mono(size: 10, weight: .medium))
-                    .foregroundStyle(stateColor)
+                    .foregroundStyle(Self.stateColor(of: decision))
                 if showsButtons {
                     Button("Accetta") { decide(.accepted) }
                     Button("Rifiuta") { decide(.rejected(note: nil)) }
@@ -79,15 +79,17 @@ struct HunkHeaderRow: View {
         .accessibilityLabel(Text("Blocco \(position) di \(count), \(file.path)"))
     }
 
-    /// What the header says without a perché: what git says of a change without lines, or its `@@` line.
-    private var fallback: String {
+    /// What the header of `hunk` in `file` says without a perché: what git says of a change without lines, or its
+    /// `@@` line.
+    static func fallback(for hunk: Hunk, in file: ChangedFile) -> String {
         if !hunk.lines.isEmpty { return hunk.header }
         if file.isBinary { return String(localized: "File binario") }
         if let oldPath = file.oldPath { return String(localized: "Rinominato da \(oldPath)") }
         return String(localized: "Nessuna riga da mostrare")
     }
 
-    private var state: LocalizedStringKey {
+    /// The state of a blocco with `decision`.
+    static func state(of decision: HunkDecision?) -> LocalizedStringKey {
         switch decision {
         case .accepted: "Accettato"
         case .rejected: "Rifiutato"
@@ -95,7 +97,8 @@ struct HunkHeaderRow: View {
         }
     }
 
-    private var stateColor: Color {
+    /// The color of the state of a blocco with `decision`.
+    static func stateColor(of decision: HunkDecision?) -> Color {
         switch decision {
         case .accepted: Palette.success
         case .rejected: Palette.danger

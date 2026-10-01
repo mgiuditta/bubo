@@ -11,6 +11,12 @@ nonisolated struct GalaxySession: Equatable, Identifiable, Sendable {
     var writes: Set<String>
     /// The file it wrote last, relative to the Progetto: where its comet waits before a new tool event.
     var lastWrite: String?
+    /// The folder its agent works in; `nil` before its copy is ready.
+    var folder: URL?
+    /// Whether it has a revisione: inside git, where there is a version from before the Sessione.
+    var isReviewable = false
+    /// The user's decisions on its blocchi, by blocco id.
+    var decisions: [String: HunkDecision] = [:]
 
     /// The signs given to the Sessioni in the order they started; after the last one they start again.
     static let signs = ["●", "▲", "■", "◆", "✦", "✚"]
@@ -23,7 +29,10 @@ nonisolated struct GalaxySession: Equatable, Identifiable, Sendable {
             let roots = roots(of: session)
             let writes = session.edits.compactMap { GalaxyActivity.relativePath(of: $0.file, in: roots) }
             return GalaxySession(id: session.id, title: session.title, sign: signs[index % signs.count],
-                                 activity: session.activity, writes: Set(writes), lastWrite: writes.last)
+                                 activity: session.activity, writes: Set(writes), lastWrite: writes.last,
+                                 folder: session.workspace?.folder,
+                                 isReviewable: session.workspace?.branch != nil || session.isOnCheckout,
+                                 decisions: session.decisions)
         }
     }
 

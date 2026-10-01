@@ -4,6 +4,15 @@ import SwiftUI
 struct GalaxyView: View {
     let model: GalaxyModel
     let store: GalaxyStore
+    /// The Sessione whose revisione is open, at a file.
+    @State private var review: ReviewTarget?
+
+    /// A Sessione's revisione opened from the diff panel at the file `path`.
+    private struct ReviewTarget: Identifiable {
+        let id: UUID
+        let path: String
+        let store: SessionStore
+    }
 
     var body: some View {
         HSplitView {
@@ -28,6 +37,13 @@ struct GalaxyView: View {
                 model.update(sessions: sessions)
             }
         }
+        // The diffs follow the copies of the Sessioni with a revisione; again when one starts or goes.
+        .task(id: model.sessions.filter(\.isReviewable).map(\.folder)) {
+            await store.followChanges(of: model.sessions, into: model)
+        }
+        .sheet(item: $review) { target in
+            ReviewSheet(sessionID: target.id, store: target.store, file: target.path)
+        }
     }
 
     private var map: some View {
@@ -37,6 +53,11 @@ struct GalaxyView: View {
             GalaxyLabels(model: model)
             state
             bar
+        }
+        .overlay(alignment: .bottom) {
+            GalaxyDiffPanel(model: model, openReview: store.sessionStore().map { sessions in
+                { id, path in review = ReviewTarget(id: id, path: path, store: sessions) }
+            })
         }
     }
 
