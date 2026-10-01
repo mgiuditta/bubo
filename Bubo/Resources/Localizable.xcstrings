@@ -458,6 +458,16 @@
         }
       }
     },
+    "Avvia server" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start server"
+          }
+        }
+      }
+    },
     "Avvia ↩" : {
       "localizations" : {
         "en" : {

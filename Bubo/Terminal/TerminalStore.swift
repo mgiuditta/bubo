@@ -22,6 +22,8 @@ final class TerminalStore {
 
     /// The shell of new schede and its arguments; the login shell outside tests.
     @ObservationIgnored var shell = (executable: PTYSession.loginShell, arguments: ["-l"])
+    /// Called when a scheda's output hints that a server started or stopped.
+    @ObservationIgnored var onServerHint: () -> Void = {}
     /// The panel's own window, once it has been detached.
     @ObservationIgnored private var detachedWindow: TerminalWindow?
 
@@ -63,19 +65,46 @@ final class TerminalStore {
     /// Opens a new scheda in the shown Sessione's folder and brings it to the front.
     func openTab() {
         guard let session, let folder = session.terminalFolder else { return }
+        openTab(of: session, in: folder)
+    }
+
+    /// Avvia server: shows the terminal of `session` and types the command of `server` in a new scheda, in its
+    /// folder, with its variables and the Sessione's ports.
+    func launch(_ server: LaunchConfig, in session: Session) {
+        guard let folder = session.terminalFolder, let command = server.commandLine else { return }
+        self.session = session
+        if let tab = openTab(of: session, in: server.folder(in: folder), adding: server.env ?? [:]) {
+            // The shell reads it once it is ready, as if typed: the scheda stays when the server stops.
+            tab.pty.write(ArraySlice(Array((command + "\r").utf8)))
+        }
+        isShown = !tabs(of: session.id).isEmpty || failure != nil
+        updateWindow()
+    }
+
+    /// Opens a scheda of `session` in `folder`, with `variables` over the Sessione's environment but never over its
+    /// ports, and brings it to the front; `nil` when its shell does not start.
+    @discardableResult
+    private func openTab(of session: Session, in folder: URL, adding variables: [String: String] = [:]) -> TerminalTab? {
         do {
-            let tab = try TerminalTab(folder: folder, environment: ChildEnvironment.makeForTerminal(of: session),
-                                      shell: shell.executable, arguments: shell.arguments) { [weak self] tab in
+            let environment = ChildEnvironment.makeForTerminal(of: session)
+                .merging(variables) { $1 }
+                .merging(session.portEnvironment) { $1 }
+            let tab = try TerminalTab(folder: folder, environment: environment, shell: shell.executable,
+                                      arguments: shell.arguments) { [weak self] in
+                self?.onServerHint()
+            } onExit: { [weak self] tab in
                 self?.remove(tab, of: session.id)
             }
             tabs[session.id, default: []].append(tab)
             selection[session.id] = tab.id
             failure = nil
+            return tab
         } catch {
             Logger.terminal.error("Terminal not started: \(String(describing: error), privacy: .public)")
             let reason = if case let ProcessSpawnerError.failed(code) = error { String(cString: strerror(code)) }
                          else { error.localizedDescription }
             failure = String(localized: "Il terminale non è partito: \(reason)")
+            return nil
         }
     }
 

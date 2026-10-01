@@ -20,10 +20,13 @@ final class TerminalTab: Identifiable {
 
     /// Starts a scheda with the login shell in `folder`, or with `shell` and `arguments` when given.
     ///
-    /// - Parameter onExit: Called on the main thread when the shell exits.
+    /// - Parameters:
+    ///   - onServerHint: Called on the main thread when the output hints that a server started or stopped.
+    ///   - onExit: Called on the main thread when the shell exits.
     /// - Throws: ``ProcessSpawnerError`` when the shell cannot start.
     init(folder: URL, environment: [String: String], shell: URL = PTYSession.loginShell,
-         arguments: [String] = ["-l"], onExit: @escaping (TerminalTab) -> Void) throws {
+         arguments: [String] = ["-l"], onServerHint: @escaping () -> Void = {},
+         onExit: @escaping (TerminalTab) -> Void) throws {
         let font = NSFont(name: "JetBrains Mono", size: 12) ?? .monospacedSystemFont(ofSize: 12, weight: .regular)
         view = TerminalView(frame: .zero, font: font, options: TerminalOptions(scrollback: Self.scrollback))
         let terminal = view.getTerminal()
@@ -38,7 +41,10 @@ final class TerminalTab: Identifiable {
         // ⌥ writes the characters of the Italian keyboard (@ # [ ] { }) instead of acting as Meta.
         view.optionAsMetaKey = false
         view.setAccessibilityLabel(String(localized: "Terminale"))
-        pty.onOutput = { [weak view] bytes in view?.feed(byteArray: bytes) }
+        pty.onOutput = { [weak view] bytes in
+            view?.feed(byteArray: bytes)
+            if CommandMarks.hintsAtServer(bytes) { onServerHint() }
+        }
         pty.onExit = { [weak self] in
             guard let self else { return }
             onExit(self)

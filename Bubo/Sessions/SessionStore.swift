@@ -62,6 +62,8 @@ final class SessionStore {
         for session in sessions where session.resolution != nil {
             Task { await finishResolving(session.id, succeeded: false) }
         }
+        servers.owners = { [weak self] in ServerAttribution.Owner.of(self?.sessions ?? []) }
+        terminals.onServerHint = { [weak self] in self?.servers.notice() }
     }
 
     /// The tokens and the figure of every turn of the Sessioni.
@@ -70,6 +72,8 @@ final class SessionStore {
     @ObservationIgnored let drafts: DraftStore
     /// The terminals of the Sessioni, closed at Archivia, Fondi and Cancella.
     @ObservationIgnored let terminals = TerminalStore()
+    /// The servers the Sessioni started, from their terminals or their agent.
+    @ObservationIgnored let servers = PortWatcher()
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -494,7 +498,11 @@ final class SessionStore {
             update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
                                    forkingFrom: session.forkedFrom, keeping: conversation) { [weak self] progress in
-                self?.update(id) { $0.apply(progress) }
+                if progress == .ranCommand {
+                    self?.servers.notice()
+                } else {
+                    self?.update(id) { $0.apply(progress) }
+                }
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             } usage: { [ledger] usage in

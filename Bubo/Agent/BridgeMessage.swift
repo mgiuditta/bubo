@@ -144,6 +144,7 @@ enum BridgeEvent: Equatable, Decodable {
         case "edit": self = .progress(id: try container.decode(String.self, forKey: .id),
                                       .edit(file: try container.decode(String.self, forKey: .file),
                                             lines: try container.decode([String].self, forKey: .lines)))
+        case "ran": self = .progress(id: try container.decode(String.self, forKey: .id), .ranCommand)
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
         case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),

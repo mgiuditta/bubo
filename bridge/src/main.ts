@@ -162,6 +162,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       forkSession: resume !== undefined,
       ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
       canUseTool: askBubo(id),
+      // La fine di un Bash dell'agente può avere avviato o fermato un server: Bubo cerca le porte (spec 15).
+      hooks: { PostToolUse: [{ matcher: "Bash", hooks: [async () => { send({ type: "ran", id }); return {}; }] }] },
     },
   });
   running.set(id, conversation);
