@@ -1,3 +1,4 @@
+import Metal
 import XCTest
 
 extension XCTestCase {
@@ -21,7 +22,20 @@ extension XCTestCase {
 
     /// Attaches `value`, in the unit of the budget's row, as a reading for the report of `scripts/perf.sh`.
     @MainActor func record(_ value: Double, reportedAs id: BudgetID, from source: String) {
-        let measurement = PerfMeasurement(id, value: value, from: source)
+        attach(PerfMeasurement(id, value: value, from: source))
+    }
+
+    /// Skips the test on a Mac without Metal, such as a CI runner, leaving `id` in the report as not measured.
+    ///
+    /// - Throws: `XCTSkip` with `reason` when there is no Metal device.
+    @MainActor func skipWithoutMetal(reportedAs id: BudgetID, because reason: String) throws {
+        guard MTLCreateSystemDefaultDevice() == nil else { return }
+        attach(PerfMeasurement(skipping: id, because: reason))
+        throw XCTSkip(reason)
+    }
+
+    @MainActor private func attach(_ measurement: PerfMeasurement) {
+        let id = measurement.id
         do {
             let attachment = XCTAttachment(data: try JSONEncoder().encode(measurement), uniformTypeIdentifier: "public.json")
             attachment.name = "\(PerfMeasurement.attachmentPrefix)\(id.rawValue)"

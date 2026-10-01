@@ -1,5 +1,4 @@
 import AppKit
-import Metal
 import XCTest
 
 /// The Orb's GPU time, the covered Panel's frames, the HUD's hitches and the main-thread intervals,
@@ -13,7 +12,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     }
 
     @MainActor func testOrbGPUTime() throws {
-        try XCTSkipIf(MTLCreateSystemDefaultDevice() == nil, "Nessun Metal: tempo GPU dell'Orb non misurato.")
+        try skipWithoutMetal(reportedAs: .orbGPUTime, because: "Nessun Metal: tempo GPU dell'Orb non misurato.")
         // `scripts/perf.sh` reads the Orb's frames from the Metal HUD's log too, so it asks for that log.
         let logsMetalHUD = ProcessInfo.processInfo.environment["BUBO_METAL_HUD"] == "1"
         let (app, log) = launchShowingPanel(environment: logsMetalHUD ? Self.metalHUDLogging : [:])
@@ -29,7 +28,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     }
 
     @MainActor func testCoveredPanelDrawsNoFrames() throws {
-        try XCTSkipIf(MTLCreateSystemDefaultDevice() == nil, "Nessun Metal: fotogrammi del Panel non contati.")
+        try skipWithoutMetal(reportedAs: .framesWhileCovered, because: "Nessun Metal: fotogrammi del Panel non contati.")
         let (app, log) = launchShowingPanel()
         defer { app.terminate() }
         RunLoop.current.run(until: .now + 1)

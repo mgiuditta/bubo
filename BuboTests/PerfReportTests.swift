@@ -36,6 +36,36 @@ struct BudgetReportTests {
         #expect(try row(.idleMemory, in: report).blocksPullRequest)
     }
 
+    @Test func aLaunchOf1200MillisecondsBlocksThePullRequest() {
+        let report = BudgetReport(measurements: [PerfMeasurement(.warmLaunch, value: 1200, from: "test")])
+
+        #expect(report.blocksPullRequest)
+        #expect(report.workflowAnnotations.contains("::error title=Prestazioni::Avvio caldo, p95: 1200 ms, budget ≤ 500 ms, blocca la PR"))
+    }
+
+    @Test func aLaunchOf600MillisecondsPassesWithAWarning() {
+        let report = BudgetReport(measurements: [PerfMeasurement(.warmLaunch, value: 600, from: "test")])
+
+        #expect(!report.blocksPullRequest)
+        #expect(report.workflowAnnotations.contains("::warning title=Prestazioni::Avvio caldo, p95: 600 ms, budget ≤ 500 ms, entro 2× il budget"))
+        #expect(!report.workflowAnnotations.contains { $0.hasPrefix("::error") })
+    }
+
+    @Test func aSkippedFrameTestLeavesAWarning() {
+        let report = BudgetReport(measurements: [
+            PerfMeasurement(skipping: .framesWhileCovered, because: "Nessun Metal"),
+        ])
+
+        #expect(!report.blocksPullRequest)
+        #expect(report.workflowAnnotations.contains("::warning title=Prestazioni::Orb coperto, fotogrammi non misurato: Nessun Metal"))
+    }
+
+    @Test func budgetsOfTheReferenceMacAreNotAnnotated() {
+        let report = BudgetReport(measurements: [PerfMeasurement(.coldLaunch, value: 5000, from: "test")])
+
+        #expect(!report.workflowAnnotations.contains { $0.contains("Avvio freddo") })
+    }
+
     @Test func anInvariantBreaksAtTheFirstFrame() throws {
         let report = BudgetReport(measurements: [PerfMeasurement(.framesWhileCovered, value: 1, from: "test")])
 
