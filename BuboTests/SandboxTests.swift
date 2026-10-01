@@ -13,8 +13,8 @@ struct SandboxTests {
     @Test func thePresetWritesInTheCachesAndReachesOnlyThePackageRegistries() throws {
         let object = Self.policy().jsonObject
         let filesystem = try #require(object["filesystem"] as? [String: [String]])
-        #expect(filesystem["allowWrite"] == ["/var/folders/x/T", "/var/folders/x/C", "/Users/u/.npm",
-                                             "/Users/u/.cargo/registry", "/Users/u/Library/Caches/pip"])
+        #expect(filesystem["allowWrite"] == ["/var/folders/x/T", "/var/folders/x/C"]
+            + SandboxPolicy.presetFolders.map { "/Users/u/\($0)" })
         let network = try #require(object["network"] as? [String: Any])
         let domains = try #require(network["allowedDomains"] as? [String])
         #expect(domains.contains("registry.npmjs.org"))
@@ -22,6 +22,25 @@ struct SandboxTests {
         #expect(network["allowLocalBinding"] as? Bool == true)
         // A host outside the list becomes a Richiesta "Rete: host" (#216), no longer a denial.
         #expect(network["strictAllowlist"] as? Bool == false)
+    }
+
+    @Test(arguments: ["/Users/u/.npm", "/Users/u/Library/pnpm/store", "/Users/u/Library/Caches/Yarn",
+                      "/Users/u/.yarn/berry", "/Users/u/.bun/install/cache", "/Users/u/.cargo/registry",
+                      "/Users/u/.cargo/git", "/Users/u/.cargo/.package-cache", "/Users/u/Library/Caches/pip",
+                      "/Users/u/.cache/uv", "/Users/u/go/pkg/mod", "/Users/u/Library/Caches/go-build"])
+    func theDevelopmentToolsWriteInTheirCachesWithoutConfiguration(cache: String) {
+        #expect(Self.policy().writablePaths.contains(cache))
+    }
+
+    @Test func theFoldersOfCodeThatRunsOutsideStayClosed() {
+        let paths = Self.policy().writablePaths
+        let closed = [".cargo", ".cargo/bin", ".cargo/config.toml", ".bun", ".bun/bin", "go", "go/bin", "Library/pnpm",
+                      "Library/Developer/Xcode/DerivedData", ".gradle", ".m2"]
+        #expect(closed.map { "/Users/u/\($0)" }.allSatisfy { !paths.contains($0) })
+    }
+
+    @Test func ghRunsOutsideTheSandboxThroughThePermissions() {
+        #expect(Self.policy().jsonObject["excludedCommands"] as? [String] == ["gh", "gh *"])
     }
 
     @Test func itNeverRunsWithoutTheSandbox() {
