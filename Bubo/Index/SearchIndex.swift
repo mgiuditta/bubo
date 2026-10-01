@@ -165,13 +165,7 @@ actor SearchIndex {
             sqlite3_reset(statement)
             sqlite3_bind_int64(statement, 1, rowID)
             guard sqlite3_step(statement) == SQLITE_ROW else { continue }
-            let message = column(4, of: statement).map { id in
-                ConversationMessage(id: id, isFromUser: column(5, of: statement) == "utente",
-                                    date: Date(timeIntervalSince1970: sqlite3_column_double(statement, 6)))
-            }
-            hits.append(SearchHit(path: column(0, of: statement) ?? "", project: column(1, of: statement),
-                                  source: column(2, of: statement).flatMap(SearchSource.init(rawValue:)) ?? .memory,
-                                  text: column(3, of: statement) ?? "", message: message))
+            hits.append(hit(at: statement))
         }
         return hits
     }
@@ -190,6 +184,17 @@ actor SearchIndex {
             rowIDs.append(sqlite3_column_int64(statement, 0))
         }
         return rowIDs
+    }
+
+    /// The fragment of the current row of `statement`, which selects `path, project, source, text, message, author, date`.
+    private func hit(at statement: OpaquePointer) -> SearchHit {
+        let message = column(4, of: statement).map { id in
+            ConversationMessage(id: id, isFromUser: column(5, of: statement) == "utente",
+                                date: Date(timeIntervalSince1970: sqlite3_column_double(statement, 6)))
+        }
+        return SearchHit(path: column(0, of: statement) ?? "", project: column(1, of: statement),
+                         source: column(2, of: statement).flatMap(SearchSource.init(rawValue:)) ?? .memory,
+                         text: column(3, of: statement) ?? "", message: message)
     }
 
     /// Returns the answer to the `cerca` tool: the matching fragments, each under its file.
@@ -674,6 +679,25 @@ actor SearchIndex {
             guard sqlite3_step(document) == SQLITE_DONE else { throw lastError() }
         }
         computeMissingVectors()
+    }
+
+    /// Returns the message `messageID` of the conversation `id` with the one before and the one after it, in order;
+    /// empty if the Indice does not have it.
+    func messages(around messageID: String, inConversation id: String) throws -> [SearchHit] {
+        // A conversation's messages are stored one after the other, so its neighbours are the next and previous rows.
+        let statement = try prepare("""
+            WITH found(row) AS (SELECT rowid FROM fragments WHERE path = ?1 AND message = ?2 LIMIT 1)
+            SELECT path, project, source, text, message, author, date FROM fragments, found
+            WHERE fragments.rowid BETWEEN found.row - 1 AND found.row + 1 AND path = ?1 ORDER BY fragments.rowid
+            """)
+        defer { sqlite3_finalize(statement) }
+        bind(id, at: 1, in: statement)
+        bind(messageID, at: 2, in: statement)
+        var hits: [SearchHit] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            hits.append(hit(at: statement))
+        }
+        return hits
     }
 
     /// Removes the conversations `ids` from the Indice: a Sessione deleted in Bubo.

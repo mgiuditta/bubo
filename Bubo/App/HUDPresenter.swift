@@ -24,6 +24,12 @@ final class HUDPresenter {
     /// Whether the HUD shows the sheet of the GitHub issues (⌘I).
     var isPickingIssue = false
 
+    /// The past conversation the HUD shows read only, opened from the Palette.
+    var readConversation: CLIConversation?
+
+    /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
+    @ObservationIgnored var searchConversations: ((String) -> Void)?
+
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
 
@@ -63,6 +69,12 @@ final class HUDPresenter {
     /// Brings the HUD to the front on the Board, where the Bozze are.
     func showDrafts() {
         switchVista(to: .board)
+        show()
+    }
+
+    /// Brings the HUD to the front with `conversation` read only.
+    func read(_ conversation: CLIConversation) {
+        readConversation = conversation
         show()
     }
 

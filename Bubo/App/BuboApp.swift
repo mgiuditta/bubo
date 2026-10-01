@@ -26,6 +26,10 @@ struct BuboApp: App {
                 Button("Sessione da issue GitHub…") { appDelegate.hud.pickIssue() }
                     .keyboardShortcut("i")
                     .disabled(appDelegate.sessions == nil)
+                Divider()
+                // Only with Bubo in front: no global shortcut (spec 14).
+                Button("Cerca…") { appDelegate.togglePalette() }
+                    .keyboardShortcut("k")
             }
             CommandGroup(before: .toolbar) {
                 Section("Vista delle Sessioni") {

@@ -62,6 +62,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     /// What starts once the HUD is interactive: the only place for work after launch.
     private(set) lazy var launch = makeLaunchSequence()
+    /// The Palette, opened with ⌘K: the past conversations, searched in the Indice.
+    private(set) lazy var palette = PaletteWindow { [weak self] in
+        ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
+                           history: self?.sessions?.lastHistory ?? [])
+    } open: { [hud] result in
+        hud.read(CLIConversation(id: result.conversation, title: result.title, folder: result.project, branch: nil,
+                                 lastModified: result.date))
+    }
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
@@ -121,6 +129,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(hotKeys)
             .environment(panel))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
+        hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
     }
 
     /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
@@ -159,6 +168,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard panel.runModal() == .OK, let project = panel.url else { return }
         sessions.remember(project, forTeamOf: link)
         sessions.receive(link, in: project)
+    }
+
+    /// ⌘K: shows the Palette, or closes it. The first time, the Cronologia CLI is read for its titles.
+    func togglePalette() {
+        palette.toggle()
+        if let sessions, sessions.lastHistory.isEmpty, palette.isShown {
+            Task { [palette] in
+                _ = try? await sessions.history(isComplete: true)
+                await palette.refresh()
+            }
+        }
     }
 
     /// ⌃`: shows or hides the terminal of the current Sessione, in the HUD unless it was detached.
