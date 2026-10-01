@@ -99,7 +99,7 @@ struct SandboxGateTests {
             done
             """#
         return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
-                           environment: ["PATH": "/usr/bin:/bin", "HOME": "/Users/u"]) { _, _ in "" }
+                           environment: ["PATH": "/usr/bin:/bin", "HOME": "/Users/u"]) { _, _, _ in "" }
     }
 
     @MainActor
