@@ -182,7 +182,9 @@ Richiesta (testo, voce o altro ingresso, vedi [09](09-sistema.md)) → classific
   - File: `BuboTests/Fixtures/richieste-etichettate.json` ([#85](https://github.com/mgiuditta/bubo/issues/85)); controllo: `bun scripts/richieste-check.ts`.
   - **JSON unico, non JSONL né CSV**: `JSONDecoder` lo legge nei test Swift senza codice in più, e i testi con virgole e virgolette restano leggibili.
   - **Tipi con id ASCII** (`sessione.correzione-piccola`), come i `nome` del Catalogo: stabili se cambia il nome mostrato.
-  - **Variante `null`** quando nessuna voce del Catalogo di oggi si adatta: è il caso "Blob con la Categoria" del router. Il controllo accetta solo nomi di `catalogo.json`, quindi le etichette crescono con i blocchi del Catalogo.
+  - **Variante `null`** quando nessuna voce del Catalogo di oggi si adatta: è il caso "Blob con la Categoria" del router. Il controllo accetta solo nomi di `catalogo.json` e solo con la loro Categoria, perché ogni Variante appartiene a una sola Categoria: `lente` solo nelle richieste di Categoria Ricerca. Una ricerca sul web di un dominio preciso (treni, borsa, farmacie) tiene la sua Categoria con Variante `null`, finché il Catalogo non ha una Forma per quel dominio. Le etichette crescono con i blocchi del Catalogo.
+  - **Le 100 richieste inglesi sono casi diversi dalle italiane**, non traduzioni: un errore del classificatore conta una volta sola e il set copre 200 casi distinti. Le Domande in inglese pescano soprattutto dalle Categorie piccole (Meteo, Tempo, Musica, Salute, Viaggi, Creativo).
+  - Lo controlla anche `scripts/check.sh`.
   - **Categoria** dall'enum `Categoria.swift`, letta dal controllo: una sola fonte.
   - **`allegati`** con i soli nomi dei file, il contesto minimo che vede anche Jev; nei Riassunti la richiesta ha senso solo con l'Allegato.
   - Le Domande che chiedono dati del momento (meteo, cambi, orari) stanno in Ricerca sul web, non in Fatto breve, perché Apple FM non li conosce.

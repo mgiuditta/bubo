@@ -22,8 +22,9 @@ const set: { versione: number; tipi: string[]; richieste: Richiesta[] } =
 // Le Categorie stanno in un solo posto: l'enum Swift.
 const enumLine = read("Bubo/Catalogo/Categoria.swift").match(/^\s*case (.+)$/m);
 const categorie = new Set(enumLine ? enumLine[1].split(",").map((name) => name.trim()) : []);
-const varianti = new Set<string>(
-  JSON.parse(read("Bubo/Catalogo/catalogo.json")).varianti.map((v: { nome: string }) => v.nome),
+// Ogni Variante appartiene a una sola Categoria (CONTEXT.md): nome → Categoria dal Catalogo.
+const categoriaDi = new Map<string, string>(
+  JSON.parse(read("Bubo/Catalogo/catalogo.json")).varianti.map((v: { nome: string; categoria: string }) => [v.nome, v.categoria]),
 );
 
 const errors: string[] = [];
@@ -49,7 +50,11 @@ for (const r of set.richieste) {
   else fail(`${r.id}: lingua ${r.lingua}`);
   if (!categorie.has(r.categoria)) fail(`${r.id}: Categoria sconosciuta ${r.categoria}`);
   // null = nessuna Variante adatta nel Catalogo di oggi: l'Orb resta Blob con la Categoria.
-  if (r.variante !== null && !varianti.has(r.variante)) fail(`${r.id}: Variante fuori dal Catalogo ${r.variante}`);
+  if (r.variante !== null) {
+    const categoria = categoriaDi.get(r.variante);
+    if (!categoria) fail(`${r.id}: Variante fuori dal Catalogo ${r.variante}`);
+    else if (categoria !== r.categoria) fail(`${r.id}: Variante ${r.variante} è di ${categoria}, non di ${r.categoria}`);
+  }
   if (r.allegati !== undefined && (!Array.isArray(r.allegati) || r.allegati.some((a) => !a.trim())))
     fail(`${r.id}: allegati non validi`);
 }

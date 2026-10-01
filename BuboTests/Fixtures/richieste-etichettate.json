@@ -24,14 +24,6 @@
     },
     {
       "id": "r002",
-      "lingua": "en",
-      "testo": "Before writing any code, draft a plan to move authentication from server sessions to JWT tokens.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r003",
       "lingua": "it",
       "testo": "Come organizzeresti la migrazione del database da SQLite a Postgres senza fermare il servizio? Solo il piano.",
       "tipo": "sessione.pianifica",
@@ -39,15 +31,7 @@
       "variante": null
     },
     {
-      "id": "r004",
-      "lingua": "en",
-      "testo": "How would you stage a zero-downtime migration from SQLite to Postgres? Just the plan for now.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r005",
+      "id": "r003",
       "lingua": "it",
       "testo": "Voglio aggiungere il supporto offline all'app: proponi i passi e cosa cambia in ogni modulo.",
       "tipo": "sessione.pianifica",
@@ -55,15 +39,7 @@
       "variante": null
     },
     {
-      "id": "r006",
-      "lingua": "en",
-      "testo": "I want offline support in the app: outline the steps and what changes in each module.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r007",
+      "id": "r004",
       "lingua": "it",
       "testo": "Pianifica la divisione di questo monolite in tre pacchetti, con l'ordine dei lavori.",
       "tipo": "sessione.pianifica",
@@ -71,15 +47,7 @@
       "variante": null
     },
     {
-      "id": "r008",
-      "lingua": "en",
-      "testo": "Plan how to split this monolith into three packages, with the order of work.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r009",
+      "id": "r005",
       "lingua": "it",
       "testo": "Progetta un'automazione che ogni lunedì apra una PR con le dipendenze aggiornate; non implementarla ancora.",
       "tipo": "sessione.pianifica",
@@ -87,15 +55,7 @@
       "variante": null
     },
     {
-      "id": "r010",
-      "lingua": "en",
-      "testo": "Design an automation that opens a dependency-update PR every Monday; don't implement it yet.",
-      "tipo": "sessione.pianifica",
-      "categoria": "agente",
-      "variante": null
-    },
-    {
-      "id": "r011",
+      "id": "r006",
       "lingua": "it",
       "testo": "Mi serve una strategia per portare i test da XCTest a Swift Testing un file alla volta.",
       "tipo": "sessione.pianifica",
@@ -103,15 +63,7 @@
       "variante": null
     },
     {
-      "id": "r012",
-      "lingua": "en",
-      "testo": "I need a strategy to move our tests from XCTest to Swift Testing one file at a time.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r013",
+      "id": "r007",
       "lingua": "it",
       "testo": "Scrivi un piano in passi numerati per introdurre la localizzazione in tedesco e giapponese.",
       "tipo": "sessione.pianifica",
@@ -119,15 +71,7 @@
       "variante": null
     },
     {
-      "id": "r014",
-      "lingua": "en",
-      "testo": "Write a numbered plan for adding German and Japanese localization.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r015",
+      "id": "r008",
       "lingua": "it",
       "testo": "Prima di tutto dimmi come affronteresti il refactor del modulo pagamenti, con rischi e punti di controllo.",
       "tipo": "sessione.pianifica",
@@ -135,15 +79,7 @@
       "variante": null
     },
     {
-      "id": "r016",
-      "lingua": "en",
-      "testo": "First tell me how you'd approach refactoring the payments module, with risks and checkpoints.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r017",
+      "id": "r009",
       "lingua": "it",
       "testo": "Quali passi servono per rendere la build riproducibile in CI? Fammi la scaletta, niente modifiche.",
       "tipo": "sessione.pianifica",
@@ -151,15 +87,7 @@
       "variante": null
     },
     {
-      "id": "r018",
-      "lingua": "en",
-      "testo": "What steps would make the build reproducible in CI? Give me an outline, no edits.",
-      "tipo": "sessione.pianifica",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r019",
+      "id": "r010",
       "lingua": "it",
       "testo": "Organizza il lavoro per aggiungere un server MCP interno: fasi, file coinvolti, test.",
       "tipo": "sessione.pianifica",
@@ -167,9 +95,81 @@
       "variante": null
     },
     {
+      "id": "r011",
+      "lingua": "en",
+      "testo": "Outline how we'd add end-to-end encryption to the chat feature before touching any code.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r012",
+      "lingua": "en",
+      "testo": "Plan the move from REST to GraphQL for the mobile client: phases, risks, rollback.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r013",
+      "lingua": "en",
+      "testo": "I want feature flags in the backend. Propose a design and the order of changes, no edits yet.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r014",
+      "lingua": "en",
+      "testo": "Draft a plan for a subagent that triages new GitHub issues every morning.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": null
+    },
+    {
+      "id": "r015",
+      "lingua": "en",
+      "testo": "How should we break the 3,000-line ViewController into smaller pieces? Plan only.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r016",
+      "lingua": "en",
+      "testo": "Plan the upgrade from Swift 5 language mode to Swift 6 strict concurrency, module by module.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r017",
+      "lingua": "en",
+      "testo": "Sketch the steps to add a plugin system to this CLI, including how plugins get loaded.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r018",
+      "lingua": "en",
+      "testo": "We need rate limiting on the public API. Lay out options and a rollout plan.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r019",
+      "lingua": "en",
+      "testo": "Before implementing, plan how to cache search results without serving stale data.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
       "id": "r020",
       "lingua": "en",
-      "testo": "Lay out the work for adding an internal MCP server: phases, files involved, tests.",
+      "testo": "Plan how to wire a Linear MCP server into this project's workflow, step by step.",
       "tipo": "sessione.pianifica",
       "categoria": "agente",
       "variante": null
@@ -184,14 +184,6 @@
     },
     {
       "id": "r022",
-      "lingua": "en",
-      "testo": "The Save button stays enabled when the field is empty, fix it.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r023",
       "lingua": "it",
       "testo": "C'è un refuso nel messaggio di errore del login: \"pasword\". Correggilo.",
       "tipo": "sessione.correzione-piccola",
@@ -199,15 +191,7 @@
       "variante": null
     },
     {
-      "id": "r024",
-      "lingua": "en",
-      "testo": "There's a typo in the login error message: \"pasword\". Fix it.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r025",
+      "id": "r023",
       "lingua": "it",
       "testo": "Il test testParseDate fallisce dopo il cambio d'ora, correggi il fuso nel parser.",
       "tipo": "sessione.correzione-piccola",
@@ -215,15 +199,7 @@
       "variante": null
     },
     {
-      "id": "r026",
-      "lingua": "en",
-      "testo": "testParseDate fails after the DST change, fix the time zone in the parser.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r027",
+      "id": "r024",
       "lingua": "it",
       "testo": "Rinomina la funzione calcTot in calculateTotal nel file Cart.swift.",
       "tipo": "sessione.correzione-piccola",
@@ -231,15 +207,7 @@
       "variante": null
     },
     {
-      "id": "r028",
-      "lingua": "en",
-      "testo": "Rename calcTot to calculateTotal in Cart.swift.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r029",
+      "id": "r025",
       "lingua": "it",
       "testo": "L'endpoint /health restituisce 500 se manca la variabile PORT: metti un default a 8080.",
       "tipo": "sessione.correzione-piccola",
@@ -247,15 +215,7 @@
       "variante": null
     },
     {
-      "id": "r030",
-      "lingua": "en",
-      "testo": "The /health endpoint returns 500 when PORT is unset: default it to 8080.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r031",
+      "id": "r026",
       "lingua": "it",
       "testo": "Aggiungi il controllo di nil su user.avatar in ProfileView, crasha all'apertura.",
       "tipo": "sessione.correzione-piccola",
@@ -263,15 +223,7 @@
       "variante": null
     },
     {
-      "id": "r032",
-      "lingua": "en",
-      "testo": "Add a nil check on user.avatar in ProfileView, it crashes on open.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r033",
+      "id": "r027",
       "lingua": "it",
       "testo": "Alza il timeout della richiesta di upload da 10 a 30 secondi.",
       "tipo": "sessione.correzione-piccola",
@@ -279,15 +231,7 @@
       "variante": null
     },
     {
-      "id": "r034",
-      "lingua": "en",
-      "testo": "Bump the upload request timeout from 10 to 30 seconds.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r035",
+      "id": "r028",
       "lingua": "it",
       "testo": "Il linter segnala una variabile inutilizzata in utils.ts, toglila.",
       "tipo": "sessione.correzione-piccola",
@@ -295,15 +239,7 @@
       "variante": null
     },
     {
-      "id": "r036",
-      "lingua": "en",
-      "testo": "The linter flags an unused variable in utils.ts, remove it.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r037",
+      "id": "r029",
       "lingua": "it",
       "testo": "L'ordinamento della lista è al contrario: deve essere dal più recente.",
       "tipo": "sessione.correzione-piccola",
@@ -311,15 +247,7 @@
       "variante": null
     },
     {
-      "id": "r038",
-      "lingua": "en",
-      "testo": "The list is sorted backwards: it should be newest first.",
-      "tipo": "sessione.correzione-piccola",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r039",
+      "id": "r030",
       "lingua": "it",
       "testo": "Correggi l'off-by-one nel ciclo di paginazione di fetchPages.",
       "tipo": "sessione.correzione-piccola",
@@ -327,9 +255,81 @@
       "variante": null
     },
     {
+      "id": "r031",
+      "lingua": "en",
+      "testo": "The date picker shows yesterday when the user is in UTC-8. Fix the conversion.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r032",
+      "lingua": "en",
+      "testo": "Change the default page size in the API from 50 to 25.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r033",
+      "lingua": "en",
+      "testo": "The README install command points to the wrong branch, update it.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r034",
+      "lingua": "en",
+      "testo": "ImageLoader leaks a URLSession task when the view disappears; cancel it.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r035",
+      "lingua": "en",
+      "testo": "Fix the failing snapshot test for the empty state in SettingsView.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r036",
+      "lingua": "en",
+      "testo": "The CSV export uses commas inside quoted fields wrong, escape them properly.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r037",
+      "lingua": "en",
+      "testo": "Make the error toast disappear after 4 seconds instead of staying forever.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r038",
+      "lingua": "en",
+      "testo": "Swap the deprecated String(format:) in PriceLabel for a FormatStyle.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r039",
+      "lingua": "en",
+      "testo": "The keyboard shortcut ⌘K is registered twice; remove the duplicate.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
       "id": "r040",
       "lingua": "en",
-      "testo": "Fix the off-by-one in fetchPages' pagination loop.",
+      "testo": "Guard against division by zero in the progress percentage calculation.",
       "tipo": "sessione.correzione-piccola",
       "categoria": "codice",
       "variante": null
@@ -344,14 +344,6 @@
     },
     {
       "id": "r042",
-      "lingua": "en",
-      "testo": "Replace Alamofire with URLSession across the whole project and update the tests.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r043",
       "lingua": "it",
       "testo": "Implementa la modalità scura in tutte le schermate dell'app.",
       "tipo": "sessione.modifica-ampia",
@@ -359,15 +351,7 @@
       "variante": null
     },
     {
-      "id": "r044",
-      "lingua": "en",
-      "testo": "Implement dark mode across every screen of the app.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r045",
+      "id": "r043",
       "lingua": "it",
       "testo": "Porta tutto il livello di rete ad async/await togliendo i completion handler.",
       "tipo": "sessione.modifica-ampia",
@@ -375,15 +359,7 @@
       "variante": null
     },
     {
-      "id": "r046",
-      "lingua": "en",
-      "testo": "Move the whole networking layer to async/await and drop the completion handlers.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r047",
+      "id": "r044",
       "lingua": "it",
       "testo": "Aggiungi la funzione di esportazione in PDF, con interfaccia, servizio e test.",
       "tipo": "sessione.modifica-ampia",
@@ -391,15 +367,7 @@
       "variante": null
     },
     {
-      "id": "r048",
-      "lingua": "en",
-      "testo": "Add PDF export end to end: UI, service and tests.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r049",
+      "id": "r045",
       "lingua": "it",
       "testo": "Rinomina il concetto Cliente in Account in tutto il codice, database compreso.",
       "tipo": "sessione.modifica-ampia",
@@ -407,15 +375,7 @@
       "variante": null
     },
     {
-      "id": "r050",
-      "lingua": "en",
-      "testo": "Rename the Customer concept to Account throughout the codebase, database included.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r051",
+      "id": "r046",
       "lingua": "it",
       "testo": "Dividi AppState in store separati per sessione, impostazioni e cronologia, e aggiorna le viste.",
       "tipo": "sessione.modifica-ampia",
@@ -423,15 +383,7 @@
       "variante": null
     },
     {
-      "id": "r052",
-      "lingua": "en",
-      "testo": "Split AppState into separate stores for session, settings and history, and update the views.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r053",
+      "id": "r047",
       "lingua": "it",
       "testo": "Aggiungi il logging strutturato con Logger in tutti i moduli al posto dei print.",
       "tipo": "sessione.modifica-ampia",
@@ -439,15 +391,7 @@
       "variante": null
     },
     {
-      "id": "r054",
-      "lingua": "en",
-      "testo": "Add structured logging with Logger across all modules, replacing the prints.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r055",
+      "id": "r048",
       "lingua": "it",
       "testo": "Crea da zero il comando CLI sync con opzioni, configurazione, documentazione e test.",
       "tipo": "sessione.modifica-ampia",
@@ -455,15 +399,7 @@
       "variante": null
     },
     {
-      "id": "r056",
-      "lingua": "en",
-      "testo": "Build the sync CLI command from scratch with flags, config, docs and tests.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "agente",
-      "variante": null
-    },
-    {
-      "id": "r057",
+      "id": "r049",
       "lingua": "it",
       "testo": "Migra i form da UIKit a SwiftUI mantenendo la validazione esistente.",
       "tipo": "sessione.modifica-ampia",
@@ -471,15 +407,7 @@
       "variante": null
     },
     {
-      "id": "r058",
-      "lingua": "en",
-      "testo": "Migrate the forms from UIKit to SwiftUI while keeping the existing validation.",
-      "tipo": "sessione.modifica-ampia",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r059",
+      "id": "r050",
       "lingua": "it",
       "testo": "Aggiungi il supporto multi-tenant: ogni query deve filtrare per organizzazione.",
       "tipo": "sessione.modifica-ampia",
@@ -487,9 +415,81 @@
       "variante": null
     },
     {
+      "id": "r051",
+      "lingua": "en",
+      "testo": "Add full undo and redo support to the editor, including tests.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r052",
+      "lingua": "en",
+      "testo": "Replace our homemade JSON parsing with Codable models everywhere.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r053",
+      "lingua": "en",
+      "testo": "Introduce dependency injection for all services and update every call site.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r054",
+      "lingua": "en",
+      "testo": "Localize the whole app into Spanish, strings and plurals included.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r055",
+      "lingua": "en",
+      "testo": "Convert the Redux-style store to the Observation framework across all screens.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r056",
+      "lingua": "en",
+      "testo": "Create three custom agents for review, tests and docs, with their prompts and tools.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "agente",
+      "variante": null
+    },
+    {
+      "id": "r057",
+      "lingua": "en",
+      "testo": "Add pagination to every list endpoint and to the clients that consume them.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r058",
+      "lingua": "en",
+      "testo": "Move all persistence from Core Data to SwiftData with a migration path.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r059",
+      "lingua": "en",
+      "testo": "Add accessibility labels and keyboard navigation to every custom control.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
       "id": "r060",
       "lingua": "en",
-      "testo": "Add multi-tenant support: every query must filter by organization.",
+      "testo": "Implement offline sync with conflict resolution for notes, server and client.",
       "tipo": "sessione.modifica-ampia",
       "categoria": "codice",
       "variante": null
@@ -504,14 +504,6 @@
     },
     {
       "id": "r062",
-      "lingua": "en",
-      "testo": "Where is the cart discount computed? Don't change anything.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r063",
       "lingua": "it",
       "testo": "Spiegami come passa una richiesta dal router HTTP fino al database in questo repo.",
       "tipo": "sessione.esplora",
@@ -519,15 +511,7 @@
       "variante": null
     },
     {
-      "id": "r064",
-      "lingua": "en",
-      "testo": "Walk me through how a request flows from the HTTP router to the database in this repo.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r065",
+      "id": "r063",
       "lingua": "it",
       "testo": "Chi chiama ancora la vecchia API v1? Fammi l'elenco dei punti.",
       "tipo": "sessione.esplora",
@@ -535,47 +519,23 @@
       "variante": null
     },
     {
-      "id": "r066",
-      "lingua": "en",
-      "testo": "Who still calls the old v1 API? List the call sites.",
+      "id": "r064",
+      "lingua": "it",
+      "testo": "Come funziona la cache delle immagini? Voglio capire prima di modificarla.",
       "tipo": "sessione.esplora",
       "categoria": "codice",
       "variante": null
     },
     {
-      "id": "r067",
-      "lingua": "it",
-      "testo": "Come funziona la cache delle immagini? Voglio capire prima di modificarla.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": "lente"
-    },
-    {
-      "id": "r068",
-      "lingua": "en",
-      "testo": "How does the image cache work? I want to understand it before changing it.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": "lente"
-    },
-    {
-      "id": "r069",
+      "id": "r065",
       "lingua": "it",
       "testo": "Trova dove si impostano le variabili d'ambiente per i test.",
       "tipo": "sessione.esplora",
       "categoria": "codice",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r070",
-      "lingua": "en",
-      "testo": "Find where the environment variables for tests are set.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": "lente"
-    },
-    {
-      "id": "r071",
+      "id": "r066",
       "lingua": "it",
       "testo": "Che differenza c'è tra SessionStore e SessionManager in questo progetto?",
       "tipo": "sessione.esplora",
@@ -583,15 +543,7 @@
       "variante": null
     },
     {
-      "id": "r072",
-      "lingua": "en",
-      "testo": "What's the difference between SessionStore and SessionManager in this project?",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r073",
+      "id": "r067",
       "lingua": "it",
       "testo": "Descrivimi l'architettura di questa cartella: moduli, dipendenze, punti d'ingresso.",
       "tipo": "sessione.esplora",
@@ -599,15 +551,7 @@
       "variante": null
     },
     {
-      "id": "r074",
-      "lingua": "en",
-      "testo": "Describe this folder's architecture: modules, dependencies, entry points.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r075",
+      "id": "r068",
       "lingua": "it",
       "testo": "Perché la build impiega così tanto? Guarda la configurazione e dimmi cosa vedi.",
       "tipo": "sessione.esplora",
@@ -615,31 +559,15 @@
       "variante": null
     },
     {
-      "id": "r076",
-      "lingua": "en",
-      "testo": "Why does the build take so long? Look at the config and tell me what you see.",
+      "id": "r069",
+      "lingua": "it",
+      "testo": "Cerca tutti i TODO lasciati nel modulo sync e raggruppali per file.",
       "tipo": "sessione.esplora",
       "categoria": "codice",
       "variante": null
     },
     {
-      "id": "r077",
-      "lingua": "it",
-      "testo": "Cerca tutti i TODO lasciati nel modulo sync e raggruppali per file.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": "lente"
-    },
-    {
-      "id": "r078",
-      "lingua": "en",
-      "testo": "Search every TODO left in the sync module and group them by file.",
-      "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": "lente"
-    },
-    {
-      "id": "r079",
+      "id": "r070",
       "lingua": "it",
       "testo": "Quali hook e skill usa questo progetto e cosa fanno?",
       "tipo": "sessione.esplora",
@@ -647,11 +575,83 @@
       "variante": null
     },
     {
-      "id": "r080",
+      "id": "r071",
       "lingua": "en",
-      "testo": "Which hooks and skills does this project use and what do they do?",
+      "testo": "Where do we validate email addresses? Just point me to the code.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r072",
+      "lingua": "en",
+      "testo": "Explain how the background refresh is scheduled in this app.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r073",
+      "lingua": "en",
+      "testo": "Which modules depend on the Analytics package?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r074",
+      "lingua": "en",
+      "testo": "Show me how errors propagate from the network layer to the UI.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r075",
+      "lingua": "en",
+      "testo": "What does the build script in Scripts/ actually do, step by step?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r076",
+      "lingua": "en",
+      "testo": "Find every place where we read from UserDefaults.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r077",
+      "lingua": "en",
+      "testo": "How are feature flags evaluated at launch? Don't modify anything.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r078",
+      "lingua": "en",
+      "testo": "List the public types in the Core module and what each one is for.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r079",
+      "lingua": "en",
+      "testo": "Which MCP servers does this repo configure, and with what permissions?",
       "tipo": "sessione.esplora",
       "categoria": "agente",
+      "variante": null
+    },
+    {
+      "id": "r080",
+      "lingua": "en",
+      "testo": "Trace what happens when the user taps Buy, from button to receipt.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
       "variante": null
     },
     {
@@ -664,14 +664,6 @@
     },
     {
       "id": "r082",
-      "lingua": "en",
-      "testo": "Review this branch's diff before I open the PR.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r083",
       "lingua": "it",
       "testo": "Controlla la PR 412: bug, casi limite e test mancanti.",
       "tipo": "sessione.revisione",
@@ -679,15 +671,7 @@
       "variante": null
     },
     {
-      "id": "r084",
-      "lingua": "en",
-      "testo": "Check PR 412: bugs, edge cases and missing tests.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r085",
+      "id": "r083",
       "lingua": "it",
       "testo": "Fai una revisione di sicurezza del nuovo endpoint di upload.",
       "tipo": "sessione.revisione",
@@ -695,15 +679,7 @@
       "variante": null
     },
     {
-      "id": "r086",
-      "lingua": "en",
-      "testo": "Do a security review of the new upload endpoint.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r087",
+      "id": "r084",
       "lingua": "it",
       "testo": "Dai un'occhiata critica alle ultime tre commit, sono corrette?",
       "tipo": "sessione.revisione",
@@ -711,15 +687,7 @@
       "variante": null
     },
     {
-      "id": "r088",
-      "lingua": "en",
-      "testo": "Take a critical look at the last three commits: are they correct?",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r089",
+      "id": "r085",
       "lingua": "it",
       "testo": "Questa modifica alla concorrenza può causare data race? Rivedila.",
       "tipo": "sessione.revisione",
@@ -727,15 +695,7 @@
       "variante": null
     },
     {
-      "id": "r090",
-      "lingua": "en",
-      "testo": "Could this concurrency change introduce data races? Review it.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r091",
+      "id": "r086",
       "lingua": "it",
       "testo": "Rivedi le migrazioni del database di questa settimana, non voglio perdere dati.",
       "tipo": "sessione.revisione",
@@ -743,15 +703,7 @@
       "variante": null
     },
     {
-      "id": "r092",
-      "lingua": "en",
-      "testo": "Review this week's database migrations, I don't want to lose data.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r093",
+      "id": "r087",
       "lingua": "it",
       "testo": "Leggi le modifiche non ancora committate e dimmi cosa non va.",
       "tipo": "sessione.revisione",
@@ -759,15 +711,7 @@
       "variante": null
     },
     {
-      "id": "r094",
-      "lingua": "en",
-      "testo": "Read the uncommitted changes and tell me what's wrong.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r095",
+      "id": "r088",
       "lingua": "it",
       "testo": "Revisione della PR di Luca sul parser: stile, correttezza e prestazioni.",
       "tipo": "sessione.revisione",
@@ -775,15 +719,7 @@
       "variante": null
     },
     {
-      "id": "r096",
-      "lingua": "en",
-      "testo": "Review Luca's parser PR: style, correctness and performance.",
-      "tipo": "sessione.revisione",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r097",
+      "id": "r089",
       "lingua": "it",
       "testo": "Controlla che il workflow di release appena modificato non esponga segreti.",
       "tipo": "sessione.revisione",
@@ -791,15 +727,7 @@
       "variante": null
     },
     {
-      "id": "r098",
-      "lingua": "en",
-      "testo": "Check that the release workflow I just edited doesn't leak secrets.",
-      "tipo": "sessione.revisione",
-      "categoria": "agente",
-      "variante": null
-    },
-    {
-      "id": "r099",
+      "id": "r090",
       "lingua": "it",
       "testo": "Rivedi l'accessibilità delle viste toccate in questo ramo.",
       "tipo": "sessione.revisione",
@@ -807,9 +735,81 @@
       "variante": null
     },
     {
+      "id": "r091",
+      "lingua": "en",
+      "testo": "Review my refactor of the auth module for regressions.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r092",
+      "lingua": "en",
+      "testo": "Is this pull request safe to merge? Look for edge cases.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r093",
+      "lingua": "en",
+      "testo": "Audit the new SQL queries for injection risks.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r094",
+      "lingua": "en",
+      "testo": "Go over the test changes in this branch: are we still testing the right things?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r095",
+      "lingua": "en",
+      "testo": "Review the memory handling in the image pipeline changes.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r096",
+      "lingua": "en",
+      "testo": "Check the API changes in this PR for backwards compatibility.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r097",
+      "lingua": "en",
+      "testo": "Give the localization changes a second pair of eyes before release.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r098",
+      "lingua": "en",
+      "testo": "Review the new hooks in .claude/settings.json: anything dangerous?",
+      "tipo": "sessione.revisione",
+      "categoria": "agente",
+      "variante": null
+    },
+    {
+      "id": "r099",
+      "lingua": "en",
+      "testo": "Critique the error handling in the files I changed today.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
       "id": "r100",
       "lingua": "en",
-      "testo": "Review the accessibility of the views touched on this branch.",
+      "testo": "Review the performance impact of the new list diffing code.",
       "tipo": "sessione.revisione",
       "categoria": "codice",
       "variante": null
@@ -824,14 +824,6 @@
     },
     {
       "id": "r102",
-      "lingua": "en",
-      "testo": "What's the difference between feels-like and actual temperature?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "meteo",
-      "variante": null
-    },
-    {
-      "id": "r103",
       "lingua": "it",
       "testo": "Che ore sono a Tokyo adesso?",
       "tipo": "domanda.fatto-breve",
@@ -839,15 +831,7 @@
       "variante": null
     },
     {
-      "id": "r104",
-      "lingua": "en",
-      "testo": "What time is it in Tokyo right now?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "tempo",
-      "variante": null
-    },
-    {
-      "id": "r105",
+      "id": "r103",
       "lingua": "it",
       "testo": "Cos'è lo spread tra BTP e Bund?",
       "tipo": "domanda.fatto-breve",
@@ -855,15 +839,7 @@
       "variante": null
     },
     {
-      "id": "r106",
-      "lingua": "en",
-      "testo": "What is the BTP–Bund spread?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "finanza",
-      "variante": null
-    },
-    {
-      "id": "r107",
+      "id": "r104",
       "lingua": "it",
       "testo": "Come si dice \"arrivederci\" in giapponese?",
       "tipo": "domanda.fatto-breve",
@@ -871,15 +847,7 @@
       "variante": null
     },
     {
-      "id": "r108",
-      "lingua": "en",
-      "testo": "How do you say \"goodbye\" in Japanese?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r109",
+      "id": "r105",
       "lingua": "it",
       "testo": "Quante calorie ha una banana?",
       "tipo": "domanda.fatto-breve",
@@ -887,15 +855,7 @@
       "variante": null
     },
     {
-      "id": "r110",
-      "lingua": "en",
-      "testo": "How many calories are in a banana?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "salute",
-      "variante": null
-    },
-    {
-      "id": "r111",
+      "id": "r106",
       "lingua": "it",
       "testo": "Qual è il prefisso telefonico della Spagna?",
       "tipo": "domanda.fatto-breve",
@@ -903,15 +863,7 @@
       "variante": null
     },
     {
-      "id": "r112",
-      "lingua": "en",
-      "testo": "What's Spain's international dialing code?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "viaggi",
-      "variante": null
-    },
-    {
-      "id": "r113",
+      "id": "r107",
       "lingua": "it",
       "testo": "Qual è la scorciatoia per commentare una riga in Xcode?",
       "tipo": "domanda.fatto-breve",
@@ -919,15 +871,7 @@
       "variante": null
     },
     {
-      "id": "r114",
-      "lingua": "en",
-      "testo": "What's the shortcut to comment a line in Xcode?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r115",
+      "id": "r108",
       "lingua": "it",
       "testo": "Chi ha scritto Bohemian Rhapsody?",
       "tipo": "domanda.fatto-breve",
@@ -935,15 +879,7 @@
       "variante": null
     },
     {
-      "id": "r116",
-      "lingua": "en",
-      "testo": "Who wrote Bohemian Rhapsody?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "musica",
-      "variante": null
-    },
-    {
-      "id": "r117",
+      "id": "r109",
       "lingua": "it",
       "testo": "Quanti giorni mancano a Natale?",
       "tipo": "domanda.fatto-breve",
@@ -951,15 +887,7 @@
       "variante": null
     },
     {
-      "id": "r118",
-      "lingua": "en",
-      "testo": "How many days until Christmas?",
-      "tipo": "domanda.fatto-breve",
-      "categoria": "tempo",
-      "variante": null
-    },
-    {
-      "id": "r119",
+      "id": "r110",
       "lingua": "it",
       "testo": "Qual è la capitale dell'Australia?",
       "tipo": "domanda.fatto-breve",
@@ -967,9 +895,81 @@
       "variante": null
     },
     {
+      "id": "r111",
+      "lingua": "en",
+      "testo": "What day of the week was 4 July 1976?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": null
+    },
+    {
+      "id": "r112",
+      "lingua": "en",
+      "testo": "What does a UV index of 8 mean?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": null
+    },
+    {
+      "id": "r113",
+      "lingua": "en",
+      "testo": "How many strings does a viola have?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "musica",
+      "variante": null
+    },
+    {
+      "id": "r114",
+      "lingua": "en",
+      "testo": "How much water is a litre in cups?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "salute",
+      "variante": null
+    },
+    {
+      "id": "r115",
+      "lingua": "en",
+      "testo": "Do I need a plug adapter for the UK if I'm from Italy?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "viaggi",
+      "variante": null
+    },
+    {
+      "id": "r116",
+      "lingua": "en",
+      "testo": "What does APR stand for?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "finanza",
+      "variante": null
+    },
+    {
+      "id": "r117",
+      "lingua": "en",
+      "testo": "What's a haiku's syllable pattern?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "creativo",
+      "variante": null
+    },
+    {
+      "id": "r118",
+      "lingua": "en",
+      "testo": "What does BCC mean in an email?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "mail",
+      "variante": null
+    },
+    {
+      "id": "r119",
+      "lingua": "en",
+      "testo": "How many seconds are in a week?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": null
+    },
+    {
       "id": "r120",
       "lingua": "en",
-      "testo": "What's the capital of Australia?",
+      "testo": "What's the plural of cactus?",
       "tipo": "domanda.fatto-breve",
       "categoria": "chat",
       "variante": null
@@ -987,17 +987,6 @@
     },
     {
       "id": "r122",
-      "lingua": "en",
-      "testo": "Summarize this email in three lines.",
-      "tipo": "domanda.riassunto",
-      "categoria": "mail",
-      "variante": null,
-      "allegati": [
-        "Re_ supply contract.eml"
-      ]
-    },
-    {
-      "id": "r123",
       "lingua": "it",
       "testo": "Fammi il riassunto di questo PDF.",
       "tipo": "domanda.riassunto",
@@ -1008,18 +997,7 @@
       ]
     },
     {
-      "id": "r124",
-      "lingua": "en",
-      "testo": "Give me a summary of this PDF.",
-      "tipo": "domanda.riassunto",
-      "categoria": "chat",
-      "variante": null,
-      "allegati": [
-        "quarterly-report.pdf"
-      ]
-    },
-    {
-      "id": "r125",
+      "id": "r123",
       "lingua": "it",
       "testo": "Di cosa parla questo articolo? In breve.",
       "tipo": "domanda.riassunto",
@@ -1030,18 +1008,7 @@
       ]
     },
     {
-      "id": "r126",
-      "lingua": "en",
-      "testo": "What is this article about? Briefly.",
-      "tipo": "domanda.riassunto",
-      "categoria": "chat",
-      "variante": null,
-      "allegati": [
-        "article.html"
-      ]
-    },
-    {
-      "id": "r127",
+      "id": "r124",
       "lingua": "it",
       "testo": "Riassumi cosa fa questo file.",
       "tipo": "domanda.riassunto",
@@ -1052,18 +1019,7 @@
       ]
     },
     {
-      "id": "r128",
-      "lingua": "en",
-      "testo": "Summarize what this file does.",
-      "tipo": "domanda.riassunto",
-      "categoria": "codice",
-      "variante": null,
-      "allegati": [
-        "Scheduler.swift"
-      ]
-    },
-    {
-      "id": "r129",
+      "id": "r125",
       "lingua": "it",
       "testo": "Riassumi il thread con il cliente e dimmi cosa chiede.",
       "tipo": "domanda.riassunto",
@@ -1074,18 +1030,7 @@
       ]
     },
     {
-      "id": "r130",
-      "lingua": "en",
-      "testo": "Summarize the thread with the client and tell me what they want.",
-      "tipo": "domanda.riassunto",
-      "categoria": "mail",
-      "variante": null,
-      "allegati": [
-        "client-thread.txt"
-      ]
-    },
-    {
-      "id": "r131",
+      "id": "r126",
       "lingua": "it",
       "testo": "Punti chiave di questo bilancio, in elenco.",
       "tipo": "domanda.riassunto",
@@ -1096,18 +1041,7 @@
       ]
     },
     {
-      "id": "r132",
-      "lingua": "en",
-      "testo": "Key points of this financial statement, as a list.",
-      "tipo": "domanda.riassunto",
-      "categoria": "finanza",
-      "variante": null,
-      "allegati": [
-        "2025-statement.pdf"
-      ]
-    },
-    {
-      "id": "r133",
+      "id": "r127",
       "lingua": "it",
       "testo": "Riassumi gli appunti della riunione di oggi.",
       "tipo": "domanda.riassunto",
@@ -1118,18 +1052,7 @@
       ]
     },
     {
-      "id": "r134",
-      "lingua": "en",
-      "testo": "Summarize today's meeting notes.",
-      "tipo": "domanda.riassunto",
-      "categoria": "chat",
-      "variante": null,
-      "allegati": [
-        "meeting.md"
-      ]
-    },
-    {
-      "id": "r135",
+      "id": "r128",
       "lingua": "it",
       "testo": "Riassumimi il referto in parole semplici.",
       "tipo": "domanda.riassunto",
@@ -1140,18 +1063,7 @@
       ]
     },
     {
-      "id": "r136",
-      "lingua": "en",
-      "testo": "Summarize this medical report in plain words.",
-      "tipo": "domanda.riassunto",
-      "categoria": "salute",
-      "variante": null,
-      "allegati": [
-        "lab-report.pdf"
-      ]
-    },
-    {
-      "id": "r137",
+      "id": "r129",
       "lingua": "it",
       "testo": "Accorcia questo testo a un paragrafo mantenendo il senso.",
       "tipo": "domanda.riassunto",
@@ -1162,18 +1074,7 @@
       ]
     },
     {
-      "id": "r138",
-      "lingua": "en",
-      "testo": "Condense this text into one paragraph keeping the meaning.",
-      "tipo": "domanda.riassunto",
-      "categoria": "chat",
-      "variante": null,
-      "allegati": [
-        "draft.txt"
-      ]
-    },
-    {
-      "id": "r139",
+      "id": "r130",
       "lingua": "it",
       "testo": "Riassumi il log di errore: qual è il problema?",
       "tipo": "domanda.riassunto",
@@ -1184,14 +1085,113 @@
       ]
     },
     {
-      "id": "r140",
+      "id": "r131",
       "lingua": "en",
-      "testo": "Summarize this error log: what's the problem?",
+      "testo": "Summarize this newsletter in two bullets.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": null,
+      "allegati": [
+        "newsletter.eml"
+      ]
+    },
+    {
+      "id": "r132",
+      "lingua": "en",
+      "testo": "Give me the gist of this invoice dispute.",
+      "tipo": "domanda.riassunto",
+      "categoria": "finanza",
+      "variante": null,
+      "allegati": [
+        "dispute.pdf"
+      ]
+    },
+    {
+      "id": "r133",
+      "lingua": "en",
+      "testo": "What's the takeaway of this study abstract?",
+      "tipo": "domanda.riassunto",
+      "categoria": "salute",
+      "variante": null,
+      "allegati": [
+        "abstract.txt"
+      ]
+    },
+    {
+      "id": "r134",
+      "lingua": "en",
+      "testo": "Summarize this itinerary day by day.",
+      "tipo": "domanda.riassunto",
+      "categoria": "viaggi",
+      "variante": null,
+      "allegati": [
+        "itinerary.pdf"
+      ]
+    },
+    {
+      "id": "r135",
+      "lingua": "en",
+      "testo": "Summarize this album review.",
+      "tipo": "domanda.riassunto",
+      "categoria": "musica",
+      "variante": null,
+      "allegati": [
+        "review.html"
+      ]
+    },
+    {
+      "id": "r136",
+      "lingua": "en",
+      "testo": "Summarize the changes in this changelog.",
       "tipo": "domanda.riassunto",
       "categoria": "codice",
       "variante": null,
       "allegati": [
-        "crash.log"
+        "CHANGELOG.md"
+      ]
+    },
+    {
+      "id": "r137",
+      "lingua": "en",
+      "testo": "TL;DR of this long Slack export, please.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": null,
+      "allegati": [
+        "slack-export.txt"
+      ]
+    },
+    {
+      "id": "r138",
+      "lingua": "en",
+      "testo": "Sum up the plot of this short story.",
+      "tipo": "domanda.riassunto",
+      "categoria": "creativo",
+      "variante": null,
+      "allegati": [
+        "story.docx"
+      ]
+    },
+    {
+      "id": "r139",
+      "lingua": "en",
+      "testo": "Summarize this weather report for the weekend.",
+      "tipo": "domanda.riassunto",
+      "categoria": "meteo",
+      "variante": null,
+      "allegati": [
+        "forecast.pdf"
+      ]
+    },
+    {
+      "id": "r140",
+      "lingua": "en",
+      "testo": "Summarize the agenda for tomorrow's offsite.",
+      "tipo": "domanda.riassunto",
+      "categoria": "tempo",
+      "variante": null,
+      "allegati": [
+        "agenda.md"
       ]
     },
     {
@@ -1204,14 +1204,6 @@
     },
     {
       "id": "r142",
-      "lingua": "en",
-      "testo": "Write a polite email to push Thursday's meeting.",
-      "tipo": "domanda.scrittura",
-      "categoria": "mail",
-      "variante": null
-    },
-    {
-      "id": "r143",
       "lingua": "it",
       "testo": "Scrivimi una poesia breve sull'autunno.",
       "tipo": "domanda.scrittura",
@@ -1219,15 +1211,7 @@
       "variante": null
     },
     {
-      "id": "r144",
-      "lingua": "en",
-      "testo": "Write me a short poem about autumn.",
-      "tipo": "domanda.scrittura",
-      "categoria": "creativo",
-      "variante": null
-    },
-    {
-      "id": "r145",
+      "id": "r143",
       "lingua": "it",
       "testo": "Rispondi a questa mail declinando l'offerta con gentilezza.",
       "tipo": "domanda.scrittura",
@@ -1238,18 +1222,7 @@
       ]
     },
     {
-      "id": "r146",
-      "lingua": "en",
-      "testo": "Reply to this email politely declining the offer.",
-      "tipo": "domanda.scrittura",
-      "categoria": "mail",
-      "variante": null,
-      "allegati": [
-        "offer.eml"
-      ]
-    },
-    {
-      "id": "r147",
+      "id": "r144",
       "lingua": "it",
       "testo": "Proponi cinque titoli per un post sul lavoro da remoto.",
       "tipo": "domanda.scrittura",
@@ -1257,15 +1230,7 @@
       "variante": null
     },
     {
-      "id": "r148",
-      "lingua": "en",
-      "testo": "Suggest five titles for a blog post about remote work.",
-      "tipo": "domanda.scrittura",
-      "categoria": "creativo",
-      "variante": null
-    },
-    {
-      "id": "r149",
+      "id": "r145",
       "lingua": "it",
       "testo": "Riscrivi questo paragrafo in tono più formale.",
       "tipo": "domanda.scrittura",
@@ -1273,15 +1238,7 @@
       "variante": null
     },
     {
-      "id": "r150",
-      "lingua": "en",
-      "testo": "Rewrite this paragraph in a more formal tone.",
-      "tipo": "domanda.scrittura",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r151",
+      "id": "r146",
       "lingua": "it",
       "testo": "Scrivi la descrizione di un prodotto per una lampada da scrivania.",
       "tipo": "domanda.scrittura",
@@ -1289,15 +1246,7 @@
       "variante": null
     },
     {
-      "id": "r152",
-      "lingua": "en",
-      "testo": "Write a product description for a desk lamp.",
-      "tipo": "domanda.scrittura",
-      "categoria": "creativo",
-      "variante": null
-    },
-    {
-      "id": "r153",
+      "id": "r147",
       "lingua": "it",
       "testo": "Correggi grammatica e punteggiatura di questo testo.",
       "tipo": "domanda.scrittura",
@@ -1308,18 +1257,7 @@
       ]
     },
     {
-      "id": "r154",
-      "lingua": "en",
-      "testo": "Fix the grammar and punctuation of this text.",
-      "tipo": "domanda.scrittura",
-      "categoria": "chat",
-      "variante": null,
-      "allegati": [
-        "letter.txt"
-      ]
-    },
-    {
-      "id": "r155",
+      "id": "r148",
       "lingua": "it",
       "testo": "Prepara un messaggio di benvenuto per un nuovo collega.",
       "tipo": "domanda.scrittura",
@@ -1327,15 +1265,7 @@
       "variante": null
     },
     {
-      "id": "r156",
-      "lingua": "en",
-      "testo": "Draft a welcome message for a new teammate.",
-      "tipo": "domanda.scrittura",
-      "categoria": "mail",
-      "variante": null
-    },
-    {
-      "id": "r157",
+      "id": "r149",
       "lingua": "it",
       "testo": "Inventa una storia della buonanotte con un drago timido.",
       "tipo": "domanda.scrittura",
@@ -1343,15 +1273,7 @@
       "variante": null
     },
     {
-      "id": "r158",
-      "lingua": "en",
-      "testo": "Make up a bedtime story about a shy dragon.",
-      "tipo": "domanda.scrittura",
-      "categoria": "creativo",
-      "variante": null
-    },
-    {
-      "id": "r159",
+      "id": "r150",
       "lingua": "it",
       "testo": "Scrivi il testo del README per una libreria di date in Swift.",
       "tipo": "domanda.scrittura",
@@ -1359,11 +1281,83 @@
       "variante": null
     },
     {
+      "id": "r151",
+      "lingua": "en",
+      "testo": "Write a short follow-up email to a recruiter I haven't heard back from.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": null
+    },
+    {
+      "id": "r152",
+      "lingua": "en",
+      "testo": "Write song lyrics about a night train across Europe.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": null
+    },
+    {
+      "id": "r153",
+      "lingua": "en",
+      "testo": "Draft a packing list note for a week of hiking in Scotland.",
+      "tipo": "domanda.scrittura",
+      "categoria": "viaggi",
+      "variante": null
+    },
+    {
+      "id": "r154",
+      "lingua": "en",
+      "testo": "Write a bio for a jazz trio's website.",
+      "tipo": "domanda.scrittura",
+      "categoria": "musica",
+      "variante": null
+    },
+    {
+      "id": "r155",
+      "lingua": "en",
+      "testo": "Write a friendly reminder to my team to take breaks.",
+      "tipo": "domanda.scrittura",
+      "categoria": "salute",
+      "variante": null
+    },
+    {
+      "id": "r156",
+      "lingua": "en",
+      "testo": "Draft a polite message asking a client to pay an overdue invoice.",
+      "tipo": "domanda.scrittura",
+      "categoria": "finanza",
+      "variante": null
+    },
+    {
+      "id": "r157",
+      "lingua": "en",
+      "testo": "Write a limerick about a cat who codes.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": null
+    },
+    {
+      "id": "r158",
+      "lingua": "en",
+      "testo": "Turn these notes into a clear announcement for the office.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": null
+    },
+    {
+      "id": "r159",
+      "lingua": "en",
+      "testo": "Write an out-of-office message for the week of 10 November.",
+      "tipo": "domanda.scrittura",
+      "categoria": "tempo",
+      "variante": null
+    },
+    {
       "id": "r160",
       "lingua": "en",
-      "testo": "Write the README text for a Swift date library.",
+      "testo": "Write a short, cheerful caption for a photo of a thunderstorm.",
       "tipo": "domanda.scrittura",
-      "categoria": "codice",
+      "categoria": "meteo",
       "variante": null
     },
     {
@@ -1376,14 +1370,6 @@
     },
     {
       "id": "r162",
-      "lingua": "en",
-      "testo": "Is a 3.2% fixed or a 2.6% variable mortgage better over 20 years? Reason about the risks.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "finanza",
-      "variante": null
-    },
-    {
-      "id": "r163",
       "lingua": "it",
       "testo": "Tre amici dicono tutti una bugia e una verità; chi ha preso la torta? Risolvi l'enigma.",
       "tipo": "domanda.ragionamento",
@@ -1391,15 +1377,7 @@
       "variante": null
     },
     {
-      "id": "r164",
-      "lingua": "en",
-      "testo": "Three friends each tell one lie and one truth; who took the cake? Solve the puzzle.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r165",
+      "id": "r163",
       "lingua": "it",
       "testo": "Qual è la complessità di questo algoritmo e si può fare meglio?",
       "tipo": "domanda.ragionamento",
@@ -1407,15 +1385,7 @@
       "variante": null
     },
     {
-      "id": "r166",
-      "lingua": "en",
-      "testo": "What's the complexity of this algorithm and can it be done better?",
-      "tipo": "domanda.ragionamento",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r167",
+      "id": "r164",
       "lingua": "it",
       "testo": "Aiutami a decidere tra due offerte di lavoro: pesa stipendio, crescita e distanza.",
       "tipo": "domanda.ragionamento",
@@ -1423,15 +1393,7 @@
       "variante": null
     },
     {
-      "id": "r168",
-      "lingua": "en",
-      "testo": "Help me decide between two job offers: weigh pay, growth and commute.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r169",
+      "id": "r165",
       "lingua": "it",
       "testo": "Se risparmio 300 euro al mese al 4% annuo, quanto avrò tra 15 anni? Mostra i passaggi.",
       "tipo": "domanda.ragionamento",
@@ -1439,15 +1401,7 @@
       "variante": null
     },
     {
-      "id": "r170",
-      "lingua": "en",
-      "testo": "If I save 300 euros a month at 4% a year, how much will I have in 15 years? Show the steps.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "finanza",
-      "variante": null
-    },
-    {
-      "id": "r171",
+      "id": "r166",
       "lingua": "it",
       "testo": "Quali sono i pro e i contro della settimana corta di quattro giorni per una piccola azienda?",
       "tipo": "domanda.ragionamento",
@@ -1455,15 +1409,7 @@
       "variante": null
     },
     {
-      "id": "r172",
-      "lingua": "en",
-      "testo": "What are the pros and cons of a four-day week for a small company?",
-      "tipo": "domanda.ragionamento",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r173",
+      "id": "r167",
       "lingua": "it",
       "testo": "Meglio un database relazionale o a documenti per un'app di prenotazioni? Motiva.",
       "tipo": "domanda.ragionamento",
@@ -1471,15 +1417,7 @@
       "variante": null
     },
     {
-      "id": "r174",
-      "lingua": "en",
-      "testo": "Relational or document database for a booking app? Justify.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "codice",
-      "variante": null
-    },
-    {
-      "id": "r175",
+      "id": "r168",
       "lingua": "it",
       "testo": "Dimostra che la radice di 2 è irrazionale.",
       "tipo": "domanda.ragionamento",
@@ -1487,15 +1425,7 @@
       "variante": null
     },
     {
-      "id": "r176",
-      "lingua": "en",
-      "testo": "Prove that the square root of 2 is irrational.",
-      "tipo": "domanda.ragionamento",
-      "categoria": "chat",
-      "variante": null
-    },
-    {
-      "id": "r177",
+      "id": "r169",
       "lingua": "it",
       "testo": "Treno o aereo da Roma a Parigi, contando tempi reali porta a porta e costo?",
       "tipo": "domanda.ragionamento",
@@ -1503,15 +1433,7 @@
       "variante": null
     },
     {
-      "id": "r178",
-      "lingua": "en",
-      "testo": "Train or plane from Rome to Paris, counting real door-to-door time and cost?",
-      "tipo": "domanda.ragionamento",
-      "categoria": "viaggi",
-      "variante": null
-    },
-    {
-      "id": "r179",
+      "id": "r170",
       "lingua": "it",
       "testo": "Ho 40 minuti al giorno: meglio corsa o pesi per la salute a lungo termine? Ragiona.",
       "tipo": "domanda.ragionamento",
@@ -1519,11 +1441,83 @@
       "variante": null
     },
     {
-      "id": "r180",
+      "id": "r171",
       "lingua": "en",
-      "testo": "I have 40 minutes a day: running or weights for long-term health? Reason it through.",
+      "testo": "Should I pay off a 5% loan early or invest at an expected 7%? Walk through it.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": null
+    },
+    {
+      "id": "r172",
+      "lingua": "en",
+      "testo": "Is a rail pass worth it for 9 days across 4 countries? Compare.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": null
+    },
+    {
+      "id": "r173",
+      "lingua": "en",
+      "testo": "Compare intermittent fasting and calorie counting for someone with a desk job.",
       "tipo": "domanda.ragionamento",
       "categoria": "salute",
+      "variante": null
+    },
+    {
+      "id": "r174",
+      "lingua": "en",
+      "testo": "If a meeting is at 9am in San Francisco, what's the fairest slot for Rome and Tokyo?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": null
+    },
+    {
+      "id": "r175",
+      "lingua": "en",
+      "testo": "Why does this recursive function overflow, and how would you fix it conceptually?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "codice",
+      "variante": null
+    },
+    {
+      "id": "r176",
+      "lingua": "en",
+      "testo": "A bat and a ball cost 1.10 and the bat costs 1.00 more. Explain the trap.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": null
+    },
+    {
+      "id": "r177",
+      "lingua": "en",
+      "testo": "Should a beginner learn guitar or piano first? Reason about it.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "musica",
+      "variante": null
+    },
+    {
+      "id": "r178",
+      "lingua": "en",
+      "testo": "Is it smarter to hike tomorrow morning or afternoon given a 60% storm chance after 2pm?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "meteo",
+      "variante": null
+    },
+    {
+      "id": "r179",
+      "lingua": "en",
+      "testo": "Which of these three logo concepts fits a law firm best, and why?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "creativo",
+      "variante": null
+    },
+    {
+      "id": "r180",
+      "lingua": "en",
+      "testo": "What are the strongest arguments for and against remote-first companies?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
       "variante": null
     },
     {
@@ -1536,46 +1530,22 @@
     },
     {
       "id": "r182",
-      "lingua": "en",
-      "testo": "Look up the latest news on the macOS 27 release.",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "ricerca",
-      "variante": "lente"
-    },
-    {
-      "id": "r183",
       "lingua": "it",
       "testo": "Trova un ristorante vegano aperto stasera vicino a Porta Venezia.",
       "tipo": "domanda.ricerca-web",
       "categoria": "viaggi",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r184",
-      "lingua": "en",
-      "testo": "Find a vegan restaurant open tonight near Porta Venezia.",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "viaggi",
-      "variante": "lente"
-    },
-    {
-      "id": "r185",
+      "id": "r183",
       "lingua": "it",
       "testo": "Com'è andato oggi il titolo Apple in borsa?",
       "tipo": "domanda.ricerca-web",
       "categoria": "finanza",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r186",
-      "lingua": "en",
-      "testo": "How did Apple stock do today?",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "finanza",
-      "variante": "lente"
-    },
-    {
-      "id": "r187",
+      "id": "r184",
       "lingua": "it",
       "testo": "Cerca recensioni recenti delle cuffie Sony WH-1000XM6.",
       "tipo": "domanda.ricerca-web",
@@ -1583,47 +1553,23 @@
       "variante": "lente"
     },
     {
-      "id": "r188",
-      "lingua": "en",
-      "testo": "Search for recent reviews of the Sony WH-1000XM6 headphones.",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "ricerca",
-      "variante": "lente"
-    },
-    {
-      "id": "r189",
+      "id": "r185",
       "lingua": "it",
       "testo": "Quali sono gli orari dei treni Milano–Torino domattina?",
       "tipo": "domanda.ricerca-web",
       "categoria": "viaggi",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r190",
-      "lingua": "en",
-      "testo": "What are tomorrow morning's Milan–Turin train times?",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "viaggi",
-      "variante": "lente"
-    },
-    {
-      "id": "r191",
+      "id": "r186",
       "lingua": "it",
       "testo": "Quando suonano i Coldplay in Italia il prossimo anno?",
       "tipo": "domanda.ricerca-web",
       "categoria": "musica",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r192",
-      "lingua": "en",
-      "testo": "When are Coldplay playing in Italy next year?",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "musica",
-      "variante": "lente"
-    },
-    {
-      "id": "r193",
+      "id": "r187",
       "lingua": "it",
       "testo": "Trova la documentazione ufficiale di Swift Testing sui test parametrici.",
       "tipo": "domanda.ricerca-web",
@@ -1631,31 +1577,15 @@
       "variante": "lente"
     },
     {
-      "id": "r194",
-      "lingua": "en",
-      "testo": "Find the official Swift Testing docs on parameterized tests.",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "ricerca",
-      "variante": "lente"
-    },
-    {
-      "id": "r195",
+      "id": "r188",
       "lingua": "it",
       "testo": "Cerca le linee guida aggiornate sul vaccino antinfluenzale per quest'anno.",
       "tipo": "domanda.ricerca-web",
       "categoria": "salute",
-      "variante": "lente"
+      "variante": null
     },
     {
-      "id": "r196",
-      "lingua": "en",
-      "testo": "Look up this year's updated flu vaccine guidelines.",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "salute",
-      "variante": "lente"
-    },
-    {
-      "id": "r197",
+      "id": "r189",
       "lingua": "it",
       "testo": "Chi ha vinto ieri sera la partita della Champions?",
       "tipo": "domanda.ricerca-web",
@@ -1663,15 +1593,7 @@
       "variante": "lente"
     },
     {
-      "id": "r198",
-      "lingua": "en",
-      "testo": "Who won last night's Champions League match?",
-      "tipo": "domanda.ricerca-web",
-      "categoria": "ricerca",
-      "variante": "lente"
-    },
-    {
-      "id": "r199",
+      "id": "r190",
       "lingua": "it",
       "testo": "Trova il prezzo più basso online per un Mac mini M4 da 16 GB.",
       "tipo": "domanda.ricerca-web",
@@ -1679,12 +1601,84 @@
       "variante": "lente"
     },
     {
-      "id": "r200",
+      "id": "r191",
       "lingua": "en",
-      "testo": "Find the lowest online price for a 16 GB M4 Mac mini.",
+      "testo": "What's the weather in Lisbon this weekend?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "meteo",
+      "variante": null
+    },
+    {
+      "id": "r192",
+      "lingua": "en",
+      "testo": "Find the latest release notes for Xcode.",
       "tipo": "domanda.ricerca-web",
       "categoria": "ricerca",
       "variante": "lente"
+    },
+    {
+      "id": "r193",
+      "lingua": "en",
+      "testo": "Look up current entry requirements for Japan for Italian citizens.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": null
+    },
+    {
+      "id": "r194",
+      "lingua": "en",
+      "testo": "What's the euro to dollar rate right now?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "finanza",
+      "variante": null
+    },
+    {
+      "id": "r195",
+      "lingua": "en",
+      "testo": "Find the setlist from last night's Radiohead concert.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "musica",
+      "variante": null
+    },
+    {
+      "id": "r196",
+      "lingua": "en",
+      "testo": "Search for pharmacies open now near me.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "salute",
+      "variante": null
+    },
+    {
+      "id": "r197",
+      "lingua": "en",
+      "testo": "Search for benchmarks comparing M4 and M5 MacBook Air.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "lente"
+    },
+    {
+      "id": "r198",
+      "lingua": "en",
+      "testo": "When does daylight saving time end this year in the US?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "tempo",
+      "variante": null
+    },
+    {
+      "id": "r199",
+      "lingua": "en",
+      "testo": "Find recent articles about the EU AI Act implementation.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "lente"
+    },
+    {
+      "id": "r200",
+      "lingua": "en",
+      "testo": "Find free fonts similar to Futura for commercial use.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "creativo",
+      "variante": null
     }
   ]
 }
