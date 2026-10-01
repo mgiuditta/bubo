@@ -101,6 +101,30 @@ struct ClaudeConfigurationLiveTests {
         #expect(ContinuousClock.now - start < .seconds(1))
     }
 
+    @Test func theSpareShowsTheSameConfigurationWithinOneSecondAndWritesNothing() async throws {
+        try gate.trust(repo)
+        let cold = try await agent.configuration(of: repo)
+        let before = configurationFiles()
+
+        // Only `init`: with no login, a turn of the model would fail instead of answering.
+        try agent.warmConfiguration(for: repo)
+        try await Task.sleep(for: .seconds(5))
+        let start = ContinuousClock.now
+        let warm = try await agent.configuration(of: repo)
+        let elapsed = ContinuousClock.now - start
+
+        #expect(Set(warm.skills) == Set(cold.skills))
+        #expect(warm.plugins == cold.plugins)
+        #expect(Set(warm.mcpServers.map(\.name)) == Set(cold.mcpServers.map(\.name)))
+        #expect(warm.instructions == cold.instructions)
+        #expect(elapsed < .seconds(1), "Con la riserva: \(elapsed)")
+        try agent.coolConfiguration()
+        // Only the CLI's own housekeeping: the SDK parks the spare in `spares/` and removes its folder there when it
+        // closes, and a `claude` that lives a few seconds marks its cleanup. No conversation, no transcript.
+        let written = try await filesWritten(since: before).subtracting([".last-cleanup", "spares"])
+        #expect(written.isEmpty, "La riserva ha scritto nella cartella di configurazione: \(written)")
+    }
+
     @Test func anUntrustedProgettoShowsOnlyTheUsersConfiguration() async throws {
         let cli = try await cliInit(in: repo, sources: "user")
 

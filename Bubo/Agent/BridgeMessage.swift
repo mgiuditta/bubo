@@ -34,6 +34,11 @@ enum BridgeCommand: Equatable {
     case readQuota
     /// Reads the configuration `claude` loads in `directory` with `settingSources`, without a turn of the model.
     case inspect(id: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
+    /// Keeps one `claude` ready for `inspect` with the same `settingSources` and `projectConfigRoot` (#311): started
+    /// now, without a turn of the model, and used once by the next matching `inspect`; another one replaces it.
+    case warmConfiguration(settingSources: [String], projectConfigRoot: URL? = nil)
+    /// Closes the `claude` kept ready by `warmConfiguration`, if any.
+    case coolConfiguration
     /// Lists the Cronologia CLI, most recent first: the first page, or all of it when `isComplete`.
     case readHistory(id: String, isComplete: Bool)
     /// Reads the messages of `conversation` in the Cronologia CLI.
@@ -78,6 +83,11 @@ enum BridgeCommand: Equatable {
         case let .inspect(id, directory, settingSources, projectConfigRoot):
             object = ["type": "config", "id": id, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
+        case let .warmConfiguration(settingSources, projectConfigRoot):
+            object = ["type": "warm", "settingSources": settingSources]
+            object["projectConfigRoot"] = projectConfigRoot?.path
+        case .coolConfiguration:
+            object = ["type": "cool"]
         case let .readHistory(id, isComplete):
             object = ["type": "history", "id": id, "all": isComplete]
         case let .readTranscript(id, conversation):

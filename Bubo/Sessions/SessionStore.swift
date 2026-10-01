@@ -98,6 +98,14 @@ final class SessionStore {
     @ObservationIgnored private let orb: OrbControls?
     @ObservationIgnored private let alerts: WaitingAlerts?
     @ObservationIgnored private let bridge: () async throws -> AgentBridge
+    /// The `claude` kept ready for the panel of the configuration, with the settings of the most recent Progetto.
+    @ObservationIgnored private(set) lazy var configurationSpare = ConfigurationSpare { [weak self] in
+        self?.projects.first
+    } warm: { [bridge] project in
+        try await bridge().warmConfiguration(for: project)
+    } cool: { [bridge] in
+        try await bridge().coolConfiguration()
+    }
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
@@ -120,7 +128,7 @@ final class SessionStore {
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
     func configuration(of project: URL) async throws -> ClaudeConfiguration {
-        try await bridge().configuration(of: project)
+        try await configurationSpare.configuration(of: project) { try await bridge().configuration(of: $0) }
     }
 
     /// The Cronologia CLI, most recent first: the 50 most recent, or all of it when `isComplete`.

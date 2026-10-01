@@ -99,6 +99,14 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/w","id":"c1","projectConfigRoot":"/tmp/repo","settingSources":["user"],"type":"config","v":3}"# + "\n")
     }
 
+    @Test func warmCarriesTheSourcesAndCoolNothing() throws {
+        let warm = try BridgeCommand.warmConfiguration(settingSources: ["user", "project", "local"],
+                                                       projectConfigRoot: URL(filePath: "/tmp/repo/")).line()
+        #expect(String(decoding: warm, as: UTF8.self)
+            == #"{"projectConfigRoot":"/tmp/repo","settingSources":["user","project","local"],"type":"warm","v":3}"# + "\n")
+        #expect(String(decoding: try BridgeCommand.coolConfiguration.line(), as: UTF8.self) == #"{"type":"cool","v":3}"# + "\n")
+    }
+
     @Test func askResumingAConversationCarriesIt() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
                                          resuming: "c-1").line()

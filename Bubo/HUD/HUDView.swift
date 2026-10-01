@@ -130,6 +130,6 @@ struct HUDView: View {
 #Preview {
     HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in },
             launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
-                                   subscribeToMetrics: {}, keepCLIHistoryFresh: {}))
+                                   subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())
 }
