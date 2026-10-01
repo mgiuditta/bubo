@@ -30,6 +30,12 @@ struct MainMenuTests {
         #expect(Self.duplicates(in: shortcuts).isEmpty)
     }
 
+    @Test func nuovaBozzaHasItsShortcut() throws {
+        let mainMenu = try #require(NSApp.mainMenu)
+        let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Nuova Bozza…") })
+        #expect(Self.shortcut(of: item) == "⌥⌘N")
+    }
+
     @Test func aRepeatedShortcutIsFound() {
         let menu = NSMenu()
         menu.addItem(withTitle: "Uno", action: nil, keyEquivalent: "k")

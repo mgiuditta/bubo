@@ -29,11 +29,14 @@ final class SessionStore {
     ///   - orb: The Orb whose Stato follows the Attività of the Sessioni; `nil` for none.
     ///   - alerts: The notifications and the Dock badge of the Sessioni in Attende te; `nil` for none.
     ///   - ledger: Where each turn's tokens and figure are recorded.
+    ///   - drafts: The Bozze that Avvia turns into Sessioni.
     init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil, alerts: WaitingAlerts? = nil,
-         ledger: CostLedger = CostLedger(), bridge: @escaping () async throws -> AgentBridge) {
+         ledger: CostLedger = CostLedger(), drafts: DraftStore = DraftStore(),
+         bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
         self.worktrees = worktrees
         self.ledger = ledger
+        self.drafts = drafts
         self.orb = orb
         self.alerts = alerts
         self.bridge = bridge
@@ -63,6 +66,8 @@ final class SessionStore {
 
     /// The tokens and the figure of every turn of the Sessioni.
     @ObservationIgnored let ledger: CostLedger
+    /// The Bozze, waiting for Avvia.
+    @ObservationIgnored let drafts: DraftStore
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -82,7 +87,8 @@ final class SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
         return SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                            orb: .shared, alerts: alerts, ledger: try .makeDefault(), bridge: bridge)
+                            orb: .shared, alerts: alerts, ledger: try .makeDefault(),
+                            drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")), bridge: bridge)
     }
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
