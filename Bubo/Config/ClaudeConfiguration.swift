@@ -39,8 +39,23 @@ nonisolated struct ClaudeConfiguration: Decodable, Equatable, Sendable {
     /// A CLAUDE.md or rules file loaded in the context.
     struct Instructions: Decodable, Equatable, Sendable {
         let path: String
-        /// `User`, `Project`, `Local` or `Managed`.
+        /// `User`, `Project`, `Local` or `Managed`; `AutoMem` for the `MEMORY.md` of the auto memory.
         let type: String
+
+        /// Whether the file is the index of the auto memory rather than a CLAUDE.md.
+        var isAutoMemory: Bool { type == "AutoMem" }
+
+        /// Where the file comes from, as the CLI names it.
+        var level: LocalizedStringResource {
+            switch type {
+            case "User": "Utente"
+            case "Project": "Progetto"
+            case "Local": "Locale"
+            case "Managed": "Gestito"
+            case "AutoMem": "Memoria automatica"
+            default: LocalizedStringResource(stringLiteral: type)
+            }
+        }
     }
 
     /// A subagent `claude` can delegate to, as `supportedAgents()` lists it: built-in ones included.

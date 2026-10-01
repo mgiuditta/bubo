@@ -93,7 +93,7 @@ private struct ConfigurationForm: View {
                 }
                 ForEach(configuration.instructions, id: \.path) { file in
                     LabeledContent {
-                        Text(Self.title(ofMemory: file.type))
+                        Text(file.level)
                     } label: {
                         Text(verbatim: file.path)
                             .font(.callout.monospaced())
@@ -143,17 +143,6 @@ private struct ConfigurationForm: View {
             }
         }
         .formStyle(.grouped)
-    }
-
-    /// Where a CLAUDE.md comes from, as the CLI names it.
-    private static func title(ofMemory type: String) -> LocalizedStringResource {
-        switch type {
-        case "User": "Utente"
-        case "Project": "Progetto"
-        case "Local": "Locale"
-        case "Managed": "Gestito"
-        default: LocalizedStringResource(stringLiteral: type)
-        }
     }
 }
 
