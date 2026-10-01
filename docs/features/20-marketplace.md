@@ -225,7 +225,7 @@ Fonte: [#190](https://github.com/mgiuditta/bubo/issues/190), variante A (tre col
   1. Nome, Marketplace, versione; etichette di stato (scope, "fuori dalla sandbox", aggiornamento).
   2. Riquadri d'azione in ordine di gravità, ciascuno con un solo pulsante: Plugin mancante → Installa; errore → azione suggerita; `needs-auth` → Accedi, con accanto il comando `claude mcp login`; impostazioni mancanti → Configura…; aggiornamento → Aggiorna.
   3. Inventario: "Cosa installa" prima dell'installazione, "Componenti installati" dopo, con il segno sui componenti eseguibili.
-  4. In fondo: Attiva/Disattiva (primaria), Impostazioni…, Disinstalla… (in rosso, secondaria).
+  4. In fondo: Attiva/Disattiva (primaria), Impostazioni…, Disinstalla… (in `danger`, secondaria).
 - **Fogli** (modali sulla finestra):
   - **Installa**: scope (Per me predefinito · Per questo Progetto · Solo io qui) e inventario. Componenti sconosciuti → riquadro "Componenti sconosciuti: può eseguire codice sul Mac". Sorgente `command` → comando, impronta sha256 e casella "Ho letto il comando e mi fido": Installa resta spento finché la casella non è spuntata. Server MCP remoto → "non esegue codice sul Mac".
   - **Aggiorna** con nuovo codice eseguibile: elenca solo i componenti nuovi. Senza codice nuovo nessun foglio: 1 clic.
@@ -238,7 +238,7 @@ Fonte: [#190](https://github.com/mgiuditta/bubo/issues/190), variante A (tre col
 
 Non vengono dalle issue. Sono facili da cambiare.
 
-- **Colori**: il contatore di Da sistemare e il punto "aggiornamento" usano **Lume**, il solo segnale di ciò che attende l'utente (ADR 0004), non il giallo del prototipo. Disinstalla usa il rosso di sistema per le azioni distruttive.
+- **Colori**: il contatore di Da sistemare e quello di Aggiornamenti sono numeri in `textPrimary` con peso semibold, senza tinta; il punto "aggiornamento" è in `textPrimary`; la voce scelta è in `accent` (color luna) con testo `ink`. Le etichette "esegue codice" e "gira fuori dalla sandbox" sono testo e simbolo in `textSecondary`. Disinstalla usa `danger`. Niente Lume (`attention`, solo «Attende te» e Richieste di permesso), niente giallo del prototipo né colori di sistema (`.red`, `.yellow`, `.orange`): `docs/design-system.md`, ADR 0004.
 - **Progetto della finestra**: in cima alla barra laterale c'è il Progetto scelto, come nella finestra Agenti. Predefinito: il Progetto della Sessione in primo piano nell'HUD, altrimenti il più recente. Serve agli scope Progetto e locale e alla cartella di lavoro dei comandi. Senza Progetto, solo lo scope Per me.
 - **Esecuzione dei comandi**: una **coda seriale** di comandi di scrittura (mai due insieme, contro la corruzione di `~/.claude.json`). Le letture (`list --json`) possono girare in parallelo. `claude` per percorso assoluto, lo stesso della 03/26, avviato con disclaim da `Agent/ProcessSpawner`. Ambiente con `GIT_TERMINAL_PROMPT=0` e `GIT_ASKPASS` vuoto, così un repository privato fallisce subito invece di restare appeso. Tempo massimo: 120 s per installa e aggiorna (la CLI ha già 60 s per `npm ci`), 60 s per gli altri, 5 min per `mcp login`. Ogni comando è annullabile.
 - **Primo disegno senza CLI**: la finestra si disegna leggendo direttamente `known_marketplaces.json`, i `marketplace.json` dei cloni, `installed_plugins.json` e la copia salvata del sotto-registro. `claude plugin list --json --available` aggiorna subito dopo, in background. Così il criterio dei 300 ms non dipende dall'avvio di `claude`.

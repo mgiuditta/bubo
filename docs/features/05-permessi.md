@@ -239,14 +239,14 @@ Da affinare nella specifica. Sono cinque livelli, ognuno con un trattamento visi
 1. **Lettura**: nessun prompt (già così nell'SDK).
 2. **Modifica reversibile** (edit di file tracciati in git, `npm test`): prompt compatto, "consenti sempre" disponibile.
 3. **Rete / esterno** (WebFetch nuovo dominio, `git push`, MCP con `source` non `sdk`): prompt con dominio o destinazione in evidenza.
-4. **Distruttivo locale** (cancellazioni, `git reset --hard`, `git clean`, scrittura su percorsi protetti, file non tracciati): colore d'allarme, focus su "No", niente "consenti sempre", conteggio di file e righe toccate.
+4. **Distruttivo locale** (cancellazioni, `git reset --hard`, `git clean`, scrittura su percorsi protetti, file non tracciati): testo e bordo in `danger`, focus su "No", niente "consenti sempre", conteggio di file e righe toccate.
 5. **Irreversibile esterno** (force push, `terraform destroy`, invio di messaggi, modifiche massive al vault Obsidian, dal brief): come il livello 4, più una conferma esplicita (es. tenere premuto o scrivere il nome).
 
 Il brief lo chiede in modo esplicito: "Nessuna azione distruttiva (cancellare file, inviare messaggi, modifiche massive al vault) senza conferma esplicita."
 
 ### Come evidenziarla
 
-- Bash: mostrare il comando intero con evidenziazione della sintassi, il sottocomando pericoloso in rosso e la cartella in cui gira.
+- Bash: mostrare il comando intero con evidenziazione della sintassi, il sottocomando pericoloso in `danger` e la cartella in cui gira.
 - Edit/Write: mostrare il diff, non solo il percorso. Collegamento con la feature 02 (revisione del diff).
 - Cancellazioni: elencare i file che verrebbero rimossi (anteprima con `git status` o lista del glob) e se sono tracciati in git.
 - Mostrare **sempre** la regola esatta che "consenti sempre" salverebbe e dove (file). Nimbalyst lo fa, la CLI lo fa, nessuna GUI lo mostra con la destinazione.
@@ -271,7 +271,7 @@ Criteri misurabili candidati:
 - **Callback che non risponde mai**: nessun timeout. Se l'utente chiude il pannello o l'app, la sessione resta bloccata [T1][D5]. Serve uno stato "in attesa" persistente e una notifica (feature 06).
 - **Subagenti**: `agentID` distingue le richieste dei subagenti. Il pannello deve dire quale agente chiede.
 - **MCP non fidati**: il nome del server è testo controllato da terzi (possibile spoofing). Usare `mcpServer.source` per la fiducia [T1].
-- **Modalità bypass**: `allowedTools` non limita bypass [D4]. In bypass i subagenti ereditano tutto. Bubo dovrebbe rendere bypass difficile da attivare e ben visibile (colore dell'Orb?).
+- **Modalità bypass**: `allowedTools` non limita bypass [D4]. In bypass i subagenti ereditano tutto. Bubo dovrebbe rendere bypass difficile da attivare e ben visibile, con testo e simbolo e non con il colore dell'Orb: la Tinta dice solo il fornitore (`docs/design-system.md`, ADR 0004).
 - **Auto mode in SDK**: le rimozioni di percorsi critici vengono negate senza chiedere [D3]. Il classificatore ha costi e latenza. Anthropic pubblica un tasso di falsi negativi del 17% sulle azioni "troppo zelanti" reali [B1].
 - **Classificatore e confini detti a voce**: i limiti espressi in conversazione ("non fare push") possono perdersi con la compattazione del contesto [D3]. Con la voce (feature 08) è un rischio in più.
 - **Approvazione vocale**: se Bubo accetta "sì" a voce, un falso positivo della wake word potrebbe approvare. Per i livelli 4–5 niente approvazione solo vocale.
