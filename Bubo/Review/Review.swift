@@ -1,14 +1,15 @@
 import Foundation
 
 /// The revisione of a Sessione's changes, blocco by blocco: the files, their blocchi in order, and the rows of the
-/// continuous diff. The user's decisions are kept apart, in the Sessione.
+/// continuous diff, one line or two side by side. The user's decisions are kept apart, in the Sessione.
 nonisolated struct Review: Sendable {
-    /// A row of the continuous diff: a file's title, a blocco's header, or one of its lines.
+    /// A row of the continuous diff: a file's title, a blocco's header, one of its lines or one of its pairs.
     nonisolated struct Row: Identifiable, Equatable, Sendable {
         enum Kind: Equatable, Sendable {
             case file(Int)
             case hunk(file: Int, hunk: Int)
             case line(file: Int, hunk: Int, line: Int)
+            case pair(file: Int, hunk: Int, pair: Int)
         }
 
         /// The row's position.
@@ -21,27 +22,37 @@ nonisolated struct Review: Sendable {
     let hunkIDs: [String]
     /// The rows of the continuous diff, in order.
     let rows: [Row]
-    /// Where each blocco is: its file and its index in the file, and the row of its header.
-    private let places: [String: (file: Int, hunk: Int, row: Int)]
+    /// The rows of the side-by-side diff, in order: lines in pairs, before and after.
+    let sideBySideRows: [Row]
+    /// Where each blocco is: its file and its index in the file, and the row of its header in each diff.
+    private let places: [String: (file: Int, hunk: Int, row: Int, sideBySideRow: Int)]
 
     init(files: [ChangedFile] = []) {
         self.files = files
         var hunkIDs: [String] = []
         var rows: [Row] = []
-        var places: [String: (file: Int, hunk: Int, row: Int)] = [:]
+        var sideBySideRows: [Row] = []
+        var places: [String: (file: Int, hunk: Int, row: Int, sideBySideRow: Int)] = [:]
         for (fileIndex, file) in files.enumerated() {
             rows.append(Row(id: rows.count, kind: .file(fileIndex)))
+            sideBySideRows.append(Row(id: sideBySideRows.count, kind: .file(fileIndex)))
             for (hunkIndex, hunk) in file.hunks.enumerated() {
                 hunkIDs.append(hunk.id)
-                places[hunk.id] = (fileIndex, hunkIndex, rows.count)
+                places[hunk.id] = (fileIndex, hunkIndex, rows.count, sideBySideRows.count)
                 rows.append(Row(id: rows.count, kind: .hunk(file: fileIndex, hunk: hunkIndex)))
+                sideBySideRows.append(Row(id: sideBySideRows.count, kind: .hunk(file: fileIndex, hunk: hunkIndex)))
                 for lineIndex in hunk.lines.indices {
                     rows.append(Row(id: rows.count, kind: .line(file: fileIndex, hunk: hunkIndex, line: lineIndex)))
+                }
+                for pairIndex in hunk.pairs.indices {
+                    sideBySideRows.append(Row(id: sideBySideRows.count,
+                                              kind: .pair(file: fileIndex, hunk: hunkIndex, pair: pairIndex)))
                 }
             }
         }
         self.hunkIDs = hunkIDs
         self.rows = rows
+        self.sideBySideRows = sideBySideRows
         self.places = places
     }
 
@@ -57,9 +68,14 @@ nonisolated struct Review: Sendable {
         places[id]?.file
     }
 
-    /// The row of the header of the blocco `id`.
+    /// The row of the header of the blocco `id` in the continuous diff.
     func row(of id: String) -> Int? {
         places[id]?.row
+    }
+
+    /// The row of the header of the blocco `id` in the side-by-side diff.
+    func sideBySideRow(of id: String) -> Int? {
+        places[id]?.sideBySideRow
     }
 
     /// The blocco `offset` places from `id`, stopping at the first and the last; the first blocco without `id`.

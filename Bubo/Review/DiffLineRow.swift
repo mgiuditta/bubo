@@ -4,10 +4,12 @@ import SwiftUI
 struct DiffLineRow: View {
     let line: Hunk.Line
     let isDecided: Bool
+    /// The size of the text: larger in Focus.
+    var size: CGFloat = 12
 
     var body: some View {
         Text(verbatim: mark + line.text)
-            .font(Typography.mono(size: 12))
+            .font(Typography.mono(size: size))
             .foregroundStyle(line.kind == .context ? Palette.textSecondary : Palette.textPrimary)
             .lineLimit(1)
             .frame(maxWidth: .infinity, alignment: .leading)

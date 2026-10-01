@@ -5,6 +5,7 @@ import SwiftUI
 /// The revisione of a Sessione, blocco by blocco: the files with a bar per blocco on the left, the continuous diff
 /// on the right. `j`/`k` move between blocchi, `a` accepts, `x` rejects, `c` rejects with a note to the agent,
 /// `⇧A` accepts the rest of the file; after a decision the cursor goes to the next undecided blocco.
+/// `f` shows one blocco at a time, `s` before and after side by side; the same key goes back to the continuous diff.
 ///
 /// The diff follows the files through FSEvents while the sheet is open, and runs git only then.
 struct ReviewSheet: View {
@@ -20,6 +21,7 @@ struct ReviewSheet: View {
     /// The blocco whose note is being written.
     @State private var noting: String?
     @State private var note = ""
+    @State private var mode = ReviewMode.continuous
     @FocusState private var isFocused: Bool
 
     private var session: Session? { store.sessions.first { $0.id == sessionID } }
@@ -41,6 +43,8 @@ struct ReviewSheet: View {
                     .font(Typography.body(size: 13))
                     .foregroundStyle(Palette.textSecondary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if mode == .focus {
+                focus
             } else {
                 HStack(spacing: Spacing.small) {
                     ReviewFileList(review: review, decisions: decisions,
@@ -55,7 +59,7 @@ struct ReviewSheet: View {
         .focusable()
         .focused($isFocused)
         .focusEffectDisabled()
-        .onKeyPress(characters: CharacterSet(charactersIn: "jkaxcA"), phases: .down, action: handle)
+        .onKeyPress(characters: CharacterSet(charactersIn: "jkaxcAfs"), phases: .down, action: handle)
         .onAppear { isFocused = true }
         .task(id: attempt) { await follow() }
     }
@@ -72,6 +76,12 @@ struct ReviewSheet: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
                 Spacer(minLength: Spacing.small)
+                Picker("Vista", selection: $mode.animation(Motion.isReduced ? nil : Motion.standard)) {
+                    ForEach(ReviewMode.allCases, id: \.self) { Text($0.title) }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize()
                 Text("\(review.decidedCount(in: decisions))/\(review.hunkIDs.count) blocchi")
                     .font(Typography.mono(size: 11, weight: .medium))
                     .foregroundStyle(Palette.textSecondary)
@@ -85,7 +95,7 @@ struct ReviewSheet: View {
                     .keyboardShortcut(.cancelAction)
                     .disabled(noting != nil)
             }
-            Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · ⌘↩ rimanda all'agente")
+            Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ rimanda all'agente")
                 .font(Typography.mono(size: 10.5))
                 .foregroundStyle(Palette.textFaint)
         }
@@ -104,16 +114,63 @@ struct ReviewSheet: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 0) {
-                    ForEach(review.rows) { row in
+                    ForEach(mode == .sideBySide ? review.sideBySideRows : review.rows) { row in
                         rowView(row)
                     }
                 }
                 .padding(.trailing, Spacing.xSmall)
             }
-            .onChange(of: cursor) {
-                guard let cursor, let row = review.row(of: cursor) else { return }
-                proxy.scrollTo(row)
+            .onChange(of: cursor) { scroll(proxy) }
+            .onChange(of: mode, initial: true) { scroll(proxy) }
+        }
+    }
+
+    /// Brings the header of the cursor's blocco into view.
+    private func scroll(_ proxy: ScrollViewProxy) {
+        guard let cursor,
+              let row = mode == .sideBySide ? review.sideBySideRow(of: cursor) : review.row(of: cursor) else { return }
+        proxy.scrollTo(row)
+    }
+
+    /// One blocco at a time, large: where it is, its header and lines, Rifiuta, Nota, Accetta, and every blocco under.
+    @ViewBuilder
+    private var focus: some View {
+        if let id = cursor ?? review.hunkIDs.first, let place = review.hunk(id) {
+            let (file, hunk) = place
+            VStack(spacing: Spacing.small) {
+                Text("\(file.path) · blocco \((file.hunks.firstIndex(of: hunk) ?? 0) + 1) di \(file.hunks.count) nel file")
+                    .font(Typography.mono(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                VStack(alignment: .leading, spacing: 0) {
+                    hunkHeader(file: file, hunk: hunk, showsButtons: false)
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 0) {
+                            ForEach(hunk.lines.indices, id: \.self) { index in
+                                DiffLineRow(line: hunk.lines[index], isDecided: decisions[id] != nil, size: 13.5)
+                            }
+                        }
+                    }
+                }
+                .frame(maxWidth: 900, maxHeight: .infinity)
+                .id(id)
+                .transition(.opacity)
+                HStack(spacing: Spacing.small) {
+                    Button("Rifiuta") { decide(.rejected(note: nil), on: id) }
+                        .tint(Palette.danger)
+                    Button("Nota") { startNote(on: id) }
+                    Button("Accetta") { decide(.accepted, on: id) }
+                        .tint(Palette.success)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(noting != nil)
+                HunkStrip(ids: review.hunkIDs, decisions: decisions, current: id) { cursor = $0 }
+                    .frame(maxWidth: 900)
             }
+            .frame(maxWidth: .infinity)
+            .animation(Motion.isReduced ? nil : Motion.standard, value: id)
         }
     }
 
@@ -130,24 +187,31 @@ struct ReviewSheet: View {
                 .accessibilityAddTraits(.isHeader)
         case let .hunk(fileIndex, hunkIndex):
             let file = review.files[fileIndex]
-            let hunk = file.hunks[hunkIndex]
-            HunkHeaderRow(file: file, hunk: hunk,
-                          position: (review.hunkIDs.firstIndex(of: hunk.id) ?? 0) + 1, count: review.hunkIDs.count,
-                          reason: session?.reason(for: hunk, inFileAt: file.path), decision: decisions[hunk.id],
-                          isCurrent: cursor == hunk.id, isNoting: noting == hunk.id, note: $note) { decision in
-                cursor = hunk.id
-                decide(decision, on: hunk.id)
-            } saveNote: {
-                saveNote(on: hunk.id)
-            } cancelNote: {
-                noting = nil
-                isFocused = true
-            }
-            .onTapGesture { cursor = hunk.id }
+            hunkHeader(file: file, hunk: file.hunks[hunkIndex])
         case let .line(fileIndex, hunkIndex, lineIndex):
             let hunk = review.files[fileIndex].hunks[hunkIndex]
             DiffLineRow(line: hunk.lines[lineIndex], isDecided: decisions[hunk.id] != nil)
+        case let .pair(fileIndex, hunkIndex, pairIndex):
+            let hunk = review.files[fileIndex].hunks[hunkIndex]
+            SideBySideLineRow(pair: hunk.pairs[pairIndex], isDecided: decisions[hunk.id] != nil)
         }
+    }
+
+    private func hunkHeader(file: ChangedFile, hunk: Hunk, showsButtons: Bool = true) -> some View {
+        HunkHeaderRow(file: file, hunk: hunk,
+                      position: (review.hunkIDs.firstIndex(of: hunk.id) ?? 0) + 1, count: review.hunkIDs.count,
+                      reason: session?.reason(for: hunk, inFileAt: file.path), decision: decisions[hunk.id],
+                      isCurrent: cursor == hunk.id, isNoting: noting == hunk.id, showsButtons: showsButtons,
+                      note: $note) { decision in
+            cursor = hunk.id
+            decide(decision, on: hunk.id)
+        } saveNote: {
+            saveNote(on: hunk.id)
+        } cancelNote: {
+            noting = nil
+            isFocused = true
+        }
+        .onTapGesture { cursor = hunk.id }
     }
 
     private func handle(_ press: KeyPress) -> KeyPress.Result {
@@ -157,14 +221,24 @@ struct ReviewSheet: View {
         case "k": cursor = review.hunk(movingBy: -1, from: current)
         case "a": decide(.accepted, on: current)
         case "x": decide(.rejected(note: nil), on: current)
-        case "c":
-            cursor = current
-            if case let .rejected(saved) = decisions[current] { note = saved ?? "" } else { note = "" }
-            noting = current
+        case "c": startNote(on: current)
         case "A": acceptFile(of: current)
+        case "f": show(mode == .focus ? .continuous : .focus)
+        case "s": show(mode == .sideBySide ? .continuous : .sideBySide)
         default: return .ignored
         }
         return .handled
+    }
+
+    private func show(_ newMode: ReviewMode) {
+        withAnimation(Motion.isReduced ? nil : Motion.standard) { mode = newMode }
+    }
+
+    /// Opens the note to the agent on the blocco `id`, with the note it already has.
+    private func startNote(on id: String) {
+        cursor = id
+        if case let .rejected(saved) = decisions[id] { note = saved ?? "" } else { note = "" }
+        noting = id
     }
 
     /// Records `decision` on the blocco `id`, or takes it back when it was already the decision; then moves the

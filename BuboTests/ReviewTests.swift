@@ -112,6 +112,38 @@ struct ReviewTests {
         #expect(review.nextUndecided(after: ids[0], in: Dictionary(uniqueKeysWithValues: ids.map { ($0, .accepted) })) == ids[0])
     }
 
+    @Test func sideBySideEachRemovedLineIsNextToTheLineAddedInItsPlace() {
+        let context = Hunk.Line(kind: .context, text: "a")
+        let removed = ["b", "c"].map { Hunk.Line(kind: .removed, text: $0) }
+        let added = ["B", "C", "D"].map { Hunk.Line(kind: .added, text: $0) }
+        let onlyRemoved = Hunk.Line(kind: .removed, text: "e")
+
+        let pairs = Hunk.pairs(of: [context] + removed + added + [context, onlyRemoved])
+
+        #expect(pairs == [
+            Hunk.Pair(before: context, after: context),
+            Hunk.Pair(before: removed[0], after: added[0]),
+            Hunk.Pair(before: removed[1], after: added[1]),
+            Hunk.Pair(before: nil, after: added[2]),
+            Hunk.Pair(before: context, after: context),
+            Hunk.Pair(before: onlyRemoved, after: nil),
+        ])
+    }
+
+    @Test func theSideBySideDiffHasAHeaderRowForEveryBlocco() throws {
+        let review = Review(files: ChangedFile.files(in: Self.diff))
+        for id in review.hunkIDs {
+            let row = try #require(review.sideBySideRow(of: id))
+            guard case let .hunk(file, hunk) = review.sideBySideRows[row].kind else {
+                Issue.record("Row \(row) is not a blocco's header")
+                continue
+            }
+            #expect(review.files[file].hunks[hunk].id == id)
+        }
+        #expect(review.sideBySideRows.count { if case .pair = $0.kind { true } else { false } }
+                == review.files.flatMap(\.hunks).reduce(0) { $0 + $1.pairs.count })
+    }
+
     @Test func onlyAllDecidedWithARejectedOneGoesBackToTheAgent() {
         let review = Review(files: ChangedFile.files(in: Self.diff))
         var decisions = Dictionary(uniqueKeysWithValues: review.hunkIDs.map { ($0, HunkDecision.accepted) })
