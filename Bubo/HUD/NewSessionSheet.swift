@@ -1,13 +1,13 @@
 import os
 import SwiftUI
 
-/// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda it
-/// continues.
+/// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda or the
+/// Cronologia CLI conversation it continues.
 ///
 /// In a folder that is not trusted, the trust dialog comes first (#266).
 struct NewSessionSheet: View {
     let store: SessionStore
-    /// What the sheet starts from: empty for ⌘N, the Domanda for Trasforma in Sessione.
+    /// What the sheet starts from: empty for ⌘N, the Domanda for Trasforma in Sessione, a conversation for Riprendi.
     var draft = SessionDraft()
     var gate = TrustGate()
     @Environment(\.dismiss) private var dismiss
@@ -36,6 +36,12 @@ struct NewSessionSheet: View {
                         Text(verbatim: project?.lastPathComponent ?? "")
                             .help(project?.path ?? "")
                         Button(project == nil ? "Scegli cartella…" : "Cambia…") { isChoosingFolder = true }
+                    }
+                }
+                if let conversation = draft.conversation {
+                    LabeledContent("Riprende dalla Cronologia CLI") {
+                        Text(verbatim: conversation.title)
+                            .lineLimit(2)
                     }
                 }
                 if draft.continuesQuestion {
@@ -73,8 +79,9 @@ struct NewSessionSheet: View {
         .padding(Spacing.medium)
         .frame(width: 520)
         .onAppear {
-            project = project ?? store.projects.first
+            project = project ?? draft.conversation?.folder ?? store.projects.first
             if draft.continuesQuestion { title = Session.proposedTitle(for: draft.question) }
+            if let conversation = draft.conversation { title = Session.proposedTitle(for: conversation.title) }
             prompt = draft.prompt
             isPromptFocused = true
         }
@@ -99,7 +106,7 @@ struct NewSessionSheet: View {
     private var canCreate: Bool {
         project != nil && checkoutTaken == nil
             && (isOnCheckout || !branch.trimmingCharacters(in: .whitespaces).isEmpty)
-            && (draft.continuesQuestion || !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            && (draft.canStartEmpty || !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 
     private func create() {
@@ -120,7 +127,8 @@ struct NewSessionSheet: View {
         do {
             try store.start(draft.firstPrompt(text),
                             title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
-                            branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout)
+                            branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
+                            forkingFrom: draft.conversation)
         } catch {
             // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")

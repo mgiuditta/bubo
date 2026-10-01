@@ -45,7 +45,8 @@ final class AgentBridge {
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
-    private var inspections: [String: CheckedContinuation<ClaudeConfiguration, any Error>] = [:]
+    /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
+    private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
@@ -58,8 +59,9 @@ final class AgentBridge {
     /// - Parameters:
     ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
-    func ask(_ prompt: String, in directory: URL, model: String? = nil,
-             environment: [String: String] = [:]) -> AsyncThrowingStream<String, any Error> {
+    ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
+    func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
+             forkingFrom conversation: String? = nil) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -74,7 +76,7 @@ final class AgentBridge {
                                             settingSources: trustGate.settingSources(for: directory),
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
-                                            model: model, environment: environment)
+                                            model: model, environment: environment, resuming: conversation)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -87,7 +89,7 @@ final class AgentBridge {
 
     /// The configuration `claude` loads in `directory`: CLAUDE.md, skills, plugins and MCP servers, as it reports them.
     ///
-    /// Same settings as `ask(_:in:model:environment:)`: the Progetto's own only if trusted, from the main checkout
+    /// Same settings as `ask(_:in:model:environment:forkingFrom:)`: the Progetto's own only if trusted, from the main checkout
     /// in a worktree. `claude` runs a local command, so no turn of the model and no Quota spent.
     func configuration(of directory: URL) async throws -> ClaudeConfiguration {
         let id = UUID().uuidString
@@ -95,20 +97,47 @@ final class AgentBridge {
         let command = BridgeCommand.inspect(id: id, directory: directory, settingSources: settingSources,
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) })
-        var configuration = try await withCheckedThrowingContinuation { continuation in
+        guard case var .configuration(_, configuration) = try await request(command, id: id) else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+        configuration.loadsProject = settingSources.contains("project")
+        return configuration
+    }
+
+    /// The Cronologia CLI, most recent first, as the SDK lists it: only what the user ran in a terminal.
+    ///
+    /// - Parameter isComplete: Whether to list it all, for a search; otherwise the 50 most recent.
+    func history(isComplete: Bool = false) async throws -> [CLIConversation] {
+        let id = UUID().uuidString
+        guard case let .history(_, conversations) = try await request(.readHistory(id: id, isComplete: isComplete),
+                                                                      id: id)
+        else { throw AgentBridgeError.failed(message: "unexpected event") }
+        return conversations
+    }
+
+    /// The text of the latest messages of `conversation` in the Cronologia CLI, oldest first.
+    func transcript(of conversation: String) async throws -> [CLIConversation.Message] {
+        let id = UUID().uuidString
+        guard case let .transcript(_, messages) = try await request(.readTranscript(id: id, conversation: conversation),
+                                                                    id: id)
+        else { throw AgentBridgeError.failed(message: "unexpected event") }
+        return messages
+    }
+
+    /// Sends `command` and waits for the one event that answers it.
+    private func request(_ command: BridgeCommand, id: String) async throws -> BridgeEvent {
+        try await withCheckedThrowingContinuation { continuation in
             do {
                 let process = try runningProcess()
-                inspections[id] = continuation
+                requests[id] = continuation
                 try process.input.write(contentsOf: command.line())
             } catch let ProcessSpawnerError.failed(code) {
                 continuation.resume(throwing: AgentBridgeError.spawnFailed(errno: code))
             } catch {
-                inspections[id] = nil
+                requests[id] = nil
                 continuation.resume(throwing: error)
             }
         }
-        configuration.loadsProject = settingSources.contains("project")
-        return configuration
     }
 
     /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
@@ -123,7 +152,7 @@ final class AgentBridge {
     }
 
     private func closeIfIdle() {
-        guard isClosing, answers.isEmpty, inspections.isEmpty else { return }
+        guard isClosing, answers.isEmpty, requests.isEmpty else { return }
         // Closing the input ends the bridge, and its `claude` with it.
         try? process?.input.close()
     }
@@ -168,7 +197,7 @@ final class AgentBridge {
             answers.removeValue(forKey: id)?.finish()
         case let .error(id?, message):
             answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.failed(message: message))
-            inspections.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
+            requests.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
         case let .error(nil, message):
             finishAll(throwing: .failed(message: message))
         case let .limit(id, limit):
@@ -182,8 +211,8 @@ final class AgentBridge {
             }
         case let .quota(reported):
             quota(reported)
-        case let .configuration(id, configuration):
-            inspections.removeValue(forKey: id)?.resume(returning: configuration)
+        case let .configuration(id, _), let .history(id, _), let .transcript(id, _):
+            requests.removeValue(forKey: id)?.resume(returning: event)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
         }
@@ -194,8 +223,8 @@ final class AgentBridge {
         let pending = answers
         answers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
-        let waiting = inspections
-        inspections = [:]
+        let waiting = requests
+        requests = [:]
         waiting.values.forEach { $0.resume(throwing: error) }
     }
 }

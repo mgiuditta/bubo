@@ -57,14 +57,28 @@ final class SessionStore {
         try await bridge().configuration(of: project)
     }
 
+    /// The Cronologia CLI, most recent first: the 50 most recent, or all of it when `isComplete`.
+    func history(isComplete: Bool = false) async throws -> [CLIConversation] {
+        try await Signposts.measure(.cliHistory) { try await bridge().history(isComplete: isComplete) }
+    }
+
+    /// The latest messages of a Cronologia CLI conversation, oldest first.
+    func transcript(of conversation: CLIConversation) async throws -> [CLIConversation.Message] {
+        try await bridge().transcript(of: conversation.id)
+    }
+
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     ///
-    /// - Parameter onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
+    /// - Parameters:
+    ///   - onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
+    ///   - conversation: The Cronologia CLI conversation the Sessione continues, as a fork.
     /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
-    func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false) throws {
+    func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
+               forkingFrom conversation: CLIConversation? = nil) throws {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project)
         session.prompt = prompt
+        session.forkedFrom = conversation?.id
         if onCheckout {
             session.isOnCheckout = true
             session.workspace = Workspace(folder: project)
@@ -157,7 +171,8 @@ final class SessionStore {
                     update(id) { $0.setupFailure = failure }
                 }
             }
-            for try await _ in try await bridge().ask(prompt, in: workspace.folder, environment: environment) {}
+            for try await _ in try await bridge().ask(prompt, in: workspace.folder, environment: environment,
+                                                      forkingFrom: session.forkedFrom) {}
             update(id) { $0.activity = .ferma }
         } catch {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")

@@ -15,8 +15,9 @@ enum BridgeCommand: Equatable {
     /// When `directory` is a worktree, `projectConfigRoot` is its main checkout, where `claude` reads the
     /// Progetto's settings, `.mcp.json` and `.claude/`. `model` is an alias of `claude`, such as `sonnet`;
     /// without it, the model the user chose in `claude` answers. `environment` adds to the one `claude` gets.
+    /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
-             model: String? = nil, environment: [String: String] = [:])
+             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -25,16 +26,21 @@ enum BridgeCommand: Equatable {
     case readQuota
     /// Reads the configuration `claude` loads in `directory` with `settingSources`, without a turn of the model.
     case inspect(id: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
+    /// Lists the Cronologia CLI, most recent first: the first page, or all of it when `isComplete`.
+    case readHistory(id: String, isComplete: Bool)
+    /// Reads the messages of `conversation` in the Cronologia CLI.
+    case readTranscript(id: String, conversation: String)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
             if !environment.isEmpty { object["env"] = environment }
+            object["resume"] = resuming
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -44,6 +50,10 @@ enum BridgeCommand: Equatable {
         case let .inspect(id, directory, settingSources, projectConfigRoot):
             object = ["type": "config", "id": id, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
+        case let .readHistory(id, isComplete):
+            object = ["type": "history", "id": id, "all": isComplete]
+        case let .readTranscript(id, conversation):
+            object = ["type": "transcript", "id": id, "conversation": conversation]
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -72,11 +82,15 @@ enum BridgeEvent: Equatable, Decodable {
     case quota(Quota)
     /// The configuration `claude` loads, asked by `inspect` `id`.
     case configuration(id: String, ClaudeConfiguration)
+    /// The Cronologia CLI, asked by `readHistory` `id`.
+    case history(id: String, [CLIConversation])
+    /// The messages of a conversation, asked by `readTranscript` `id`.
+    case transcript(id: String, [CLIConversation.Message])
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, message, query, project, fiveHour, sevenDay, window, resetsAt
+        case v, type, id, text, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages
     }
 
     init(from decoder: any Decoder) throws {
@@ -105,6 +119,10 @@ enum BridgeEvent: Equatable, Decodable {
                                           sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
         case "config": self = .configuration(id: try container.decode(String.self, forKey: .id),
                                              try ClaudeConfiguration(from: decoder))
+        case "history": self = .history(id: try container.decode(String.self, forKey: .id),
+                                        try container.decode([CLIConversation].self, forKey: .conversations))
+        case "transcript": self = .transcript(id: try container.decode(String.self, forKey: .id),
+                                              try container.decode([CLIConversation.Message].self, forKey: .messages))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }

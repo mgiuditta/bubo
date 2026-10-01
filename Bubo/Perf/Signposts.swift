@@ -16,10 +16,10 @@ enum Signposts {
     }
 
     /// Runs `work` inside the interval `interval` and returns its result.
-    static func measure<T>(_ interval: Signpost, around work: () async -> T) async -> T {
+    static func measure<T>(_ interval: Signpost, around work: () async throws -> T) async rethrows -> T {
         let state = signposter.beginInterval(interval.name, id: signposter.makeSignpostID())
         defer { signposter.endInterval(interval.name, state) }
-        return await work()
+        return try await work()
     }
 
     /// Emits `HUD interattivo` the first time it is called, and never again.
@@ -38,12 +38,15 @@ enum Signpost {
     case hudInteractive
     /// Interval: finding `claude` and reading its version and login, after `hudInteractive`.
     case claudeDetection
+    /// Interval: listing the Cronologia CLI through the bridge.
+    case cliHistory
 
     /// The name shown in Instruments.
     var name: StaticString {
         switch self {
         case .hudInteractive: "HUD interattivo"
         case .claudeDetection: "Rilevamento claude"
+        case .cliHistory: "Cronologia CLI"
         }
     }
 }

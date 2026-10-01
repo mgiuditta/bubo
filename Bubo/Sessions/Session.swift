@@ -51,6 +51,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isInterrupted = false
     /// Whether the Sessione works on the Progetto's checkout instead of its own copy: at most one per Progetto.
     var isOnCheckout = false
+    /// The Cronologia CLI conversation the Sessione continues as a fork: `claude` resumes it, never in place.
+    var forkedFrom: String?
 
     /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
     /// `BUBO_PORTS` all of them as `first-last`.
@@ -79,7 +81,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 }
 
 nonisolated extension Session {
-    /// Decodes a Sessione, also one saved before its Fase, its prompt and its checkout were kept.
+    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout and its fork were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -94,5 +96,6 @@ nonisolated extension Session {
         prompt = try container.decodeIfPresent(String.self, forKey: .prompt)
         isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false
+        forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
     }
 }
