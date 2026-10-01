@@ -148,10 +148,10 @@ struct SessionTests {
                 echo "$line" >> "$1"
                 id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
                 case "$line" in
-                    *'"type":"ask"'*) echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                    *'"type":"ask"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
                     *'"type":"history"'*)
                         kept=$(sed -n 's/.*"keep":"\([^"]*\)".*/\1/p' "$1" | head -1)
-                        echo "{\"v\":3,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
+                        echo "{\"v\":4,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
                 esac
             done
             """#
@@ -192,7 +192,7 @@ struct SessionTests {
         #expect(try await store.history().map(\.id) == ["c-1"])
 
         store.delete(session.id)
-        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":3}"#
+        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":4}"#
         try await Self.wait { (try? String(contentsOf: log, encoding: .utf8).contains(forget)) == true }
         #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
     }

@@ -577,6 +577,8 @@ final class SessionStore {
             // The Anteprima's tools exist only while the Sessione has a server (spec 15).
             let answerID = UUID().uuidString
             let hasServer = servers.servers[id]?.isEmpty == false
+            // Read now: the copy may have just been prepared, and the switch may have changed since the turn was asked.
+            let permissionMode = sessions.first { $0.id == id }?.permissionMode ?? .manual
             turns[id] = agent
             sandboxedTurns[id] = isSandboxed
             previewOffers[id] = (answerID, hasServer)
@@ -591,7 +593,7 @@ final class SessionStore {
             update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
                                    forkingFrom: session.forkedFrom, keeping: conversation,
-                                   isSandboxed: isSandboxed, id: answerID,
+                                   isSandboxed: isSandboxed, permissionMode: permissionMode, id: answerID,
                                    offersPreview: hasServer) { [weak self] progress in
                 if progress == .ranCommand {
                     self?.servers.notice()
@@ -604,6 +606,9 @@ final class SessionStore {
                 ledger.record(usage, turn: conversation, session: id, project: session.project)
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
+            } isDangerous: { request in
+                let risk = classifier.risk(of: request)
+                return risk.level.isDangerous || risk.isCritical
             }
             var hasAnswered = false
             for try await _ in answer where !hasAnswered {
@@ -635,6 +640,12 @@ final class SessionStore {
             }
             return false
         }
+    }
+
+    /// Turns the Modalità autonoma of the Sessione `id` on or off, from its next turn; nothing where it is not possible.
+    func setAutonomous(_ isAutonomous: Bool, in id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.allowsAutonomy || !isAutonomous else { return }
+        update(id) { $0.isAutonomous = isAutonomous }
     }
 
     /// Answers the Richiesta di permesso `request` of the Sessione `id`; nothing if `claude` no longer waits for it.

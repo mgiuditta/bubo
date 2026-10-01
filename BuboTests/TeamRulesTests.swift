@@ -165,7 +165,7 @@ struct TeamResourceTests {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
                                          teamRules: TeamRules(allow: ["Bash(npm test)"], deny: ["Bash(rm *)"])).line()
         #expect(String(decoding: line, as: UTF8.self)
-            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","rules":{"allow":["Bash(npm test)"],"ask":[],"deny":["Bash(rm *)"]},"settingSources":[],"type":"ask","v":3}"# + "\n")
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","rules":{"allow":["Bash(npm test)"],"ask":[],"deny":["Bash(rm *)"]},"settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 }
 

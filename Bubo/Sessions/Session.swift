@@ -75,9 +75,18 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var issue: IssueLink?
     /// The prompt of the turn that did not start because its Sandbox could not, for Riprova; `nil` otherwise.
     var unstartedPrompt: String?
+    /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
+    var isAutonomous = false
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
+
+    /// Whether the Modalità autonoma is possible: only in the Sessione's own worktree, never on the checkout nor
+    /// outside git.
+    var allowsAutonomy: Bool { !isOnCheckout && workspace?.branch != nil }
+
+    /// How `claude` approves the calls of the Sessione's next turn.
+    var permissionMode: PermissionMode { isAutonomous && allowsAutonomy ? .autonomous : .manual }
 
     /// Where the Sessione's terminal starts: its worktree, or the Progetto's folder outside git. `nil` on the
     /// checkout, once the Sessione is no longer Aperta, and while its copy is being prepared.
@@ -124,7 +133,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
-    /// revisione, its conversations, its issue and its unstarted prompt were kept.
+    /// revisione, its conversations, its issue, its unstarted prompt and its Modalità autonoma were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -149,5 +158,6 @@ nonisolated extension Session {
         resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
+        isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
     }
 }

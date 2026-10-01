@@ -28,10 +28,12 @@ nonisolated struct PermissionRequest: Identifiable, Equatable, Hashable, Sendabl
     var defaultsToNo = false
     /// Whether `claude` says no lasting permission may come from it.
     var suppressesRule = false
+    /// Whether a command asks to run outside the Sandbox: only No and Solo ora, never a lasting permission.
+    var isOutsideSandbox = false
 
     private enum CodingKeys: String, CodingKey {
         case request, tool, command, path, url, title, description, blockedPath, mcpSource, fromSubagent, defaultToNo,
-             suppressAlwaysAllowRule
+             suppressAlwaysAllowRule, outsideSandbox
     }
 
     init(id: String, tool: String, command: String? = nil, path: String? = nil, url: String? = nil) {
@@ -56,6 +58,7 @@ nonisolated struct PermissionRequest: Identifiable, Equatable, Hashable, Sendabl
         isFromSubagent = try container.decodeIfPresent(Bool.self, forKey: .fromSubagent) ?? false
         defaultsToNo = try container.decodeIfPresent(Bool.self, forKey: .defaultToNo) ?? false
         suppressesRule = try container.decodeIfPresent(Bool.self, forKey: .suppressAlwaysAllowRule) ?? false
+        isOutsideSandbox = try container.decodeIfPresent(Bool.self, forKey: .outsideSandbox) ?? false
     }
 }
 

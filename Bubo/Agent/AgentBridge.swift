@@ -66,6 +66,8 @@ final class AgentBridge {
     private var progressHandlers: [String: (AgentProgress) -> Void] = [:]
     /// What receives the Richieste di permesso of each answer in `answers`; without one, they are refused.
     private var permissionHandlers: [String: (PermissionEvent) -> Void] = [:]
+    /// What tells the gate of each answer in `answers` whether a call is level 4 or 5; without one, every call is.
+    private var riskHandlers: [String: (PermissionRequest) -> Bool] = [:]
     /// What receives the tokens and the figure of each answer in `answers`.
     private var usageHandlers: [String: (TurnUsage) -> Void] = [:]
     /// What does the Anteprima's actions of each answer in `answers`; without one, they fail.
@@ -93,20 +95,24 @@ final class AgentBridge {
     ///   - id: The answer's id, to offer it the Anteprima later with ``offerPreview(_:to:)``.
     ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
     ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
+    ///   - permissionMode: How `claude` approves the calls; `nil` lets `claude` pick.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
     ///   - preview: Does what the agent asks of the Anteprima; `nil` fails every call.
+    ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5, so that it asks even when the
+    ///     Sandbox or the Modalità autonoma would let it run; `nil` counts every call as dangerous.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
-             id: String = UUID().uuidString, offersPreview: Bool = false,
+             permissionMode: PermissionMode? = nil, id: String = UUID().uuidString, offersPreview: Bool = false,
              remembers: Bool = false,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
-             preview: ((PreviewAction) async -> PreviewReply)? = nil) -> AsyncThrowingStream<String, any Error> {
+             preview: ((PreviewAction) async -> PreviewReply)? = nil,
+             isDangerous: ((PermissionRequest) -> Bool)? = nil) -> AsyncThrowingStream<String, any Error> {
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
@@ -119,6 +125,7 @@ final class AgentBridge {
             permissionHandlers[id] = permissions
             usageHandlers[id] = usage
             previewHandlers[id] = preview
+            riskHandlers[id] = isDangerous
             // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
@@ -129,7 +136,7 @@ final class AgentBridge {
                                             sandbox: isSandboxed ? sandbox(for: environment) : nil,
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
-                                            remembers: remembers)
+                                            remembers: remembers, permissionMode: permissionMode)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -364,6 +371,14 @@ final class AgentBridge {
             }
         case let .permissionWithdrawn(id, request):
             permissionHandlers[id]?(.withdrawn(request))
+        case let .risk(id, request):
+            let isDangerous = riskHandlers[id]?(request) ?? true
+            do {
+                try process?.input.write(contentsOf: BridgeCommand.answerRisk(request: request.id, isDangerous: isDangerous)
+                    .line())
+            } catch {
+                Logger.agent.error("Risk answer not sent: \(error)")
+            }
         case let .usage(id, usage):
             usageHandlers[id]?(usage)
         case let .quota(reported):
@@ -383,6 +398,7 @@ final class AgentBridge {
         permissionHandlers[id] = nil
         usageHandlers[id] = nil
         previewHandlers[id] = nil
+        riskHandlers[id] = nil
         return answers.removeValue(forKey: id)
     }
 
@@ -393,6 +409,7 @@ final class AgentBridge {
         permissionHandlers = [:]
         usageHandlers = [:]
         previewHandlers = [:]
+        riskHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
         let waiting = requests
         requests = [:]

@@ -5,7 +5,7 @@ import Foundation
 /// Every line carries `v`; both sides refuse a version they do not speak.
 enum BridgeProtocol {
     /// The version both sides speak.
-    static let version = 3
+    static let version = 4
 }
 
 /// A command Bubo writes to the bridge, one JSON object per line.
@@ -21,11 +21,12 @@ enum BridgeCommand: Equatable {
     /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
     /// Sessione already has a server. `teamRules` are the Progetto's Risorse di squadra in force,
     /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
-    /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda.
+    /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda. `permissionMode` is how `claude` approves the
+    /// calls; without it, `claude` picks the mode itself.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
              sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
-             remembers: Bool = false)
+             remembers: Bool = false, permissionMode: PermissionMode? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -45,6 +46,8 @@ enum BridgeCommand: Equatable {
     case readTranscript(id: String, conversation: String)
     /// Answers the Richiesta di permesso `request`: the call runs only when `allows`.
     case answerPermission(request: String, allows: Bool)
+    /// Answers the gate's question `request`: whether the call is level 4 or 5, so that it asks anyway.
+    case answerRisk(request: String, isDangerous: Bool)
     /// Copies in Bubo's database the conversations of the Cronologia CLI not copied yet, or changed since.
     case keepHistory(id: String)
     /// Deletes the copies of `conversations`.
@@ -61,7 +64,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview, teamRules, remembers):
+                      sandbox, offersPreview, teamRules, remembers, permissionMode):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -74,6 +77,7 @@ enum BridgeCommand: Equatable {
                 object["rules"] = ["allow": teamRules.allow, "deny": teamRules.deny, "ask": teamRules.ask]
             }
             if remembers { object["remember"] = true }
+            object["permissionMode"] = permissionMode?.rawValue
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -94,6 +98,8 @@ enum BridgeCommand: Equatable {
             object = ["type": "transcript", "id": id, "conversation": conversation]
         case let .answerPermission(request, allows):
             object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
+        case let .answerRisk(request, isDangerous):
+            object = ["type": "risk", "request": request, "dangerous": isDangerous]
         case let .keepHistory(id):
             object = ["type": "keep", "id": id]
         case let .forget(conversations):
@@ -159,6 +165,8 @@ enum BridgeEvent: Equatable, Decodable {
     case permission(id: String, PermissionRequest)
     /// The conversation `id` no longer waits for the Richiesta `request`.
     case permissionWithdrawn(id: String, request: String)
+    /// The gate of the conversation `id` asks whether a call, described as a Richiesta, is level 4 or 5.
+    case risk(id: String, PermissionRequest)
     /// The tokens and the figure of the conversation `id` so far; each one replaces the one before.
     case usage(id: String, TurnUsage)
     /// A line in a protocol version Bubo does not speak.
@@ -230,6 +238,7 @@ enum BridgeEvent: Equatable, Decodable {
         case "forgot": self = .forgot(id: try container.decode(String.self, forKey: .id))
         case "permission": self = .permission(id: try container.decode(String.self, forKey: .id),
                                               try PermissionRequest(from: decoder))
+        case "risk": self = .risk(id: try container.decode(String.self, forKey: .id), try PermissionRequest(from: decoder))
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
                                                                 request: try container.decode(String.self, forKey: .request))
         case "usage": self = .usage(id: try container.decode(String.self, forKey: .id), try TurnUsage(from: decoder))

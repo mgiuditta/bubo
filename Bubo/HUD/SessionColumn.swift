@@ -227,6 +227,16 @@ struct SessionRow: View {
                 } message: {
                     Text(verbatim: archiveNotice)
                 }
+            // Outside the combined element, so each switch stays a control of its own.
+            if !isArchived, session.allowsAutonomy {
+                AutonomyToggle(isAutonomous: session.isAutonomous,
+                               isSandboxed: store.sandbox.isEnabled(in: session.project)) { isOn in
+                    store.setAutonomous(isOn, in: session.id)
+                } setSandboxed: { isOn in
+                    store.sandbox.setEnabled(isOn, in: session.project)
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
             // Outside the combined element, so each answer stays a button of its own.
             if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
                 PermissionRequestView(pending: pending, project: session.project, queued: queue.count - 1,

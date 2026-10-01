@@ -90,7 +90,7 @@ extension WorktreeManagerTests {
         let (store, id) = try makeStore(for: workspace, of: repo) {
             AgentBridgeTests.bridge(AgentBridgeTests.answering(#"""
                 printf 'utente e agente\n' > '\#(file)'
-                echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+                echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
                 read _
                 """#))
         }

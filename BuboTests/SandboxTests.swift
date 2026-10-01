@@ -23,11 +23,10 @@ struct SandboxTests {
         #expect(network["strictAllowlist"] as? Bool == true)
     }
 
-    @Test func itNeverRunsWithoutTheSandboxAndStillAsksForEveryCommand() {
+    @Test func itNeverRunsWithoutTheSandbox() {
         let object = Self.policy().jsonObject
         #expect(object["enabled"] as? Bool == true)
         #expect(object["failIfUnavailable"] as? Bool == true)
-        #expect(object["autoAllowBashIfSandboxed"] as? Bool == false)
     }
 
     @Test func theCredentialsAreDenied() throws {
@@ -54,7 +53,7 @@ struct SandboxTests {
     }
 
     @Test func theSandboxThatDidNotStartIsAnEventOfItsOwn() throws {
-        let line = #"{"v":3,"type":"sandboxUnavailable","id":"a1","reason":"profilo rifiutato"}"#
+        let line = #"{"v":4,"type":"sandboxUnavailable","id":"a1","reason":"profilo rifiutato"}"#
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8))
             == .sandboxUnavailable(id: "a1", reason: "profilo rifiutato"))
     }
@@ -95,9 +94,9 @@ struct SandboxTests {
                     *'"type":"ask"'*)
                         turns=$((turns + 1))
                         if [ $turns = 1 ]; then
-                            echo "{\"v\":3,\"type\":\"sandboxUnavailable\",\"id\":\"$id\",\"reason\":\"profilo rifiutato\"}"
+                            echo "{\"v\":4,\"type\":\"sandboxUnavailable\",\"id\":\"$id\",\"reason\":\"profilo rifiutato\"}"
                         else
-                            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+                            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
                         fi ;;
                 esac
             done

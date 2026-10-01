@@ -74,7 +74,7 @@ struct CostLedgerTests {
     }
 
     @Test func aUsageEventIsReadWithItsTokens() throws {
-        let line = #"{"v":3,"type":"usage","id":"a1","mode":"subscription","cost":0.075,"basis":"unknown","complete":true,"models":[{"model":"claude-sonnet-4-5","inputTokens":20,"outputTokens":10,"cacheReadTokens":0,"cacheWriteTokens":0,"thinkingTokens":0,"cost":0.075}]}"#
+        let line = #"{"v":4,"type":"usage","id":"a1","mode":"subscription","cost":0.075,"basis":"unknown","complete":true,"models":[{"model":"claude-sonnet-4-5","inputTokens":20,"outputTokens":10,"cacheReadTokens":0,"cacheWriteTokens":0,"thinkingTokens":0,"cost":0.075}]}"#
         let event = try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8))
         #expect(event == .usage(id: "a1", TurnUsage(mode: .subscription, cost: Decimal(string: "0.075"), basis: .unknown,
                                                     isComplete: true, models: [
@@ -98,9 +98,9 @@ struct CostLedgerTests {
         // Streaming: two totals of the same turn, then the turn fails; the ledger keeps the latest.
         let script = #"""
             read line; id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
-            echo "{\"v\":3,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":0.1,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
-            echo "{\"v\":3,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":0.25,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
-            echo "{\"v\":3,\"type\":\"error\",\"id\":\"$id\",\"message\":\"error_during_execution\"}"
+            echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":0.1,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
+            echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":0.25,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
+            echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"error_during_execution\"}"
             read _
             """#
         let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],

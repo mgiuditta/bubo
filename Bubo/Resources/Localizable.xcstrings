@@ -330,6 +330,16 @@
         }
       }
     },
+    "Accendi anche la Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also turn on the Sandbox"
+          }
+        }
+      }
+    },
     "Accesso richiesto" : {
       "localizations" : {
         "en" : {
@@ -1334,6 +1344,16 @@
         }
       }
     },
+    "Claude lavora senza chiederti il permesso fino al livello 3, solo nella copia del Progetto. I livelli 4 e 5 chiedono comunque. Vale dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude works without asking your permission up to level 3, only in the Project's copy. Levels 4 and 5 still ask. Takes effect on the next turn."
+          }
+        }
+      }
+    },
     "Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso." : {
       "localizations" : {
         "en" : {
@@ -1520,6 +1540,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Also Keep Command-Line Conversations"
+          }
+        }
+      }
+    },
+    "Consigliata con la Modalità autonoma: i comandi e le modifiche di Claude restano nella copia del Progetto. Vale per tutto il Progetto, dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommended with Autonomous mode: Claude's commands and edits stay in the Project's copy. Applies to the whole Project, on the next turn."
           }
         }
       }
@@ -2140,6 +2170,16 @@
         }
       }
     },
+    "Fuori dalla Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Outside the Sandbox"
+          }
+        }
+      }
+    },
     "Fuori elenco" : {
       "localizations" : {
         "en" : {
@@ -2582,6 +2622,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The connection to Claude was lost."
+          }
+        }
+      }
+    },
+    "Il comando gira con i tuoi permessi, senza i limiti della Sandbox. Puoi consentirlo solo per questa volta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The command runs with your permissions, without the Sandbox's limits. You can allow it only this once."
           }
         }
       }
@@ -3312,6 +3362,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel Metrics"
+          }
+        }
+      }
+    },
+    "Modalità autonoma" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autonomous mode"
           }
         }
       }
