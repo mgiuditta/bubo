@@ -138,6 +138,7 @@ struct ClaudeRemedyTests {
         var started: [String] = []
         let flow = OnboardingFlow(hasSessions: false, defaults: defaults, detect: { await detect() }) { question, _ in
             started.append(question)
+            return UUID()
         }
         flow.choose(home)
         flow.draft = "Trova i TODO più vecchi"

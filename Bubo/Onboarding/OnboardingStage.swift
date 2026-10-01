@@ -164,7 +164,7 @@ struct OnboardingStage: View {
 }
 
 #Preview {
-    let flow = OnboardingFlow(hasSessions: false, defaults: UserDefaults(suiteName: "preview") ?? .standard) { _, _ in }
+    let flow = OnboardingFlow(hasSessions: false, defaults: UserDefaults(suiteName: "preview") ?? .standard) { _, _ in UUID() }
     flow.readiness = .ready(version: "2.1.286", method: "Max")
     flow.show([RecentProject(folder: URL(filePath: "/Users/ada/Sviluppo/bubo"), isProtected: false),
                RecentProject(folder: URL(filePath: "/Users/ada/Documents/tesi"), isProtected: true)])

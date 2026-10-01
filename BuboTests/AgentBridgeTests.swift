@@ -122,6 +122,17 @@ struct AgentBridgeTests {
         }
     }
 
+    @Test func aFailureWithTheSDKsReasonKeepsIt() async {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"Credit balance is too low\",\"reason\":\"billing_error\"}"
+            read _
+            """#))
+        await #expect(throws: AgentBridgeError.turnFailed(TurnFailure(message: "Credit balance is too low",
+                                                                      reason: "billing_error"))) {
+            try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
+        }
+    }
+
     @Test func aLimitFailsTheConversationWithItsWindowAndReset() async {
         let bridge = Self.bridge(Self.answering(#"""
             echo "{\"v\":4,\"type\":\"limit\",\"id\":\"$id\",\"window\":\"seven_day\",\"resetsAt\":1791428400}"

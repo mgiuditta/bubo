@@ -37,13 +37,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
         let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
-                                  moveToAPIKey: { [weak self] in self?.questions.moveToAPIKey() }) { [weak self] question, project in
+                                  moveToAPIKey: { [weak self] in self?.questions.moveToAPIKey() },
+                                  moveToSubscription: { [weak self] in self?.questions.moveToSubscription() },
+                                  restart: { [weak self] session in self?.sessions?.restart(session) }) { [weak self] question, project in
             guard let sessions = self?.sessions else { throw CocoaError(.fileWriteUnknown) }
             let title = Session.proposedTitle(for: question)
             // In a folder not trusted yet `claude` loads only the user's settings (#266): no dialog in the onboarding.
-            try sessions.start(question, title: title, branch: Session.proposedBranch(for: title), in: project)
+            return try sessions.start(question, title: title, branch: Session.proposedBranch(for: title), in: project)
         }
         sessions?.onFirstToken = { [weak flow] in flow?.receiveFirstToken() }
+        sessions?.onTurnFailure = { [weak flow] session, error in flow?.receiveFailure(error, in: session) }
         return flow
     }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.

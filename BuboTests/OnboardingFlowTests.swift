@@ -20,6 +20,7 @@ struct OnboardingFlowTests {
     func makeFlow(hasSessions: Bool = false, starts: Starts = Starts()) -> OnboardingFlow {
         OnboardingFlow(hasSessions: hasSessions, defaults: defaults) { question, project in
             starts.started.append((question, project))
+            return UUID()
         }
     }
 
@@ -116,6 +117,7 @@ struct OnboardingFlowTests {
                        detect: { detections.next() },
                        moveToAPIKey: { movedToAPIKey?.started.append(("", URL(filePath: "/"))) }) { question, project in
             starts.started.append((question, project))
+            return UUID()
         }
     }
 

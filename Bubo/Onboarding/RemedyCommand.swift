@@ -13,6 +13,11 @@ nonisolated enum RemedyCommand {
         "\(quoted(claude.path)) auth login"
     }
 
+    /// Diagnoses `claude` without a session: its output and exit code are not documented, so the user reads them.
+    static func doctor(claude: URL) -> String {
+        "\(quoted(claude.path)) doctor"
+    }
+
     /// Updates `claude`, installed at `installation` once its links are followed.
     ///
     /// `claude update` does not update a Homebrew cask, so a `claude` in a `Caskroom` is upgraded with that cask.

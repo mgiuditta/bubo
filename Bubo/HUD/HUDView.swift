@@ -49,6 +49,14 @@ struct HUDView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             Task { await onboarding.recheck() }
         }
+        // Signed in from a remedy: the login rewrites `~/.claude.json`, and the first question asks again.
+        .task(id: onboarding.isAwaitingSignIn) {
+            guard onboarding.isAwaitingSignIn else { return }
+            for await _ in InstallWatcher().changes() {
+                await onboarding.recheck()
+                if !onboarding.isAwaitingSignIn { return }
+            }
+        }
     }
 
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
@@ -111,6 +119,11 @@ struct HUDView: View {
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {
+                // The first Sessione did not answer: the remedy stays until the first token.
+                if onboarding.problem != nil && !onboarding.isCompleted {
+                    FixCard(flow: onboarding)
+                        .padding(.bottom, Spacing.small)
+                }
                 QuestionView(model: questions)
                     .frame(maxWidth: 560)
             }
@@ -128,7 +141,7 @@ struct HUDView: View {
 }
 
 #Preview {
-    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in },
+    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in UUID() },
             launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
                                    subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())

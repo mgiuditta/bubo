@@ -103,6 +103,10 @@ final class SessionStore {
     @ObservationIgnored var onFirstToken: () -> Void = {}
     /// What brings each turn's conversation into the Indice when it ends; `nil` without an Indice.
     @ObservationIgnored var indexer: ConversationIndexer?
+    /// Called when a turn of a Sessione fails, with why; the onboarding offers a remedy for the first one (spec 26).
+    @ObservationIgnored var onTurnFailure: (_ session: UUID, _ error: any Error) -> Void = { _, _ in }
+    /// The turns started by `start` and `restart`, which `restart` interrupts.
+    @ObservationIgnored private var turnTasks: [UUID: Task<Void, Never>] = [:]
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -221,9 +225,11 @@ final class SessionStore {
     ///   - onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
     ///   - conversation: The Cronologia CLI conversation the Sessione continues, as a fork.
     ///   - issue: The issue the Sessione starts from, with ⌘I.
+    /// - Returns: The id of the new Sessione.
     /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
+    @discardableResult
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
-               forkingFrom conversation: CLIConversation? = nil, issue: IssueLink? = nil) throws {
+               forkingFrom conversation: CLIConversation? = nil, issue: IssueLink? = nil) throws -> UUID {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
@@ -241,7 +247,29 @@ final class SessionStore {
         followActivity()
         // On the checkout a server may already listen, with no event of its own.
         if onCheckout { servers.notice() }
-        Task { await run(session.id, prompt: prompt, branch: branch) }
+        turnTasks[session.id] = Task { await run(session.id, prompt: prompt, branch: branch) }
+        return session.id
+    }
+
+    /// Asks `claude` the first prompt of the open Sessione `id` again, in its copy and in a new Conversazione, once
+    /// the turn in progress, if any, is interrupted: Riprova of the onboarding (spec 26).
+    func restart(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+              let prompt = session.prompt
+        else { return }
+        let interrupted = turnTasks[id]
+        interrupted?.cancel()
+        turnTasks[id] = Task {
+            // Two turns of a Sessione never run together: the interrupted one clears its state when it ends.
+            await interrupted?.value
+            update(id) { session in
+                session.enter(.lavora)
+                session.summary = nil
+                session.failure = nil
+                session.isInterrupted = false
+            }
+            await run(id, prompt: prompt, branch: session.branchToPrepare)
+        }
     }
 
     /// The open Sessione that works on the checkout of `project`, if any.
@@ -557,6 +585,7 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }), !session.isRunning else { return }
         merges.removeValue(forKey: id)?.finishing.cancel()
         undoDeadlines[id] = nil
+        turnTasks[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
         sandboxBlocks[id] = nil
@@ -673,6 +702,7 @@ final class SessionStore {
             return true
         } catch {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
+            onTurnFailure(id, error)
             update(id) { session in
                 session.enter(.errore)
                 if case AgentBridgeError.sandboxUnavailable = error {
@@ -683,6 +713,7 @@ final class SessionStore {
                 session.failure = switch error {
                 case let WorktreeError.git(message): message.trimmingCharacters(in: .whitespacesAndNewlines)
                 case let AgentBridgeError.failed(message): message
+                case let AgentBridgeError.turnFailed(failure): failure.message
                 // ponytail: the three choices at the limit are in the Domanda; the Sessione says only why it stopped.
                 case AgentBridgeError.limitReached: String(localized: "Hai raggiunto il limite dell'abbonamento.")
                 case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
