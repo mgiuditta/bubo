@@ -34,6 +34,15 @@ struct BuboApp: App {
                     }
                 }
                 Divider()
+                Button {
+                    appDelegate.toggleTerminal()
+                } label: {
+                    appDelegate.sessions?.terminals.isShown == true ? Text("Nascondi il terminale")
+                        : Text("Mostra il terminale")
+                }
+                .keyboardShortcut("`", modifiers: .control)
+                .disabled(appDelegate.sessions?.terminals.isShown != true && appDelegate.sessions?.terminalSession == nil)
+                Divider()
             }
         }
         .windowStyle(.hiddenTitleBar)

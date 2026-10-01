@@ -80,6 +80,11 @@ struct HUDView: View {
             QuestionView(model: questions)
                 .frame(maxWidth: 560)
             Spacer(minLength: Spacing.large)
+            if let terminals = sessions?.terminals, terminals.isShown, !terminals.isDetached {
+                TerminalPanel(store: terminals)
+                    .frame(height: 280)
+                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+            }
         }
         .padding(.vertical, Spacing.medium)
         // Here, not next to the new Sessione's: one sheet modifier per view.

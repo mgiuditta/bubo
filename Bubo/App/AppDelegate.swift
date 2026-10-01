@@ -60,6 +60,29 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
     }
 
+    /// ⌃`: shows or hides the terminal of the current Sessione, in the HUD unless it was detached.
+    func toggleTerminal() {
+        guard let sessions else { return }
+        sessions.terminals.toggle(sessions.terminalSession)
+        if sessions.terminals.isShown && !sessions.terminals.isDetached { hud.show() }
+    }
+
+    /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.
+    func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
+        let running = sessions?.terminals.runningCommands ?? []
+        guard !running.isEmpty else { return .terminateNow }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Vuoi uscire da Bubo?")
+        alert.informativeText = String(localized: "Nel terminale si fermano: \(running.formatted()).")
+        alert.addButton(withTitle: String(localized: "Esci"))
+        alert.addButton(withTitle: String(localized: "Annulla"))
+        return alert.runModal() == .alertFirstButtonReturn ? .terminateNow : .terminateCancel
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        sessions?.terminals.closeAllBeforeQuitting()
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { hud.show() }
         return true
