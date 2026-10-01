@@ -171,6 +171,28 @@ extension WorktreeManagerTests {
         #expect(try read("a.txt", in: repo) == "a\n")
     }
 
+    /// Fondi is local git only: on a Progetto with a GitHub remote it works where no `gh` can be found (spec 16).
+    @MainActor
+    @Test func fondiWorksWithoutGitHubCLI() async throws {
+        let (repo, workspace) = try await makeSession(files: ["a.txt": "a\n"])
+        try git("remote", "add", "origin", "git@github.com:o/r.git", in: repo)
+        try write(["a.txt": "a2\n"], in: workspace.folder)
+        let path = ["/usr/bin", "/bin"].map { URL(filePath: $0, directoryHint: .isDirectory) }
+        #expect(GitHubCLI(searchPath: path).executable == nil)
+        var offline = manager
+        offline.runner = .live(environment: ["PATH": "/usr/bin:/bin", "HOME": base.path])
+        var saved = Session(id: UUID(), title: "Prova", project: repo, workspace: workspace, activity: .ferma)
+        for hunk in try await offline.changes(in: workspace).flatMap(\.hunks) { saved.decisions[hunk.id] = .accepted }
+        let file = base.appending(path: "Sessioni.json")
+        try JSONEncoder().encode([saved]).write(to: file)
+        let store = SessionStore(file: file, worktrees: offline) { throw CancellationError() }
+
+        try await store.merge(saved.id, message: "Prova", strategy: .squash)
+
+        #expect(store.sessions.first?.phase == .fusa)
+        #expect(try read("a.txt", in: repo) == "a2\n")
+    }
+
     @MainActor
     @Test func aSessionFusaWhenBuboQuitIsArchived() throws {
         var saved = Session(id: UUID(), title: "Prova", project: base, activity: .ferma, ports: 40_000..<40_010)

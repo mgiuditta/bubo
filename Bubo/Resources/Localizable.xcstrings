@@ -348,6 +348,16 @@
         }
       }
     },
+    "Apre il Terminale con «%@» già scritto: premi Invio per eseguirlo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Terminal with “%@” already typed: press Return to run it"
+          }
+        }
+      }
+    },
     "Apre il file in %@ alla riga %lld" : {
       "localizations" : {
         "en" : {
@@ -480,6 +490,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open in Browser"
+          }
+        }
+      }
+    },
+    "Apri nel terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Terminal"
           }
         }
       }
@@ -732,6 +752,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo"
+          }
+        }
+      }
+    },
+    "Bubo ha scritto il comando qui sotto. Premi Invio per eseguirlo, oppure chiudi la finestra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo typed the command below. Press Return to run it, or close the window."
           }
         }
       }
@@ -1702,6 +1732,16 @@
         }
       }
     },
+    "GitHub ha rifiutato il push perché cambia .github/workflows e l'accesso di GitHub CLI non ha il permesso «workflow». Aggiungilo con «gh auth refresh -s workflow» nel Terminale, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub refused the push because it changes .github/workflows and GitHub CLI's sign-in doesn't have the “workflow” scope. Add it with “gh auth refresh -s workflow” in Terminal, then try again."
+          }
+        }
+      }
+    },
     "Già in una Bozza: ↩ la apre" : {
       "localizations" : {
         "en" : {
@@ -1924,6 +1964,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project is no longer at %@. Move the folder back or delete the Draft."
+          }
+        }
+      }
+    },
+    "Il Terminale non si è aperto. Scrivi «%@» nel Terminale, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal didn't open. Type “%@” in Terminal, then try again."
           }
         }
       }

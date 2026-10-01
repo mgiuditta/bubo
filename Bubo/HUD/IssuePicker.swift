@@ -10,6 +10,7 @@ struct IssuePicker: View {
     let store: SessionStore
     var cli = GitHubCLI()
     var gate = TrustGate()
+    var terminal = SystemTerminal()
     @Environment(HUDPresenter.self) private var hud
     @Environment(\.dismiss) private var dismiss
     @State private var project: URL?
@@ -20,6 +21,8 @@ struct IssuePicker: View {
     @State private var isLoading = false
     /// Why the issues or the selected one could not be read, as `gh` or Bubo says it.
     @State private var failure: String?
+    /// The command that fixes the failure, typed in the terminal by Apri nel terminale.
+    @State private var remedy: String?
     /// The issue being read before its Sessione starts.
     @State private var reading: GitHubIssue.ID?
     /// Reads the issue: Annulla stops it, and no Sessione starts.
@@ -103,6 +106,7 @@ struct IssuePicker: View {
             repository = nil
             issues = []
             failure = nil
+            remedy = nil
         }
         .onDisappear { readingTask?.cancel() }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
@@ -133,7 +137,13 @@ struct IssuePicker: View {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(Palette.danger)
                 }
-                Button("Riprova") { Task { await load() } }
+                HStack {
+                    if let remedy {
+                        Button("Apri nel terminale") { openTerminal(typing: remedy) }
+                            .help("Apre il Terminale con «\(remedy)» già scritto: premi Invio per eseguirlo")
+                    }
+                    Button("Riprova") { Task { await load() } }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else if issues.isEmpty {
@@ -208,6 +218,7 @@ struct IssuePicker: View {
             let issues = try await cli.openIssues(of: repository, matching: search)
             guard !Task.isCancelled else { return }
             failure = nil
+            remedy = nil
             self.issues = issues
             if !issues.contains(where: { $0.id == selection }) { selection = issues.first?.id }
         } catch is CancellationError {
@@ -215,7 +226,24 @@ struct IssuePicker: View {
             guard !Task.isCancelled else { return }
             Logger.sessions.error("Issues not read: \(String(describing: error), privacy: .private)")
             issues = []
+            show(error)
+        }
+    }
+
+    /// Shows why `gh` or Bubo failed, with the command that fixes it when there is one.
+    private func show(_ error: any Error) {
+        failure = error.localizedDescription
+        remedy = (error as? GitHubCLIError)?.remedy
+    }
+
+    /// Apri nel terminale: no Sessione has a terminal of Bubo's here, so the Mac's opens, with `command` typed.
+    private func openTerminal(typing command: String) {
+        do {
+            try terminal.open(typing: command)
+        } catch {
+            Logger.sessions.error("Terminal not opened: \(String(describing: error), privacy: .public)")
             failure = error.localizedDescription
+            remedy = nil
         }
     }
 
@@ -265,7 +293,7 @@ struct IssuePicker: View {
             } catch {
                 guard !Task.isCancelled else { return }
                 Logger.sessions.error("Issue not read: \(String(describing: error), privacy: .private)")
-                failure = error.localizedDescription
+                show(error)
             }
         }
     }

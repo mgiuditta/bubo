@@ -102,6 +102,35 @@ nonisolated enum GitHubCLIError: LocalizedError, Equatable {
     case noGitHubRemote
     /// `gh` failed, with what it wrote on standard error.
     case failed(String)
+    /// GitHub refused a push that changes `.github/workflows/`: the login of `gh` on `host` lacks the `workflow` scope.
+    case missingWorkflowScope(host: String)
+
+    /// The refusal of a `git push` to `host` for the `workflow` scope, from what git wrote on standard error; `nil`
+    /// for any other failure.
+    ///
+    /// GitHub says it both for the OAuth login of `gh` and for a token: "refusing to allow an OAuth App to create or
+    /// update workflow `…` without `workflow` scope".
+    init?(pushError standardError: String, host: String) {
+        guard standardError.contains("without `workflow` scope") else { return nil }
+        self = .missingWorkflowScope(host: host)
+    }
+
+    /// The command that fixes this in a terminal, for the user to run: Bubo types it and never runs it on its own;
+    /// `nil` when no command does.
+    var remedy: String? {
+        switch self {
+        case .missing: "brew install gh"
+        case let .notAuthenticated(host): "gh auth login" + Self.hostname(host)
+        case let .missingWorkflowScope(host): "gh auth refresh -s workflow" + Self.hostname(host)
+        case .noGitHubRemote, .failed: nil
+        }
+    }
+
+    /// `--hostname` for a host other than github.com, gh's default; nothing for a host a shell could misread.
+    private static func hostname(_ host: String) -> String {
+        let isPlain = !host.isEmpty && host.allSatisfy { $0.isASCII && ($0.isLetter || $0.isNumber || ".-".contains($0)) }
+        return host != "github.com" && isPlain ? " --hostname \(host)" : ""
+    }
 
     var errorDescription: String? {
         switch self {
@@ -113,6 +142,8 @@ nonisolated enum GitHubCLIError: LocalizedError, Equatable {
             String(localized: "Il Progetto non ha un remoto su GitHub.")
         case let .failed(message):
             message.isEmpty ? String(localized: "GitHub CLI non ha risposto.") : message
+        case .missingWorkflowScope:
+            String(localized: "GitHub ha rifiutato il push perché cambia .github/workflows e l'accesso di GitHub CLI non ha il permesso «workflow». Aggiungilo con «gh auth refresh -s workflow» nel Terminale, poi riprova.")
         }
     }
 }
