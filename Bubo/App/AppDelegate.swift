@@ -32,6 +32,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }()
+    /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
+    private(set) lazy var onboarding: OnboardingFlow = {
+        let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false) { [weak self] question, project in
+            guard let sessions = self?.sessions else { throw CocoaError(.fileWriteUnknown) }
+            let title = Session.proposedTitle(for: question)
+            // In a folder not trusted yet `claude` loads only the user's settings (#266): no dialog in the onboarding.
+            try sessions.start(question, title: title, branch: Session.proposedBranch(for: title), in: project)
+        }
+        sessions?.onFirstToken = { [weak flow] in flow?.receiveFirstToken() }
+        return flow
+    }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.
     private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
@@ -56,6 +67,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         DockIcon.apply(isVisible: UserDefaults.standard.bool(forKey: DockIcon.defaultsKey))
         _ = hotKeys
+        // Before any turn can start, so the first token reaches it.
+        _ = onboarding
         Task(priority: .utility) { [searchIndex] in await searchIndex?.keepFresh() }
         secondBrain.start()
         // The copy of the Cronologia CLI waits for the launch to settle: it starts the bridge.
