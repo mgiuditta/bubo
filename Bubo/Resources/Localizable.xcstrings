@@ -104,6 +104,26 @@
         }
       }
     },
+    "Aspetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "Attivo nelle Impostazioni di Sistema, in Accessibilità › Display." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On in System Settings, under Accessibility › Display."
+          }
+        }
+      }
+    },
     "Azioni consentite" : {
       "localizations" : {
         "en" : {
@@ -280,6 +300,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Signed in as %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Colonna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Column"
           }
         }
       }
@@ -574,6 +604,26 @@
         }
       }
     },
+    "L'HUD si apre con questa vista." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The HUD opens with this view."
+          }
+        }
+      }
+    },
+    "L'Orb sfuma invece di cambiare forma e si muove più piano." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Orb fades instead of changing shape and moves more slowly."
+          }
+        }
+      }
+    },
     "L'accesso è scaduto." : {
       "localizations" : {
         "en" : {
@@ -764,6 +814,16 @@
         }
       }
     },
+    "Orbita" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbit"
+          }
+        }
+      }
+    },
     "Panel di Bubo" : {
       "localizations" : {
         "en" : {
@@ -820,6 +880,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
+    "Riduci movimento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce motion"
           }
         }
       }
@@ -944,6 +1014,16 @@
         }
       }
     },
+    "Striscia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strip"
+          }
+        }
+      }
+    },
     "Ti fidi di questa cartella?" : {
       "localizations" : {
         "en" : {
@@ -990,6 +1070,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Variant"
+          }
+        }
+      }
+    },
+    "Vista delle Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions View"
           }
         }
       }
