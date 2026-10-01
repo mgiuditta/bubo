@@ -22,13 +22,14 @@ struct SessionColumn: View {
 }
 
 /// A Sessione in the Colonna: title, Attività or Fase, and Progetto · branch; Riprendi after Bubo's quitting
-/// interrupted it, Archivia and Cancella… in its menu.
+/// interrupted it, Archivia, Cancella… and the configuration of Claude in its Progetto in its menu.
 private struct SessionRow: View {
     let session: Session
     let store: SessionStore
     /// What deleting the Sessione would lose, while its confirmation is shown.
     @State private var lostChanges: [String] = []
     @State private var isConfirmingDeletion = false
+    @State private var isShowingConfiguration = false
 
     private var isArchived: Bool { session.phase == .archiviata }
 
@@ -75,6 +76,7 @@ private struct SessionRow: View {
         .opacity(isArchived ? 0.6 : 1)
         .accessibilityElement(children: .combine)
         .contextMenu {
+            Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !isArchived {
                 Button("Archivia") { store.archive(session.id) }
                     .disabled(session.activity == .lavora)
@@ -83,10 +85,14 @@ private struct SessionRow: View {
                 .disabled(session.activity == .lavora)
         }
         .accessibilityActions {
+            Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if session.activity != .lavora {
                 if !isArchived { Button("Archivia") { store.archive(session.id) } }
                 Button("Cancella…", action: confirmDeletion)
             }
+        }
+        .sheet(isPresented: $isShowingConfiguration) {
+            ConfigPanel(project: session.project, read: store.configuration(of:))
         }
         .confirmationDialog("Vuoi cancellare la Sessione «\(session.title)»?", isPresented: $isConfirmingDeletion) {
             Button("Cancella", role: .destructive) { store.delete(session.id) }
