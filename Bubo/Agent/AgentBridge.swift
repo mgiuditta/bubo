@@ -239,6 +239,11 @@ final class AgentBridge {
         }
     }
 
+    /// Starts the bridge without asking it anything, so the first request finds it ready; `claude` does not start.
+    func start() throws {
+        _ = try runningProcess()
+    }
+
     /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
     func readQuota() throws {
         try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())

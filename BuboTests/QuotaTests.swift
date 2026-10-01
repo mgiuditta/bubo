@@ -17,3 +17,29 @@ struct QuotaTests {
         #expect(Quota(sevenDay: Self.sevenDay).merging(Quota()) == Quota(sevenDay: Self.sevenDay))
     }
 }
+
+struct QuotaSavingTests {
+    private let defaults = UserDefaults(suiteName: "QuotaSavingTests-\(UUID())")!
+
+    @Test func theSavedQuotaComesBackWhole() {
+        let quota = Quota(fiveHour: QuotaTests.fiveHour, sevenDay: QuotaTests.sevenDay)
+        quota.save(to: defaults)
+        #expect(Quota.saved(in: defaults) == quota)
+    }
+
+    @Test func withNothingSavedTheQuotaIsEmpty() {
+        #expect(Quota.saved(in: defaults) == Quota())
+    }
+
+    @Test func anUnreadableSaveGivesAnEmptyQuota() {
+        defaults.set(Data("non è JSON".utf8), forKey: Quota.defaultsKey)
+        #expect(Quota.saved(in: defaults) == Quota())
+    }
+
+    // Shown at launch until `claude` reports a newer one: no `claude` starts for it.
+    @Test func aDomandaStartsFromTheQuotaSavedAtTheLastLaunch() {
+        let quota = Quota(sevenDay: QuotaTests.sevenDay)
+        quota.save(to: defaults)
+        #expect(QuestionModel(defaults: defaults).quota == quota)
+    }
+}

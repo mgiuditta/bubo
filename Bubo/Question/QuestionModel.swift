@@ -12,8 +12,9 @@ final class QuestionModel {
     private(set) var isAnswering = false
     /// Why the last Domanda got no answer, if it failed.
     private(set) var failure: QuestionFailure?
-    /// The Quota last reported by `claude` through the bridge this model owns; empty until it reports one.
-    private(set) var quota = Quota()
+    /// The Quota last reported by `claude` through the bridge this model owns, or else the one saved at the last
+    /// launch; empty when there is neither.
+    private(set) var quota: Quota
     /// When the last prompt will be asked again, while waiting for a limit's reset.
     private(set) var resumesAt: Date?
     /// Whether `claude` runs with the API key, paid per use; only after the user's consent (ADR 0003).
@@ -28,12 +29,15 @@ final class QuestionModel {
     ///   - orb: The Orb that plays the Orbite when the prompt asks for it.
     ///   - bridgeExecutable: The agent bridge; tests pass a stand-in.
     ///   - bridgeArguments: The arguments of `bridgeExecutable`.
+    ///   - defaults: Where the last Quota is kept between launches.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
-         bridgeArguments: [String] = [],
+         bridgeArguments: [String] = [], defaults: UserDefaults = .standard,
          apiKey: (() async throws -> String?)? = nil) {
+        quota = Quota.saved(in: defaults)
+        self.defaults = defaults
         self.cli = cli
         self.index = index
         self.secondBrain = secondBrain
@@ -52,10 +56,12 @@ final class QuestionModel {
     @ObservationIgnored private let orb: OrbControls
     @ObservationIgnored private let bridgeExecutable: URL
     @ObservationIgnored private let bridgeArguments: [String]
+    @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let apiKey: () async throws -> String?
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
-    @ObservationIgnored private var quotaReadAt: Date?
+    /// Whether the Quota was asked for, or reported by `claude`, since launch.
+    @ObservationIgnored private var hasFreshQuota = false
 
     /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
@@ -138,10 +144,14 @@ final class QuestionModel {
         bridge = nil
     }
 
-    /// Reads the Quota without a Domanda, at most once a minute; with no answer it stays hidden.
-    func refreshQuota() async {
-        if let quotaReadAt, quotaReadAt.timeIntervalSinceNow > -60 { return }
-        quotaReadAt = .now
+    /// Reads the Quota without a Domanda, unless it was read or reported since launch; with no answer the saved one
+    /// stays.
+    ///
+    /// It starts a `claude`, so never at launch (spec 25): only when the user opens the HUD. After that the Domande and
+    /// the Sessioni keep it fresh.
+    func readQuotaIfNeeded() async {
+        guard !hasFreshQuota else { return }
+        hasFreshQuota = true
         do {
             try await readyBridge().readQuota()
         } catch {
@@ -191,20 +201,31 @@ final class QuestionModel {
         }
     }
 
+    /// Starts the bridge without asking anything, so the first Domanda or Sessione finds it ready.
+    func startBridge() async {
+        do {
+            try await readyBridge().start()
+        } catch {
+            Logger.agent.notice("Bridge not started: \(String(describing: error), privacy: .public)")
+        }
+    }
+
     /// The bridge to `claude`, started on first use and shared with the Sessioni.
     func readyBridge() async throws -> AgentBridge {
         if let bridge { return bridge }
         guard let claude = await cli.executableURL() else { throw QuestionFailure.claudeMissing }
         // The key is read only once the user chose it, and goes only into the bridge's environment.
         let key = try await usesAPIKey ? apiKey() : nil
-        // The HUD's Quota read and a Domanda can both get here across the awaits: keep one bridge.
+        // The bridge's start, the Quota read and a Domanda can all get here across the awaits: keep one bridge.
         if let bridge { return bridge }
         let bridge = AgentBridge(executable: bridgeExecutable, arguments: bridgeArguments,
                                  environment: ChildEnvironment.make(claude: claude, apiKey: key,
                                                                     conversations: try? ConversationStore.defaultFile()),
                                  quota: { [weak self] reported in
                                      guard let self else { return }
+                                     hasFreshQuota = true
                                      quota = quota.merging(reported)
+                                     quota.save(to: defaults)
                                  },
                                  remember: { [weak self] text, title in
                                      await self?.remember(text, titled: title) ?? "Bubo non è disponibile."

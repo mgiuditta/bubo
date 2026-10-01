@@ -32,13 +32,17 @@ nonisolated final class MetricsCollector: NSObject, MXMetricManagerSubscriber, S
         }
     }
 
-    /// Ends the launch MetricKit measures and subscribes to its payloads; call it once, at `HUD interattivo`.
+    /// Ends the launch MetricKit measures; call it once, at `HUD interattivo`.
     func finishLaunch() {
         do {
             try MXMetricManager.finishExtendedLaunchMeasurement(forTaskID: Self.launchTask)
         } catch {
             Logger.diagnostics.error("Extended launch not finished: \(error)")
         }
+    }
+
+    /// Subscribes to MetricKit's payloads; call it once, from `LaunchSequence` after `HUD interattivo`.
+    func subscribe() {
         MXMetricManager.shared.add(self)
     }
 

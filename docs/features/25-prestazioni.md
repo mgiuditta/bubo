@@ -240,6 +240,7 @@ Non decisi nelle issue, facili da cambiare.
 - **Letture**: i test allegano ogni lettura all'`.xcresult` come JSON `perf-<id>` (`BuboPerfTests/PerfMeasurement.swift`); lo script aggiunge le sue. Il tempo GPU dell'Orb si legge anche dal log del Metal HUD (`MTL_HUD_LOG_ENABLED`, solo con `TEST_RUNNER_BUBO_METAL_HUD=1`). Il report è `scripts/perf/`, compilato da `perf.sh` insieme a `PerfBudgets.swift`.
 - **Metal assente sul runner**: i test di fotogrammi si saltano con un avviso nel report, non falliscono.
 - **Isteresi dell'avviso**: "Sessione pesante" sparisce sotto 1,5 GB, per non lampeggiare vicino ai 2 GB.
+- **Quota senza `claude` all'avvio** ([#197](https://github.com/mgiuditta/bubo/issues/197)): l'HUD mostra l'ultima Quota salvata (le finestre già azzerate restano nascoste). La lettura col metodo di uso parte solo quando l'utente apre l'HUD dopo l'avvio, una volta per avvio; prima arriva dalle Domande e dalle Sessioni (`rate_limit_event`). Non è in `LaunchSequence`, che non avvia `claude` fuori dall'onboarding.
 - **Dopo un riavvio di Bubo** le Sessioni partono sospese: nessun `claude` finché l'utente non scrive (coerente con la 01, niente ripresa automatica).
 - **Diagnostica**: report MetricKit salvati come JSON in `Application Support/Bubo/Diagnostica/`, tenuti 30 giorni; la sezione mostra l'ultimo giorno (avvio, hang, memoria di picco, hitch) e "Mostra nel Finder".
 

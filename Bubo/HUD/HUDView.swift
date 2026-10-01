@@ -12,6 +12,8 @@ struct HUDView: View {
     let sessions: SessionStore?
     /// The first launch, until the first answer in a Sessione.
     let onboarding: OnboardingFlow
+    /// What starts once the HUD is interactive.
+    let launch: LaunchSequence
 
     var body: some View {
         @Bindable var hud = hud
@@ -33,12 +35,13 @@ struct HUDView: View {
         .onChange(of: chosenVista) { hud.switchVista(to: chosenVista) }
         // The new Vista's body has been laid out.
         .onChange(of: hud.vista) { hud.endVistaSwitch() }
-        // Runs after the first appearance, once the main thread is free again.
+        // Runs after the first appearance, once the main thread is free again: launch is over.
         .task {
-            Signposts.markHUDInteractive()
+            let launching = launch.start()
             guard !onboarding.isCompleted else { return }
             async let recents = Self.recentProjects()
-            await onboarding.detectClaude()
+            // The sequence finds `claude` during onboarding, after the bridge.
+            await launching.value
             onboarding.show(await recents)
             await watchClaude()
         }
@@ -46,8 +49,6 @@ struct HUDView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             Task { await onboarding.recheck() }
         }
-        // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
-        .task { await questions.refreshQuota() }
     }
 
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
@@ -127,6 +128,8 @@ struct HUDView: View {
 }
 
 #Preview {
-    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in })
+    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in },
+            launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
+                                   subscribeToMetrics: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())
 }
