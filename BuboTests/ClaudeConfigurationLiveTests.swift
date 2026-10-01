@@ -26,6 +26,10 @@ struct ClaudeConfigurationLiveTests {
         try Self.write("---\nname: progetto\ndescription: Una skill del Progetto\n---\nciao\n",
                        to: repo.appending(path: ".claude/skills/progetto/SKILL.md"))
         try Self.write("# Progetto\n", to: repo.appending(path: "CLAUDE.md"))
+        try Self.write("---\nname: agente-progetto\ndescription: Un agente del Progetto\ntools: Read\n---\n",
+                       to: repo.appending(path: ".claude/agents/sotto/agente.md"))
+        try Self.write("---\nname: agente-utente\ndescription: Un agente dell'utente\n---\n",
+                       to: configuration.appending(path: "agents/agente-utente.md"))
         try Self.write(#"{"mcpServers": {"del-progetto": {"command": "/usr/bin/true"}}}"#, to: repo.appending(path: ".mcp.json"))
         try Self.write("---\nname: utente\ndescription: Una skill dell'utente\n---\nciao\n",
                        to: configuration.appending(path: "skills/utente/SKILL.md"))
@@ -84,6 +88,10 @@ struct ClaudeConfigurationLiveTests {
         #expect(shown.skills.contains("progetto") && shown.skills.contains("utente"))
         #expect(Set(shown.mcpServers.map(\.name)).isSuperset(of: ["del-progetto", "dell-utente"]))
         #expect(shown.instructions.map(\.path) == [repo.appending(path: "CLAUDE.md").path])
+        // `supportedAgents()`: the files of both sources, by their `name`, next to the built-in agents.
+        #expect(shown.agents.contains(.init(name: "agente-progetto", description: "Un agente del Progetto", model: nil)))
+        #expect(shown.agents.contains { $0.name == "agente-utente" })
+        #expect(shown.agents.count > 2)
         let written = try await filesWritten(since: before)
         #expect(written.isEmpty, "Il pannello ha scritto nella cartella di configurazione: \(written)")
 
@@ -103,6 +111,8 @@ struct ClaudeConfigurationLiveTests {
         #expect(shown.skills.contains("utente") && !shown.skills.contains("progetto"))
         #expect(shown.mcpServers.map(\.name) == ["dell-utente"])
         #expect(shown.instructions.isEmpty)
+        let agents = Set(shown.agents.map(\.name))
+        #expect(agents.contains("agente-utente") && !agents.contains("agente-progetto"))
     }
 }
 

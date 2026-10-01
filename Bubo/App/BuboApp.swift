@@ -60,6 +60,12 @@ struct BuboApp: App {
         .defaultSize(width: 1200, height: 800)
         .defaultLaunchBehavior(.presented)
 
+        // In the Finestra menu, with no shortcut (spec 19).
+        Window("Agenti", id: AgentsWindow.windowID) {
+            AgentsWindow(store: appDelegate.sessions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(appDelegate.sessions)

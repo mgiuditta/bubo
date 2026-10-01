@@ -145,7 +145,7 @@ struct AgentBridgeTests {
         // Echoes the sources it was asked with as the only skill, so the test can read them.
         let bridge = Self.bridge(Self.answering(#"""
             sources=$(echo "$line" | grep -q '"type":"config"' && echo "$line" | sed 's/.*"settingSources":\(\[[^]]*\]\).*/\1/')
-            echo "{\"v\":3,\"type\":\"config\",\"id\":\"$id\",\"skills\":$sources,\"plugins\":[],\"pluginErrors\":[],\"mcpServers\":[],\"instructions\":[]}"
+            echo "{\"v\":3,\"type\":\"config\",\"id\":\"$id\",\"skills\":$sources,\"plugins\":[],\"pluginErrors\":[],\"mcpServers\":[],\"instructions\":[],\"agents\":[]}"
             read _
             """#))
         let configuration = try await bridge.configuration(of: URL(filePath: "/nonexistent/progetto"))
