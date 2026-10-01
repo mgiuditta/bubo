@@ -44,6 +44,12 @@ struct MainMenuTests {
         #expect(!item.keyEquivalent.isEmpty)
     }
 
+    @Test func theAnteprimaHasItsShortcut() throws {
+        let mainMenu = try #require(NSApp.mainMenu)
+        let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Mostra l'anteprima") })
+        #expect(Self.shortcut(of: item) == "⇧⌘P")
+    }
+
     @Test func aRepeatedShortcutIsFound() {
         let menu = NSMenu()
         menu.addItem(withTitle: "Uno", action: nil, keyEquivalent: "k")

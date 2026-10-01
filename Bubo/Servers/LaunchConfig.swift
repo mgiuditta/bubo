@@ -15,6 +15,8 @@ nonisolated struct LaunchConfig: Decodable, Equatable, Sendable {
     /// The port the server listens on; with `autoPort: false` it keeps it, as for an OAuth callback.
     var port: Int?
     var autoPort: Bool?
+    /// Where the Anteprima opens the server, as `https://app.localhost:3000`; a local address only (spec 15).
+    var url: String?
 
     private struct File: Decodable {
         let configurations: [LaunchConfig]
