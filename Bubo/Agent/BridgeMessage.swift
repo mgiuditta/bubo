@@ -150,8 +150,8 @@ enum BridgeEvent: Equatable, Decodable {
     /// The conversation `id` did not start: its Sandbox could not, for `reason`, as `claude` wrote it.
     case sandboxUnavailable(id: String, reason: String)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` and only in `source`
-    /// when given.
-    case search(id: String, query: String, project: String?, source: SearchSource? = nil)
+    /// when given. `conversation` is the answer that called it, for its line Richiamato.
+    case search(id: String, query: String, project: String?, source: SearchSource? = nil, conversation: String? = nil)
     /// The conversation `id` called a tool of the Anteprima: do `action`, `nil` for a tool Bubo does not know, and
     /// answer `call`.
     case previewCall(id: String, call: String, PreviewAction?)
@@ -185,7 +185,7 @@ enum BridgeEvent: Equatable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
-             rules
+             rules, conversation, before, after, mode, memories
     }
 
     init(from decoder: any Decoder) throws {
@@ -212,6 +212,16 @@ enum BridgeEvent: Equatable, Decodable {
                                               .sandboxBlock(try SandboxBlock(from: decoder)))
         case "sandboxRules": self = .sandboxRules(id: try container.decode(String.self, forKey: .id),
                                                   try container.decode([SandboxWideningRule].self, forKey: .rules))
+        case "remembered":
+            self = .progress(id: try container.decode(String.self, forKey: .id),
+                             .memory(.remembered(MemoryWrite(file: try container.decode(String.self, forKey: .file),
+                                                             previous: try container.decodeIfPresent(String.self, forKey: .before),
+                                                             written: try container.decodeIfPresent(String.self, forKey: .after)))))
+        case "recalled":
+            self = .progress(id: try container.decode(String.self, forKey: .id),
+                             .memory(.recalled(MemoryRecall(
+                                isSynthesis: try container.decode(String.self, forKey: .mode) == "synthesize",
+                                memories: try container.decode([MemoryRecall.Memory].self, forKey: .memories)))))
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
         case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),
@@ -226,7 +236,8 @@ enum BridgeEvent: Equatable, Decodable {
                                       project: try container.decodeIfPresent(String.self, forKey: .project),
                                       // A source Bubo does not know searches everywhere.
                                       source: try container.decodeIfPresent(String.self, forKey: .source)
-                                          .flatMap(SearchSource.init(rawValue:)))
+                                          .flatMap(SearchSource.init(rawValue:)),
+                                      conversation: try container.decodeIfPresent(String.self, forKey: .conversation))
         case "previewCall":
             self = .previewCall(id: try container.decode(String.self, forKey: .id),
                                 call: try container.decode(String.self, forKey: .call),

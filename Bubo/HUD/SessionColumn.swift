@@ -238,6 +238,17 @@ struct SessionRow: View {
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }
+            // Outside the combined element, so Apri and Annulla stay buttons of their own.
+            if !session.memoryLines.isEmpty, !isArchived {
+                VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+                    ForEach(session.memoryLines.reversed()) { line in
+                        MemoryLineRow(line: line, isInTurn: store.isInTurn(session.project)) {
+                            try store.undo(line.id, in: session.id)
+                        }
+                    }
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
             // Outside the combined element, so each answer stays a button of its own.
             if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
                 PermissionRequestView(pending: pending, project: session.project, queued: queue.count - 1,
@@ -266,7 +277,7 @@ struct SessionRow: View {
         }
         .sheet(isPresented: $isShowingMemory) {
             MemoryPanel(project: session.project,
-                        isInTurn: store.sessions.contains { $0.project == session.project && $0.isRunning },
+                        isInTurn: store.isInTurn(session.project),
                         read: store.configuration(of:))
         }
         .sheet(isPresented: $isReviewing) {

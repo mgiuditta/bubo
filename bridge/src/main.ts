@@ -4,6 +4,7 @@ import {
   createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type PermissionMode, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
+import { homedir } from "node:os";
 import { createInterface } from "node:readline";
 import { z } from "zod";
 import { edits, progress, type Edit, type Progress } from "./activity";
@@ -12,7 +13,7 @@ import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
-import { withAutoMemory } from "./memory";
+import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { sandboxRules, type SandboxRule } from "./sandboxRules";
@@ -52,11 +53,13 @@ type Event =
   | { type: "ran"; id: string }
   | (Progress & { id: string })
   | (Edit & { id: string })
+  | (Remembered & { id: string })
+  | (Recalled & { id: string })
   | { type: "error"; id?: string; message: string }
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
-  | { type: "search"; id: string; query: string; project?: string }
+  | { type: "search"; id: string; query: string; project?: string; source?: string; conversation: string }
   | (PreviewCall & { id: string })
   | { type: "remember"; id: string; title: string; text: string }
   | ({ type: "quota" } & Quota)
@@ -144,6 +147,8 @@ function sendQuota(quota: Quota) {
 // CLAUDE_CODE_SANDBOXED farebbe passare per fidata qualunque cartella (#266): mai al figlio.
 const { BUBO_CLAUDE_PATH: claudePath, BUBO_CONVERSATIONS: conversationsPath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inherited } = process.env;
 const childEnv = { ...inherited };
+// Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
+const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
 // La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
 const store = (() => {
@@ -171,8 +176,9 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
 
 // `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
 // `ricorda`, solo con `remembers`, fa scrivere a Bubo una nota in `Bubo/Note/` del Secondo cervello.
-// Un server per conversazione: un'istanza MCP si collega a un solo trasporto.
-function buboTools(remembers: boolean) {
+// Un server per conversazione: un'istanza MCP si collega a un solo trasporto. `conversation` dice a Bubo di chi è
+// ogni chiamata a `cerca`, per la riga "Richiamato" della Sessione.
+function buboTools(conversation: string, remembers = false) {
   const search = tool(
     "cerca",
     "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente e il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian). Le note non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file.",
@@ -183,7 +189,7 @@ function buboTools(remembers: boolean) {
         .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md) o \"secondo-cervello\" (le note dell'utente); senza, ovunque"),
     },
     async ({ testo, progetto, fonte }) => {
-      const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte }));
+      const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte, conversation }));
       return { content: [{ type: "text", text }] };
     },
     { annotations: { readOnlyHint: true } },
@@ -219,6 +225,28 @@ function ranBash(id: string, isSandboxed: boolean): HookCallbackMatcher {
   }] };
 }
 
+// Gli hook che seguono le scritture dell'agente nella memoria, per la riga "Ricordato" della conversazione `id`: il
+// file si copia prima della scrittura, perché Annulla possa rimetterlo com'era. Anche quelle dei subagent.
+function memoryHooks(id: string): Record<"PreToolUse" | "PostToolUse" | "PostToolUseFailure", HookCallbackMatcher[]> {
+  const writes = new MemoryWrites(configDirectory);
+  const matcher = "Write|Edit";
+  return {
+    PreToolUse: [{ matcher, hooks: [async (input: HookInput) => {
+      if (input.hook_event_name === "PreToolUse") writes.start(input.tool_use_id, input.tool_input);
+      return {};
+    }] }],
+    PostToolUse: [{ matcher, hooks: [async (input: HookInput) => {
+      const remembered = input.hook_event_name === "PostToolUse" ? writes.finish(input.tool_use_id) : undefined;
+      if (remembered) send({ ...remembered, id });
+      return {};
+    }] }],
+    PostToolUseFailure: [{ matcher, hooks: [async (input: HookInput) => {
+      if (input.hook_event_name === "PostToolUseFailure") writes.forget(input.tool_use_id);
+      return {};
+    }] }],
+  };
+}
+
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
@@ -250,6 +278,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       return isLocal((await servers).find((server) => server.name === name));
     },
   });
+  const memory = keep === undefined ? undefined : memoryHooks(id);
   const conversation = query({
     prompt,
     options: {
@@ -259,7 +288,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       env: { ...withAutoMemory(childEnv, keep !== undefined), ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
-      mcpServers: turnServers(buboTools(remembers), preview ? previewTools(id, previewCalls) : undefined),
+      mcpServers: turnServers(buboTools(id, remembers), preview ? previewTools(id, previewCalls) : undefined),
       ...teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]),
       includePartialMessages: true,
       resume,
@@ -270,10 +299,11 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       canUseTool: askBubo(id, sandbox !== undefined),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
+      // Le scritture in memoria, solo nelle Sessioni: nelle Domande la memoria automatica è spenta.
       hooks: {
-        PreToolUse: [{ hooks: [gate] }],
-        PostToolUse: [ranBash(id, sandbox !== undefined)],
-        PostToolUseFailure: [ranBash(id, sandbox !== undefined)],
+        PreToolUse: [{ hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
+        PostToolUse: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUse ?? [])],
+        PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
       },
     },
   });
@@ -300,6 +330,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       const update = progress(message);
       if (update) send({ ...update, id });
       for (const edit of edits(message)) send({ ...edit, id });
+      const recall = recalled(message);
+      if (recall) send({ ...recall, id });
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
           && message.event.delta.type === "text_delta") {
         send({ type: "text", id, text: message.event.delta.text });
@@ -592,7 +624,7 @@ lines.on("line", (line) => {
       // Il server della Sessione è comparso o sparito a turno in corso.
       const conversation = running.get(command.id);
       if (conversation) {
-        void offerPreview(conversation, buboTools(), command.available === true ? previewTools(command.id, previewCalls) : undefined);
+        void offerPreview(conversation, buboTools(command.id), command.available === true ? previewTools(command.id, previewCalls) : undefined);
       }
       break;
     }

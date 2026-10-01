@@ -356,10 +356,11 @@ final class AgentBridge {
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .sandboxUnavailable(id, reason):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.sandboxUnavailable(reason: reason))
-        case let .search(id, query, project, source):
+        case let .search(id, query, project, source, conversation):
             Task {
                 let text = await search(query, project, source)
                 try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: text).line())
+                if let conversation { progressHandlers[conversation]?(.memory(.searched(query: query, result: text))) }
             }
         case let .previewCall(id, call, action):
             let handler = previewHandlers[id]

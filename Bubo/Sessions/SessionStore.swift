@@ -661,6 +661,29 @@ final class SessionStore {
         update(id) { $0.isAutonomous = isAutonomous }
     }
 
+    /// Whether a Sessione of the Progetto at `project` is in a turn: Bubo then never writes in its memory.
+    func isInTurn(_ project: URL) -> Bool {
+        sessions.contains { $0.project == project && $0.isRunning }
+    }
+
+    /// Annulla of the line Ricordato `line` of the Sessione `id`: puts the memory file back as it was before the write.
+    ///
+    /// - Throws: ``ProjectMemoryError/inTurn`` while a Sessione of the Progetto is in a turn,
+    ///   ``ProjectMemoryError/changedOnDisk`` when the file changed after the write, or another error of
+    ///   ``MemoryWrite/undo(in:)``. The line stays as it was then.
+    func undo(_ line: MemoryLine.ID, in id: UUID) throws {
+        guard let session = sessions.first(where: { $0.id == id }),
+              let memoryLine = session.memoryLines.first(where: { $0.id == line }), memoryLine.canUndo,
+              case let .remembered(write) = memoryLine.event
+        else { return }
+        guard !isInTurn(session.project) else { throw ProjectMemoryError.inTurn }
+        try write.undo(in: ProjectMemory.directory(ofProject: session.project))
+        update(id) { session in
+            guard let index = session.memoryLines.firstIndex(where: { $0.id == line }) else { return }
+            session.memoryLines[index].isUndone = true
+        }
+    }
+
     /// Answers the Richiesta di permesso `request` of the Sessione `id`; nothing if `claude` no longer waits for it.
     func answer(_ request: PermissionRequest.ID, in id: UUID, with answer: PermissionAnswer) {
         let isLasting = (answer == .allowForSession || answer == .allowInProject)
