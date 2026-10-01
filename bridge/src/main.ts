@@ -158,7 +158,7 @@ lines.on("line", (line) => {
         ? command.projectConfigRoot : undefined;
       const model = typeof command.model === "string" ? command.model : undefined;
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
-        .filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env);
       break;
     }
