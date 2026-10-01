@@ -195,6 +195,7 @@ private struct CLIConversationRow: View {
 /// and the configuration
 /// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
+    @Environment(HUDPresenter.self) private var hud
     let session: Session
     let store: SessionStore
     /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
@@ -206,6 +207,9 @@ struct SessionRow: View {
     @State private var isConfirmingDeletion = false
     @State private var isShowingConfiguration = false
     @State private var isReviewing = false
+    /// What stops in the terminal at Archivia, while its confirmation is shown.
+    @State private var archiveNotice = ""
+    @State private var isConfirmingArchive = false
 
     private var isArchived: Bool { session.phase != .aperta }
 
@@ -215,6 +219,12 @@ struct SessionRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             details
+                .confirmationDialog("Vuoi archiviare la Sessione «\(session.title)»?",
+                                    isPresented: $isConfirmingArchive) {
+                    Button("Archivia") { store.archive(session.id) }
+                } message: {
+                    Text(verbatim: archiveNotice)
+                }
             // Outside the combined element, so each answer stays a button of its own.
             if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
                 PermissionRequestView(pending: pending, project: session.project, queued: queue.count - 1,
@@ -310,9 +320,10 @@ struct SessionRow: View {
         }
         .contextMenu {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
+            if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !isArchived {
-                Button("Archivia") { store.archive(session.id) }
+                Button("Archivia", action: archive)
                     .disabled(session.isRunning)
             }
             Button("Cancella…", role: .destructive, action: confirmDeletion)
@@ -320,12 +331,28 @@ struct SessionRow: View {
         }
         .accessibilityActions {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
+            if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !session.isRunning {
-                if !isArchived { Button("Archivia") { store.archive(session.id) } }
+                if !isArchived { Button("Archivia", action: archive) }
                 Button("Cancella…", action: confirmDeletion)
             }
         }
+    }
+
+    /// Archivia, after a confirmation when something runs in the Sessione's terminal.
+    private func archive() {
+        if let notice = store.terminalNotice(of: session.id) {
+            archiveNotice = notice
+            isConfirmingArchive = true
+        } else {
+            store.archive(session.id)
+        }
+    }
+
+    private func openTerminal() {
+        store.terminals.show(session)
+        if !store.terminals.isDetached { hud.show() }
     }
 
     private func confirmDeletion() {

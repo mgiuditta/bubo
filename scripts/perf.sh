@@ -36,7 +36,7 @@ reading() { # id, motivo: una riga non misurata
 }
 
 xcodegen generate --quiet
-xcodebuild -project Bubo.xcodeproj -scheme BuboPerf -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" \
+xcodebuild -project Bubo.xcodeproj -scheme BuboPerf -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM= -quiet build-for-testing
 xcrun swiftc -swift-version 6 -O -o "$out/perf-report" \
   BuboPerfTests/PerfBudgets.swift BuboPerfTests/PerfMeasurement.swift BuboPerfTests/FrameLog.swift scripts/perf/*.swift
@@ -59,7 +59,7 @@ fi
 logStart=$(date '+%Y-%m-%d %H:%M:%S')
 tests=ok
 TEST_RUNNER_BUBO_METAL_HUD=1 TEST_RUNNER_BUBO_LIVE=$live \
-  xcodebuild -project Bubo.xcodeproj -scheme BuboPerf -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" \
+  xcodebuild -project Bubo.xcodeproj -scheme BuboPerf -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -skipPackagePluginValidation \
   CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM= -resultBundlePath "$out/BuboPerf.xcresult" -quiet test-without-building || tests=falliti
 
 xcrun xcresulttool export attachments --path "$out/BuboPerf.xcresult" --output-path "$out/allegati" >/dev/null

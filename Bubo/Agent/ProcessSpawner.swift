@@ -48,11 +48,60 @@ nonisolated enum ProcessSpawner {
         posix_spawn_file_actions_adddup2(&actions, output[1], STDOUT_FILENO)
         posix_spawn_file_actions_addinherit_np(&actions, STDERR_FILENO)
 
+        let pid: pid_t
+        let isDisclaimed: Bool
+        do {
+            (pid, isDisclaimed) = try start(executable, arguments: arguments, environment: environment, actions: &actions)
+        } catch {
+            close(input[1]); close(output[0])
+            throw error
+        }
+        return SpawnedProcess(
+            pid: pid,
+            input: FileHandle(fileDescriptor: input[1], closeOnDealloc: true),
+            output: FileHandle(fileDescriptor: output[0], closeOnDealloc: true),
+            isDisclaimed: isDisclaimed
+        )
+    }
+
+    /// Starts `executable` in `folder` with `terminal`, the subordinate side of a pseudo-terminal, on its standard
+    /// input, output and error, and every signal back to its default action.
+    ///
+    /// - Returns: The child's process identifier.
+    /// - Throws: ``ProcessSpawnerError`` if the process cannot start.
+    static func spawn(_ executable: URL, arguments: [String] = [], environment: [String: String],
+                      terminal: Int32, in folder: URL) throws -> pid_t {
+        var actions: posix_spawn_file_actions_t?
+        posix_spawn_file_actions_init(&actions)
+        defer { posix_spawn_file_actions_destroy(&actions) }
+        for descriptor in [STDIN_FILENO, STDOUT_FILENO, STDERR_FILENO] {
+            posix_spawn_file_actions_adddup2(&actions, terminal, descriptor)
+        }
+        posix_spawn_file_actions_addchdir(&actions, folder.path)
+        return try start(executable, arguments: arguments, environment: environment, actions: &actions,
+                         resettingSignals: true).pid
+    }
+
+    /// `posix_spawn` with the disclaim and only the descriptors of `actions` open in the child.
+    private static func start(_ executable: URL, arguments: [String], environment: [String: String],
+                              actions: inout posix_spawn_file_actions_t?,
+                              resettingSignals: Bool = false) throws -> (pid: pid_t, isDisclaimed: Bool) {
         var attributes: posix_spawnattr_t?
         posix_spawnattr_init(&attributes)
         defer { posix_spawnattr_destroy(&attributes) }
-        // Only the three standard descriptors reach the child.
-        posix_spawnattr_setflags(&attributes, Int16(POSIX_SPAWN_CLOEXEC_DEFAULT))
+        // Only the descriptors of `actions` reach the child.
+        var flags = Int16(POSIX_SPAWN_CLOEXEC_DEFAULT)
+        if resettingSignals {
+            // Signals Bubo ignores or blocks, like SIGPIPE, would stay ignored in everything the child runs.
+            var all = sigset_t()
+            var none = sigset_t()
+            sigfillset(&all)
+            sigemptyset(&none)
+            posix_spawnattr_setsigdefault(&attributes, &all)
+            posix_spawnattr_setsigmask(&attributes, &none)
+            flags |= Int16(POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK)
+        }
+        posix_spawnattr_setflags(&attributes, flags)
         let isDisclaimed = disclaim(&attributes)
 
         let argv = ([executable.path] + arguments).map { strdup($0) } + [nil]
@@ -61,16 +110,8 @@ nonisolated enum ProcessSpawner {
 
         var pid: pid_t = 0
         let status = posix_spawn(&pid, executable.path, &actions, &attributes, argv, envp)
-        guard status == 0 else {
-            close(input[1]); close(output[0])
-            throw ProcessSpawnerError.failed(errno: status)
-        }
-        return SpawnedProcess(
-            pid: pid,
-            input: FileHandle(fileDescriptor: input[1], closeOnDealloc: true),
-            output: FileHandle(fileDescriptor: output[0], closeOnDealloc: true),
-            isDisclaimed: isDisclaimed
-        )
+        guard status == 0 else { throw ProcessSpawnerError.failed(errno: status) }
+        return (pid, isDisclaimed)
     }
 
     /// Waits for `pid` to exit, off the main thread, and returns its exit status.

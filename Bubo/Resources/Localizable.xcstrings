@@ -338,6 +338,16 @@
         }
       }
     },
+    "Apre un'altra shell nella cartella della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens another shell in the session's folder"
+          }
+        }
+      }
+    },
     "Apri Bubo" : {
       "localizations" : {
         "en" : {
@@ -364,6 +374,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "Apri il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Terminal"
           }
         }
       }
@@ -710,12 +730,32 @@
         }
       }
     },
+    "Chiude la shell e quello che vi è in esecuzione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closes the shell and whatever runs in it"
+          }
+        }
+      }
+    },
     "Chiudi" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close"
+          }
+        }
+      }
+    },
+    "Chiudi la scheda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Tab"
           }
         }
       }
@@ -1632,6 +1672,16 @@
         }
       }
     },
+    "Il terminale non è partito: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The terminal didn't start: %@"
+          }
+        }
+      }
+    },
     "Impostazioni…" : {
       "localizations" : {
         "en" : {
@@ -2058,6 +2108,16 @@
         }
       }
     },
+    "Mostra il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Terminal"
+          }
+        }
+      }
+    },
     "Mostra l'icona nel Dock" : {
       "localizations" : {
         "en" : {
@@ -2068,12 +2128,42 @@
         }
       }
     },
+    "Nasconde il terminale; le shell restano aperte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hides the terminal; the shells keep running"
+          }
+        }
+      }
+    },
+    "Nascondi il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Terminal"
+          }
+        }
+      }
+    },
     "Nel checkout del Progetto ci sono modifiche non salvate in %@, e il merge le cambierebbe. Fai un commit o mettile da parte, poi fondi." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project's checkout has unsaved changes in %@, and the merge would change them. Commit them or set them aside, then merge."
+          }
+        }
+      }
+    },
+    "Nel terminale si fermano: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This stops in the terminal: %@."
           }
         }
       }
@@ -2414,6 +2504,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New Session…"
+          }
+        }
+      }
+    },
+    "Nuova scheda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Tab"
           }
         }
       }
@@ -2804,6 +2904,26 @@
         }
       }
     },
+    "Riporta il terminale nell'HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the terminal back into the HUD"
+          }
+        }
+      }
+    },
+    "Riporta nell'HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Back to HUD"
+          }
+        }
+      }
+    },
     "Riposo" : {
       "localizations" : {
         "en" : {
@@ -3160,12 +3280,32 @@
         }
       }
     },
+    "Sposta il terminale in una finestra sua" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the terminal to its own window"
+          }
+        }
+      }
+    },
     "Squash" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Squash"
+          }
+        }
+      }
+    },
+    "Stacca in una finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detach into Window"
           }
         }
       }
@@ -3196,6 +3336,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strip"
+          }
+        }
+      }
+    },
+    "Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        }
+      }
+    },
+    "Terminale · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal · %@"
           }
         }
       }
@@ -3416,12 +3576,32 @@
         }
       }
     },
+    "Vuoi archiviare la Sessione «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archive the session “%@”?"
+          }
+        }
+      }
+    },
     "Vuoi cancellare la Sessione «%@»?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete the Session “%@”?"
+          }
+        }
+      }
+    },
+    "Vuoi fondere la Sessione?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge the session?"
           }
         }
       }
@@ -3442,6 +3622,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove the API key?"
+          }
+        }
+      }
+    },
+    "Vuoi uscire da Bubo?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Bubo?"
           }
         }
       }

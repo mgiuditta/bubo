@@ -75,6 +75,13 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
 
+    /// Where the Sessione's terminal starts: its worktree, or the Progetto's folder outside git. `nil` on the
+    /// checkout, once the Sessione is no longer Aperta, and while its copy is being prepared.
+    var terminalFolder: URL? {
+        guard phase == .aperta, !isOnCheckout else { return nil }
+        return workspace?.folder
+    }
+
     /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
     /// `BUBO_PORTS` all of them as `first-last`.
     var portEnvironment: [String: String] {

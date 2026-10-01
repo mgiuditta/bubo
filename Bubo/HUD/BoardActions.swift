@@ -15,6 +15,9 @@ struct BoardActions: View {
     @State private var isPreparing = false
     /// Why the last Fondi… or Annulla merge failed.
     @State private var failure: String?
+    /// What stops in the terminal at Archivia, while its confirmation is shown.
+    @State private var archiveNotice = ""
+    @State private var isConfirmingArchive = false
 
     private var hasContent: Bool {
         column.hasNextStep || store.undoDeadlines[session.id] != nil || failure != nil
@@ -37,9 +40,15 @@ struct BoardActions: View {
                             .disabled(isPreparing || session.isRunning)
                             .help("Mostra cosa unisce e dove, poi chiede conferma")
                     }
-                    Button("Archivia") { store.archive(session.id) }
+                    Button("Archivia", action: archive)
                         .disabled(session.isRunning)
                         .help("Rimuove la copia della Sessione e tiene il branch")
+                        .confirmationDialog("Vuoi archiviare la Sessione «\(session.title)»?",
+                                            isPresented: $isConfirmingArchive) {
+                            Button("Archivia") { store.archive(session.id) }
+                        } message: {
+                            Text(verbatim: archiveNotice)
+                        }
                 }
             }
             if let failure {
@@ -57,6 +66,16 @@ struct BoardActions: View {
         }
         .sheet(item: $proposal) { proposal in
             MergeConfirmation(session: session, preview: proposal.preview, message: proposal.message, store: store)
+        }
+    }
+
+    /// Archivia, after a confirmation when something runs in the Sessione's terminal.
+    private func archive() {
+        if let notice = store.terminalNotice(of: session.id) {
+            archiveNotice = notice
+            isConfirmingArchive = true
+        } else {
+            store.archive(session.id)
         }
     }
 
@@ -121,6 +140,11 @@ private struct MergeConfirmation: View {
                 Text("Unisce \(session.workspace?.branch ?? "") in \(preview.branch) con un commit locale, senza push. Si annulla solo nei \(Self.undoWindow) successivi, dalla card in Fusa.")
                     .font(Typography.body(size: 13))
                     .fixedSize(horizontal: false, vertical: true)
+                if let notice = store.terminalNotice(of: session.id) {
+                    Text(verbatim: notice)
+                        .font(Typography.body(size: 13))
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             if let failure { warning(failure) }
             HStack {

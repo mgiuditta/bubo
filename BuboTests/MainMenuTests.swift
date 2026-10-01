@@ -36,6 +36,14 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == "⌥⌘N")
     }
 
+    @Test func theTerminalHasItsShortcut() throws {
+        let mainMenu = try #require(NSApp.mainMenu)
+        let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Mostra il terminale") })
+        // ⌃ and the key left of 1, whose character AppKit adapts to the keyboard layout: ` in English, < in Italian.
+        #expect(item.keyEquivalentModifierMask.intersection([.command, .option, .control, .shift]) == .control)
+        #expect(!item.keyEquivalent.isEmpty)
+    }
+
     @Test func aRepeatedShortcutIsFound() {
         let menu = NSMenu()
         menu.addItem(withTitle: "Uno", action: nil, keyEquivalent: "k")

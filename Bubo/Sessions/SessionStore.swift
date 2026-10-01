@@ -68,6 +68,8 @@ final class SessionStore {
     @ObservationIgnored let ledger: CostLedger
     /// The Bozze, waiting for Avvia.
     @ObservationIgnored let drafts: DraftStore
+    /// The terminals of the Sessioni, closed at Archivia, Fondi and Cancella.
+    @ObservationIgnored let terminals = TerminalStore()
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -277,6 +279,7 @@ final class SessionStore {
         let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy,
                                               keepingOnly: discardingRest ? accepted : nil)
         Logger.sessions.notice("Sessione merged with \(strategy.rawValue, privacy: .public)")
+        Task { await terminals.closeAll(of: id) }
         update(id) { session in
             session.phase = .fusa
             session.mergedAt = .now
@@ -408,8 +411,12 @@ final class SessionStore {
             session.ports = nil
             session.isInterrupted = false
         }
-        guard let workspace = session.workspace else { return }
-        Task { await worktrees.remove(workspace, of: session.project, deletingBranch: false) }
+        Task {
+            // The shells leave the worktree before it goes.
+            await terminals.closeAll(of: id)
+            guard let workspace = session.workspace else { return }
+            await worktrees.remove(workspace, of: session.project, deletingBranch: false)
+        }
     }
 
     /// What deleting the Sessione `id` would lose, as file paths and commit subjects.
@@ -425,6 +432,7 @@ final class SessionStore {
         undoDeadlines[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
+        Task { await terminals.closeAll(of: id) }
         save()
         followActivity()
         if !session.conversations.isEmpty {

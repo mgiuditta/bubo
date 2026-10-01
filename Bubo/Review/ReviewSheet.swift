@@ -33,6 +33,9 @@ struct ReviewSheet: View {
     /// Why the last Fondi or Annulla merge failed.
     @State private var mergeFailure: String?
     @State private var isConfirmingPartialMerge = false
+    /// What stops in the terminal at Fondi, while its confirmation is shown.
+    @State private var terminalNotice = ""
+    @State private var isConfirmingTerminalClose = false
     @FocusState private var isFocused: Bool
     @FocusState private var isEditingMessage: Bool
 
@@ -160,11 +163,16 @@ struct ReviewSheet: View {
                         if let project = session?.project { strategy.makePreferred(for: project) }
                     }
                     .help("Come il Progetto fonde le Sessioni: squash in un commit, o merge commit")
-                    Button("Fondi") { merge() }
+                    Button("Fondi", action: confirmMerge)
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut(.return, modifiers: .command)
                         .disabled(!canMerge)
                         .help("Fonde le modifiche accettate nel branch del checkout con un commit locale, senza push")
+                        .confirmationDialog("Vuoi fondere la Sessione?", isPresented: $isConfirmingTerminalClose) {
+                            Button("Fondi") { merge() }
+                        } message: {
+                            Text(verbatim: terminalNotice)
+                        }
                 }
                 if session?.workspace?.branch != nil {
                     Menu("Altre azioni", systemImage: "ellipsis.circle") {
@@ -177,7 +185,8 @@ struct ReviewSheet: View {
                     .confirmationDialog("Fondere solo i blocchi accettati?", isPresented: $isConfirmingPartialMerge) {
                         Button("Fondi gli accettati", role: .destructive) { merge(discardingRest: true) }
                     } message: {
-                        Text("I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge.")
+                        Text(verbatim: String(localized: "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge.")
+                             + (store.terminalNotice(of: sessionID).map { " " + $0 } ?? ""))
                     }
                 }
                 Button("Chiudi") { dismiss() }
@@ -358,6 +367,16 @@ struct ReviewSheet: View {
     private func sendBack() {
         store.sendBack(review.feedback(for: decisions), to: sessionID, keepingAcceptedAmong: review.hunkIDs)
         dismiss()
+    }
+
+    /// Fondi, after a confirmation when something runs in the Sessione's terminal.
+    private func confirmMerge() {
+        if let notice = store.terminalNotice(of: sessionID) {
+            terminalNotice = notice
+            isConfirmingTerminalClose = true
+        } else {
+            merge()
+        }
     }
 
     /// Fondi, with the message as the user left it; only the accepted blocchi when `discardingRest`.

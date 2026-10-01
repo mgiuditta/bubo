@@ -28,6 +28,23 @@ nonisolated enum ChildEnvironment {
         if let conversations { environment["BUBO_CONVERSATIONS"] = conversations.path }
         return environment
     }
+
+    /// The environment of a Sessione's terminal: the user's basics, the Sessione's ports, and a terminal that
+    /// understands colours. The login shell adds the user's `PATH` from the profile.
+    ///
+    /// - Parameters:
+    ///   - session: The Sessione whose `PORT`, `BUBO_PORT` and `BUBO_PORTS` the shell gets.
+    ///   - base: The environment to copy from; Bubo's own by default.
+    static func makeForTerminal(of session: Session,
+                                base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
+        var environment = base.filter { copied.contains($0.key) }
+        environment["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin"
+        environment["TERM"] = "xterm-256color"
+        environment["COLORTERM"] = "truecolor"
+        environment["TERM_PROGRAM"] = "Bubo"
+        if environment["LANG"] == nil { environment["LC_CTYPE"] = "UTF-8" }
+        return environment.merging(session.portEnvironment) { $1 }
+    }
 }
 
 private extension Bundle {
