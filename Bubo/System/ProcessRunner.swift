@@ -67,8 +67,22 @@ private func runDisclaimed(_ executable: URL, arguments: [String], environment: 
     }
 }
 
+/// Everything `handle` gives until end of file, as UTF-8.
+///
+/// Read in chunks as they arrive, never with `bytes`: that stalls while the other pipe stays open and silent, and
+/// a child that fills one pipe then waits forever, as `git diff` does past 64 KB.
 private func readText(from handle: FileHandle) async throws -> String {
+    let (chunks, continuation) = AsyncStream.makeStream(of: Data.self)
+    handle.readabilityHandler = { handle in
+        let chunk = handle.availableData
+        if chunk.isEmpty {
+            handle.readabilityHandler = nil
+            continuation.finish()
+        } else {
+            continuation.yield(chunk)
+        }
+    }
     var data = Data()
-    for try await byte in handle.bytes { data.append(byte) }
+    for await chunk in chunks { data.append(chunk) }
     return String(decoding: data, as: UTF8.self)
 }

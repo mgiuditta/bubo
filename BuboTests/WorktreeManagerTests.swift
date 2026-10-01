@@ -324,6 +324,69 @@ struct WorktreeManagerTests {
         #expect(await manager.runSetup(in: workspace, environment: [:]) == nil)
     }
 
+    @Test func theChangesAreTheCommitsTheEditsAndTheNewFilesSinceTheBase() async throws {
+        let repo = try makeRepo("repo", files: ["a.txt": "uno\ndue\ntre\n", "via.txt": "x\n", ".gitignore": "node_modules/\n"])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try write(["a.txt": "uno\nDUE\ntre\n"], in: workspace.folder)
+        try git("commit", "-q", "-am", "Della Sessione", in: workspace.folder)
+        try write(["nuovo.txt": "ciao\n", "node_modules/x.js": "ignorato"], in: workspace.folder)
+        try FileManager.default.removeItem(at: workspace.folder.appending(path: "via.txt"))
+        let status = try git("status", "--porcelain", in: workspace.folder)
+
+        let files = try await manager.changes(in: workspace)
+
+        #expect(workspace.base != nil)
+        #expect(files.map(\.path) == ["a.txt", "nuovo.txt", "via.txt"])
+        #expect(files.map { $0.hunks.map(\.added) } == [[1], [1], [0]])
+        #expect(files.map { $0.hunks.map(\.removed) } == [[1], [0], [1]])
+        // Neither the Sessione's index nor the checkout's is written.
+        #expect(try git("status", "--porcelain", in: workspace.folder) == status)
+        #expect(try git("status", "--porcelain", in: repo).isEmpty)
+    }
+
+    @Test func aRepoWithoutCommitsShowsItsFilesAsNew() async throws {
+        let repo = try makeRepo("vuoto")
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try write(["primo.txt": "ciao\n"], in: workspace.folder)
+
+        let files = try await manager.changes(in: workspace)
+
+        #expect(workspace.base == nil)
+        #expect(files.map(\.path) == ["primo.txt"])
+    }
+
+    /// The spec's "diff aggiornato < 300 ms" after a write in a file of 50,000 lines, and the time to read a diff of
+    /// 50,000 changed lines into rows, before the first frame.
+    ///
+    /// Runs only on request: `TEST_RUNNER_BUBO_MEASURE_REVIEW=1 xcodebuild … test`.
+    @Test(.enabled(if: ProcessInfo.processInfo.environment["BUBO_MEASURE_REVIEW"] != nil))
+    func aWriteInALargeFileIsReadInUnderThreeHundredMilliseconds() async throws {
+        let original = (0..<50_000).map { "riga \($0)" }
+        let repo = try makeRepo("grande", files: ["grande.txt": original.joined(separator: "\n")])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        var edited = original
+        for index in stride(from: 0, to: edited.count, by: 5_000) { edited[index] = "cambiata \(index)" }
+        try write(["grande.txt": edited.joined(separator: "\n")], in: workspace.folder)
+        let clock = ContinuousClock()
+
+        let smallEdit = try await clock.measure { _ = try await manager.changes(in: workspace) }
+        try write(["grande.txt": original.map { "nuova \($0)" }.joined(separator: "\n")], in: workspace.folder)
+        var files: [ChangedFile] = []
+        let large = try await clock.measure { files = try await manager.changes(in: workspace) }
+        var review = Review()
+        let rows = clock.measure { review = Review(files: files) }
+
+        print("Revisione: 10 blocchi in \(smallEdit); 100.000 righe di diff in \(large), righe della vista in \(rows)")
+        #expect(review.rows.count > 100_000)
+        #expect(smallEdit < .milliseconds(300))
+    }
+
+    @Test func aFolderOutsideGitHasNoChangesToShow() async throws {
+        let folder = base.appending(path: "senza-git", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        await #expect(throws: WorktreeError.self) { try await manager.changes(in: Workspace(folder: folder)) }
+    }
+
     /// The spec's "Sessione pronta in < 2 s con 1 GB di dipendenze": 80,000 files, 1 GB, in `node_modules`.
     ///
     /// Slow to set up, so it runs only on request: `TEST_RUNNER_BUBO_MEASURE_WORKTREE=1 xcodebuild … test`.

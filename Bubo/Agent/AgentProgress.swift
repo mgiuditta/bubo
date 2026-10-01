@@ -15,4 +15,6 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case state(State)
     /// The first line of the latest text of the main thread, at most 200 characters.
     case summary(String)
+    /// A write the agent asked for in `file`, an absolute path: the lines it writes, trimmed, unique, at most 100.
+    case edit(file: String, lines: [String])
 }
