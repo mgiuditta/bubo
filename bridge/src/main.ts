@@ -12,7 +12,7 @@ import { settingSources } from "./settingSources";
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" };
@@ -72,15 +72,16 @@ function buboTools() {
 
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
+// `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string) {
+                   model?: string, env: Record<string, string> = {}) {
   const conversation = query({
     prompt,
     options: {
       cwd,
       projectConfigRoot,
       model,
-      env: childEnv,
+      env: { ...childEnv, ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
       mcpServers: { bubo: buboTools() },
@@ -156,7 +157,9 @@ lines.on("line", (line) => {
       const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
         ? command.projectConfigRoot : undefined;
       const model = typeof command.model === "string" ? command.model : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model);
+      const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
+        .filter((entry): entry is [string, string] => typeof entry[1] === "string"));
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env);
       break;
     }
     case "cancel": void running.get(command.id)?.interrupt(); break;

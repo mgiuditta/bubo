@@ -23,6 +23,13 @@ nonisolated struct WorktreeManager: Sendable {
     var root: URL
     /// Runs git.
     var runner = ProcessRunner.live
+    /// Decides whether the Progetto's setup script may run: only in a trusted Progetto, like its hooks.
+    var trustGate = TrustGate()
+    /// How long the setup script may run before it is stopped.
+    var setupTimeout = Duration.seconds(120)
+
+    /// The Progetto's setup script, run with `/bin/sh` in each new worktree.
+    static let setupScript = ".bubo/setup"
 
     /// Build caches that are never cloned, on top of `.worktreeignore`.
     static let excludedByDefault = [".build/", "build/", "DerivedData/", "dist/", ".next/", ".turbo/", ".cache/",
@@ -68,6 +75,52 @@ nonisolated struct WorktreeManager: Sendable {
             Self.clone(checkout.appending(path: path), to: folder.appending(path: path))
         }
         return Workspace(folder: folder, branch: name)
+    }
+
+    /// Runs the Progetto's setup script in the worktree of `workspace`, if it has one, with `environment` on top
+    /// of the user's login shell, disclaimed (ADR 0005).
+    ///
+    /// Stopping it at the timeout ends the script, not what it left running in the background.
+    ///
+    /// - Returns: Why the script did not complete, with the last lines it wrote; `nil` when it did or there is none.
+    @concurrent func runSetup(in workspace: Workspace, environment: [String: String]) async -> String? {
+        guard workspace.branch != nil,
+              FileManager.default.fileExists(atPath: workspace.folder.appending(path: Self.setupScript).path)
+        else { return nil }
+        guard trustGate.isTrusted(workspace.folder) else {
+            return String(localized: "Script di setup non eseguito: il Progetto non è fidato.")
+        }
+        let log = FileManager.default.temporaryDirectory.appending(path: "bubo-setup-\(UUID().uuidString).log")
+        defer { try? FileManager.default.removeItem(at: log) }
+        // The output goes to a file: a pipe would stay open as long as anything the script left running.
+        let command = "cd \(Self.quoted(workspace.folder.path)) && exec /bin/sh \(Self.setupScript) >\(Self.quoted(log.path)) 2>&1"
+        var shellEnvironment = ProcessInfo.processInfo.environment.filter { ChildEnvironment.copied.contains($0.key) }
+        shellEnvironment["PATH"] = "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+        shellEnvironment.merge(environment) { $1 }
+        let shell = URL(filePath: shellEnvironment["SHELL"] ?? "/bin/zsh")
+        let runner = ProcessRunner.disclaimed(environment: shellEnvironment)
+        let exitCode = try? await withThrowingTaskGroup { group in
+            group.addTask { try await runner.run(shell, ["-l", "-i", "-c", command]).exitCode }
+            group.addTask {
+                try await Task.sleep(for: setupTimeout)
+                throw CancellationError()
+            }
+            defer { group.cancelAll() }
+            return try await group.next()
+        }
+        guard exitCode != 0 else { return nil }
+        let output = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
+        let reason = if let exitCode {
+            String(localized: "Lo script di setup è uscito con codice \(exitCode).")
+        } else {
+            String(localized: "Lo script di setup non è finito in tempo ed è stato fermato.")
+        }
+        return ([reason] + output.split(whereSeparator: \.isNewline).suffix(3).map(String.init)).joined(separator: "\n")
+    }
+
+    /// `text` in single quotes for any shell.
+    private static func quoted(_ text: String) -> String {
+        "'\(text.replacing("'", with: #"'\''"#))'"
     }
 
     /// The ignored paths to clone into a new worktree, relative to `checkout`.

@@ -24,6 +24,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","model":"sonnet","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
     }
 
+    @Test func askWithAnEnvironmentCarriesIt() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], environment: ["PORT": "40000"]).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","env":{"PORT":"40000"},"id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
+    }
+
     @Test func cancelNamesTheConversation() throws {
         let line = try BridgeCommand.cancel(id: "a1").line()
         #expect(String(decoding: line, as: UTF8.self) == #"{"id":"a1","type":"cancel","v":3}"# + "\n")

@@ -34,6 +34,7 @@ final class SessionStore {
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let bridge: () async throws -> AgentBridge
+    @ObservationIgnored private let ports = PortAllocator()
 
     /// The store in Bubo's Application Support folder.
     static func makeDefault(bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
@@ -45,7 +46,8 @@ final class SessionStore {
 
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     func start(_ prompt: String, title: String, branch: String, in project: URL) {
-        let session = Session(id: UUID(), title: title, project: project)
+        var session = Session(id: UUID(), title: title, project: project)
+        session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         Signposts.signposter.withIntervalSignpost("Apertura Sessione") {
             sessions.append(session)
             save()
@@ -54,13 +56,17 @@ final class SessionStore {
     }
 
     private func run(_ id: UUID, prompt: String, branch: String) async {
-        guard let project = sessions.first(where: { $0.id == id })?.project else { return }
+        guard let session = sessions.first(where: { $0.id == id }) else { return }
+        let environment = session.portEnvironment
         do {
             let preparing = Signposts.signposter.beginInterval("Sessione pronta", id: Signposts.signposter.makeSignpostID())
-            let workspace = try await worktrees.prepare(project, branch: branch)
+            let workspace = try await worktrees.prepare(session.project, branch: branch)
             Signposts.signposter.endInterval("Sessione pronta", preparing)
             update(id) { $0.workspace = workspace }
-            for try await _ in try await bridge().ask(prompt, in: workspace.folder) {}
+            if let failure = await worktrees.runSetup(in: workspace, environment: environment) {
+                update(id) { $0.setupFailure = failure }
+            }
+            for try await _ in try await bridge().ask(prompt, in: workspace.folder, environment: environment) {}
             update(id) { $0.activity = .ferma }
         } catch {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")

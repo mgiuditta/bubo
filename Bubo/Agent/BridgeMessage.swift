@@ -14,9 +14,9 @@ enum BridgeCommand: Equatable {
     ///
     /// When `directory` is a worktree, `projectConfigRoot` is its main checkout, where `claude` reads the
     /// Progetto's settings, `.mcp.json` and `.claude/`. `model` is an alias of `claude`, such as `sonnet`;
-    /// without it, the model the user chose in `claude` answers.
+    /// without it, the model the user chose in `claude` answers. `environment` adds to the one `claude` gets.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
-             model: String? = nil)
+             model: String? = nil, environment: [String: String] = [:])
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -28,10 +28,11 @@ enum BridgeCommand: Equatable {
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
+            if !environment.isEmpty { object["env"] = environment }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
