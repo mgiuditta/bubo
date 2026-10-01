@@ -15,6 +15,9 @@ enum Motion {
     static let hold = Animation.linear(duration: 1)
     /// The camera's flight to a file or a folder of the Galassia, in seconds: the map moves, not the container.
     static let galaxyFlight: Double = 0.65
+    /// A comet's move from one file of the Galassia to the next one its Sessione touches, in seconds: only on a real
+    /// tool event, never at rest.
+    static let galaxyComet: Double = 0.45
     /// One turn of the outer HUD ring, in seconds.
     static let outerRingPeriod: Double = 60
     /// One turn of the inner HUD ring, in seconds; it turns the other way.

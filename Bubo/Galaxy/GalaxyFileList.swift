@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The list next to the map: the search on names and paths and the Progetto's files, or the results.
+/// The list next to the map: the chips of the Sessioni, the search on names and paths and the Progetto's files, the
+/// results, or the files the filtered Sessione wrote with how many it read.
 ///
 /// It is the map's accessible equivalent: selecting a row flies the camera to its star, a click on a star selects its
 /// row, and a double click or Return opens the file in the Visore.
@@ -12,6 +13,10 @@ struct GalaxyFileList: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            if !model.sessions.isEmpty {
+                GalaxySessionChips(model: model)
+                    .padding([.horizontal, .top], Spacing.small)
+            }
             search
                 .padding(Spacing.small)
             Divider()
@@ -32,7 +37,15 @@ struct GalaxyFileList: View {
                 .textFieldStyle(.roundedBorder)
                 .onExitCommand { model.query = "" }
             Group {
-                if model.query.isEmpty {
+                if let filter = model.filter {
+                    // Reads are many and faint: counted, not listed.
+                    HStack(spacing: Spacing.xxSmall) {
+                        Text("\(model.writtenStars(by: filter).count) file modificati")
+                        Text(verbatim: "·")
+                        Text("\(model.readCount(of: filter)) letture")
+                    }
+                    .accessibilityElement(children: .combine)
+                } else if model.query.isEmpty {
                     Text("\(model.layout?.stars.count ?? 0) file")
                 } else {
                     Text("\(model.matches.count) risultati")
@@ -48,13 +61,18 @@ struct GalaxyFileList: View {
             List(selection: $selection) {
                 if let stars = model.layout?.stars {
                     ForEach(model.rows, id: \.self) { index in
-                        GalaxyFileRow(path: stars[index].path)
+                        GalaxyFileRow(path: stars[index].path, writers: model.sessionsWriting(index))
                             .accessibilityAction(named: Text("Apri nel Visore")) { open(index) }
                     }
                 }
             }
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
+            .overlay {
+                if model.filter != nil, model.rows.isEmpty {
+                    ContentUnavailableView("Nessun file modificato", systemImage: "doc")
+                }
+            }
             .contextMenu(forSelectionType: Int.self) { indices in
                 if let index = indices.first {
                     Button("Apri nel Visore", systemImage: "doc.text") { open(index) }

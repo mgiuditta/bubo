@@ -3,11 +3,14 @@ import SwiftUI
 
 /// The window of one Progetto's Galassia, resizable and free to go to another screen.
 final class GalaxyWindow {
+    /// The Galassia shown.
+    let model: GalaxyModel
     private let window: NSWindow
     private var closing: (any NSObjectProtocol)?
 
     /// Creates the window of `model`, calling `onClose` when it closes.
     init(model: GalaxyModel, store: GalaxyStore, onClose: @escaping @MainActor () -> Void) {
+        self.model = model
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1100, height: 720),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered, defer: true)

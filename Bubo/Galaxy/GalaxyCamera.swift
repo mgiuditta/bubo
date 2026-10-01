@@ -50,6 +50,8 @@ nonisolated struct GalaxyCamera: Equatable, Sendable {
     /// The camera `progress` of the way from `start` to `end`, eased in and out; the zoom moves evenly in log scale.
     static func interpolated(from start: GalaxyCamera, to end: GalaxyCamera, progress: Double) -> GalaxyCamera {
         let t = Float(min(max(progress, 0), 1))
+        // Exactly at the end once there, whatever the rounding on the way.
+        guard t < 1 else { return end }
         let eased = t < 0.5 ? 2 * t * t : 1 - (2 - 2 * t) * (2 - 2 * t) / 2
         return GalaxyCamera(center: start.center + (end.center - start.center) * eased,
                             scale: start.scale * pow(end.scale / start.scale, eased))

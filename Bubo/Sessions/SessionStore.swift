@@ -18,6 +18,9 @@ final class SessionStore {
     /// The most blocks kept per Sessione: the latest ones.
     static let sandboxBlockLimit = 20
 
+    /// Called with each file the agent of a Sessione reads or writes, for the Galassia; reads change no Sessione.
+    @ObservationIgnored var onFileActivity: ((UUID, AgentProgress) -> Void)?
+
     /// How long Annulla merge is offered after Fondi.
     static let undoWindow = Duration.seconds(10)
 
@@ -611,6 +614,10 @@ final class SessionStore {
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .sandboxBlock(block): self?.record(block, in: id)
+                case .read: self?.onFileActivity?(id, progress)
+                case .edit:
+                    self?.update(id) { $0.apply(progress) }
+                    self?.onFileActivity?(id, progress)
                 default: self?.update(id) { $0.apply(progress) }
                 }
             } permissions: { [weak self] event in

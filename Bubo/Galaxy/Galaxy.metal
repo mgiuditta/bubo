@@ -1,4 +1,4 @@
-// The Galassia's map (spec 11): folders as rings and points, files as stars, all instanced quads.
+// The Galassia's map (spec 11): folders as rings and points, files as stars, the Sessioni as comets, all instanced quads.
 // The level of detail is worked out here from the camera, so moving the map changes only the uniforms.
 
 #include <metal_stdlib>
@@ -11,9 +11,30 @@ struct GalaxyInstance {
     float radius;
     /// Folders: their number of files. Stars: their folder's radius on the plane.
     float value;
-    /// Stars: 1 for a search result, 2 for the selected file.
+    /// Stars: 1 for a search result, 2 for the selected file, 4 for a file read lately, 8 for a written file.
     uint flags;
     uint depth;
+};
+
+/// A ring or a disc of a fixed size in points: the selection, a collision, a comet's head. The same layout as
+/// `GalaxyMark` in Swift.
+struct GalaxyMark {
+    float2 position;
+    float radius;
+    /// How high over the plane, in points.
+    float lift;
+    float alpha;
+};
+
+/// A line between two points of the plane, each raised by its lift: a comet's tail, the stem of a written file. The
+/// same layout as `GalaxySegment` in Swift.
+struct GalaxySegment {
+    float2 from;
+    float2 to;
+    float liftFrom;
+    float liftTo;
+    float alphaFrom;
+    float alphaTo;
 };
 
 /// The same layout as `GalaxyUniforms` in Swift.
@@ -26,6 +47,8 @@ struct GalaxyUniforms {
     float starsAppear;
     float starsShown;
     uint isSearching;
+    /// How high a written file rises, in points.
+    float writeLift;
 };
 
 struct GalaxyFragment {
@@ -42,6 +65,10 @@ constant float2 corners[4] = { float2(-1, -1), float2(1, -1), float2(-1, 1), flo
 constant float3 starlight = float3(0.957, 0.922, 0.894);
 constant uint searchResult = 1;
 constant uint selected = 2;
+constant uint read = 4;
+constant uint written = 8;
+/// Half the width of a comet's tail, in points.
+constant float tailHalfWidth = 0.75;
 
 static float2 screenPoint(float2 plane, constant GalaxyUniforms &u) {
     return u.viewport / 2 + (plane - u.center) * float2(u.scale, u.scale * u.tilt);
@@ -104,21 +131,60 @@ vertex GalaxyFragment galaxy_star_vertex(uint vertexID [[vertex_id]], uint insta
         alpha = 1;
         size = max(size, 2.2);
     }
-    return billboard(screenPoint(star.position, u), float2(size), alpha, vertexID, u);
+    // Reads are faint and stay on the plane; writes are bright and rise.
+    float2 point = screenPoint(star.position, u);
+    if ((star.flags & read) != 0) {
+        alpha = max(alpha, 0.55);
+        size = max(size, 1.4);
+    }
+    if ((star.flags & written) != 0) {
+        alpha = 1;
+        size = max(size, 2.0);
+        point.y -= u.writeLift;
+    }
+    return billboard(point, float2(size), alpha, vertexID, u);
 }
 
-/// The ring around the selected file, the same size whatever the zoom.
-vertex GalaxyFragment galaxy_selection_vertex(uint vertexID [[vertex_id]],
-                                              constant GalaxyInstance *instances [[buffer(0)]],
-                                              constant GalaxyUniforms &u [[buffer(1)]]) {
-    GalaxyInstance star = instances[0];
-    return billboard(screenPoint(star.position, u), float2(star.radius), 0.9, vertexID, u);
+/// A ring or a disc of a fixed size whatever the zoom.
+vertex GalaxyFragment galaxy_mark_vertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
+                                         constant GalaxyMark *marks [[buffer(0)]],
+                                         constant GalaxyUniforms &u [[buffer(1)]]) {
+    GalaxyMark mark = marks[instanceID];
+    float2 point = screenPoint(mark.position, u) - float2(0, mark.lift);
+    return billboard(point, float2(mark.radius), mark.alpha, vertexID, u);
+}
+
+/// A thin line, its light fading from one end to the other.
+vertex GalaxyFragment galaxy_segment_vertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
+                                            constant GalaxySegment *segments [[buffer(0)]],
+                                            constant GalaxyUniforms &u [[buffer(1)]]) {
+    GalaxySegment segment = segments[instanceID];
+    float2 from = screenPoint(segment.from, u) - float2(0, segment.liftFrom);
+    float2 to = screenPoint(segment.to, u) - float2(0, segment.liftTo);
+    float2 along = to - from;
+    float2 direction = length(along) > 0.001 ? normalize(along) : float2(1, 0);
+    float2 normal = float2(-direction.y, direction.x);
+    float2 corner = corners[vertexID];
+    float progress = (corner.x + 1) / 2;
+    float padded = tailHalfWidth + 1;
+    GalaxyFragment out;
+    out.position = clipPosition(mix(from, to, progress) + normal * corner.y * padded, u);
+    out.corner = float2(progress, corner.y * padded / tailHalfWidth);
+    out.pixelRadius = tailHalfWidth * u.pixelsPerPoint;
+    out.alpha = mix(segment.alphaFrom, segment.alphaTo, progress);
+    return out;
 }
 
 /// A one-point outline at the edge of the quad's shape.
 fragment float4 galaxy_ring_fragment(GalaxyFragment in [[stage_in]], constant GalaxyUniforms &u [[buffer(1)]]) {
     float distance = abs(length(in.corner) - 1) * in.pixelRadius;
     float alpha = in.alpha * (1 - smoothstep(0.5 * u.pixelsPerPoint, 0.5 * u.pixelsPerPoint + 1, distance));
+    return float4(starlight * alpha, alpha);
+}
+
+/// A line with soft edges across its width.
+fragment float4 galaxy_segment_fragment(GalaxyFragment in [[stage_in]]) {
+    float alpha = in.alpha * saturate((1 - abs(in.corner.y)) * in.pixelRadius + 0.5);
     return float4(starlight * alpha, alpha);
 }
 
