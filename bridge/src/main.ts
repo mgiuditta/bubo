@@ -14,13 +14,14 @@ import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServ
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { settingSources } from "./settingSources";
+import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { ConversationStore } from "./store";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -159,9 +160,10 @@ function ranBash(id: string): HookCallbackMatcher {
 // e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
+// `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
-                   sandbox?: SandboxSettings, preview = false) {
+                   sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined)) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const conversation = query({
@@ -174,7 +176,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
       mcpServers: turnServers(buboTools(), preview ? previewTools(id, previewCalls) : undefined),
-      allowedTools: ["mcp__bubo__cerca", ...allowedPreviewTools],
+      ...teamRuleOptions(rules, ["mcp__bubo__cerca", ...allowedPreviewTools]),
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
@@ -404,7 +406,7 @@ lines.on("line", (line) => {
       const resume = typeof command.resume === "string" ? command.resume : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
-               sandboxSettings(command.sandbox), command.preview === true);
+               sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules));
       break;
     }
     case "config": {

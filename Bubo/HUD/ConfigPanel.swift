@@ -80,6 +80,7 @@ private struct ConfigurationForm: View {
             ProjectSandboxSection(project: project, store: sandbox)
 
             ProjectRulesSection(project: project)
+            TeamResourcesSection(project: project)
 
             Section("CLAUDE.md · \(configuration.instructions.count)") {
                 if configuration.instructions.isEmpty {

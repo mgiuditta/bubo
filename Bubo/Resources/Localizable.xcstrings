@@ -104,6 +104,22 @@
         }
       }
     },
+    "%lld da guardare · %lld decise · %lld già attive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld to review · %2$lld decided · %3$lld already active"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld da guardare · %2$lld decise · %3$lld già attive"
+          }
+        }
+      }
+    },
     "%lld file" : {
       "localizations" : {
         "en" : {
@@ -248,6 +264,16 @@
         }
       }
     },
+    "Accettata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepted"
+          }
+        }
+      }
+    },
     "Accettato" : {
       "localizations" : {
         "en" : {
@@ -284,6 +310,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agents"
+          }
+        }
+      }
+    },
+    "Aggiungi a .bubo/regole.json" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to .bubo/regole.json"
           }
         }
       }
@@ -792,6 +828,16 @@
         }
       }
     },
+    "Bubo aggiunge %@ a .bubo/regole.json del Progetto. Il commit lo fai tu; chi usa il repo la vede da accettare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo adds %@ to the Project's .bubo/regole.json. You make the commit; anyone using the repo sees it as a rule to accept."
+          }
+        }
+      }
+    },
     "Bubo ha scritto il comando qui sotto. Premi Invio per eseguirlo, oppure chiudi la finestra." : {
       "localizations" : {
         "en" : {
@@ -958,6 +1004,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Untrusted Certificate"
+          }
+        }
+      }
+    },
+    "Chiede sempre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always asks"
           }
         }
       }
@@ -1142,6 +1198,16 @@
         }
       }
     },
+    "Condividi con la squadra…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share with the Team…"
+          }
+        }
+      }
+    },
     "Configurazione di Claude" : {
       "localizations" : {
         "en" : {
@@ -1262,6 +1328,16 @@
         }
       }
     },
+    "Controlla che il file si legga e che .bubo sia una cartella del Progetto, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the file can be read and that .bubo is a folder of the Project, then try again."
+          }
+        }
+      }
+    },
     "Controlla che la CLI claude funzioni nel Terminale, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -1278,6 +1354,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check that the Session's copy still exists, then try again."
+          }
+        }
+      }
+    },
+    "Controlla lo spazio su disco e i permessi di Application Support, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the disk space and the permissions of Application Support, then try again."
           }
         }
       }
@@ -1318,6 +1404,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Covered"
+          }
+        }
+      }
+    },
+    "Correggi .bubo/regole.json in %@: finché non si legge, non vale nessuna regola di squadra, nemmeno i deny." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fix .bubo/regole.json in %@: until it can be read, no team rule applies, not even the deny rules."
           }
         }
       }
@@ -1838,6 +1934,16 @@
         }
       }
     },
+    "Già attive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already active"
+          }
+        }
+      }
+    },
     "Già in una Bozza: ↩ la apre" : {
       "localizations" : {
         "en" : {
@@ -1854,6 +1960,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Already in a Session: ↩ opens it"
+          }
+        }
+      }
+    },
+    "Guarda…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review…"
           }
         }
       }
@@ -2024,6 +2140,26 @@
         }
       }
     },
+    "Ignora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignore"
+          }
+        }
+      }
+    },
+    "Ignorata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignored"
+          }
+        }
+      }
+    },
     "Il Portachiavi è bloccato: sblocca il Mac e riprova." : {
       "localizations" : {
         "en" : {
@@ -2150,6 +2286,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The repo doesn't turn anything on."
+          }
+        }
+      }
+    },
+    "Il repo non ha regole di squadra in .bubo/regole.json." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The repo has no team rules in .bubo/regole.json."
           }
         }
       }
@@ -2502,6 +2648,26 @@
         }
       }
     },
+    "Le regole di squadra non si leggono" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The team rules can't be read"
+          }
+        }
+      }
+    },
+    "Le regole di squadra non si leggono: non vale nessuna, nemmeno i deny." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The team rules can't be read: none applies, not even the deny rules."
+          }
+        }
+      }
+    },
     "Leggi" : {
       "localizations" : {
         "en" : {
@@ -2848,12 +3014,62 @@
         }
       }
     },
+    "Nega" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denies"
+          }
+        }
+      }
+    },
     "Nel checkout del Progetto ci sono modifiche non salvate in %@, e il merge le cambierebbe. Fai un commit o mettile da parte, poi fondi." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project's checkout has unsaved changes in %@, and the merge would change them. Commit them or set them aside, then merge."
+          }
+        }
+      }
+    },
+    "Nel repo ci sono %lld Risorse di squadra da guardare" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The repo has %lld Team Resource to review"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "The repo has %lld Team Resources to review"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Nel repo c'è %lld Risorsa di squadra da guardare"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Nel repo ci sono %lld Risorse di squadra da guardare"
+                }
+              }
+            }
           }
         }
       }
@@ -3014,6 +3230,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name"
+          }
+        }
+      }
+    },
+    "Non ancora in un commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not committed yet"
           }
         }
       }
@@ -3208,12 +3434,42 @@
         }
       }
     },
+    "Non riesco a salvare la scelta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't save the choice"
+          }
+        }
+      }
+    },
+    "Non riesco a scrivere .bubo/regole.json" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't write .bubo/regole.json"
+          }
+        }
+      }
+    },
     "Non sei collegato." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "You're not signed in."
+          }
+        }
+      }
+    },
+    "Non si accetta: livello %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't be accepted: level %lld"
           }
         }
       }
@@ -3564,6 +3820,16 @@
         }
       }
     },
+    "Prima: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before: %@"
+          }
+        }
+      }
+    },
     "Progetto" : {
       "localizations" : {
         "en" : {
@@ -3644,6 +3910,16 @@
         }
       }
     },
+    "Regole allow · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow rules · %lld"
+          }
+        }
+      }
+    },
     "Regole di permesso · %lld" : {
       "localizations" : {
         "en" : {
@@ -3660,6 +3936,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
+    "Restringono soltanto: valgono subito in tutte le Sessioni del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They only restrict: they apply at once in every Session of the Project."
           }
         }
       }
@@ -3956,6 +4242,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resolve with Agent"
+          }
+        }
+      }
+    },
+    "Risorse di squadra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Team Resources"
           }
         }
       }
@@ -4606,6 +4902,16 @@
         }
       }
     },
+    "Ultimo commit di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last commit by %@"
+          }
+        }
+      }
+    },
     "Un agente con questo nome c'è già: %@" : {
       "localizations" : {
         "en" : {
@@ -4622,6 +4928,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A Session always starts in Working: its column follows what it does."
+          }
+        }
+      }
+    },
+    "Una regola allow vale per te solo dopo che la accetti. Se cambia anche di un carattere, torna da guardare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An allow rule applies to you only once you accept it. If it changes by even one character, it's back to review."
           }
         }
       }
@@ -4818,6 +5134,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete the Session “%@”?"
+          }
+        }
+      }
+    },
+    "Vuoi condividere la regola con la squadra?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share the rule with the Team?"
           }
         }
       }

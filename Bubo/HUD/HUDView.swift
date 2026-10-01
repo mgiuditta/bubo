@@ -66,6 +66,12 @@ struct HUDView: View {
             .sheet(isPresented: Bindable(hud).isPickingIssue) {
                 if let sessions { IssuePicker(store: sessions) }
             }
+            // The Risorse di squadra to look at, or that cannot be read, of each Progetto with Sessioni.
+            if let sessions {
+                ForEach(sessions.projects, id: \.self) { project in
+                    TeamResourcesNotice(project: project)
+                }
+            }
             Spacer(minLength: Spacing.large)
             if hud.vista == .orbita, let sessions = visibleSessions {
                 SessionOrbit(store: sessions, quota: questions.quota)

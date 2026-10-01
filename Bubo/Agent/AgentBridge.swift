@@ -51,6 +51,8 @@ final class AgentBridge {
     private let arguments: [String]
     private let environment: [String: String]
     private let trustGate: TrustGate
+    /// The accepted Risorse di squadra, read again at each turn.
+    private let ledger = TrustLedger.standard
     private let quota: (Quota) -> Void
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
@@ -70,7 +72,8 @@ final class AgentBridge {
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///
     /// `claude` loads the settings of `directory` only if it is trusted (`TrustGate`), never by the SDK's default;
-    /// in a worktree it reads them from the main checkout.
+    /// in a worktree it reads them from the main checkout. The Progetto's Risorse di squadra in force go with it as
+    /// session rules, read again at each call.
     ///
     /// Cancelling the iteration interrupts the conversation.
     ///
@@ -117,7 +120,8 @@ final class AgentBridge {
                                             model: model, environment: environment, resuming: conversation,
                                             keeping: kept,
                                             sandbox: isSandboxed ? sandbox(for: environment) : nil,
-                                            offersPreview: offersPreview)
+                                            offersPreview: offersPreview,
+                                            teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger))
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
