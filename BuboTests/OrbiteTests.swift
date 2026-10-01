@@ -8,8 +8,8 @@ struct OrbiteTests {
     static let bridge = #"""
         while read line; do
           id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
-          echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"risposta\"}"
-          echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+          echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"risposta\"}"
+          echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
         done
         """#
 

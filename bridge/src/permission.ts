@@ -16,6 +16,7 @@ export type PermissionRequest = {
   fromSubagent?: boolean;
   defaultToNo?: boolean;
   suppressAlwaysAllowRule?: boolean;
+  outsideSandbox?: boolean;
 };
 
 type Options = Parameters<CanUseTool>[2];

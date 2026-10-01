@@ -19,10 +19,10 @@ struct QuestionModelTests {
         while read line; do
           id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
           if [ -n "$ANTHROPIC_API_KEY" ]; then
-            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"a consumo\"}"
-            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"a consumo\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
           else
-            echo "{\"v\":3,\"type\":\"limit\",\"id\":\"$id\",\"window\":\"five_hour\",\"resetsAt\":1790852400}"
+            echo "{\"v\":4,\"type\":\"limit\",\"id\":\"$id\",\"window\":\"five_hour\",\"resetsAt\":1790852400}"
           fi
         done
         """#

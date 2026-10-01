@@ -1,12 +1,13 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type Options, prewarm, query, tool, type HookInput, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type PermissionMode, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
 import { edits, progress, type Edit, type Progress } from "./activity";
+import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
@@ -20,10 +21,10 @@ import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
-const version = 3;
+const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -37,7 +38,8 @@ type Command =
   | { v: number; type: "forgetHistory"; id: string }
   | { v: number; type: "permission"; request: string; behavior?: unknown }
   | { v: number; type: "previewServer"; id: string; available?: unknown }
-  | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown };
+  | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown }
+  | { v: number; type: "risk"; request: string; dangerous?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -61,6 +63,7 @@ type Event =
   | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
+  | (RiskQuestion & { type: "risk"; id: string; request: string })
   | ({ type: "usage"; id: string } & TurnUsage);
 
 function send(event: Event) {
@@ -72,12 +75,14 @@ const permissions = new Map<string, (allowed: boolean) => void>();
 
 // `canUseTool` della conversazione `id`. Chiude sempre su "no": se Bubo non si raggiunge, se la CLI ritira la
 // Richiesta, se la risposta non è "allow". Se Bubo esce, stdin si chiude e il ponte esce senza approvare nulla.
-function askBubo(id: string): CanUseTool {
+// Con la Sandbox accesa, un Bash che chiede di uscirne arriva a Bubo segnato "fuori dalla sandbox".
+function askBubo(id: string, isSandboxed: boolean): CanUseTool {
   return async (toolName, input, options) => {
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
     if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
     const request = randomUUID();
     const shown = permissionRequest(request, toolName, input, options);
+    if (isSandboxed && isOutsideSandbox(toolName, input)) shown.outsideSandbox = true;
     if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
     let reached = true;
     const allowed = await new Promise<boolean>((resolve) => {
@@ -96,6 +101,26 @@ function askBubo(id: string): CanUseTool {
     permissions.delete(request);
     return permissionResult(allowed, input, reached ? undefined : deniedWithoutBubo);
   };
+}
+
+// Le domande sul Livello di rischio del cancello in attesa di Bubo: `true` per i livelli 4–5.
+const risks = new Map<string, (dangerous: boolean) => void>();
+
+// Il Livello di rischio lo dà Bubo, come alle Richieste: il cancello chiede solo se è 4 o 5. Senza risposta, sì.
+function riskFromBubo(id: string, signal: AbortSignal) {
+  return (question: RiskQuestion) => new Promise<boolean>((resolve) => {
+    if (signal.aborted) return resolve(true);
+    const request = randomUUID();
+    const stop = () => { risks.delete(request); resolve(true); };
+    risks.set(request, (dangerous) => { signal.removeEventListener("abort", stop); resolve(dangerous); });
+    signal.addEventListener("abort", stop, { once: true });
+    try {
+      send({ type: "risk", id, request, ...question });
+    } catch {
+      risks.delete(request);
+      resolve(true);
+    }
+  });
 }
 
 // Una Quota senza finestre non si manda: Bubo tiene ciò che sa, o non mostra nulla.
@@ -187,11 +212,25 @@ function ranBash(id: string): HookCallbackMatcher {
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
 // `remembers` dà lo strumento `ricorda`: solo alle Domande.
+// `permissionMode` è `auto` nella Modalità autonoma, `default` nelle altre Sessioni; senza, decide `claude`.
+// Il cancello (`gate.ts`) passa prima di ogni strumento: con la Sandbox accesa o in Modalità autonoma.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
-                   sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false) {
+                   sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
+                   permissionMode?: PermissionMode) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
+  const stopped = new AbortController();
+  let servers: Promise<McpServerStatus[]> | undefined;
+  const gate = sandboxGate({
+    cwd,
+    sandbox,
+    isDangerous: riskFromBubo(id, stopped.signal),
+    isLocalServer: async (name) => {
+      servers ??= conversation.mcpServerStatus();
+      return isLocal((await servers).find((server) => server.name === name));
+    },
+  });
   const conversation = query({
     prompt,
     options: {
@@ -207,11 +246,12 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       resume,
       forkSession: resume !== undefined,
       sandbox,
+      permissionMode,
       ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
-      canUseTool: askBubo(id),
+      canUseTool: askBubo(id, sandbox !== undefined),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
-      hooks: { PostToolUse: [ranBash(id)], PostToolUseFailure: [ranBash(id)] },
+      hooks: { PreToolUse: [{ hooks: [gate] }], PostToolUse: [ranBash(id)], PostToolUseFailure: [ranBash(id)] },
     },
   });
   running.set(id, conversation);
@@ -262,6 +302,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     if (reason) send({ type: "sandboxUnavailable", id, reason });
     else send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {
+    stopped.abort();
     running.delete(id);
     for (const session of torn) await repair(session);
   }
@@ -472,9 +513,10 @@ lines.on("line", (line) => {
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       const resume = typeof command.resume === "string" ? command.resume : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
+      const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true);
+               command.remember === true, mode);
       break;
     }
     case "config": {
@@ -515,6 +557,7 @@ lines.on("line", (line) => {
       break;
     }
     case "previewResult": previewCalls.answer(command.call, command); break;
+    case "risk": risks.get(command.request)?.(command.dangerous !== false); risks.delete(command.request); break;
     case "permission": permissions.get(command.request)?.(isAllowed(command.behavior)); permissions.delete(command.request); break;
   }
 });

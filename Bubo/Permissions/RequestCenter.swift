@@ -13,8 +13,11 @@ nonisolated struct RequestCenter: Equatable {
 
         /// Whether approving takes a 1-second press: level 4–5, or `claude` says one key must not approve it.
         var needsHold: Bool { risk.level.isDangerous || request.defaultsToNo }
-        /// Whether "Per questa Sessione" is offered: never from levels 4–5, nor when `claude` says no lasting permission.
-        var allowsSessionRule: Bool { !needsHold && !request.suppressesRule && SessionRule(request) != nil }
+        /// Whether "Per questa Sessione" is offered: never from levels 4–5, nor when `claude` says no lasting permission,
+        /// nor for a command outside the Sandbox.
+        var allowsSessionRule: Bool {
+            !needsHold && !request.suppressesRule && !request.isOutsideSandbox && SessionRule(request) != nil
+        }
         /// The rule "Sempre in questo Progetto" would save: never from levels 4–5, nor when `claude` says no lasting
         /// permission, nor when no CLI rule could be as narrow as the call.
         var projectRule: ProjectRule? { allowsSessionRule ? ProjectRule(request) : nil }
@@ -42,7 +45,8 @@ nonisolated struct RequestCenter: Equatable {
     /// Takes `request` from `session`, whose calls carry `risk`.
     mutating func receive(_ request: PermissionRequest, in session: UUID, risk: Risk, at date: Date = .now) -> Verdict {
         if risk.isCritical { return .denied }
-        if !risk.level.isDangerous, let rule = SessionRule(request), sessionRules[session]?.contains(rule) == true {
+        if !risk.level.isDangerous, !request.isOutsideSandbox, let rule = SessionRule(request),
+           sessionRules[session]?.contains(rule) == true {
             return .allowed
         }
         queues[session, default: []].append(Pending(request: request, risk: risk, since: date))

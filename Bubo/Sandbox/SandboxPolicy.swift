@@ -42,13 +42,14 @@ nonisolated struct SandboxPolicy: Equatable, Sendable {
 
     /// The Sandbox as the JSON object of `Options.sandbox`.
     ///
-    /// Until Bubo has its own gate for sandboxed commands (spec 22, step 2), every Bash still asks the user; until it
-    /// shows "Rete: host" Richieste (step 3), a host outside `allowedDomains` is denied at once.
+    /// Sandboxed commands run without asking: the bridge's gate still asks for levels 4–5 and for every command that
+    /// wants out of the Sandbox. Until Bubo shows "Rete: host" Richieste (spec 22, step 3), a host outside
+    /// `allowedDomains` is denied at once.
     var jsonObject: [String: Any] {
         [
             "enabled": true,
             "failIfUnavailable": true,
-            "autoAllowBashIfSandboxed": false,
+            "autoAllowBashIfSandboxed": true,
             "allowUnsandboxedCommands": true,
             "network": ["allowedDomains": Self.allowedDomains, "allowLocalBinding": true, "strictAllowlist": true],
             "filesystem": ["allowWrite": writablePaths],

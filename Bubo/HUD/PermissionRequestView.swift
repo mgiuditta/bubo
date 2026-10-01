@@ -4,6 +4,7 @@ import SwiftUI
 ///
 /// Levels 1–3 take one key: ↩ Solo ora, esc No. Levels 4–5 open on No and approve only with a 1-second press,
 /// with no "Per questa Sessione" nor "Sempre in questo Progetto", which first shows the rule it would save.
+/// A command that wants out of the Sandbox carries the mark "Fuori dalla Sandbox" and offers only No and Solo ora.
 struct PermissionRequestView: View {
     let pending: RequestCenter.Pending
     /// The folder of the Sessione's Progetto, where "Sempre in questo Progetto" saves its rule.
@@ -33,6 +34,13 @@ struct PermissionRequestView: View {
                         .font(Typography.mono(size: 10))
                         .foregroundStyle(Palette.textSecondary)
                 }
+            }
+            if request.isOutsideSandbox {
+                Label("Fuori dalla Sandbox", systemImage: "lock.open")
+                    .font(Typography.mono(size: 10, weight: .medium))
+                    .textCase(.uppercase)
+                    .foregroundStyle(Palette.danger)
+                    .help("Il comando gira con i tuoi permessi, senza i limiti della Sandbox. Puoi consentirlo solo per questa volta.")
             }
             Text(verbatim: request.title ?? request.tool)
                 .font(Typography.body(size: 12, weight: .semibold))
@@ -158,6 +166,13 @@ private struct HoldToAllowButton: View {
         PermissionRequestView(
             pending: .init(request: PermissionRequest(id: "2", tool: "Bash", command: "git push --force origin main"),
                            risk: Risk(level: .irreversibile), since: .now),
+            project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
+        PermissionRequestView(
+            pending: .init(request: {
+                var request = PermissionRequest(id: "3", tool: "Bash", command: "swift package resolve")
+                request.isOutsideSandbox = true
+                return request
+            }(), risk: Risk(level: .modifica), since: .now),
             project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
     }
     .frame(width: 320)

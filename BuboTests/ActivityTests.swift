@@ -17,13 +17,13 @@ struct ActivityTests {
         }
     }
 
-    static let running = #"{"v":3,"type":"state","id":"a1","state":"running"}"#
-    static let waiting = #"{"v":3,"type":"state","id":"a1","state":"requires_action"}"#
-    static let idle = #"{"v":3,"type":"state","id":"a1","state":"idle"}"#
+    static let running = #"{"v":4,"type":"state","id":"a1","state":"running"}"#
+    static let waiting = #"{"v":4,"type":"state","id":"a1","state":"requires_action"}"#
+    static let idle = #"{"v":4,"type":"state","id":"a1","state":"idle"}"#
 
     /// `/context` with Claude Code 2.1.286, as `bridge/src/activity.test.ts` records it.
     @Test func aRecordedTurnWorksThenStops() throws {
-        let sessions = try Self.replay([Self.running, #"{"v":3,"type":"summary","id":"a1","text":"Context Usage"}"#,
+        let sessions = try Self.replay([Self.running, #"{"v":4,"type":"summary","id":"a1","text":"Context Usage"}"#,
                                         Self.idle])
 
         #expect(sessions.map(\.activity) == [.lavora, .lavora, .ferma])
@@ -41,7 +41,7 @@ struct ActivityTests {
 
     /// The result comes before the subagents in the background end; only `idle`, after them, stops the Sessione.
     @Test func aSessioneWithSubagentsStillWorkingIsNeverFerma() throws {
-        let sessions = try Self.replay([Self.running, #"{"v":3,"type":"summary","id":"a1","text":"Ho lanciato 2 agenti."}"#,
+        let sessions = try Self.replay([Self.running, #"{"v":4,"type":"summary","id":"a1","text":"Ho lanciato 2 agenti."}"#,
                                         Self.running])
 
         #expect(sessions.allSatisfy { $0.activity == .lavora })
