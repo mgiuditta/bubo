@@ -53,6 +53,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Why the Progetto's setup script did not complete; the Sessione works anyway.
     var setupFailure: String?
     var phase = Phase.aperta
+    /// When Fondi merged the Sessione; `nil` until then, and once the merge is undone.
+    var mergedAt: Date?
     /// The prompt the Sessione started with; `nil` in Sessioni saved before it was kept.
     var prompt: String?
     /// Whether Bubo quit while the Sessione was in Lavora: it waits for Riprendi.
@@ -100,7 +102,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 }
 
 nonisolated extension Session {
-    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout, its fork, its summary, its
+    /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione and its conversations were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
@@ -115,6 +117,7 @@ nonisolated extension Session {
         ports = try container.decodeIfPresent(Range<Int>.self, forKey: .ports)
         setupFailure = try container.decodeIfPresent(String.self, forKey: .setupFailure)
         phase = try container.decodeIfPresent(Phase.self, forKey: .phase) ?? .aperta
+        mergedAt = try container.decodeIfPresent(Date.self, forKey: .mergedAt)
         prompt = try container.decodeIfPresent(String.self, forKey: .prompt)
         isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false

@@ -1,8 +1,8 @@
 import os
 import SwiftUI
 
-/// The Colonna Vista of the HUD: the open Sessioni grouped by Attività, Attende te first and the longest wait on top,
-/// the others newest first; then the archived ones, then the Cronologia CLI apart. One search filters them all.
+/// The Colonna Vista of the HUD: the Sessioni grouped by the Board's columns, Attende te first and the longest wait on
+/// top, the others by latest change; then the archived ones, then the Cronologia CLI apart. One search filters them all.
 struct SessionColumn: View {
     let store: SessionStore
     @Environment(HUDPresenter.self) private var hud
@@ -24,10 +24,19 @@ struct SessionColumn: View {
 
     /// The groups shown, in order, without the empty ones.
     private var groups: [(title: LocalizedStringResource, sessions: [Session])] {
-        let open = Session.grouped(sessions.filter { $0.phase == .aperta })
-            .map { (title: $0.activity.title, sessions: $0.sessions) }
-        let archived = sessions.filter { $0.phase != .aperta }
-        return archived.isEmpty ? open : open + [(title: "Archiviate", sessions: archived)]
+        Self.groups(of: sessions, at: .now).map { group in
+            (title: group.column?.title ?? "Archiviate", sessions: group.sessions)
+        }
+    }
+
+    /// `sessions` grouped by the Board's columns, in its order and without the empty ones; then, as `nil`, the ones
+    /// off the Board.
+    static func groups(of sessions: [Session], at now: Date) -> [(column: BoardColumn?, sessions: [Session])] {
+        let open: [(column: BoardColumn?, sessions: [Session])] = BoardColumn.columns(of: sessions, at: now)
+            .filter { !$0.sessions.isEmpty }
+            .map { (column: $0.column, sessions: $0.sessions) }
+        let archived = sessions.filter { BoardColumn($0, at: now) == nil }
+        return archived.isEmpty ? open : open + [(column: nil, sessions: archived)]
     }
 
     private var conversations: [CLIConversation] {
@@ -182,12 +191,16 @@ private struct CLIConversationRow: View {
 }
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
-/// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
+/// Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
 /// and the configuration
 /// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
     let session: Session
     let store: SessionStore
+    /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
+    var isOnBoard = false
+    /// The lines added and removed, read for the Board's card.
+    @State private var lineCounts: (added: Int, removed: Int)?
     /// What deleting the Sessione would lose, while its confirmation is shown.
     @State private var lostChanges: [String] = []
     @State private var isConfirmingDeletion = false
@@ -232,7 +245,7 @@ struct SessionRow: View {
                 Circle()
                     .fill(session.activity.color)
                     .frame(width: 6, height: 6)
-                    .accessibilityHidden(true)
+                    .accessibilityLabel(Text(session.activity.title))
                 Text(verbatim: session.title)
                     .font(Typography.body(size: 13, weight: .semibold))
                     .lineLimit(1)
@@ -254,8 +267,18 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
-            SessionCostTotal(total: store.ledger.total(of: session.id),
-                             lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
+            if !isOnBoard {
+                SessionCostTotal(total: store.ledger.total(of: session.id),
+                                 lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
+            } else if let lineCounts, lineCounts.added + lineCounts.removed > 0 {
+                HStack(spacing: Spacing.xSmall) {
+                    Text(verbatim: "+\(lineCounts.added)").foregroundStyle(Palette.success)
+                    Text(verbatim: "−\(lineCounts.removed)").foregroundStyle(Palette.danger)
+                }
+                .font(Typography.mono(size: 11))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("\(lineCounts.added) righe aggiunte, \(lineCounts.removed) tolte"))
+            }
             if let failure = session.failure, !isArchived {
                 Text(verbatim: failure)
                     .font(Typography.body(size: 12))
@@ -280,6 +303,11 @@ struct SessionRow: View {
         .padding(Spacing.xSmall)
         .opacity(isArchived ? 0.6 : 1)
         .accessibilityElement(children: .combine)
+        // Read again each time the Sessione changes Attività: a turn that ends has new lines.
+        .task(id: isOnBoard && canReview ? session.activitySince : nil) {
+            guard isOnBoard, canReview else { return }
+            lineCounts = await store.lineCounts(of: session.id)
+        }
         .contextMenu {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
