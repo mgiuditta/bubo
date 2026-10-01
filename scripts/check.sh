@@ -4,6 +4,8 @@ set -euo pipefail
 cd "${0:A:h}/.."
 
 derived=.build/DerivedData
+# Set etichettato del router coerente con il Catalogo e con Categoria.swift (#85).
+bun scripts/richieste-check.ts
 xcodegen generate --quiet
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Debug -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -skipPackagePluginValidation -allowProvisioningUpdates -quiet build
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Debug -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -skipPackagePluginValidation -allowProvisioningUpdates -quiet test
