@@ -1416,6 +1416,16 @@
         }
       }
     },
+    "Esegui i comandi di Claude in Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run Claude's commands in the Sandbox"
+          }
+        }
+      }
+    },
     "Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo." : {
       "localizations" : {
         "en" : {
@@ -1814,6 +1824,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Rejected blocks go back to the agent with your notes, as a new turn of the Session"
+          }
+        }
+      }
+    },
+    "I comandi di Claude girano con i tuoi permessi. Accendi la Sandbox nella configurazione del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's commands run with your permissions. Turn on the Sandbox in the Project's configuration."
+          }
+        }
+      }
+    },
+    "I comandi di Claude scrivono solo nella cartella della Sessione, nelle cartelle temporanee e nelle cache dei pacchetti, e raggiungono solo i registri dei pacchetti. Il terminale e i server non sono in Sandbox." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, and reach only the package registries. The terminal and the servers aren't in the Sandbox."
+          }
+        }
+      }
+    },
+    "I comandi di Claude scrivono solo nella cartella della Sessione, nelle cartelle temporanee e nelle cache dei pacchetti, raggiungono solo i registri dei pacchetti e non leggono ~/.ssh, ~/.aws, ~/.gnupg e ~/.netrc. Se la Sandbox non parte, la Sessione non parte. Il terminale e i server non sono in Sandbox. Vale dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, reach only the package registries, and can't read ~/.ssh, ~/.aws, ~/.gnupg or ~/.netrc. If the Sandbox can't start, neither does the Session. The terminal and the servers aren't in the Sandbox. Takes effect from the next turn."
           }
         }
       }
@@ -3574,6 +3614,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save Rule"
+          }
+        }
+      }
+    },
+    "Sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox"
+          }
+        }
+      }
+    },
+    "Sandbox accesa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox on"
+          }
+        }
+      }
+    },
+    "Sandbox accesa dal prossimo turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox on from the next turn"
+          }
+        }
+      }
+    },
+    "Sandbox non disponibile: %@. La Sessione non è partita." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox unavailable: %@. The Session didn't start."
+          }
+        }
+      }
+    },
+    "Sandbox spenta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox off"
+          }
+        }
+      }
+    },
+    "Sandbox spenta dal prossimo turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sandbox off from the next turn"
           }
         }
       }

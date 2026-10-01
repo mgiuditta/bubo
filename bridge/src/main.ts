@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, query, tool, type HookInput, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -11,6 +11,7 @@ import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
+import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { settingSources } from "./settingSources";
 import { ConversationStore } from "./store";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
@@ -18,7 +19,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -40,6 +41,7 @@ type Event =
   | { type: "error"; id?: string; message: string }
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
+  | { type: "sandboxUnavailable"; id: string; reason: string }
   | { type: "search"; id: string; query: string; project?: string }
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
@@ -148,8 +150,10 @@ function ranBash(id: string): HookCallbackMatcher {
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
 // e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
+// `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string, env: Record<string, string> = {}, resume?: string, keep?: string) {
+                   model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
+                   sandbox?: SandboxSettings) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const conversation = query({
@@ -166,6 +170,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
+      sandbox,
       ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
       canUseTool: askBubo(id),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
@@ -217,7 +222,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     // Interrotto senza un `result` valido: i token visti finora, con la cifra segnata incompleta.
     const turn = usage?.turn();
     if (turn && !turn.complete) send({ type: "usage", id, ...turn });
-    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+    const reason = sandbox ? sandboxUnavailableReason(error) : undefined;
+    if (reason) send({ type: "sandboxUnavailable", id, reason });
+    else send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {
     running.delete(id);
     for (const session of torn) await repair(session);
@@ -385,7 +392,8 @@ lines.on("line", (line) => {
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       const resume = typeof command.resume === "string" ? command.resume : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep);
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
+               sandboxSettings(command.sandbox));
       break;
     }
     case "config": {

@@ -15,6 +15,8 @@ enum AgentBridgeError: Error, Equatable {
     case limitReached(Quota.Limit)
     /// The login of `claude` is no longer valid.
     case signInRequired
+    /// The Sandbox could not start, for this reason as `claude` wrote it: nothing ran.
+    case sandboxUnavailable(reason: String)
 }
 
 /// What a conversation asks of the user while it waits.
@@ -76,13 +78,15 @@ final class AgentBridge {
     ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
     ///   - kept: The id, a UUID, to give the agent's conversation so that Bubo keeps a copy of it (ADR 0006);
     ///     `nil` writes nothing of it.
+    ///   - isSandboxed: Whether the commands of `claude` run in the Sandbox; if it cannot start, neither does the
+    ///     conversation, with `AgentBridgeError.sandboxUnavailable`.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
-             forkingFrom conversation: String? = nil, keeping kept: String? = nil,
+             forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
@@ -104,7 +108,8 @@ final class AgentBridge {
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
                                             model: model, environment: environment, resuming: conversation,
-                                            keeping: kept)
+                                            keeping: kept,
+                                            sandbox: isSandboxed ? sandbox(for: environment) : nil)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -113,6 +118,11 @@ final class AgentBridge {
             continuation.finish(throwing: error)
         }
         return answer
+    }
+
+    /// The Sandbox of a `claude` that gets the bridge's environment and `environment`.
+    private func sandbox(for environment: [String: String]) -> SandboxPolicy {
+        SandboxPolicy(environment: self.environment.merging(environment) { $1 })
     }
 
     /// The configuration `claude` loads in `directory`: CLAUDE.md, skills, plugins and MCP servers, as it reports them.
@@ -265,6 +275,8 @@ final class AgentBridge {
             removeAnswer(id)?.finish(throwing: AgentBridgeError.limitReached(limit))
         case let .signInRequired(id):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
+        case let .sandboxUnavailable(id, reason):
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.sandboxUnavailable(reason: reason))
         case let .search(id, query, project):
             Task {
                 let text = await search(query, project)
