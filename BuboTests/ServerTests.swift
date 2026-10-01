@@ -95,6 +95,14 @@ struct ServerTests {
         #expect(!CommandMarks.hintsAtServer(ArraySlice(Array("compiled 12 files\n".utf8))))
     }
 
+    @Test func aServerGetsTheSessionePortUnlessItMustKeepItsOwn() {
+        let ports = ["PORT": "47100", "BUBO_PORT": "47100"]
+        let shared = LaunchConfig(name: "web", env: ["PORT": "3000", "DEBUG": "1"], port: 3_000)
+        let fixed = LaunchConfig(name: "oauth", env: ["DEBUG": "1"], port: 3_000, autoPort: false)
+        #expect(shared.environment(over: ports) == ["PORT": "47100", "BUBO_PORT": "47100", "DEBUG": "1"])
+        #expect(fixed.environment(over: ports) == ["PORT": "3000", "BUBO_PORT": "47100", "DEBUG": "1"])
+    }
+
     @Test func launchJSONGivesTheCommandAndItsFolder() throws {
         let folder = root.appending(path: "a")
         try FileManager.default.createDirectory(at: folder.appending(path: ".claude"), withIntermediateDirectories: true)

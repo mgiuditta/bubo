@@ -64,6 +64,8 @@ final class SessionStore {
         }
         servers.owners = { [weak self] in ServerAttribution.Owner.of(self?.sessions ?? []) }
         terminals.onServerHint = { [weak self] in self?.servers.notice() }
+        // A server already listening when Bubo starts has no event of its own.
+        if !ServerAttribution.Owner.of(sessions).isEmpty { servers.notice() }
     }
 
     /// The tokens and the figure of every turn of the Sessioni.
@@ -164,6 +166,8 @@ final class SessionStore {
             save()
         }
         followActivity()
+        // On the checkout a server may already listen, with no event of its own.
+        if onCheckout { servers.notice() }
         Task { await run(session.id, prompt: prompt, branch: branch) }
     }
 

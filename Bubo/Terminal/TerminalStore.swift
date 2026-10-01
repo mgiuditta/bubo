@@ -73,22 +73,23 @@ final class TerminalStore {
     func launch(_ server: LaunchConfig, in session: Session) {
         guard let folder = session.terminalFolder, let command = server.commandLine else { return }
         self.session = session
-        if let tab = openTab(of: session, in: server.folder(in: folder), adding: server.env ?? [:]) {
+        if let tab = openTab(of: session, in: server.folder(in: folder),
+                              adding: server.environment(over: session.portEnvironment)) {
             // The shell reads it once it is ready, as if typed: the scheda stays when the server stops.
             tab.pty.write(ArraySlice(Array((command + "\r").utf8)))
+            onServerHint()
         }
         isShown = !tabs(of: session.id).isEmpty || failure != nil
         updateWindow()
     }
 
-    /// Opens a scheda of `session` in `folder`, with `variables` over the Sessione's environment but never over its
-    /// ports, and brings it to the front; `nil` when its shell does not start.
+    /// Opens a scheda of `session` in `folder`, with `variables` over the Sessione's environment, and brings it to the
+    /// front; `nil` when its shell does not start.
     @discardableResult
     private func openTab(of session: Session, in folder: URL, adding variables: [String: String] = [:]) -> TerminalTab? {
         do {
             let environment = ChildEnvironment.makeForTerminal(of: session)
                 .merging(variables) { $1 }
-                .merging(session.portEnvironment) { $1 }
             let tab = try TerminalTab(folder: folder, environment: environment, shell: shell.executable,
                                       arguments: shell.arguments) { [weak self] in
                 self?.onServerHint()

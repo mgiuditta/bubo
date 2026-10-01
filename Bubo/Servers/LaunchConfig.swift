@@ -1,7 +1,7 @@
 import Foundation
 
 /// A server of `.claude/launch.json`, the format of Claude desktop that Bubo reads instead of having its own
-/// (spec 15). The `port` and `autoPort` fields are not read: the server gets the Sessione's `PORT`.
+/// (spec 15). The server gets the Sessione's `PORT`, unless it must keep its own `port` (`autoPort: false`).
 nonisolated struct LaunchConfig: Decodable, Equatable, Sendable {
     let name: String
     var runtimeExecutable: String?
@@ -12,6 +12,9 @@ nonisolated struct LaunchConfig: Decodable, Equatable, Sendable {
     /// The folder to run in, relative to the Sessione's; `${workspaceFolder}` is the Sessione's.
     var cwd: String?
     var env: [String: String]?
+    /// The port the server listens on; with `autoPort: false` it keeps it, as for an OAuth callback.
+    var port: Int?
+    var autoPort: Bool?
 
     private struct File: Decodable {
         let configurations: [LaunchConfig]
@@ -39,6 +42,14 @@ nonisolated struct LaunchConfig: Decodable, Equatable, Sendable {
             return nil
         }
         return words.map(Self.quoted).joined(separator: " ")
+    }
+
+    /// The variables the server starts with: its `env`, then the Sessione's `ports`, then its own `port` when it
+    /// cannot take another.
+    func environment(over ports: [String: String]) -> [String: String] {
+        var environment = (env ?? [:]).merging(ports) { $1 }
+        if autoPort == false, let port { environment["PORT"] = String(port) }
+        return environment
     }
 
     /// The folder to run in, inside `folder`, the Sessione's.

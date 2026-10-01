@@ -149,9 +149,9 @@ Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#140](https://gith
 
 ### Server e porte (deciso)
 
-- **Rilevamento sempre attivo, a eventi**: URL `localhost` nell'output del terminale, OSC 133 (inizio e fine comando), `PostToolUse` di Bash dal ponte. Dopo ogni evento qualche scansione ravvicinata con `libproc`; a riposo nessuna. Mai `lsof` né `ps`.
+- **Rilevamento sempre attivo, a eventi**: URL `localhost` nell'output del terminale, Invio digitato nel terminale, OSC 133 (inizio e fine comando, quando la shell lo emette: zsh e bash solo con un'integrazione che arriva con #167), fine di un Bash dell'agente dal ponte (`PostToolUse` o `PostToolUseFailure`), uscita di un server già trovato, avvio di Bubo e di una Sessione sul checkout. Dopo ogni evento qualche scansione ravvicinata con `libproc`; a riposo nessuna. Mai `lsof` né `ps`.
 - **Attribuzione**: un socket in ascolto è della Sessione se la `cwd` del processo sta nel suo worktree, oppure se la porta è una delle sue 10. Docker e tunnel `ssh` compaiono solo nel secondo caso. IPv4 e IPv6 letti entrambi.
-- **"Avvia server"**: se esiste `.claude/launch.json`, un pulsante lancia il comando in una scheda del terminale con la `PORT` della Sessione. Bubo non ha un suo formato di configurazione.
+- **"Avvia server"**: se esiste `.claude/launch.json`, un pulsante lancia il comando in una scheda del terminale con la `PORT` della Sessione; con `autoPort: false` (porta fissa, per esempio per un callback OAuth) `PORT` è la `port` del file. Bubo non ha un suo formato di configurazione.
 - **Etichetta**: quando la porta viene trovata compare solo `localhost:NNNN` sulla Sessione e nella Board (17). L'Anteprima si apre con un clic sull'etichetta o con ⌘⇧P, mai da sola. Quando l'agente usa l'Anteprima, l'etichetta mostra "l'agente usa l'anteprima".
 - **Server che torna in ascolto** dopo un riavvio: l'Anteprima aperta si ricarica.
 
@@ -212,7 +212,7 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 ### Casi limite
 
 - **Sessione senza server**: niente etichetta e niente strumenti MCP; ⌘⇧P non fa nulla.
-- **Due Sessioni con lo stesso dev server**: porte diverse da `PORT`, cookie diversi, nessun conflitto.
+- **Due Sessioni con lo stesso dev server**: porte diverse da `PORT`, cookie diversi, nessun conflitto. Se il server ignora `PORT` (Vite) la seconda prende la porta libera successiva e resta attribuita per `cwd`.
 - **Server staccato o lanciato dall'agente in background**: attribuito dalla `cwd`, non dall'albero dei processi.
 - **Docker, tunnel `ssh`, server fuori dal worktree**: solo se ascoltano nelle porte della Sessione.
 - **Server che si riavvia**: etichetta tenuta, Anteprima ricaricata al ritorno dell'ascolto.

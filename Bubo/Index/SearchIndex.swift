@@ -21,7 +21,11 @@ actor SearchIndex {
     /// Opens the Indice at `database`, copying the memory found under `root`, the `~/.claude` folder.
     init(database: URL, root: URL) throws {
         // FSEvents reports real paths: `~/.claude` may be a link, and `resolvingSymlinksInPath` keeps `/var` for `/private/var`.
-        self.root = realpath(root.path, nil).map { defer { free($0) }; return String(cString: $0) } ?? root.path
+        // A named argument: Xcode 26.6 rejects `$0` inside `defer`.
+        self.root = realpath(root.path, nil).map { resolved in
+            defer { free(resolved) }
+            return String(cString: resolved)
+        } ?? root.path
         try FileManager.default.createDirectory(at: database.deletingLastPathComponent(), withIntermediateDirectories: true,
                                                 attributes: [.posixPermissions: 0o700])
         var connection: OpaquePointer?

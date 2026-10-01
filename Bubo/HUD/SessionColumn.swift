@@ -300,10 +300,12 @@ struct SessionRow: View {
                 Text(verbatim: "localhost:\(String(server.port))")
                     .font(Typography.mono(size: 11))
                     .foregroundStyle(Palette.textPrimary)
+                    .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
             } else if !isArchived, session.terminalFolder != nil, let server = launchServers.first {
                 if launchServers.count == 1 {
                     Button("Avvia server") { launch(server) }
                         .controlSize(.small)
+                        .help(Text(verbatim: server.commandLine ?? ""))
                 } else {
                     Menu("Avvia server") {
                         ForEach(launchServers, id: \.name) { server in

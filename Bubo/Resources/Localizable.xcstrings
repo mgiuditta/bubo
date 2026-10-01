@@ -3184,6 +3184,16 @@
         }
       }
     },
+    "Server in ascolto su localhost:%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server listening on localhost:%@"
+          }
+        }
+      }
+    },
     "Sessioni" : {
       "localizations" : {
         "en" : {
