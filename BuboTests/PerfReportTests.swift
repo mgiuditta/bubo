@@ -39,8 +39,10 @@ struct BudgetReportTests {
     @Test func aLaunchOf1200MillisecondsBlocksThePullRequest() {
         let report = BudgetReport(measurements: [PerfMeasurement(.warmLaunch, value: 1200, from: "test")])
 
+        // The report formats numbers in the current locale: 1,200 or 1.200.
+        let value = 1200.0.formatted(.number.precision(.fractionLength(0...2)))
         #expect(report.blocksPullRequest)
-        #expect(report.workflowAnnotations.contains("::error title=Prestazioni::Avvio caldo, p95: 1200 ms, budget ≤ 500 ms, blocca la PR"))
+        #expect(report.workflowAnnotations.contains("::error title=Prestazioni::Avvio caldo, p95: \(value) ms, budget ≤ 500 ms, blocca la PR"))
     }
 
     @Test func aLaunchOf600MillisecondsPassesWithAWarning() {
