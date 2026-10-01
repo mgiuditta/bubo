@@ -944,6 +944,16 @@
         }
       }
     },
+    "Cambia cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Folder…"
+          }
+        }
+      }
+    },
     "Cambia…" : {
       "localizations" : {
         "en" : {
@@ -970,6 +980,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete…"
+          }
+        }
+      }
+    },
+    "Cartella" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folder"
           }
         }
       }
@@ -1150,6 +1170,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code not found: install the claude CLI."
+          }
+        }
+      }
+    },
+    "Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude reads your notes only when it searches them: nothing enters the conversation on its own. Obsidian can stay closed."
           }
         }
       }
@@ -3630,6 +3660,26 @@
         }
       }
     },
+    "Non trovo la cartella: le ricerche usano l'ultima copia delle note." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't find the folder: searches use the last copy of your notes."
+          }
+        }
+      }
+    },
+    "Non usare più" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Using"
+          }
+        }
+      }
+    },
     "Non è un file di testo." : {
       "localizations" : {
         "en" : {
@@ -4572,6 +4622,16 @@
         }
       }
     },
+    "Scegli una cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Folder…"
+          }
+        }
+      }
+    },
     "Scorciatoie" : {
       "localizations" : {
         "en" : {
@@ -4618,6 +4678,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "If you trust it, Claude uses the repo's settings, which can run commands on your Mac."
+          }
+        }
+      }
+    },
+    "Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second Brain"
           }
         }
       }
@@ -5124,6 +5194,26 @@
         }
       }
     },
+    "Usa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use"
+          }
+        }
+      }
+    },
+    "Usa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use %@"
+          }
+        }
+      }
+    },
     "Usa la API key" : {
       "localizations" : {
         "en" : {
@@ -5210,6 +5300,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Variant"
+          }
+        }
+      }
+    },
+    "Vault di Obsidian" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsidian vault"
           }
         }
       }

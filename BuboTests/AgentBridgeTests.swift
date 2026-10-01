@@ -7,7 +7,9 @@ struct AgentBridgeTests {
     /// A bridge played by `/bin/sh`: `script` reads commands from standard input and writes events.
     static func bridge(_ script: String) -> AgentBridge {
         AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
-                    environment: ["PATH": "/usr/bin:/bin"]) { query, project in "\(query) in \(project ?? "tutto")" }
+                    environment: ["PATH": "/usr/bin:/bin"]) { query, project, source in
+            "\(query) in \(project ?? "tutto")\(source.map { " (\($0.rawValue))" } ?? "")"
+        }
     }
 
     /// Reads the id of the first command, then runs `events` with `$id` set.
@@ -34,7 +36,7 @@ struct AgentBridgeTests {
     @Test func aSearchIsAnsweredOnTheBridgesInput() async throws {
         // The answer to the search comes back as the conversation's text, so the test can read it.
         let bridge = Self.bridge(Self.answering(#"""
-            echo '{"v":3,"type":"search","id":"s1","query":"notarizzazione","project":"/p"}'
+            echo '{"v":3,"type":"search","id":"s1","query":"notarizzazione","project":"/p","source":"memoria"}'
             read found
             text=$(echo "$found" | sed 's/.*"text":"\([^"]*\)".*/\1/')
             echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$text\"}"
@@ -42,7 +44,7 @@ struct AgentBridgeTests {
             read _
             """#))
         let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
-        #expect(answer == "notarizzazione in /p")
+        #expect(answer == "notarizzazione in /p (memoria)")
     }
 
     @Test func theAnteprimasCallsReachTheirAnswersDriverAndGoBack() async throws {
@@ -134,7 +136,7 @@ struct AgentBridgeTests {
             echo "$command" | grep -q '"type":"quota"' \
                 && echo '{"v":3,"type":"quota","fiveHour":{"used":0.19,"resetsAt":1790852400}}'
             read _
-            """#], environment: ["PATH": "/usr/bin:/bin"], quota: { reported.yield($0) }) { _, _ in "" }
+            """#], environment: ["PATH": "/usr/bin:/bin"], quota: { reported.yield($0) }) { _, _, _ in "" }
         try bridge.readQuota()
         var iterator = reports.makeAsyncIterator()
         let quota = await iterator.next()
@@ -217,7 +219,7 @@ struct AgentBridgeTests {
     }
 
     @Test func aMissingExecutableFailsToSpawn() async {
-        let bridge = AgentBridge(executable: URL(filePath: "/nonexistent/bubo-agent"), environment: [:]) { _, _ in "" }
+        let bridge = AgentBridge(executable: URL(filePath: "/nonexistent/bubo-agent"), environment: [:]) { _, _, _ in "" }
         await #expect(throws: AgentBridgeError.spawnFailed(errno: ENOENT)) {
             try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
         }

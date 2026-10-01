@@ -125,16 +125,18 @@ function buboTools() {
     name: "bubo",
     tools: [tool(
       "cerca",
-      "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti e il CLAUDE.md dell'utente. Restituisce i frammenti con il percorso del file.",
+      "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente e il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian). Le note non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file.",
       {
         testo: z.string().describe("Le parole da cercare"),
         progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
+        fonte: z.enum(["memoria", "secondo-cervello"]).optional()
+          .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md) o \"secondo-cervello\" (le note dell'utente); senza, ovunque"),
       },
-      async ({ testo, progetto }) => {
+      async ({ testo, progetto, fonte }) => {
         const id = randomUUID();
         const text = await new Promise<string>((resolve) => {
           searches.set(id, resolve);
-          send({ type: "search", id, query: testo, project: progetto });
+          send({ type: "search", id, query: testo, project: progetto, source: fonte });
         });
         return { content: [{ type: "text", text }] };
       },

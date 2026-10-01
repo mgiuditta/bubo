@@ -122,8 +122,9 @@ enum BridgeEvent: Equatable, Decodable {
     case signInRequired(id: String)
     /// The conversation `id` did not start: its Sandbox could not, for `reason`, as `claude` wrote it.
     case sandboxUnavailable(id: String, reason: String)
-    /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
-    case search(id: String, query: String, project: String?)
+    /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` and only in `source`
+    /// when given.
+    case search(id: String, query: String, project: String?, source: SearchSource? = nil)
     /// The conversation `id` called a tool of the Anteprima: do `action`, `nil` for a tool Bubo does not know, and
     /// answer `call`.
     case previewCall(id: String, call: String, PreviewAction?)
@@ -149,8 +150,8 @@ enum BridgeEvent: Equatable, Decodable {
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages,
-             request, file, lines, count, reason, call, tool, selector, url, filter, code, y
+        case v, type, id, text, state, message, query, project, source, fiveHour, sevenDay, window, resetsAt, conversations,
+             messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y
     }
 
     init(from decoder: any Decoder) throws {
@@ -184,7 +185,10 @@ enum BridgeEvent: Equatable, Decodable {
                                                               reason: try container.decode(String.self, forKey: .reason))
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
-                                      project: try container.decodeIfPresent(String.self, forKey: .project))
+                                      project: try container.decodeIfPresent(String.self, forKey: .project),
+                                      // A source Bubo does not know searches everywhere.
+                                      source: try container.decodeIfPresent(String.self, forKey: .source)
+                                          .flatMap(SearchSource.init(rawValue:)))
         case "previewCall":
             self = .previewCall(id: try container.decode(String.self, forKey: .id),
                                 call: try container.decode(String.self, forKey: .call),

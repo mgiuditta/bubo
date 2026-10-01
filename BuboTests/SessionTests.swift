@@ -156,7 +156,7 @@ struct SessionTests {
             done
             """#
         return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
-                           environment: ["PATH": "/usr/bin:/bin"]) { _, _ in "" }
+                           environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
     }
 
     /// Waits up to 5 s for `condition`.

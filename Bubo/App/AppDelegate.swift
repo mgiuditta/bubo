@@ -17,6 +17,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }()
+    /// The folder of notes the Indice follows, chosen in the settings.
+    private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
     /// The Domanda of the HUD, answered through the agent bridge.
     private(set) lazy var questions = QuestionModel(index: searchIndex)
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
@@ -49,6 +51,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DockIcon.apply(isVisible: UserDefaults.standard.bool(forKey: DockIcon.defaultsKey))
         _ = hotKeys
         Task(priority: .utility) { [searchIndex] in await searchIndex?.keepFresh() }
+        secondBrain.start()
         // The copy of the Cronologia CLI waits for the launch to settle: it starts the bridge.
         Task(priority: .utility) { [weak self] in
             try? await Task.sleep(for: .seconds(60))
