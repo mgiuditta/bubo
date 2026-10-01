@@ -1,6 +1,6 @@
 # Smoke notturno del ponte contro il claude dell'utente (spec 27, #226): l'ultima dell'installer nativo
 # e la minima di bridge/compat.json da npm. Se fallisce apre un'issue needs-triage, una sola per versione.
-# Segreto (#220): ANTHROPIC_API_KEY per i turni con Haiku.
+# Segreto (#220): ANTHROPIC_API_KEY_CI per i turni con Haiku.
 name: Smoke notturno di claude
 
 on:
@@ -74,7 +74,7 @@ jobs:
         if: steps.pick.outputs.run == 'true'
         working-directory: bridge
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_CI }}
           BUBO_CLAUDE_PATH: ${{ steps.claude.outputs.path }}
           SMOKE_MINIMUM: ${{ inputs.minimum }}
         run: |
