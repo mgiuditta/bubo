@@ -34,11 +34,12 @@ enum Signposts {
 
     /// Emits `HUD interattivo` the first time it is called, and never again.
     ///
-    /// The end of launch: later HUD appearances are not launches.
+    /// The end of launch: later HUD appearances are not launches. MetricKit ends its extended launch here too.
     static func markHUDInteractive() {
         guard !hasMarkedHUDInteractive else { return }
         hasMarkedHUDInteractive = true
         emit(.hudInteractive)
+        MetricsCollector.shared.finishLaunch()
     }
 }
 
