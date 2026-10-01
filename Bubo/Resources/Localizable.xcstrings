@@ -104,6 +104,16 @@
         }
       }
     },
+    "Azioni consentite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed actions"
+          }
+        }
+      }
+    },
     "BUBO" : {
       "localizations" : {
         "en" : {
@@ -160,6 +170,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo uses the claude CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Cartelle aggiuntive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Additional folders"
           }
         }
       }
@@ -274,6 +294,16 @@
         }
       }
     },
+    "Controlla ~/.claude.json, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check ~/.claude.json, then try again."
+          }
+        }
+      }
+    },
     "Controllo l'account…" : {
       "localizations" : {
         "en" : {
@@ -384,6 +414,16 @@
         }
       }
     },
+    "Fidati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trust"
+          }
+        }
+      }
+    },
     "Fornitore" : {
       "localizations" : {
         "en" : {
@@ -444,6 +484,16 @@
         }
       }
     },
+    "Hook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks"
+          }
+        }
+      }
+    },
     "Il Portachiavi è bloccato: sblocca il Mac e riprova." : {
       "localizations" : {
         "en" : {
@@ -470,6 +520,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The connection to Claude stopped"
+          }
+        }
+      }
+    },
+    "Il repo non attiva nulla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The repo doesn't turn anything on."
           }
         }
       }
@@ -624,6 +684,16 @@
         }
       }
     },
+    "Non ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Now"
+          }
+        }
+      }
+    },
     "Non riesco a cambiare l'apertura al login: %@" : {
       "localizations" : {
         "en" : {
@@ -640,6 +710,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't register %@."
+          }
+        }
+      }
+    },
+    "Non riesco a salvare la fiducia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't save the trust"
           }
         }
       }
@@ -824,6 +904,16 @@
         }
       }
     },
+    "Se ti fidi, Claude usa le impostazioni del repo, che possono eseguire comandi sul tuo Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you trust it, Claude uses the repo's settings, which can run commands on your Mac."
+          }
+        }
+      }
+    },
     "Sei offline." : {
       "localizations" : {
         "en" : {
@@ -834,12 +924,32 @@
         }
       }
     },
+    "Server MCP" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MCP servers"
+          }
+        }
+      }
+    },
     "Stato" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "State"
+          }
+        }
+      }
+    },
+    "Ti fidi di questa cartella?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you trust this folder?"
           }
         }
       }
@@ -860,6 +970,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use an API Key…"
+          }
+        }
+      }
+    },
+    "Variabili d'ambiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Environment variables"
           }
         }
       }
@@ -890,6 +1010,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign out of your Claude account?"
+          }
+        }
+      }
+    },
+    "apiKeyHelper" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apiKeyHelper"
           }
         }
       }

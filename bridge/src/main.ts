@@ -1,14 +1,15 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
-import { createSdkMcpServer, query, tool, type Query } from "@anthropic-ai/claude-agent-sdk";
+import { createSdkMcpServer, query, tool, type Query, type SettingSource } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
+import { settingSources } from "./settingSources";
 
 const version = 2;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string };
 
@@ -25,7 +26,8 @@ function send(event: Event) {
 
 // Swift ha già costruito l'ambiente da zero: il ponte lo passa a `claude` così com'è,
 // meno le proprie variabili, e con la memoria automatica spenta nelle Domande.
-const { BUBO_CLAUDE_PATH: claudePath, ...inherited } = process.env;
+// CLAUDE_CODE_SANDBOXED farebbe passare per fidata qualunque cartella (#266): mai al figlio.
+const { BUBO_CLAUDE_PATH: claudePath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inherited } = process.env;
 const childEnv = { ...inherited, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
 
 const running = new Map<string, Query>();
@@ -56,15 +58,14 @@ function buboTools() {
   });
 }
 
-async function ask(id: string, prompt: string, cwd: string) {
+async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[]) {
   const conversation = query({
     prompt,
     options: {
       cwd,
       env: childEnv,
       pathToClaudeCodeExecutable: claudePath,
-      // Finché non c'è la fiducia per cartella (#266), mai hook, env o MCP del repo.
-      settingSources: ["user"],
+      settingSources: sources,
       mcpServers: { bubo: buboTools() },
       allowedTools: ["mcp__bubo__cerca"],
       includePartialMessages: true,
@@ -108,7 +109,7 @@ lines.on("line", (line) => {
     return;
   }
   switch (command.type) {
-    case "ask": void ask(command.id, command.prompt, command.cwd); break;
+    case "ask": void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources)); break;
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
   }

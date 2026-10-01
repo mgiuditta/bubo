@@ -10,8 +10,8 @@ enum BridgeProtocol {
 
 /// A command Bubo writes to the bridge, one JSON object per line.
 enum BridgeCommand: Equatable {
-    /// Starts a conversation with `claude` in `directory`, answering `prompt`.
-    case ask(id: String, prompt: String, directory: URL)
+    /// Starts a conversation with `claude` in `directory`, answering `prompt`, loading only `settingSources`.
+    case ask(id: String, prompt: String, directory: URL, settingSources: [String])
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -19,16 +19,15 @@ enum BridgeCommand: Equatable {
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
-        var fields: [String: String] = [:]
+        var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory):
-            fields = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path]
+        case let .ask(id, prompt, directory, settingSources):
+            object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
         case let .cancel(id):
-            fields = ["type": "cancel", "id": id]
+            object = ["type": "cancel", "id": id]
         case let .found(id, text):
-            fields = ["type": "found", "id": id, "text": text]
+            object = ["type": "found", "id": id, "text": text]
         }
-        var object: [String: Any] = fields
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
         data.append(0x0A)
