@@ -19,10 +19,11 @@ nonisolated final class LaunchPerfTests: XCTestCase {
     @MainActor func testWarmLaunch() throws {
         let options = XCTMeasureOptions()
         options.iterationCount = PerfBudgets.launchIterations
+        // A new instance at each iteration: relaunching one instance leaves some iterations without a launch metric.
         measure(metrics: [RecordingMetric(XCTApplicationLaunchMetric(waitUntilResponsive: true))], options: options) {
-            XCUIApplication().launch()
+            XCUIApplication.bubo().launch()
         }
-        XCUIApplication().terminate()
+        XCUIApplication.bubo().terminate()
 
         let seconds = Array(RecordedMeasurements.values(for: Self.launchIdentifier).suffix(PerfBudgets.launchIterations))
         XCTAssertEqual(seconds.count, PerfBudgets.launchIterations)
@@ -32,7 +33,7 @@ nonisolated final class LaunchPerfTests: XCTestCase {
     }
 
     @MainActor func testMemoryAtRest() throws {
-        let app = XCUIApplication()
+        let app = XCUIApplication.bubo()
         let options = XCTMeasureOptions()
         options.iterationCount = 1
         measure(metrics: [RecordingMetric(XCTMemoryMetric(application: app))], options: options) {
@@ -50,7 +51,7 @@ nonisolated final class LaunchPerfTests: XCTestCase {
     }
 
     @MainActor func testNoClaudeAfterLaunch() throws {
-        let app = XCUIApplication()
+        let app = XCUIApplication.bubo()
         app.launch()
         defer { app.terminate() }
         Thread.sleep(forTimeInterval: PerfBudgets.settleAfterLaunch)

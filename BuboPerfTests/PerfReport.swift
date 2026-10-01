@@ -25,11 +25,14 @@ extension XCTestCase {
         attach(PerfMeasurement(id, value: value, from: source))
     }
 
-    /// Skips the test on a Mac without Metal, such as a CI runner, leaving `id` in the report as not measured.
+    /// Skips the test on a Mac without a usable Metal device, leaving `id` in the report as not measured.
     ///
-    /// - Throws: `XCTSkip` with `reason` when there is no Metal device.
+    /// The paravirtual GPU of a virtual machine, such as GitHub's macOS runners, counts as none:
+    /// there the Orb's transparent Panel blacks out the screen instead of drawing.
+    ///
+    /// - Throws: `XCTSkip` with `reason` when there is no usable Metal device.
     @MainActor func skipWithoutMetal(reportedAs id: BudgetID, because reason: String) throws {
-        guard MTLCreateSystemDefaultDevice() == nil else { return }
+        if let device = MTLCreateSystemDefaultDevice(), !device.name.localizedStandardContains("Paravirtual") { return }
         attach(PerfMeasurement(skipping: id, because: reason))
         throw XCTSkip(reason)
     }

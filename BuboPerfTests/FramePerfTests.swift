@@ -12,7 +12,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     }
 
     @MainActor func testOrbGPUTime() throws {
-        try skipWithoutMetal(reportedAs: .orbGPUTime, because: "Nessun Metal: tempo GPU dell'Orb non misurato.")
+        try skipWithoutMetal(reportedAs: .orbGPUTime, because: "Nessun Metal utilizzabile (assente o paravirtuale): tempo GPU dell'Orb non misurato.")
         // `scripts/perf.sh` reads the Orb's frames from the Metal HUD's log too, so it asks for that log.
         let logsMetalHUD = ProcessInfo.processInfo.environment["BUBO_METAL_HUD"] == "1"
         let (app, log) = launchShowingPanel(environment: logsMetalHUD ? Self.metalHUDLogging : [:])
@@ -28,7 +28,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     }
 
     @MainActor func testCoveredPanelDrawsNoFrames() throws {
-        try skipWithoutMetal(reportedAs: .framesWhileCovered, because: "Nessun Metal: fotogrammi del Panel non contati.")
+        try skipWithoutMetal(reportedAs: .framesWhileCovered, because: "Nessun Metal utilizzabile (assente o paravirtuale): fotogrammi del Panel non contati.")
         let (app, log) = launchShowingPanel()
         defer { app.terminate() }
         RunLoop.current.run(until: .now + 1)
@@ -56,8 +56,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     }
 
     @MainActor func testHUDAnimationHitches() throws {
-        let app = XCUIApplication()
-        app.launchArguments = ["-showsPanel", "NO"]
+        let app = XCUIApplication.bubo(["-showsPanel", "NO"])
         app.launch()
         defer { app.terminate() }
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
@@ -81,8 +80,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     /// The Progetto must be trusted, or the trust dialog comes before the Sessione opens.
     @MainActor func testOpeningASessionHasNoHang() throws {
         try XCTSkipUnless(ProcessInfo.processInfo.environment["BUBO_LIVE"] == "1", "Solo con BUBO_LIVE=1")
-        let app = XCUIApplication()
-        app.launchArguments = ["-showsPanel", "NO"]
+        let app = XCUIApplication.bubo(["-showsPanel", "NO"])
         app.launch()
         defer { app.terminate() }
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
@@ -123,8 +121,7 @@ nonisolated final class FramePerfTests: XCTestCase {
     /// - Parameter environment: Variables added to Bubo's environment.
     @MainActor private func launchShowingPanel(environment: [String: String] = [:]) -> (app: XCUIApplication, log: URL) {
         let log = URL.temporaryDirectory.appending(path: "orb-frames-\(UUID().uuidString).log")
-        let app = XCUIApplication()
-        app.launchArguments = ["-showsPanel", "YES", "-orbFrameLog", log.path]
+        let app = XCUIApplication.bubo(["-showsPanel", "YES", "-orbFrameLog", log.path])
         app.launchEnvironment.merge(environment) { _, new in new }
         app.launch()
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
