@@ -12,6 +12,9 @@ final class HUDPresenter {
     /// no environment of its own.
     @ObservationIgnored var openWindow: OpenWindowAction?
 
+    /// Called each time something brings the HUD to the front; not when it appears at launch.
+    @ObservationIgnored var didShow: (() -> Void)?
+
     /// Whether the HUD shows the new Sessione sheet.
     var isCreatingSession = false
 
@@ -86,6 +89,7 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front, creating it if it was closed.
     func show() {
+        didShow?()
         NSApp.activate()
         if let window = hudWindow {
             window.makeKeyAndOrderFront(nil)

@@ -47,6 +47,8 @@ enum Signposts {
 enum Signpost {
     /// The HUD has drawn and the main thread accepts input: launch is over.
     case hudInteractive
+    /// Interval: `LaunchSequence` starting the work deferred until `hudInteractive`.
+    case deferredLaunch
     /// Interval: finding `claude` and reading its version and login, after `hudInteractive`.
     case claudeDetection
     /// Interval: listing the Cronologia CLI through the bridge.
@@ -66,6 +68,7 @@ enum Signpost {
     var name: StaticString {
         switch self {
         case .hudInteractive: "HUD interattivo"
+        case .deferredLaunch: "Avvio differito"
         case .claudeDetection: "Rilevamento claude"
         case .cliHistory: "Cronologia CLI"
         case .vistaSwitch: "Cambio vista"

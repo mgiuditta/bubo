@@ -54,6 +54,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     } viewer: { [weak self] in
         self?.sessions?.viewer
     }
+    /// What starts once the HUD is interactive: the only place for work after launch.
+    private(set) lazy var launch = makeLaunchSequence()
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
@@ -69,6 +71,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 
+    private func makeLaunchSequence() -> LaunchSequence {
+        LaunchSequence { [questions] in
+            await questions.startBridge()
+        } isOnboarding: { [weak self] in
+            self?.onboarding.isCompleted == false
+        } detectClaude: { [weak self] in
+            await self?.onboarding.detectClaude()
+        } keepIndexFresh: { [searchIndex, secondBrain] in
+            secondBrain.start()
+            await searchIndex?.keepFresh()
+        } subscribeToMetrics: {
+            MetricsCollector.shared.subscribe()
+        } keepCLIHistoryFresh: { [weak self] in
+            await self?.sessions?.keepCLIHistoryFresh()
+        }
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Before the first frame, or MetricKit refuses to extend the launch.
         MetricsCollector.shared.extendLaunch()
@@ -82,12 +101,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = hotKeys
         // Before any turn can start, so the first token reaches it.
         _ = onboarding
-        Task(priority: .utility) { [searchIndex] in await searchIndex?.keepFresh() }
-        secondBrain.start()
-        // The copy of the Cronologia CLI waits for the launch to settle: it starts the bridge.
-        Task(priority: .utility) { [weak self] in
-            try? await Task.sleep(for: .seconds(60))
-            await self?.sessions?.keepCLIHistoryFresh()
+        // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
+        hud.didShow = { [weak self] in
+            Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
         let menu = NSHostingMenu(rootView: MenuBarContent()

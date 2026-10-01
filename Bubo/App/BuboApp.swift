@@ -9,7 +9,7 @@ struct BuboApp: App {
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
             HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions,
-                    onboarding: appDelegate.onboarding)
+                    onboarding: appDelegate.onboarding, launch: appDelegate.launch)
                 .environment(appDelegate.hud)
         }
         .commands {
