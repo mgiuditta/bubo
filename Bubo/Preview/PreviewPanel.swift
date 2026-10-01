@@ -75,6 +75,13 @@ private struct PreviewPageView: View {
                     .textSelection(.enabled)
             }
             Spacer(minLength: Spacing.xSmall)
+            if preview.isDrivenByAgent {
+                // What the agent does happens in this same page, in plain sight.
+                Text("L'agente usa l'anteprima")
+                    .font(Typography.body(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+            }
             Picker("Larghezza", selection: $preview.width) {
                 ForEach(PreviewWidth.allCases) { width in
                     Label {

@@ -10,6 +10,7 @@ import { edits, progress, type Edit, type Progress } from "./activity";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { settingSources } from "./settingSources";
@@ -19,7 +20,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -29,7 +30,9 @@ type Command =
   | { v: number; type: "keep"; id: string }
   | { v: number; type: "forget"; conversations?: unknown }
   | { v: number; type: "forgetHistory"; id: string }
-  | { v: number; type: "permission"; request: string; behavior?: unknown };
+  | { v: number; type: "permission"; request: string; behavior?: unknown }
+  | { v: number; type: "previewServer"; id: string; available?: unknown }
+  | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -43,6 +46,7 @@ type Event =
   | { type: "signInRequired"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
   | { type: "search"; id: string; query: string; project?: string }
+  | (PreviewCall & { id: string })
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
@@ -138,6 +142,9 @@ function buboTools() {
   });
 }
 
+// Le chiamate agli strumenti dell'Anteprima, in attesa di `PreviewDriver`.
+const previewCalls = new PreviewCalls((id, call) => send({ ...call, id }));
+
 // L'hook che dice a Bubo della fine di un Bash della conversazione `id`.
 function ranBash(id: string): HookCallbackMatcher {
   return { matcher: "Bash", hooks: [async () => { send({ type: "ran", id }); return {}; }] };
@@ -151,9 +158,10 @@ function ranBash(id: string): HookCallbackMatcher {
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
 // e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
+// `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
-                   sandbox?: SandboxSettings) {
+                   sandbox?: SandboxSettings, preview = false) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const conversation = query({
@@ -165,8 +173,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       env: { ...childEnv, ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
-      mcpServers: { bubo: buboTools() },
-      allowedTools: ["mcp__bubo__cerca"],
+      mcpServers: turnServers(buboTools(), preview ? previewTools(id, previewCalls) : undefined),
+      allowedTools: ["mcp__bubo__cerca", ...allowedPreviewTools],
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
@@ -393,7 +401,7 @@ lines.on("line", (line) => {
       const resume = typeof command.resume === "string" ? command.resume : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
-               sandboxSettings(command.sandbox));
+               sandboxSettings(command.sandbox), command.preview === true);
       break;
     }
     case "config": {
@@ -418,6 +426,15 @@ lines.on("line", (line) => {
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
     case "quota": void quota(); break;
+    case "previewServer": {
+      // Il server della Sessione è comparso o sparito a turno in corso.
+      const conversation = running.get(command.id);
+      if (conversation) {
+        void offerPreview(conversation, buboTools(), command.available === true ? previewTools(command.id, previewCalls) : undefined);
+      }
+      break;
+    }
+    case "previewResult": previewCalls.answer(command.call, command); break;
     case "permission": permissions.get(command.request)?.(isAllowed(command.behavior)); permissions.delete(command.request); break;
   }
 });

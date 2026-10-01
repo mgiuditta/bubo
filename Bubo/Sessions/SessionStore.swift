@@ -69,7 +69,10 @@ final class SessionStore {
         servers.owners = { [weak self] in ServerAttribution.Owner.of(self?.sessions ?? []) }
         terminals.onServerHint = { [weak self] in self?.servers.notice() }
         terminals.onOpenFile = { [weak self] location, folder in self?.viewer.show(location, in: folder) }
-        servers.onChange = { [weak self] servers in self?.previews.update(with: servers) }
+        servers.onChange = { [weak self] servers in
+            self?.previews.update(with: servers)
+            self?.offerPreviews(to: servers)
+        }
         // A server already listening when Bubo starts has no event of its own.
         if !ServerAttribution.Owner.of(sessions).isEmpty { servers.notice() }
     }
@@ -96,6 +99,8 @@ final class SessionStore {
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
+    /// The answer of each Sessione's turn in progress, and whether it has the Anteprima's tools.
+    @ObservationIgnored private var previewOffers: [UUID: (answer: String, isOffered: Bool)] = [:]
     /// The merges that can still be undone, with the task that archives their Sessione when the time is up.
     @ObservationIgnored private var merges: [UUID: (merge: Merge, finishing: Task<Void, Never>)] = [:]
     /// The Sessioni that Fondi is merging now.
@@ -559,11 +564,16 @@ final class SessionStore {
             let agent = try await bridge()
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
             let isSandboxed = sandbox.isEnabled(in: session.project)
+            // The Anteprima's tools exist only while the Sessione has a server (spec 15).
+            let answerID = UUID().uuidString
+            let hasServer = servers.servers[id]?.isEmpty == false
             turns[id] = agent
             sandboxedTurns[id] = isSandboxed
+            previewOffers[id] = (answerID, hasServer)
             defer {
                 turns[id] = nil
                 sandboxedTurns[id] = nil
+                previewOffers[id] = nil
                 permissions.clear(id)
             }
             // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
@@ -571,7 +581,8 @@ final class SessionStore {
             update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
                                    forkingFrom: session.forkedFrom, keeping: conversation,
-                                   isSandboxed: isSandboxed) { [weak self] progress in
+                                   isSandboxed: isSandboxed, id: answerID,
+                                   offersPreview: hasServer) { [weak self] progress in
                 if progress == .ranCommand {
                     self?.servers.notice()
                 } else {
@@ -581,6 +592,8 @@ final class SessionStore {
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             } usage: { [ledger] usage in
                 ledger.record(usage, turn: conversation, session: id, project: session.project)
+            } preview: { [weak self] action in
+                await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             }
             for try await _ in answer {}
             update(id) { $0.enter(.ferma) }
@@ -660,6 +673,17 @@ final class SessionStore {
             permissions.withdraw(request, in: id)
         }
         followActivity()
+    }
+
+    /// Gives the Anteprima's tools to the turns in progress whose Sessione now has a server, and takes them away when
+    /// its last server goes.
+    private func offerPreviews(to servers: [UUID: [ListeningSocket]]) {
+        for (id, offer) in previewOffers {
+            let hasServer = servers[id]?.isEmpty == false
+            guard hasServer != offer.isOffered else { continue }
+            previewOffers[id]?.isOffered = hasServer
+            turns[id]?.offerPreview(hasServer, to: offer.answer)
+        }
     }
 
     private func update(_ id: UUID, _ change: (inout Session) -> Void) {

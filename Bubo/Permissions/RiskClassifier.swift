@@ -29,6 +29,9 @@ nonisolated struct RiskClassifier {
             risk = Risk(level: !isInside || path.map(isProtected) == true ? .distruttivo : .modifica)
         case "WebFetch", "WebSearch":
             risk = Risk(level: .rete)
+        case let tool where request.mcpSource == "sdk" && Self.previewChanges.contains(tool):
+            // Bubo's Anteprima: reading the page is Lettura, changing it Modifica reversibile (spec 15).
+            risk = Risk(level: .modifica)
         case let tool where tool.hasPrefix("mcp__"):
             risk = Risk(level: request.mcpSource == "sdk" ? .lettura : .rete)
         default:
@@ -257,6 +260,11 @@ nonisolated struct RiskClassifier {
         let fetches = ["install", "i", "add", "ci", "update", "upgrade", "up", "fetch", "sync", "dlx", "x", "exec", "create"]
         return Risk(level: fetches.contains(verb) ? .rete : .modifica)
     }
+
+    /// The tools of the Anteprima that change the page; the others only read it.
+    private static let previewChanges: Set<String> = ["mcp__anteprima__naviga", "mcp__anteprima__clicca",
+                                                      "mcp__anteprima__compila", "mcp__anteprima__scorri",
+                                                      "mcp__anteprima__esegui_js"]
 
     // MARK: Paths
 

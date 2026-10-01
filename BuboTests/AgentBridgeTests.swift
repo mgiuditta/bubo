@@ -45,6 +45,23 @@ struct AgentBridgeTests {
         #expect(answer == "notarizzazione in /p")
     }
 
+    @Test func theAnteprimasCallsReachTheirAnswersDriverAndGoBack() async throws {
+        // The reply comes back as the conversation's text, so the test can read it.
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":3,\"type\":\"previewCall\",\"id\":\"$id\",\"call\":\"c1\",\"tool\":\"clicca\",\"selector\":\"#invia\"}"
+            read result
+            text=$(echo "$result" | sed 's/.*"text":"\([^"]*\)".*/\1/')
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$text\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), offersPreview: true,
+                                                         preview: { action in
+            action == .click(selector: "#invia") ? .text("cliccato") : .failure("altro")
+        }))
+        #expect(answer == "cliccato")
+    }
+
     @Test func theProgressArrivesBeforeTheAnswerEndsAndNotAfter() async throws {
         let bridge = Self.bridge(Self.answering(#"""
             echo "{\"v\":3,\"type\":\"state\",\"id\":\"$id\",\"state\":\"running\"}"

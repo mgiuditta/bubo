@@ -173,9 +173,10 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 
 - **Meccanismo**: un server MCP nel processo del ponte (`createSdkMcpServer`) inoltra le chiamate a Swift con il protocollo stdio; Swift pilota la stessa `WebPage` dell'utente, con gli stessi cookie. Niente Playwright, niente Chromium headless, nessun processo esterno.
 - **Strumenti e Livello di rischio**: screenshot, DOM, console e rete in lettura sono **1 Lettura**; navigare, cliccare, compilare, scorrere ed eseguire JS sono **2 Modifica reversibile**. In Modalità autonoma l'agente verifica senza Richieste di permesso. Tutti limitati ai server `localhost` della Sessione.
-- **Quando esistono**: solo se la Sessione ha un server rilevato; senza server la loro descrizione non entra nel contesto (0 token). Nessuna verifica forzata e nessuna opzione nelle Impostazioni: l'agente li usa quando servono. Si rivede se l'agente verifica troppo poco.
-- **Vince l'utente**: un clic o un tasto dell'utente nell'Anteprima mentre l'agente pilota fa fallire l'azione in corso con "l'utente ha preso il controllo".
-- **Limiti**: screenshot ridimensionati a 1568 px sul lato lungo; console e rete come ultime 200 righe, con un filtro; ogni azione scade dopo 10 s.
+- **Quando esistono**: solo se la Sessione ha un server rilevato; senza server la loro descrizione non entra nel contesto (0 token). Il turno parte con gli strumenti se il server c'è già; se compare o sparisce a turno in corso il ponte chiama `setMcpServers` con **tutti** i server dinamici (`bubo` più `anteprima`, o solo `bubo`), perché la chiamata li sostituisce. Nessuna verifica forzata e nessuna opzione nelle Impostazioni: l'agente li usa quando servono. Si rivede se l'agente verifica troppo poco.
+- **Vince l'utente**: un clic o un tasto dell'utente nell'Anteprima mentre l'agente pilota fa fallire l'azione in corso con "l'utente ha preso il controllo". Lo riconosce lo script nel mondo della pagina: `pointerdown` e `keydown` con `isTrusted`; gli eventi sintetici dell'agente non lo sono.
+- **Fuori dai server**: l'agente ha gli stessi limiti di navigazione dell'utente (`PreviewPolicy`), ma una pagina esterna mossa dall'agente (link, `location`, `window.open`, redirect) non va mai al browser di sistema: viene annullata e lo strumento fallisce, finché l'utente non tocca di nuovo la pagina.
+- **Limiti**: screenshot ridimensionati a 1568 px sul lato lungo, un tetto scelto per costo e velocità (i modelli recenti ne leggono di più); console e rete come ultime 200 righe, con un filtro; ogni azione scade dopo 10 s. La rete sono le richieste viste dallo script nel mondo della pagina (`fetch`, `XMLHttpRequest`) più le risorse di `performance`: WebKit non dà il traffico della pagina.
 
 ### Visore ed editor (deciso)
 

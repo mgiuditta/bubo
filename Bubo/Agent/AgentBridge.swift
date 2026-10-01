@@ -61,6 +61,8 @@ final class AgentBridge {
     private var permissionHandlers: [String: (PermissionEvent) -> Void] = [:]
     /// What receives the tokens and the figure of each answer in `answers`.
     private var usageHandlers: [String: (TurnUsage) -> Void] = [:]
+    /// What does the Anteprima's actions of each answer in `answers`; without one, they fail.
+    private var previewHandlers: [String: (PreviewAction) async -> PreviewReply] = [:]
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
     private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
@@ -80,17 +82,21 @@ final class AgentBridge {
     ///     `nil` writes nothing of it.
     ///   - isSandboxed: Whether the commands of `claude` run in the Sandbox; if it cannot start, neither does the
     ///     conversation, with `AgentBridgeError.sandboxUnavailable`.
+    ///   - id: The answer's id, to offer it the Anteprima later with ``offerPreview(_:to:)``.
+    ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
+    ///   - preview: Does what the agent asks of the Anteprima; `nil` fails every call.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
+             id: String = UUID().uuidString, offersPreview: Bool = false,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
-             usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
-        let id = UUID().uuidString
+             usage: @escaping (TurnUsage) -> Void = { _ in },
+             preview: ((PreviewAction) async -> PreviewReply)? = nil) -> AsyncThrowingStream<String, any Error> {
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
@@ -102,6 +108,7 @@ final class AgentBridge {
             progressHandlers[id] = progress
             permissionHandlers[id] = permissions
             usageHandlers[id] = usage
+            previewHandlers[id] = preview
             // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
@@ -109,7 +116,8 @@ final class AgentBridge {
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
                                             model: model, environment: environment, resuming: conversation,
                                             keeping: kept,
-                                            sandbox: isSandboxed ? sandbox(for: environment) : nil)
+                                            sandbox: isSandboxed ? sandbox(for: environment) : nil,
+                                            offersPreview: offersPreview)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -209,6 +217,16 @@ final class AgentBridge {
         }
     }
 
+    /// Adds the Anteprima's tools to the answer `id` in progress, or removes them; nothing once it has ended.
+    func offerPreview(_ isOffered: Bool, to id: String) {
+        guard answers[id] != nil, let process else { return }
+        do {
+            try process.input.write(contentsOf: BridgeCommand.offerPreview(id: id, isOffered: isOffered).line())
+        } catch {
+            Logger.agent.error("Anteprima tools not updated: \(error)")
+        }
+    }
+
     /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
     func readQuota() throws {
         try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
@@ -282,6 +300,20 @@ final class AgentBridge {
                 let text = await search(query, project)
                 try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: text).line())
             }
+        case let .previewCall(id, call, action):
+            let handler = previewHandlers[id]
+            Task {
+                let reply: PreviewReply = if let action, let handler {
+                    await handler(action)
+                } else {
+                    .failure("Strumento dell'Anteprima non disponibile.")
+                }
+                do {
+                    try process?.input.write(contentsOf: BridgeCommand.answerPreview(call: call, reply).line())
+                } catch {
+                    Logger.agent.error("Anteprima answer not sent: \(error)")
+                }
+            }
         case let .permission(id, request):
             if let handler = permissionHandlers[id] {
                 handler(.asked(request))
@@ -308,6 +340,7 @@ final class AgentBridge {
         progressHandlers[id] = nil
         permissionHandlers[id] = nil
         usageHandlers[id] = nil
+        previewHandlers[id] = nil
         return answers.removeValue(forKey: id)
     }
 
@@ -317,6 +350,7 @@ final class AgentBridge {
         progressHandlers = [:]
         permissionHandlers = [:]
         usageHandlers = [:]
+        previewHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
         let waiting = requests
         requests = [:]
