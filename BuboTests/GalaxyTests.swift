@@ -67,7 +67,7 @@ struct GalaxyTests {
             let parent = try #require(byPath[parentPath])
             for child in children {
                 #expect(simd_length(child.center - parent.center) + child.radius <= parent.radius + 0.001)
-                #expect(simd_length(child.center - parent.center) >= GalaxyLayout.coreRadius + child.radius)
+                #expect(simd_length(child.center - parent.core) >= GalaxyLayout.coreRadius + child.radius)
             }
             for (offset, first) in children.enumerated() {
                 for second in children.dropFirst(offset + 1) {
@@ -81,10 +81,19 @@ struct GalaxyTests {
         let layout = GalaxyLayout(files: Self.files)
         for star in layout.stars {
             let cluster = layout.clusters[star.cluster]
-            #expect(simd_length(star.position - cluster.center) <= GalaxyLayout.coreRadius)
+            #expect(simd_length(star.position - cluster.core) <= GalaxyLayout.coreRadius)
             #expect((star.path as NSString).deletingLastPathComponent == cluster.path)
         }
         #expect(layout.clusters[0].fileCount == Self.files.count)
+    }
+
+    @Test func aFolderHoldingOneSubfolderIsBarelyLargerThanIt() {
+        let layout = GalaxyLayout(files: ["a/b/c/d/e/f/g/h/i/j/file.swift"])
+        // Each level adds about its core's diameter, never doubles: ten levels stay small.
+        for (outer, inner) in zip(layout.clusters, layout.clusters.dropFirst()) {
+            #expect(outer.radius <= inner.radius + 2 * GalaxyLayout.coreRadius + GalaxyLayout.gap + 0.001)
+        }
+        #expect(layout.radius < 30)
     }
 
     @Test func tenThousandFilesAreLaidOutQuickly() {
@@ -165,6 +174,55 @@ struct GalaxyTests {
         let right = camera.point(for: SIMD2(50, 0), in: size)
         #expect(top.y >= 0)
         #expect(right.x <= size.width)
+    }
+
+    /// The files of the bubo repo on 2026-10-01, where the Galassia once opened with only a handful of points.
+    static func buboFiles() throws -> [String] {
+        let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let list = try String(contentsOf: root.appending(path: "BuboTests/Fixtures/galassia-bubo.txt"), encoding: .utf8)
+        return list.split(separator: "\n").map(String.init)
+    }
+
+    /// The map's size when the window first opens, and when the window is at its smallest first size of 900 by 600.
+    @Test(arguments: [CGSize(width: GalaxyWindow.defaultSize.width - 300, height: GalaxyWindow.defaultSize.height),
+                      CGSize(width: 600, height: 600)])
+    func theFirstCameraShowsTheStarOfEveryFile(map size: CGSize) throws {
+        let files = try Self.buboFiles()
+        let model = GalaxyModel(project: URL(filePath: "/tmp/bubo"))
+        model.apply(GalaxyLayout(files: files))
+        model.resize(to: size)
+        let bounds = CGRect(origin: .zero, size: size)
+        let inView = try #require(model.layout).stars.filter { bounds.contains(model.camera.point(for: $0.position, in: size)) }
+        let shown = model.areStarsLit ? inView.count : 0
+        #expect(Double(shown) >= 0.95 * Double(files.count), "\(shown) of \(files.count) stars shown")
+    }
+
+    @Test func noTwoFolderNamesCoverEachOther() throws {
+        let model = GalaxyModel(project: URL(filePath: "/tmp/bubo"))
+        model.apply(GalaxyLayout(files: try Self.buboFiles()))
+        model.resize(to: CGSize(width: 800, height: 720))
+        let folders = model.labels().filter { $0.kind == .folder }
+        #expect(!folders.isEmpty)
+        for (offset, first) in folders.enumerated() {
+            for second in folders.dropFirst(offset + 1) {
+                let apart = abs(first.point.x - second.point.x) >= 60 || abs(first.point.y - second.point.y) >= 14
+                #expect(apart, "\(first.text) covers \(second.text)")
+            }
+        }
+    }
+
+    @Test func aResizeKeepsTheWholeGalassiaInViewUntilTheCameraMoves() {
+        let model = GalaxyModel(project: URL(filePath: "/tmp/progetto"))
+        model.apply(GalaxyLayout(files: Self.manyFiles(500)))
+        model.resize(to: CGSize(width: 600, height: 130))
+        model.resize(to: CGSize(width: 1000, height: 800))
+        let radius = model.layout?.radius ?? 0
+        let center = model.layout?.center ?? .zero
+        #expect(model.camera == .fitting(radius: radius, around: center, in: CGSize(width: 1000, height: 800)))
+        model.pan(by: CGSize(width: 40, height: 0))
+        let moved = model.camera
+        model.resize(to: CGSize(width: 1200, height: 800))
+        #expect(model.camera == moved)
     }
 
     // MARK: Model

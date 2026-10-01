@@ -112,7 +112,9 @@ final class GalaxyModel {
     /// The signpost interval from the opening to the first image with stars.
     @ObservationIgnored private var firstImage: OSSignpostIntervalState?
     @ObservationIgnored private var flight: Flight?
-    @ObservationIgnored private var hasFitted = false
+    /// The camera that last showed the whole Galassia; while the camera is still there, a new size or layout shows the
+    /// whole Galassia again.
+    @ObservationIgnored private var fittedCamera: GalaxyCamera?
     /// The files the layout was made from.
     @ObservationIgnored private var files: [String]?
     @ObservationIgnored private let cache: GalaxyCache
@@ -138,10 +140,10 @@ final class GalaxyModel {
         GalaxyCamera.fitting(radius: layout?.radius ?? 1, in: viewSize).scale / 2
     }
 
-    /// How large, in points on the view, a folder must be for its stars to start showing; they are fully lit at
-    /// ``starsShownRadius``. The renderer's shader uses the same values.
-    static let starsAppearRadius: Float = 15
-    static let starsShownRadius: Float = 40
+    /// How large a radius, in points on the view, a folder's core disc must have for its stars to start showing; they
+    /// are fully lit at ``starsShownRadius``. The renderer's shader uses the same values.
+    static let starsAppearRadius: Float = 4
+    static let starsShownRadius: Float = 10
     /// The most names drawn over the map at once.
     static let labelLimit = 40
     /// How high, in points on the view, a written file rises over the plane.
@@ -210,7 +212,7 @@ final class GalaxyModel {
         cometMoves = [:]
         activityVersion += 1
         updateMatches()
-        if !hasFitted, viewSize != .zero { fit() }
+        if isShowingAll { fit() }
     }
 
     @concurrent
@@ -259,8 +261,7 @@ final class GalaxyModel {
     /// The camera on the star at `index`: close enough for its folder's stars to show well, never farther than now.
     func camera(showing index: Int, in layout: GalaxyLayout) -> GalaxyCamera {
         let star = layout.stars[index]
-        let cluster = layout.clusters[star.cluster]
-        let scale = max(camera.scale, Self.starsShownRadius * 3 / cluster.radius)
+        let scale = max(camera.scale, Self.starsShownRadius * 3 / GalaxyLayout.coreRadius)
         return GalaxyCamera(center: star.position, scale: min(scale, GalaxyCamera.maximumScale))
     }
 
@@ -289,7 +290,7 @@ final class GalaxyModel {
         var nearest: (index: Int, distance: Float)?
         let highlighted = Set(matches)
         for (index, star) in layout.stars.enumerated() {
-            let shown = layout.clusters[star.cluster].radius * camera.scale >= Self.starsAppearRadius
+            let shown = GalaxyLayout.coreRadius * camera.scale >= Self.starsAppearRadius
             guard shown || highlighted.contains(index) || index == selection || writers[star.path] != nil
             else { continue }
             let distance = Self.screenDistance(star.position - plane, scale: camera.scale)
@@ -314,20 +315,31 @@ final class GalaxyModel {
 
     // MARK: Camera
 
-    /// Records the map's size; the first size with a layout fits the whole Galassia.
+    /// Records the map's size; until the camera moves, the whole Galassia stays in view.
     func resize(to size: CGSize) {
         guard size != viewSize else { return }
         viewSize = size
-        if !hasFitted, layout != nil, size != .zero { fit() }
+        if isShowingAll { fit() }
         onRedraw?()
+    }
+
+    /// Whether the camera shows the whole Galassia as ``fit()`` left it, or has not been placed yet.
+    private var isShowingAll: Bool {
+        fittedCamera == nil || camera == fittedCamera
     }
 
     /// Shows the whole Galassia.
     func fit() {
         guard let layout, viewSize != .zero else { return }
-        hasFitted = true
         flight = nil
-        camera = .fitting(radius: layout.radius, in: viewSize)
+        camera = .fitting(radius: layout.radius, around: layout.center, in: viewSize)
+        fittedCamera = camera
+    }
+
+    /// Whether the stars are fully lit at the camera's zoom: every folder's core disc has a radius of at least
+    /// ``starsShownRadius`` points on the view.
+    var areStarsLit: Bool {
+        GalaxyLayout.coreRadius * camera.scale >= Self.starsShownRadius
     }
 
     /// Moves the map by `translation` points, as a drag or a two-finger scroll does; the camera stops following a
@@ -665,6 +677,9 @@ final class GalaxyModel {
             var point = camera.point(for: cluster.center, in: viewSize)
             point.y -= CGFloat(cluster.radius * camera.scale * GalaxyCamera.tilt) + 4
             guard bounds.insetBy(dx: -40, dy: 0).contains(point) else { continue }
+            // A folder holding one large subfolder has its name over the subfolder's: only the larger one's shows.
+            guard !labels.contains(where: { abs($0.point.x - point.x) < 60 && abs($0.point.y - point.y) < 14 })
+            else { continue }
             labels.append(Label(id: "c" + cluster.path, text: (cluster.path as NSString).lastPathComponent,
                                 point: point, kind: .folder))
         }
