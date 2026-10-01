@@ -4,12 +4,176 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ a listino, incluso nell'abbonamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ at list price, included in your subscription"
+          }
+        }
+      }
+    },
+    "%@ · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$lld"
+          }
+        }
+      }
+    },
+    "%@ · blocco %lld di %lld nel file" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · block %2$lld of %3$lld in the file"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · blocco %2$lld di %3$lld nel file"
+          }
+        }
+      }
+    },
     "%@ è già usata da un'altra app. Scegline un'altra." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is already used by another app. Choose a different one."
+          }
+        }
+      }
+    },
+    "%@, %lld blocchi decisi su %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld of %3$lld blocks decided"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld blocchi decisi su %3$lld"
+          }
+        }
+      }
+    },
+    "%@, %lld blocchi decisi su %lld, in conflitto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld of %3$lld blocks decided, in conflict"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld blocchi decisi su %3$lld, in conflitto"
+          }
+        }
+      }
+    },
+    "%@, blocco %@:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, block %2$@:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, blocco %2$@:"
+          }
+        }
+      }
+    },
+    "%lld file" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld righe aggiunte, %lld tolte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld lines added, %2$lld removed"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld righe aggiunte, %2$lld tolte"
+          }
+        }
+      }
+    },
+    "%lld/%lld blocchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld blocks"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld blocchi"
+          }
+        }
+      }
+    },
+    "5 ore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 hours"
+          }
+        }
+      }
+    },
+    "ANTHROPIC_API_KEY è impostata nel tuo ambiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ANTHROPIC_API_KEY is set in your environment"
           }
         }
       }
@@ -54,12 +218,92 @@
         }
       }
     },
+    "Accedi di nuovo in Impostazioni › Account." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in again in Settings › Account."
+          }
+        }
+      }
+    },
+    "Accesso richiesto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in required"
+          }
+        }
+      }
+    },
+    "Accetta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept"
+          }
+        }
+      }
+    },
+    "Accettato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepted"
+          }
+        }
+      }
+    },
     "Account" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Account"
+          }
+        }
+      }
+    },
+    "Affiancato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Side by side"
+          }
+        }
+      }
+    },
+    "Aggiungila in Impostazioni › Account, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add one in Settings › Account, then try again."
+          }
+        }
+      }
+    },
+    "Aggiunta: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added: %@"
+          }
+        }
+      }
+    },
+    "Altre azioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More actions"
           }
         }
       }
@@ -74,12 +318,42 @@
         }
       }
     },
+    "Annulla merge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo Merge"
+          }
+        }
+      }
+    },
     "Apre l'HUD" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opens the HUD"
+          }
+        }
+      }
+    },
+    "Apre un'altra shell nella cartella della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens another shell in the session's folder"
+          }
+        }
+      }
+    },
+    "Apri Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Bubo"
           }
         }
       }
@@ -94,12 +368,122 @@
         }
       }
     },
+    "Apri Impostazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "Apri il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Terminal"
+          }
+        }
+      }
+    },
+    "Archivia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archive"
+          }
+        }
+      }
+    },
+    "Archiviate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archived"
+          }
+        }
+      }
+    },
     "Ascolto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Listening"
+          }
+        }
+      }
+    },
+    "Aspetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "Attende da %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting on you for %@"
+          }
+        }
+      }
+    },
+    "Attivo nelle Impostazioni di Sistema, in Accessibilità › Display." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On in System Settings, under Accessibility › Display."
+          }
+        }
+      }
+    },
+    "Avvia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        }
+      }
+    },
+    "Avvia ↩" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start ↩"
+          }
+        }
+      }
+    },
+    "Azione rischiosa: con il puntatore, tieni premuto per un secondo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Risky action: with the pointer, press and hold for one second."
+          }
+        }
+      }
+    },
+    "Azioni consentite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed actions"
           }
         }
       }
@@ -120,6 +504,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Blob"
+          }
+        }
+      }
+    },
+    "Blocchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocks"
+          }
+        }
+      }
+    },
+    "Blocco %lld di %lld, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %1$lld of %2$lld, %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$@"
+          }
+        }
+      }
+    },
+    "Blocco %lld di %lld, %lld decisi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %1$lld of %2$lld, %3$lld decided"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
+          }
+        }
+      }
+    },
+    "Board" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Board"
+          }
+        }
+      }
+    },
+    "Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Draft"
+          }
+        }
+      }
+    },
+    "Branch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch"
           }
         }
       }
@@ -164,6 +620,56 @@
         }
       }
     },
+    "CLAUDE.md · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLAUDE.md · %lld"
+          }
+        }
+      }
+    },
+    "Cambia…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change…"
+          }
+        }
+      }
+    },
+    "Cancella" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Cancella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete…"
+          }
+        }
+      }
+    },
+    "Cartelle aggiuntive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Additional folders"
+          }
+        }
+      }
+    },
     "Catalogo non valido: %@" : {
       "localizations" : {
         "en" : {
@@ -180,6 +686,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Category"
+          }
+        }
+      }
+    },
+    "Cerca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
+          }
+        }
+      }
+    },
+    "Cerca nelle Sessioni e nella Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Sessions and CLI History"
           }
         }
       }
@@ -204,6 +730,46 @@
         }
       }
     },
+    "Chiude la shell e quello che vi è in esecuzione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closes the shell and whatever runs in it"
+          }
+        }
+      }
+    },
+    "Chiudi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "Chiudi la scheda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Tab"
+          }
+        }
+      }
+    },
+    "Ci sono blocchi non ancora accettati. Rivedili, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some blocks aren't accepted yet. Review them, then merge."
+          }
+        }
+      }
+    },
     "Claude" : {
       "localizations" : {
         "en" : {
@@ -214,12 +780,42 @@
         }
       }
     },
+    "Claude Code cancella le conversazioni dopo 30 giorni; Bubo ne conserva una copia. Quella di una Sessione se ne va quando la elimini." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code deletes conversations after 30 days; Bubo keeps a copy. A Session's copy goes when you delete the Session."
+          }
+        }
+      }
+    },
     "Claude Code non trovato" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code not found"
+          }
+        }
+      }
+    },
+    "Claude Code non trovato: installa la CLI claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code not found: install the claude CLI."
+          }
+        }
+      }
+    },
+    "Claude non ha detto quando si azzera." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude didn't say when it resets."
           }
         }
       }
@@ -264,6 +860,26 @@
         }
       }
     },
+    "Colonna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Column"
+          }
+        }
+      }
+    },
+    "Come il Progetto fonde le Sessioni: squash in un commit, o merge commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How the Project merges Sessions: squash into one commit, or a merge commit"
+          }
+        }
+      }
+    },
     "Completa l'accesso nel browser." : {
       "localizations" : {
         "en" : {
@@ -274,12 +890,222 @@
         }
       }
     },
+    "Configurazione di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Configuration"
+          }
+        }
+      }
+    },
+    "Configurazione di Claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Configuration…"
+          }
+        }
+      }
+    },
+    "Connesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "Consente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allows"
+          }
+        }
+      }
+    },
+    "Consenti solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow just this time"
+          }
+        }
+      }
+    },
+    "Conserva anche le conversazioni della riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also Keep Command-Line Conversations"
+          }
+        }
+      }
+    },
+    "Continua da dove ti eri fermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick up where you left off."
+          }
+        }
+      }
+    },
+    "Continua da qui, lavorando nel Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry on from here, working in the Project."
+          }
+        }
+      }
+    },
+    "Continua la Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues the Question"
+          }
+        }
+      }
+    },
+    "Continuo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuous"
+          }
+        }
+      }
+    },
+    "Controlla %@, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check %@, then try again."
+          }
+        }
+      }
+    },
+    "Controlla che la CLI claude funzioni nel Terminale, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the claude CLI works in Terminal, then try again."
+          }
+        }
+      }
+    },
+    "Controlla che la copia della Sessione esista ancora, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the Session's copy still exists, then try again."
+          }
+        }
+      }
+    },
+    "Controlla ~/.claude.json, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check ~/.claude.json, then try again."
+          }
+        }
+      }
+    },
     "Controllo l'account…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checking your account…"
+          }
+        }
+      }
+    },
+    "Conversazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversations"
+          }
+        }
+      }
+    },
+    "Cosa deve fare Claude?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "Crea" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create"
+          }
+        }
+      }
+    },
+    "Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLI History"
+          }
+        }
+      }
+    },
+    "Da decidere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undecided"
+          }
+        }
+      }
+    },
+    "Da guardare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To review"
+          }
+        }
+      }
+    },
+    "Da iniziare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To start"
           }
         }
       }
@@ -300,6 +1126,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug Orb…"
+          }
+        }
+      }
+    },
+    "Disattivato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        }
+      }
+    },
+    "Distruttivo locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locally destructive"
+          }
+        }
+      }
+    },
+    "Domande e Sessioni si pagano a consumo con la tua API key finché non chiudi Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questions and sessions are billed per use to your API key until you quit Bubo."
+          }
+        }
+      }
+    },
+    "Elimina Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete Draft"
+          }
+        }
+      }
+    },
+    "Errore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
           }
         }
       }
@@ -384,6 +1260,132 @@
         }
       }
     },
+    "Fidati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trust"
+          }
+        }
+      }
+    },
+    "File" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File"
+          }
+        }
+      }
+    },
+    "File binario" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Binary file"
+          }
+        }
+      }
+    },
+    "Focus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus"
+          }
+        }
+      }
+    },
+    "Fonde le modifiche accettate nel branch del checkout con un commit locale, senza push" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merges the accepted changes into the checkout's branch with a local commit, without pushing"
+          }
+        }
+      }
+    },
+    "Fondere ora darebbe conflitti in %@. L'agente può risolverli nella copia della Sessione; poi rivedi i blocchi nuovi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merging now would conflict in %@. The agent can resolve them in the Session's copy; then review the new blocks."
+          }
+        }
+      }
+    },
+    "Fondere solo i blocchi accettati?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge only the accepted blocks?"
+          }
+        }
+      }
+    },
+    "Fondere «%@» in %@?" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fondere «%1$@» in %2$@?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge “%1$@” into %2$@?"
+          }
+        }
+      }
+    },
+    "Fondi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        }
+      }
+    },
+    "Fondi gli accettati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge accepted"
+          }
+        }
+      }
+    },
+    "Fondi gli accettati e scarta il resto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge Accepted and Discard the Rest…"
+          }
+        }
+      }
+    },
+    "Fondi…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge…"
+          }
+        }
+      }
+    },
     "Fornitore" : {
       "localizations" : {
         "en" : {
@@ -400,6 +1402,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlisted"
+          }
+        }
+      }
+    },
+    "Fusa in %@ con un commit locale, senza push." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merged into %@ with a local commit, not pushed."
           }
         }
       }
@@ -444,12 +1456,178 @@
         }
       }
     },
+    "Gestito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Managed"
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite dell'abbonamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached your plan's limit"
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite dell'abbonamento." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached your plan's limit."
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite delle 5 ore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached the 5-hour limit"
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite settimanale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached the weekly limit"
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite settimanale di Opus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached the weekly Opus limit"
+          }
+        }
+      }
+    },
+    "Hai raggiunto il limite settimanale di Sonnet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've reached the weekly Sonnet limit"
+          }
+        }
+      }
+    },
+    "Ho portato in questo branch le ultime modifiche di %@ e git ha lasciato conflitti in %@. Risolvili nei file tenendo sia il tuo lavoro sia quello di %@, e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I brought the latest changes of %1$@ into this branch and git left conflicts in %2$@. Resolve them in the files, keeping both your work and that of %3$@, and remove every <<<<<<<, ======= and >>>>>>> marker. Don't commit and don't abort the merge: I'll conclude it."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ho portato in questo branch le ultime modifiche di %1$@ e git ha lasciato conflitti in %2$@. Risolvili nei file tenendo sia il tuo lavoro sia quello di %3$@, e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io."
+          }
+        }
+      }
+    },
+    "Ho rivisto le tue modifiche e ho rifiutato i blocchi qui sotto. Sono ancora nei file: rifalli seguendo le note, o toglili se non servono. Gli altri blocchi sono approvati: non toccarli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I reviewed your changes and rejected the blocks below. They are still in the files: redo them following the notes, or remove them if they aren't needed. The other blocks are approved: leave them as they are."
+          }
+        }
+      }
+    },
+    "Hook" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks"
+          }
+        }
+      }
+    },
+    "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocks you haven't accepted stay out of the merge and go away with the Session. You can still undo the merge right after."
+          }
+        }
+      }
+    },
+    "I blocchi rifiutati tornano all'agente con le note, come nuovo turno della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected blocks go back to the agent with your notes, as a new turn of the Session"
+          }
+        }
+      }
+    },
     "Il Portachiavi è bloccato: sblocca il Mac e riprova." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The keychain is locked. Unlock your Mac and try again."
+          }
+        }
+      }
+    },
+    "Il Progetto non è più in %@. Riporta lì la cartella o cancella la Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project is no longer at %@. Move the folder back or delete the Session."
+          }
+        }
+      }
+    },
+    "Il Progetto non è più in %@. Riporta lì la cartella o elimina la Bozza." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project is no longer at %@. Move the folder back or delete the Draft."
+          }
+        }
+      }
+    },
+    "Il branch del checkout ha già tutte le modifiche della Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The checkout's branch already has all of the Session's changes."
+          }
+        }
+      }
+    },
+    "Il checkout del Progetto non è su un branch. Passa a un branch, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project's checkout isn't on a branch. Switch to a branch, then merge."
           }
         }
       }
@@ -474,6 +1652,36 @@
         }
       }
     },
+    "Il collegamento con Claude si è interrotto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection to Claude was lost."
+          }
+        }
+      }
+    },
+    "Il repo non attiva nulla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The repo doesn't turn anything on."
+          }
+        }
+      }
+    },
+    "Il terminale non è partito: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The terminal didn't start: %@"
+          }
+        }
+      }
+    },
     "Impostazioni…" : {
       "localizations" : {
         "en" : {
@@ -490,6 +1698,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for the Panel's first frame."
+          }
+        }
+      }
+    },
+    "In coda: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queued: %lld"
+          }
+        }
+      }
+    },
+    "In connessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting"
           }
         }
       }
@@ -514,12 +1742,92 @@
         }
       }
     },
+    "Irreversibile esterno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Irreversible, external"
+          }
+        }
+      }
+    },
+    "L'HUD si apre con questa vista." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The HUD opens with this view."
+          }
+        }
+      }
+    },
+    "L'Orb sfuma invece di cambiare forma e si muove più piano." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Orb fades instead of changing shape and moves more slowly."
+          }
+        }
+      }
+    },
+    "L'accesso a Claude è scaduto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Claude sign-in has expired"
+          }
+        }
+      }
+    },
+    "L'accesso a Claude è scaduto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Claude sign-in has expired."
+          }
+        }
+      }
+    },
     "L'accesso è scaduto." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your sign-in has expired."
+          }
+        }
+      }
+    },
+    "L'agente non ha risolto i conflitti in %@. Ho rimesso la copia della Sessione com'era." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent didn't resolve the conflicts in %@. The Session's copy is back as it was."
+          }
+        }
+      }
+    },
+    "L'agente risolve i conflitti con %@ nella copia della Sessione. Poi rivedi i blocchi nuovi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent is resolving the conflicts with %@ in the Session's copy. Then review the new blocks."
+          }
+        }
+      }
+    },
+    "La Sessione viene tolta dall'elenco. I file del Progetto non vengono toccati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session is removed from the list. The Project's files aren't touched."
           }
         }
       }
@@ -544,12 +1852,138 @@
         }
       }
     },
+    "La chiede un subagente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A subagent is asking."
+          }
+        }
+      }
+    },
+    "La copia isolata della Sessione non è più in %@. Cancella la Sessione per toglierla dall'elenco." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session's isolated copy is no longer at %@. Delete the Session to remove it from the list."
+          }
+        }
+      }
+    },
     "Lavora" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Working"
+          }
+        }
+      }
+    },
+    "Lavora sul checkout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work on the checkout"
+          }
+        }
+      }
+    },
+    "Leggi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read"
+          }
+        }
+      }
+    },
+    "Leggo la configurazione di Claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Claude's configuration…"
+          }
+        }
+      }
+    },
+    "Leggo la conversazione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the conversation…"
+          }
+        }
+      }
+    },
+    "Leggo le modifiche…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the changes…"
+          }
+        }
+      }
+    },
+    "Lettura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read"
+          }
+        }
+      }
+    },
+    "Livello %lld · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld · %@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Livello %1$lld · %2$@"
+          }
+        }
+      }
+    },
+    "Lo script di setup non è finito in tempo ed è stato fermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The setup script didn't finish in time and was stopped."
+          }
+        }
+      }
+    },
+    "Lo script di setup è uscito con codice %d." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The setup script exited with code %d."
+          }
+        }
+      }
+    },
+    "Locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
           }
         }
       }
@@ -564,12 +1998,62 @@
         }
       }
     },
+    "Merge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        }
+      }
+    },
+    "Merge commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge commit"
+          }
+        }
+      }
+    },
+    "Messaggio del commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commit message"
+          }
+        }
+      }
+    },
     "Misure del Panel" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel Metrics"
+          }
+        }
+      }
+    },
+    "Modifica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "Modifica reversibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reversible change"
           }
         }
       }
@@ -594,6 +2078,16 @@
         }
       }
     },
+    "Mostra cosa unisce e dove, poi chiede conferma" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what it merges and where, then asks to confirm"
+          }
+        }
+      }
+    },
     "Mostra e nascondi Bubo" : {
       "localizations" : {
         "en" : {
@@ -614,12 +2108,182 @@
         }
       }
     },
+    "Mostra il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Terminal"
+          }
+        }
+      }
+    },
     "Mostra l'icona nel Dock" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Icon in Dock"
+          }
+        }
+      }
+    },
+    "Nasconde il terminale; le shell restano aperte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hides the terminal; the shells keep running"
+          }
+        }
+      }
+    },
+    "Nascondi il terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Terminal"
+          }
+        }
+      }
+    },
+    "Nel checkout del Progetto ci sono modifiche non salvate in %@, e il merge le cambierebbe. Fai un commit o mettile da parte, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project's checkout has unsaved changes in %@, and the merge would change them. Commit them or set them aside, then merge."
+          }
+        }
+      }
+    },
+    "Nel terminale si fermano: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This stops in the terminal: %@."
+          }
+        }
+      }
+    },
+    "Nessun CLAUDE.md caricato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No CLAUDE.md loaded."
+          }
+        }
+      }
+    },
+    "Nessun blocco è accettato: non c'è niente da fondere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No block is accepted: there's nothing to merge."
+          }
+        }
+      }
+    },
+    "Nessun plugin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No plugins."
+          }
+        }
+      }
+    },
+    "Nessun server MCP." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No MCP servers."
+          }
+        }
+      }
+    },
+    "Nessuna API key salvata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No API key saved"
+          }
+        }
+      }
+    },
+    "Nessuna modifica da rivedere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No changes to review."
+          }
+        }
+      }
+    },
+    "Nessuna regola: Claude chiede ogni volta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rules: Claude asks every time."
+          }
+        }
+      }
+    },
+    "Nessuna riga da mostrare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No lines to show"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
+          }
+        }
+      }
+    },
+    "Non funziona" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not working"
+          }
+        }
+      }
+    },
+    "Non ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not Now"
+          }
+        }
+      }
+    },
+    "Non posso annullare il merge: nel frattempo il branch del checkout è cambiato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't undo the merge: the checkout's branch has changed since."
           }
         }
       }
@@ -634,12 +2298,112 @@
         }
       }
     },
+    "Non riesco a cambiare la regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t change the rule"
+          }
+        }
+      }
+    },
+    "Non riesco a cancellare le copie delle conversazioni della riga di comando." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't delete the copies of the command-line conversations."
+          }
+        }
+      }
+    },
+    "Non riesco a copiare le conversazioni della riga di comando ora: ci riprovo più tardi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't copy the command-line conversations right now. Bubo will try again later."
+          }
+        }
+      }
+    },
+    "Non riesco a leggere %@: Claude salta le sue regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t read %@: Claude skips its rules."
+          }
+        }
+      }
+    },
+    "Non riesco a leggere la configurazione di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read Claude's configuration"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere la conversazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the conversation"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere le modifiche della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the Session's changes"
+          }
+        }
+      }
+    },
     "Non riesco a registrare %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't register %@."
+          }
+        }
+      }
+    },
+    "Non riesco a rimettere la copia della Sessione com'era dopo i conflitti: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't put the Session's copy back as it was after the conflicts: %@"
+          }
+        }
+      }
+    },
+    "Non riesco a salvare la fiducia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't save the trust"
+          }
+        }
+      }
+    },
+    "Non riesco a salvare la regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t save the rule"
           }
         }
       }
@@ -664,6 +2428,116 @@
         }
       }
     },
+    "Nota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
+          }
+        }
+      }
+    },
+    "Nota per l'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note for the agent"
+          }
+        }
+      }
+    },
+    "Nota per l'agente, Invio per salvare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note for the agent, Return to save"
+          }
+        }
+      }
+    },
+    "Nota: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: %@"
+          }
+        }
+      }
+    },
+    "Nuova Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft"
+          }
+        }
+      }
+    },
+    "Nuova Bozza (⌥⌘N)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft (⌥⌘N)"
+          }
+        }
+      }
+    },
+    "Nuova Bozza…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Draft…"
+          }
+        }
+      }
+    },
+    "Nuova Sessione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session…"
+          }
+        }
+      }
+    },
+    "Nuova scheda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Tab"
+          }
+        }
+      }
+    },
+    "Ogni chiamata allo strumento %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every call to the tool %@."
+          }
+        }
+      }
+    },
+    "Ogni pagina di %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every page of %@."
+          }
+        }
+      }
+    },
     "Orb" : {
       "localizations" : {
         "en" : {
@@ -680,6 +2554,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo Orb, idle"
+          }
+        }
+      }
+    },
+    "Orbita" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbit"
+          }
+        }
+      }
+    },
+    "PR aperta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PR"
           }
         }
       }
@@ -714,12 +2608,118 @@
         }
       }
     },
+    "Per accedere, apri claude nel Terminale, scrivi /mcp e scegli %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To sign in, open claude in Terminal, type /mcp and choose %@."
+          }
+        }
+      }
+    },
+    "Per approvarla, apri Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To approve it, open Bubo."
+          }
+        }
+      }
+    },
+    "Per questa Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this Session"
+          }
+        }
+      }
+    },
+    "Plugin · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugins · %lld"
+          }
+        }
+      }
+    },
+    "Porta il branch del checkout nella copia della Sessione e chiede all'agente di risolvere i conflitti lì" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brings the checkout's branch into the Session's copy and asks the agent to resolve the conflicts there"
+          }
+        }
+      }
+    },
     "Premi la combinazione…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Press the key combination…"
+          }
+        }
+      }
+    },
+    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@\n\n%3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
+          }
+        }
+      }
+    },
+    "Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project"
+          }
+        }
+      }
+    },
+    "Progetto non fidato: Claude carica solo la tua configurazione, non quella del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untrusted Project: Claude loads only your own configuration, not the Project's."
+          }
+        }
+      }
+    },
+    "Progetto, condivisa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project, shared"
+          }
+        }
+      }
+    },
+    "Quota %@: %@ usata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ quota: %2$@ used"
           }
         }
       }
@@ -734,12 +2734,142 @@
         }
       }
     },
+    "Regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rule"
+          }
+        }
+      }
+    },
+    "Regole di permesso · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission rules · %lld"
+          }
+        }
+      }
+    },
     "Reinstalla Bubo, poi riprova." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
+    "Rete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network"
+          }
+        }
+      }
+    },
+    "Revisione · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review · %@"
+          }
+        }
+      }
+    },
+    "Revoca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke"
+          }
+        }
+      }
+    },
+    "Ricarica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload"
+          }
+        }
+      }
+    },
+    "Richiesta di permesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission request"
+          }
+        }
+      }
+    },
+    "Riduci movimento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reduce motion"
+          }
+        }
+      }
+    },
+    "Rifiuta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reject"
+          }
+        }
+      }
+    },
+    "Rifiutato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected"
+          }
+        }
+      }
+    },
+    "Rimanda all'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send back to agent"
+          }
+        }
+      }
+    },
+    "Rimossa: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed: %@"
+          }
+        }
+      }
+    },
+    "Rimuove la copia della Sessione e tiene il branch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes the Session’s copy and keeps the branch"
           }
         }
       }
@@ -764,12 +2894,82 @@
         }
       }
     },
+    "Rinominato da %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renamed from %@"
+          }
+        }
+      }
+    },
+    "Riporta il terminale nell'HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the terminal back into the HUD"
+          }
+        }
+      }
+    },
+    "Riporta nell'HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Back to HUD"
+          }
+        }
+      }
+    },
     "Riposo" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Idle"
+          }
+        }
+      }
+    },
+    "Riprende dalla Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumes from CLI History"
+          }
+        }
+      }
+    },
+    "Riprendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
+    "Riprendi dopo il reset" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume After Reset"
+          }
+        }
+      }
+    },
+    "Riprendo alle %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resuming at %@."
           }
         }
       }
@@ -784,12 +2984,32 @@
         }
       }
     },
+    "Riprova con %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retry with %@"
+          }
+        }
+      }
+    },
     "Riprova: Bubo lo riavvia." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try again: Bubo restarts it."
+          }
+        }
+      }
+    },
+    "Risolvi con l'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolve with Agent"
           }
         }
       }
@@ -804,12 +3024,52 @@
         }
       }
     },
+    "Rivedi le modifiche…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review Changes…"
+          }
+        }
+      }
+    },
     "Salva" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save"
+          }
+        }
+      }
+    },
+    "Salva Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Draft"
+          }
+        }
+      }
+    },
+    "Salva regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Rule"
+          }
+        }
+      }
+    },
+    "Scegli cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Folder…"
           }
         }
       }
@@ -824,12 +3084,228 @@
         }
       }
     },
+    "Script di setup non eseguito: il Progetto non è fidato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup script not run: the project isn't trusted."
+          }
+        }
+      }
+    },
+    "Se ti fidi, Claude usa le impostazioni del repo, che possono eseguire comandi sul tuo Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you trust it, Claude uses the repo's settings, which can run commands on your Mac."
+          }
+        }
+      }
+    },
+    "Sei offline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're offline"
+          }
+        }
+      }
+    },
     "Sei offline." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "You're offline."
+          }
+        }
+      }
+    },
+    "Sempre in questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always in This Project"
+          }
+        }
+      }
+    },
+    "Sempre in questo Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always in This Project…"
+          }
+        }
+      }
+    },
+    "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No isolated copy: changes go straight into the Project's folder."
+          }
+        }
+      }
+    },
+    "Server MCP" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MCP servers"
+          }
+        }
+      }
+    },
+    "Server MCP · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MCP Servers · %lld"
+          }
+        }
+      }
+    },
+    "Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        }
+      }
+    },
+    "Settimana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week"
+          }
+        }
+      }
+    },
+    "Si azzera %@ alle %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resets %1$@ at %2$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Si azzera %1$@ alle %2$@."
+          }
+        }
+      }
+    },
+    "Si azzera alle %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resets at %@."
+          }
+        }
+      }
+    },
+    "Skill · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skills · %lld"
+          }
+        }
+      }
+    },
+    "Solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just this time"
+          }
+        }
+      }
+    },
+    "Solo questo comando, scritto esattamente così." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only this command, written exactly like this."
+          }
+        }
+      }
+    },
+    "Spazio occupato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space Used"
+          }
+        }
+      }
+    },
+    "Spesa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend %@"
+          }
+        }
+      }
+    },
+    "Spesa %@ · ultimo turno %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend %1$@ · last turn %2$@"
+          }
+        }
+      }
+    },
+    "Sposta il terminale in una finestra sua" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the terminal to its own window"
+          }
+        }
+      }
+    },
+    "Squash" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squash"
+          }
+        }
+      }
+    },
+    "Stacca in una finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detach into Window"
           }
         }
       }
@@ -844,12 +3320,168 @@
         }
       }
     },
+    "Stima a listino di Claude Code, calcolata sul Mac: non è una fattura." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code's list-price estimate, calculated on this Mac: not a bill."
+          }
+        }
+      }
+    },
+    "Striscia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strip"
+          }
+        }
+      }
+    },
+    "Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        }
+      }
+    },
+    "Terminale · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal · %@"
+          }
+        }
+      }
+    },
+    "Testo troncato: apri Bubo per leggerlo tutto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text shortened: open Bubo to read it all."
+          }
+        }
+      }
+    },
+    "Ti fidi di questa cartella?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you trust this folder?"
+          }
+        }
+      }
+    },
+    "Tieni premuto: Solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold: Just this time"
+          }
+        }
+      }
+    },
+    "Titolo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
+          }
+        }
+      }
+    },
+    "Trasforma in Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn into Session"
+          }
+        }
+      }
+    },
+    "Tu" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You"
+          }
+        }
+      }
+    },
     "Tutte" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "All"
+          }
+        }
+      }
+    },
+    "Tutti i Progetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Projects"
+          }
+        }
+      }
+    },
+    "Una Sessione parte sempre in Lavora: la colonna segue quello che fa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session always starts in Working: its column follows what it does."
+          }
+        }
+      }
+    },
+    "Unisce %@ in %@ con un commit locale, senza push. Si annulla solo nei %@ successivi, dalla card in Fusa." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unisce %1$@ in %2$@ con un commit locale, senza push. Si annulla solo nei %3$@ successivi, dalla card in Fusa."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merges %1$@ into %2$@ with a local commit, not pushed. You can undo it only in the next %3$@, from the card in Merged."
+          }
+        }
+      }
+    },
+    "Usa la API key" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use API Key"
+          }
+        }
+      }
+    },
+    "Usa la API key…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use API Key…"
           }
         }
       }
@@ -864,12 +3496,122 @@
         }
       }
     },
+    "Utente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User"
+          }
+        }
+      }
+    },
+    "Vale in tutte le Sessioni del Progetto, anche nelle copie isolate, e in claude dal Terminale. La revochi da Configurazione di Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Applies to every Session of the Project, isolated copies included, and to claude in Terminal. Revoke it from Claude Configuration."
+          }
+        }
+      }
+    },
+    "Variabili d'ambiente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Environment variables"
+          }
+        }
+      }
+    },
     "Variante" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Variant"
+          }
+        }
+      }
+    },
+    "Verranno cancellati la copia isolata e il branch %@. Nessuna modifica andrà persa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes the isolated copy and the branch %@. No changes will be lost."
+          }
+        }
+      }
+    },
+    "Verranno cancellati la copia isolata e il branch %@. Queste modifiche andranno perse:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes the isolated copy and the branch %@. These changes will be lost:"
+          }
+        }
+      }
+    },
+    "Vista" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        }
+      }
+    },
+    "Vista delle Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions View"
+          }
+        }
+      }
+    },
+    "Vuoi archiviare la Sessione «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archive the session “%@”?"
+          }
+        }
+      }
+    },
+    "Vuoi cancellare la Sessione «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the Session “%@”?"
+          }
+        }
+      }
+    },
+    "Vuoi fondere la Sessione?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge the session?"
+          }
+        }
+      }
+    },
+    "Vuoi passare alla API key?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to your API key?"
           }
         }
       }
@@ -884,12 +3626,150 @@
         }
       }
     },
+    "Vuoi uscire da Bubo?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit Bubo?"
+          }
+        }
+      }
+    },
     "Vuoi uscire dall'account Claude?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sign out of your Claude account?"
+          }
+        }
+      }
+    },
+    "adesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "now"
+          }
+        }
+      }
+    },
+    "almeno %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "at least %@"
+          }
+        }
+      }
+    },
+    "apiKeyHelper" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "apiKeyHelper"
+          }
+        }
+      }
+    },
+    "attivita.attendeTe" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting on you"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attende te"
+          }
+        }
+      }
+    },
+    "attivita.errore" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Errore"
+          }
+        }
+      }
+    },
+    "attivita.ferma" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopped"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ferma"
+          }
+        }
+      }
+    },
+    "attivita.lavora" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lavora"
+          }
+        }
+      }
+    },
+    "circa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about %@"
+          }
+        }
+      }
+    },
+    "claude %@ · da aggiornare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude %@ · needs an update"
+          }
+        }
+      }
+    },
+    "claude %@ · senza accesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude %@ · not signed in"
           }
         }
       }
@@ -904,6 +3784,26 @@
         }
       }
     },
+    "claude nel Terminale la usa al posto dell'abbonamento, e si paga a consumo. Bubo non la passa a claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude in Terminal uses it instead of your plan, billed per use. Bubo doesn't pass it to claude."
+          }
+        }
+      }
+    },
+    "claude non trovata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude not found"
+          }
+        }
+      }
+    },
     "claude si è fermato con il codice %d." : {
       "localizations" : {
         "en" : {
@@ -914,12 +3814,193 @@
         }
       }
     },
+    "esc No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esc No"
+          }
+        }
+      }
+    },
+    "fase.aperta" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Aperta"
+          }
+        }
+      }
+    },
+    "fase.archiviata" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archived"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Archiviata"
+          }
+        }
+      }
+    },
+    "fase.fusa" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merged"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fusa"
+          }
+        }
+      }
+    },
     "fps" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "fps"
+          }
+        }
+      }
+    },
+    "git si è fermato: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "git stopped: %@"
+          }
+        }
+      }
+    },
+    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · f focus · s side by side · ⌘↩ merge or send back to agent"
+          }
+        }
+      }
+    },
+    "meno di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "under %@"
+          }
+        }
+      }
+    },
+    "si azzera %@ alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "resets %1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "si azzera alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "resets at %@"
+          }
+        }
+      }
+    },
+    "sul checkout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on the checkout"
+          }
+        }
+      }
+    },
+    "«%@» lavora già sul checkout di questo Progetto. Archiviala, o lavora in una copia isolata." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "«almeno»: un turno si è interrotto, ne conto i token ma non tutta la cifra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“At least”: a turn stopped early, so its tokens count but not its full cost."
+          }
+        }
+      }
+    },
+    "«circa»: un modello senza prezzo noto è contato al prezzo del modello predefinito." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“About”: a model without a known price is counted at the default model's price."
+          }
+        }
+      }
+    },
+    "… %lld altre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "… %lld more"
+          }
+        }
+      }
+    },
+    "↩ Solo ora · esc No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ Just this time · esc No"
+          }
+        }
+      }
+    },
+    "↳ all'agente: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↳ to the agent: %@"
           }
         }
       }

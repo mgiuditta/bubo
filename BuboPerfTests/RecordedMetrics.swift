@@ -16,8 +16,13 @@ nonisolated enum RecordedMeasurements {
 
     /// Records the measurements of one iteration.
     static func append(_ measurements: [XCTPerformanceMeasurement]) {
-        let recorded = measurements.map {
-            RecordedMeasurement(identifier: $0.identifier, value: $0.value.value)
+        let recorded = measurements.map { measurement in
+            // Durations in seconds, whatever unit the metric picked.
+            let value = (measurement.value.unit as? UnitDuration).map {
+                Measurement(value: measurement.value.value, unit: $0).converted(to: .seconds).value
+            } ?? measurement.value.value
+            return RecordedMeasurement(identifier: measurement.identifier, value: value,
+                                       unitSymbol: measurement.value.unit.symbol)
         }
         storage.withLock { $0.append(contentsOf: recorded) }
     }
@@ -27,7 +32,12 @@ nonisolated enum RecordedMeasurements {
     /// May start with a warm-up iteration that XCTest leaves out of its
     /// results, so take the last `iterationCount` values.
     static func values(for identifier: String) -> [Double] {
-        storage.withLock { $0.filter { $0.identifier == identifier }.map(\.value) }
+        measurements { $0 == identifier }.map(\.value)
+    }
+
+    /// The measurements whose identifier passes `isIncluded`, oldest first.
+    static func measurements(where isIncluded: (String) -> Bool) -> [RecordedMeasurement] {
+        storage.withLock { $0.filter { isIncluded($0.identifier) } }
     }
 }
 
@@ -35,8 +45,10 @@ nonisolated enum RecordedMeasurements {
 nonisolated struct RecordedMeasurement: Sendable {
     /// The metric's identifier, such as `com.apple.dt.XCTMetric_Memory.physical`.
     let identifier: String
-    /// The value, in the unit the metric reports it in.
+    /// The value: in seconds for a duration, otherwise in the unit the metric reports it in.
     let value: Double
+    /// The symbol of the unit the metric reported, such as `kB`.
+    let unitSymbol: String
 }
 
 /// A metric that reports what another metric reports, and records it.

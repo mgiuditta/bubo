@@ -16,7 +16,7 @@ struct AccountModelTests {
     }
 
     @Test func cancellingTheLoginKeepsTheAccountAsItWas() async {
-        let model = AccountModel(cli: ClaudeCLI(runner: Self.runner, isOnline: { true }, shell: URL(filePath: "/bin/zsh")))
+        let model = AccountModel(cli: ClaudeCLI(runner: Self.runner, isOnline: { true }, locator: .onlyLoginShell(Self.runner)))
         await model.refresh()
         let before = model.state
         #expect(before == .signedOut)

@@ -55,6 +55,17 @@ final class AccountModel {
         await refreshAPIKey()
     }
 
+    /// Whether `ANTHROPIC_API_KEY` is in the user's environment, where `claude` in Terminal pays per use with it.
+    private(set) var hasAPIKeyInEnvironment = false
+
+    /// Looks for `ANTHROPIC_API_KEY` in Bubo's environment and in the login shell's, without reading it.
+    ///
+    /// Bubo never passes it on: `ChildEnvironment` builds the environment of `claude` from scratch.
+    func refreshEnvironment() async {
+        hasAPIKeyInEnvironment = ProcessInfo.processInfo.environment["ANTHROPIC_API_KEY"]?.isEmpty == false
+        if !hasAPIKeyInEnvironment { hasAPIKeyInEnvironment = await cli.locator.loginShellHasAPIKey() }
+    }
+
     /// Reads the state again from `claude auth status`.
     func refresh() async {
         state = await cli.status()

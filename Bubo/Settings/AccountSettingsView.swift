@@ -36,6 +36,7 @@ struct AccountSettingsView: View {
         .formStyle(.grouped)
         .task { await account.refresh() }
         .task { await account.refreshAPIKey() }
+        .task { await account.refreshEnvironment() }
         .sheet(isPresented: $isEnteringAPIKey) {
             APIKeySheet { key in
                 Task { await account.saveAPIKey(key) }
@@ -102,6 +103,12 @@ struct AccountSettingsView: View {
                     .buttonStyle(.link)
             case nil:
                 EmptyView()
+            }
+            if account.hasAPIKeyInEnvironment {
+                Label("ANTHROPIC_API_KEY è impostata nel tuo ambiente", systemImage: "exclamationmark.triangle")
+                Text("claude nel Terminale la usa al posto dell'abbonamento, e si paga a consumo. Bubo non la passa a claude.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
             }
             if let failure = account.apiKeyFailure {
                 Text(failure)

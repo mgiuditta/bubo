@@ -17,6 +17,13 @@ struct ChildEnvironmentTests {
         #expect(environment["BUBO_CLAUDE_PATH"] == Self.claude.path)
     }
 
+    @Test func theBridgeKnowsWhereToKeepTheConversations() {
+        let environment = ChildEnvironment.make(claude: Self.claude, conversations: URL(filePath: "/tmp/C.sqlite"),
+                                                base: Self.base)
+        #expect(environment["BUBO_CONVERSATIONS"] == "/tmp/C.sqlite")
+        #expect(ChildEnvironment.make(claude: Self.claude, base: Self.base)["BUBO_CONVERSATIONS"] == nil)
+    }
+
     @Test func theAPIKeyIsThereOnlyWhenChosen() {
         let environment = ChildEnvironment.make(claude: Self.claude, apiKey: "sk-test", base: Self.base)
         #expect(environment["ANTHROPIC_API_KEY"] == "sk-test")

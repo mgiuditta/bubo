@@ -225,7 +225,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - `Updates/WhatsNew`: versione vista l'ultima volta, sezione Novità dal bundle nella lingua attiva.
 - `HUD/UpdateBanner`, `HUD/WhatsNewCard`, `Settings/UpdatesSettingsView`; voce "Controlla aggiornamenti…" nel menu dell'app, nel menu della barra dei menu e nel `CommandCatalog` della Palette.
 - `Agent/ClaudeCompatibility`: minima da `compat.json`, confronto semver con `claude --version` e `init.claude_code_version`, insieme di `capabilities` per le altre feature. Lo usa `Account/ClaudeReadiness` (26) per l'esito "vecchia".
-- `bridge/bridge.entitlements` (solo `cs.allow-jit`), `bridge/compat.json`, smoke test in `bridge/smoke/`.
+- `bridge/entitlements.plist` (solo `cs.allow-jit`), `bridge/compat.json`, smoke test in `bridge/smoke/`.
 - `scripts/release/`: `build.sh`, `sign.sh`, `notarize.sh`, `dmg.sh`, `appcast.sh` (con riscrittura degli URL per tag), `yank.sh`, `verify-entitlements.sh`, `bridge-speed.sh`, `bump-sdk.sh`.
 - `.github/workflows/release.yml` (sul tag), `yank.yml` (a mano), `nightly-claude.yml` (ogni notte).
 - `scripts/polish-check.sh` e `.github/pull_request_template.md` con la checklist degli otto criteri.
@@ -233,7 +233,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 ### Flusso
 
-1. **Release**: tag `vX.Y.Z[-beta.N]` → `release.yml` su `macos-26` → controllo della freschezza dell'SDK → ponte compilato e firmato con `bridge.entitlements` → build Release con versione e numero di build → firma dall'interno verso l'esterno → `verify-entitlements.sh` e `bridge-speed.sh` sul bundle firmato → DMG UDZO firmato → `notarytool --wait` + log → `stapler staple` → firma EdDSA → release in `bubo-releases` → `appcast.sh` (delta, note per lingua, canale, gradualità, critico, feed firmato) → Pages → controllo che ogni URL dell'appcast risponda.
+1. **Release**: tag `vX.Y.Z[-beta.N]` → `release.yml` su `macos-26` → controllo della freschezza dell'SDK → ponte compilato e firmato con `bridge/entitlements.plist` → build Release con versione e numero di build → firma dall'interno verso l'esterno → `verify-entitlements.sh` e `bridge-speed.sh` sul bundle firmato → DMG UDZO firmato → `notarytool --wait` + log → `stapler staple` → firma EdDSA → release in `bubo-releases` → `appcast.sh` (delta, note per lingua, canale, gradualità, critico, feed firmato) → Pages → controllo che ogni URL dell'appcast risponda.
 2. **Sul Mac dell'utente**: ogni 24 ore Sparkle legge l'appcast → voce ammessa dal Canale e dal gruppo del rilascio graduale → download in background (delta se possibile) → `willInstallUpdateOnQuit` → promemoria nell'HUD (se c'è stata la prima risposta).
 3. **Riavvia**: `RelaunchGate` → nessun lavoro? installa e riavvia : "Riavvio appena le Sessioni finiscono" → ultima Sessione Ferma o Esecuzione finita → installa e riavvia.
 4. **Uscita**: Sparkle installa; alla riapertura `WhatsNew` mostra la scheda.
@@ -286,11 +286,15 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 I passi segnati **(umano)** servono account, certificati, segreti o il Mac di riferimento: un agente non può farli.
 
-1. **Entitlement e velocità del ponte**: `bridge/bridge.entitlements` con il solo `cs.allow-jit`, firma ad hoc con hardened runtime in `scripts/check.sh`, `verify-entitlements.sh` e `bridge-speed.sh`. Non serve nessun segreto. Dipende dal ponte ([#66](https://github.com/mgiuditta/bubo/issues/66)).
+1. **Entitlement e velocità del ponte**: `bridge/entitlements.plist` con il solo `cs.allow-jit`, firma ad hoc con hardened runtime in `scripts/check.sh`, `verify-entitlements.sh` e `bridge-speed.sh`. Non serve nessun segreto. Dipende dal ponte ([#66](https://github.com/mgiuditta/bubo/issues/66)).
+   - **Nome del file** ([#219](https://github.com/mgiuditta/bubo/issues/219)): resta `bridge/entitlements.plist`, già usato dalla build phase "Ponte agente" di `project.yml` con il solo `allow-jit`; rinominarlo non cambia niente e sposterebbe `project.yml`.
+   - **Lista ammessa dentro `verify-entitlements.sh`**: percorso nel bundle → entitlement in JSON. Un eseguibile non elencato non deve averne; ogni Mach-O deve avere il runtime rafforzato. `--dev` tollera solo `get-task-allow` delle build Apple Development di `check.sh`; `release.yml` lo chiama senza.
+   - **Carico di prova al posto del ponte vero** in `bridge-speed.sh`: `scripts/release/bridge-bench.ts` compilato con lo stesso Bun e firmato come il ponte (ad hoc, `-o runtime`, stesso file di entitlement). Il rallentamento è del runtime di Bun, non del codice del ponte, e così il ponte non guadagna una modalità di benchmark. Migliore di 3 giri, soglia 2×; `bridge-speed.sh <entitlement>` con un file senza `allow-jit` mostra il guasto.
 2. **(umano) Account e segreti di distribuzione**: certificato Developer ID Application (`.p12`), chiave API di App Store Connect per `notarytool`, coppia EdDSA con `generate_keys` (copia della privata fuori dalla CI), repository pubblico `mgiuditta/bubo-releases` con Pages attivo, token con scrittura solo su quel repository, API key Anthropic per lo smoke notturno. Segreti nel repository `bubo`.
 3. **Pipeline di release firmata**: `release.yml` sul tag, XcodeGen e Bun nel job, versione e numero di build, firma dall'interno verso l'esterno, DMG UDZO, notarizzazione, stapling, release in `bubo-releases` (prerelease per le beta). Ancora senza Sparkle. Dipende da 1 e 2.
    - **Script, non passi in linea** ([#221](https://github.com/mgiuditta/bubo/issues/221)): `keychain.sh`, `build.sh`, `sign.sh`, `dmg.sh`, `notarize.sh` in `scripts/release/`. Il workflow li chiama in fila e si possono rilanciare a mano su un Mac.
-   - **Segreti** (nomi fissati qui, valori dal passo 2): `DEVELOPER_ID_P12_BASE64`, `DEVELOPER_ID_P12_PASSWORD`, `ASC_API_KEY_P8_BASE64`, `ASC_API_KEY_ID`, `ASC_API_ISSUER_ID`, `BUBO_RELEASES_TOKEN`. Se ne manca uno, il job si ferma al primo passo e lo nomina.
+   - **Segreti** con i nomi dei criteri di [#220](https://github.com/mgiuditta/bubo/issues/220): `DEVELOPER_ID_P12` (il `.p12` in base64), `DEVELOPER_ID_P12_PASSWORD`, `NOTARY_KEY_P8` (testo PEM o base64), `NOTARY_KEY_ID`, `NOTARY_ISSUER`, `RELEASES_TOKEN`. Dentro il job restano i nomi delle variabili degli script. Se ne manca uno, il job si ferma al primo passo e lo nomina.
+   - **`-skipPackagePluginValidation`** su archivio ed export, come in `check.sh` e `perf.sh`: senza, il plugin di SwiftTerm ferma la build da riga di comando.
    - **Archivio con firma automatica ed export `developer-id`** con la chiave di App Store Connect (`-allowProvisioningUpdates`), come dice `project.yml`: l'export crea il profilo che serve a `keychain-access-groups`. Poi `sign.sh` rifirma tutto dall'interno verso l'esterno, per profondità: il ponte con `bridge/entitlements.plist` e l'app con `--preserve-metadata=entitlements`, così resta l'entitlement del profilo. Chiude con `verify-entitlements.sh` senza `--dev`.
    - **DMG APFS UDZO**: solo macOS 26 (ADR 0001), quindi HFS+ non serve.
    - **Tag fuori formato** (`v1.2`, `-rc.1`): il job si ferma prima di compilare.

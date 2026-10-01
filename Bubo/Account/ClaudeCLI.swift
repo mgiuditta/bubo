@@ -3,12 +3,12 @@ import Foundation
 /// The user's own `claude` CLI, used only for its `auth` commands (ADR 0003).
 // ponytail: auth commands run without the ADR 0005 disclaim; they only touch ~/.claude. #66 brings ProcessSpawner.
 struct ClaudeCLI: Sendable {
-    /// Runs the shell and `claude`.
+    /// Runs `claude`.
     var runner = ProcessRunner.live
     /// Whether the Mac is online.
     var isOnline: @Sendable () async -> Bool = { await NetworkStatus.isOnline() }
-    /// The user's login shell, whose `PATH` finds `claude` even when Bubo starts from the Finder.
-    var shell = URL(filePath: ProcessInfo.processInfo.environment["SHELL"] ?? "/bin/zsh")
+    /// Finds `claude` even when Bubo starts from the Finder.
+    var locator = ClaudeLocator()
 
     /// Returns the account state from `claude auth status`.
     func status() async -> AccountState {
@@ -35,23 +35,9 @@ struct ClaudeCLI: Sendable {
         try await runAuth("logout")
     }
 
-    /// Finds `claude` on the `PATH` of an interactive login shell, as Terminal would.
+    /// The `claude` that `ClaudeLocator` finds.
     func executableURL() async -> URL? {
-        let output = try? await withThrowingTaskGroup { group in
-            group.addTask { try await runner.run(shell, ["-l", "-i", "-c", "command -v claude"]) }
-            // An interactive shell can stall on a prompt from the user's profile.
-            group.addTask {
-                try await Task.sleep(for: .seconds(5))
-                throw CancellationError()
-            }
-            defer { group.cancelAll() }
-            return try await group.next()
-        }
-        guard let output, output.exitCode == 0,
-              let path = output.standardOutput.split(whereSeparator: \.isNewline).last,
-              path.hasPrefix("/")
-        else { return nil }
-        return URL(filePath: String(path))
+        await locator.executableURL()
     }
 
     private func runAuth(_ command: String) async throws {

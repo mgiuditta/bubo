@@ -66,11 +66,15 @@ final class OrbPanelController {
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }
         view.menu = menu
+        let frameLog = OrbFrameLog.fromLaunchArguments()
         do {
-            renderer = try OrbRenderer(view: view)
+            renderer = try OrbRenderer(view: view, frameLog: frameLog)
         } catch {
             Logger.panel.error("Orb renderer unavailable: \(error)")
             return
+        }
+        if frameLog != nil {
+            Task { await OrbFrameLog.keepMorphing(.shared) }
         }
         panel.contentView = view
         self.panel = panel
@@ -125,7 +129,7 @@ final class OrbPanelController {
         } catch {
             Logger.panel.error("Panel placement not saved: \(error)")
         }
-        move(to: spot, animated: !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+        move(to: spot, animated: !Motion.isReduced)
     }
 
     private func move(to spot: PanelSpot, animated: Bool) {
