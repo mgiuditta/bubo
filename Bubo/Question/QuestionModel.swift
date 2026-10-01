@@ -96,6 +96,8 @@ final class QuestionModel {
     private func readyBridge() async throws -> AgentBridge {
         if let bridge { return bridge }
         guard let claude = await cli.executableURL() else { throw QuestionFailure.claudeMissing }
+        // The HUD's Quota read and a Domanda can both get here across the await: keep one bridge.
+        if let bridge { return bridge }
         let bridge = AgentBridge(executable: Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
                                  environment: ChildEnvironment.make(claude: claude),
                                  quota: { [weak self] reported in
