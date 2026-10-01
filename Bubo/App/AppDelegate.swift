@@ -55,6 +55,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self?.sessions?.sessions ?? []
     } viewer: { [weak self] in
         self?.sessions?.viewer
+    } sessionStore: { [weak self] in
+        self?.sessions
     }
     /// What starts once the HUD is interactive: the only place for work after launch.
     private(set) lazy var launch = makeLaunchSequence()

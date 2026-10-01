@@ -77,6 +77,14 @@ final class GalaxyModel {
     private(set) var filter: UUID?
     /// The Sessioni that wrote each file, by path from the Progetto, oldest Sessione first.
     private(set) var writers: [String: [UUID]] = [:]
+    /// What each Sessione changed, as its revisione shows it: the files by path from the Progetto. Missing until read.
+    private(set) var changes: [UUID: [String: ChangedFile]] = [:]
+    /// The Sessioni whose changes git could not read.
+    private(set) var unreadableChanges: Set<UUID> = []
+    /// The Sessione whose diff the panel shows, when the user picked one among those that changed the file.
+    private(set) var diffChoice: UUID?
+    /// Whether the user closed the diff panel; selecting a file opens it again.
+    private(set) var isDiffClosed = false
 
     /// Called when the map must draw again: the camera, the layout or the highlights changed.
     @ObservationIgnored var onRedraw: (() -> Void)?
@@ -242,6 +250,7 @@ final class GalaxyModel {
     func select(_ index: Int?) {
         guard index != selection else { return }
         selection = index
+        reopenDiff()
         contentChanged()
         guard let index, let layout else { return }
         fly(to: camera(showing: index, in: layout))
@@ -255,13 +264,16 @@ final class GalaxyModel {
         return GalaxyCamera(center: star.position, scale: min(scale, GalaxyCamera.maximumScale))
     }
 
-    /// Acts on a click at `point` of the map: a file is selected and shown in the list, a folder is zoomed into.
+    /// Acts on a click at `point` of the map: a file is selected, shown in the list and flown to, with its diff; a
+    /// folder is zoomed into.
     func click(at point: CGPoint) {
         switch hit(at: point) {
         case let .star(index):
             selection = index
             revealedInList = index
+            reopenDiff()
             contentChanged()
+            if let layout { fly(to: camera(showing: index, in: layout)) }
         case let .cluster(index):
             guard let cluster = layout?.clusters[index] else { return }
             fly(to: .fitting(radius: cluster.radius, around: cluster.center, in: viewSize))
@@ -385,6 +397,9 @@ final class GalaxyModel {
             self.filter = nil
             isFollowing = false
         }
+        let ids = Set(sessions.map(\.id))
+        if changes.keys.contains(where: { !ids.contains($0) }) { changes = changes.filter { ids.contains($0.key) } }
+        unreadableChanges.formIntersection(ids)
         touchesChanged(headsBefore: before)
     }
 
@@ -518,6 +533,86 @@ final class GalaxyModel {
         activityVersion += 1
         onRedraw?()
         if isMoving { onAnimation?() }
+    }
+
+    // MARK: Diff
+
+    /// The diff of the selected file, as the glass panel over the map shows it.
+    struct Diff: Equatable {
+        /// What the panel shows of the file.
+        enum Content: Equatable {
+            /// Outside git: there is no version from before the Sessione to compare with.
+            case noVersionBefore
+            case loading
+            case unreadable
+            /// The file as the Sessione's revisione shows it; `nil` when the revisione does not have it.
+            case file(ChangedFile?)
+        }
+
+        /// The file's path from the Progetto.
+        let path: String
+        /// The Sessioni that wrote or changed the file, oldest first.
+        let sessions: [GalaxySession]
+        /// The Sessione whose diff is shown.
+        let session: GalaxySession
+        let content: Content
+    }
+
+    /// The diff of the selected file: of the Sessione picked in the panel, else of the filtered one, else of the
+    /// oldest that wrote or changed it. `nil` when no Sessione did, or the panel is closed.
+    var diff: Diff? {
+        guard !isDiffClosed, let selection, let path = layout?.stars[selection].path else { return nil }
+        let concerned = sessions.filter { writers[path]?.contains($0.id) == true || changes[$0.id]?[path] != nil }
+        guard let session = concerned.first(where: { $0.id == diffChoice })
+            ?? concerned.first(where: { $0.id == filter }) ?? concerned.first
+        else { return nil }
+        let content: Diff.Content = if !session.isReviewable {
+            .noVersionBefore
+        } else if unreadableChanges.contains(session.id) {
+            .unreadable
+        } else if let files = changes[session.id] {
+            .file(files[path])
+        } else {
+            .loading
+        }
+        return Diff(path: path, sessions: concerned, session: session, content: content)
+    }
+
+    /// Records the changes of the Sessione `id` as its revisione reads them; `nil` when git could not read them.
+    func update(changes files: [ChangedFile]?, of id: UUID) {
+        guard let files else {
+            unreadableChanges.insert(id)
+            return
+        }
+        let byPath = Dictionary(files.map { ($0.path, $0) }) { first, _ in first }
+        unreadableChanges.remove(id)
+        if changes[id] != byPath { changes[id] = byPath }
+    }
+
+    /// Shows in the panel the diff of the Sessione `id`.
+    func showDiff(of id: UUID) {
+        diffChoice = id
+    }
+
+    /// Closes the diff panel until a file is selected again.
+    func closeDiff() {
+        isDiffClosed = true
+    }
+
+    private func reopenDiff() {
+        isDiffClosed = false
+        diffChoice = nil
+    }
+
+    /// The lines added and removed in the file of the star at `index` by the filtered Sessione, or by all of them;
+    /// `nil` when none changed it.
+    func lineCounts(of index: Int) -> (added: Int, removed: Int)? {
+        guard let path = layout?.stars[index].path else { return nil }
+        let ids = filter.map { [$0] } ?? sessions.map(\.id)
+        let files = ids.compactMap { changes[$0]?[path] }
+        guard !files.isEmpty else { return nil }
+        let hunks = files.flatMap(\.hunks)
+        return (hunks.reduce(0) { $0 + $1.added }, hunks.reduce(0) { $0 + $1.removed })
     }
 
     // MARK: Labels

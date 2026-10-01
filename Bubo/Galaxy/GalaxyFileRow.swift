@@ -1,12 +1,14 @@
 import SwiftUI
 
-/// A file in the Galassia's list: its name, under it the folder it is in, and the signs of the Sessioni that wrote it,
-/// with a double ring when more than one did.
+/// A file in the Galassia's list: its name, under it the folder it is in, the lines the Sessioni added and removed in
+/// it, and the signs of the Sessioni that wrote it, with a double ring when more than one did.
 struct GalaxyFileRow: View {
     /// The file's path from the Progetto.
     let path: String
     /// The Sessioni that wrote it, oldest first.
     var writers: [GalaxySession] = []
+    /// The lines the Sessioni added and removed in it; `nil` when none changed it.
+    var lineCounts: (added: Int, removed: Int)?
 
     var body: some View {
         let file = path as NSString
@@ -23,8 +25,16 @@ struct GalaxyFileRow: View {
                         .truncationMode(.head)
                 }
             }
-            if !writers.isEmpty {
+            if !writers.isEmpty || lineCounts != nil {
                 Spacer(minLength: 0)
+            }
+            if let lineCounts {
+                Text(verbatim: "+\(lineCounts.added) −\(lineCounts.removed)")
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+                    .monospacedDigit()
+            }
+            if !writers.isEmpty {
                 signs
             }
         }
