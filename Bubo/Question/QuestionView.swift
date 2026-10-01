@@ -4,6 +4,7 @@ import SwiftUI
 // ponytail: plain text answer; Markdown rendering comes with the HUD bubbles of phase 3.
 struct QuestionView: View {
     @Bindable var model: QuestionModel
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -29,7 +30,14 @@ struct QuestionView: View {
                 RoundedRectangle(cornerRadius: CornerRadius.large).strokeBorder(Palette.line)
             }
 
-            if let failure = model.failure {
+            if let resumesAt = model.resumesAt {
+                HStack(spacing: Spacing.small) {
+                    Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")
+                        .font(Typography.body(size: 13))
+                        .foregroundStyle(Palette.textSecondary)
+                    Button("Annulla", action: model.stop)
+                }
+            } else if let failure = model.failure {
                 notice(for: failure)
             } else if model.isAnswering && model.answer.isEmpty {
                 LoadingLabel("Chiedo a Claude…")
@@ -63,6 +71,19 @@ struct QuestionView: View {
         case .bridge(.unsupportedVersion):
             ErrorNotice("Il collegamento con Claude non è aggiornato", remedy: "Reinstalla Bubo, poi riprova.",
                         actionTitle: "Riprova", action: model.retry)
+        case .bridge(.limitReached(let limit)):
+            LimitNotice(limit: limit, resume: model.resumeAfterReset,
+                        switchModel: { model.retry(model: limit.otherModel) },
+                        useAPIKey: { Task { await model.useAPIKey() } })
+        case .bridge(.signInRequired):
+            ErrorNotice("L'accesso a Claude è scaduto", remedy: "Accedi di nuovo in Impostazioni › Account.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .offline:
+            ErrorNotice("Sei offline", remedy: "Bubo non passa da solo alla API key: riprova quando torna la rete.",
+                        actionTitle: "Riprova", action: model.retry)
+        case .apiKeyMissing:
+            ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
         }
     }
 }

@@ -90,6 +90,15 @@ struct ClaudeLocatorTests {
         #expect(await mac.locator.executableURL() == nil)
     }
 
+    @Test(arguments: [("zsh: no job control\nset\n", true), ("", false)])
+    func theLoginShellSaysOnlyWhetherAnAPIKeyIsSet(output: String, isSet: Bool) async {
+        let mac = FakeMac(shellOutput: ProcessOutput(exitCode: isSet ? 0 : 1, standardOutput: output))
+        #expect(await mac.locator.loginShellHasAPIKey() == isSet)
+        // The shell tests the variable and never prints it.
+        #expect(mac.shellCalls.withLock { $0 }
+            == [["/bin/zsh", "-l", "-i", "-c", #"[ -n "${ANTHROPIC_API_KEY-}" ] && echo set"#]])
+    }
+
     @Test func aStalledLoginShellTimesOut() async {
         let mac = FakeMac(shellOutput: ProcessOutput(exitCode: 0, standardOutput: "/Users/ada/.bun/bin/claude\n"),
                           shellDelay: .seconds(60))

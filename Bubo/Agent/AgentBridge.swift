@@ -11,6 +11,10 @@ enum AgentBridgeError: Error, Equatable {
     case failed(message: String)
     /// The bridge speaks another protocol version.
     case unsupportedVersion(Int)
+    /// `claude` stopped at a subscription limit.
+    case limitReached(Quota.Limit)
+    /// The login of `claude` is no longer valid.
+    case signInRequired
 }
 
 /// Talks to the agent bridge, a child process that drives `claude` through the Agent SDK.
@@ -41,6 +45,7 @@ final class AgentBridge {
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
+    private var isClosing = false
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///
@@ -48,7 +53,9 @@ final class AgentBridge {
     /// in a worktree it reads them from the main checkout.
     ///
     /// Cancelling the iteration interrupts the conversation.
-    func ask(_ prompt: String, in directory: URL) -> AsyncThrowingStream<String, any Error> {
+    ///
+    /// - Parameter model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
+    func ask(_ prompt: String, in directory: URL, model: String? = nil) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -62,7 +69,8 @@ final class AgentBridge {
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
-                                                .map { URL(filePath: $0, directoryHint: .isDirectory) })
+                                                .map { URL(filePath: $0, directoryHint: .isDirectory) },
+                                            model: model)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -78,9 +86,22 @@ final class AgentBridge {
         try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
     }
 
+    /// Closes the bridge once the conversations in progress end; it serves no new ones.
+    func closeWhenIdle() {
+        isClosing = true
+        closeIfIdle()
+    }
+
+    private func closeIfIdle() {
+        guard isClosing, answers.isEmpty else { return }
+        // Closing the input ends the bridge, and its `claude` with it.
+        try? process?.input.close()
+    }
+
     private func cancel(_ id: String) {
         guard answers.removeValue(forKey: id) != nil, let process else { return }
         try? process.input.write(contentsOf: BridgeCommand.cancel(id: id).line())
+        closeIfIdle()
     }
 
     private func runningProcess() throws -> SpawnedProcess {
@@ -119,6 +140,10 @@ final class AgentBridge {
             answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.failed(message: message))
         case let .error(nil, message):
             finishAll(throwing: .failed(message: message))
+        case let .limit(id, limit):
+            answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.limitReached(limit))
+        case let .signInRequired(id):
+            answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .search(id, query, project):
             Task {
                 let text = await search(query, project)
@@ -129,6 +154,7 @@ final class AgentBridge {
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
         }
+        closeIfIdle()
     }
 
     private func finishAll(throwing error: AgentBridgeError) {

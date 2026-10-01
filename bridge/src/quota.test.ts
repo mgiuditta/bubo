@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { quotaFromRateLimit, quotaFromUsage, readQuota } from "./quota";
+import { limitFromRateLimit, quotaFromRateLimit, quotaFromUsage, readQuota } from "./quota";
 
 // Campioni registrati con Claude Code 2.1.286 e SDK 0.3.286 il 01/10/2026, account Max.
 const rateLimitEvent = {
@@ -41,6 +41,17 @@ test("rate_limit_event con solo i campi dei tipi: vale la finestra nominata", ()
 test("rate_limit_event senza utilizzo: nessuna Quota inventata", () => {
   expect(quotaFromRateLimit({ status: "rejected", rateLimitType: "five_hour", resetsAt: 1790852400 })).toEqual({});
   expect(quotaFromRateLimit({ status: "allowed" })).toEqual({});
+});
+
+test("rate_limit_event rifiutato: finestra e reset del limite", () => {
+  expect(limitFromRateLimit({ ...rateLimitEvent.rate_limit_info, status: "rejected" } as never))
+    .toEqual({ window: "five_hour", resetsAt: 1790852400 });
+  expect(limitFromRateLimit({ status: "rejected" })).toEqual({});
+});
+
+test("rate_limit_event consentito o in avviso: nessun limite", () => {
+  expect(limitFromRateLimit(rateLimitEvent.rate_limit_info as never)).toBeUndefined();
+  expect(limitFromRateLimit({ status: "allowed_warning", rateLimitType: "seven_day", utilization: 0.9 })).toBeUndefined();
 });
 
 test("metodo di uso registrato: percentuali in 0–1 e reset in secondi", () => {

@@ -44,9 +44,26 @@ nonisolated struct ClaudeLocator: Sendable {
         await installations().first
     }
 
+    /// Whether the user's login shell sets `ANTHROPIC_API_KEY`, which makes `claude` in Terminal pay per use.
+    ///
+    /// The shell answers only yes or no: the key never reaches Bubo.
+    func loginShellHasAPIKey() async -> Bool {
+        let output = await loginShell(#"[ -n "${ANTHROPIC_API_KEY-}" ] && echo set"#)
+        return output?.standardOutput.split(whereSeparator: \.isNewline).last == "set"
+    }
+
     private func claudeOnLoginPath() async -> URL? {
-        let output = try? await withThrowingTaskGroup { group in
-            group.addTask { try await runner.run(shell, ["-l", "-i", "-c", "command -v claude"]) }
+        guard let output = await loginShell("command -v claude"), output.exitCode == 0,
+              let path = output.standardOutput.split(whereSeparator: \.isNewline).last,
+              path.hasPrefix("/")
+        else { return nil }
+        return URL(filePath: String(path))
+    }
+
+    /// Runs `command` in an interactive login shell, as Terminal would; `nil` if it fails or takes too long.
+    private func loginShell(_ command: String) async -> ProcessOutput? {
+        try? await withThrowingTaskGroup { group in
+            group.addTask { try await runner.run(shell, ["-l", "-i", "-c", command]) }
             group.addTask {
                 try await Task.sleep(for: shellTimeout)
                 throw CancellationError()
@@ -54,10 +71,5 @@ nonisolated struct ClaudeLocator: Sendable {
             defer { group.cancelAll() }
             return try await group.next()
         }
-        guard let output, output.exitCode == 0,
-              let path = output.standardOutput.split(whereSeparator: \.isNewline).last,
-              path.hasPrefix("/")
-        else { return nil }
-        return URL(filePath: String(path))
     }
 }

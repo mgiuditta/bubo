@@ -69,6 +69,9 @@ final class SessionStore {
                 session.failure = switch error {
                 case let WorktreeError.git(message): message.trimmingCharacters(in: .whitespacesAndNewlines)
                 case let AgentBridgeError.failed(message): message
+                // ponytail: the three choices at the limit are in the Domanda; the Sessione says only why it stopped.
+                case AgentBridgeError.limitReached: String(localized: "Hai raggiunto il limite dell'abbonamento.")
+                case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
