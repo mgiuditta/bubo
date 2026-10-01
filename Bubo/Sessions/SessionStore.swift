@@ -154,8 +154,13 @@ final class SessionStore {
     func history(isComplete: Bool = false) async throws -> [CLIConversation] {
         let history = try await Signposts.measure(.cliHistory) { try await bridge().history(isComplete: isComplete) }
         let own = Set(sessions.flatMap(\.conversations))
-        return history.filter { !own.contains($0.id) }
+        let theirs = history.filter { !own.contains($0.id) }
+        if isComplete { lastHistory = theirs }
+        return theirs
     }
+
+    /// The Cronologia CLI as last read in full, for the Palette's titles; empty until then.
+    private(set) var lastHistory: [CLIConversation] = []
 
     /// Copies the Cronologia CLI in Bubo's database now, then every `ConversationStore.refreshInterval`, while the
     /// user keeps it on, and brings in the Indice the conversations it is missing; until the task is cancelled.

@@ -45,9 +45,18 @@ struct SessionColumn: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Cerca", text: $search, prompt: Text("Cerca nelle Sessioni e nella Cronologia CLI"))
-                .textFieldStyle(.roundedBorder)
-                .padding([.horizontal, .top], Spacing.small)
+            HStack(spacing: Spacing.xxSmall) {
+                TextField("Cerca", text: $search, prompt: Text("Filtra Sessioni e Cronologia CLI"))
+                    .textFieldStyle(.roundedBorder)
+                // The words inside the conversations are searched in the Palette: one search, no second box.
+                Button("Cerca nei messaggi", systemImage: "text.magnifyingglass") {
+                    hud.searchConversations?(query)
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .help(Text("Cerca nei messaggi nella Palette (⌘K)"))
+            }
+            .padding([.horizontal, .top], Spacing.small)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
                     ForEach(groups, id: \.title.key) { group in
