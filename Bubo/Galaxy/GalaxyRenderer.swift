@@ -73,7 +73,7 @@ final class GalaxyRenderer: NSObject, MTKViewDelegate {
         view.colorPixelFormat = Self.pixelFormat
         view.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
         // Palette.ink.
-        view.clearColor = MTLClearColor(red: 0.047, green: 0.039, blue: 0.035, alpha: 1)
+        view.clearColor = MTLClearColor(red: 0.039, green: 0.043, blue: 0.051, alpha: 1)
         view.delegate = self
     }
 

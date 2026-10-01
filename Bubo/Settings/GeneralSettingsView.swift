@@ -15,7 +15,7 @@ struct GeneralSettingsView: View {
             if let loginItemError {
                 Text(loginItemError)
                     .font(.callout)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Palette.danger)
             }
             Toggle("Mostra l'icona nel Dock", isOn: $showsDockIcon)
                 .onChange(of: showsDockIcon) { _, visible in DockIcon.apply(isVisible: visible) }

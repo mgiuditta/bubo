@@ -19,7 +19,7 @@ struct HunkStrip: View {
                     .overlay {
                         if id == current {
                             RoundedRectangle(cornerRadius: 4)
-                                .strokeBorder(Palette.accentStrong)
+                                .strokeBorder(Palette.textPrimary)
                                 .padding(-3)
                         }
                     }

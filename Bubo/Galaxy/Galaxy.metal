@@ -62,7 +62,7 @@ struct GalaxyFragment {
 
 constant float2 corners[4] = { float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1) };
 /// Palette.textPrimary.
-constant float3 starlight = float3(0.957, 0.922, 0.894);
+constant float3 starlight = float3(0.925, 0.933, 0.945);
 constant uint searchResult = 1;
 constant uint selected = 2;
 constant uint read = 4;

@@ -15,6 +15,7 @@ extension CodeLine {
             attributed += AttributedString(text[index..<span.range.lowerBound])
             var piece = AttributedString(text[span.range])
             piece.foregroundColor = Self.color(of: span.kind)
+            if span.kind == .keyword { piece.inlinePresentationIntent = .stronglyEmphasized }
             attributed += piece
             index = span.range.upperBound
         }
@@ -22,11 +23,11 @@ extension CodeLine {
         return attributed
     }
 
+    /// Keywords stand out by weight, not hue: the container is achromatic (ADR 0004).
     private static func color(of kind: SyntaxHighlighter.Kind) -> Color {
         switch kind {
-        case .keyword: Palette.accent
+        case .keyword, .number: Palette.textPrimary
         case .string: Palette.success
-        case .number: Palette.accentStrong
         case .comment: Palette.textSecondary
         }
     }

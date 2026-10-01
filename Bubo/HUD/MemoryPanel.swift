@@ -278,7 +278,7 @@ private struct ChangedOutsideLabel: View {
         Label("Cambiato fuori da Bubo · \(date.formatted(date: .omitted, time: .shortened))",
               systemImage: "arrow.triangle.2.circlepath")
             .font(.callout)
-            .foregroundStyle(Palette.attention)
+            .foregroundStyle(Palette.textSecondary)
     }
 }
 

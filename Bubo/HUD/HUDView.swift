@@ -58,6 +58,10 @@ struct HUDView: View {
                 if !onboarding.isAwaitingSignIn { return }
             }
         }
+        // Last, so the sheets above get it too: selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
+        // Only dark, sheets included, whatever the system's appearance (design system, ADR 0004).
+        .preferredColorScheme(.dark)
     }
 
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.

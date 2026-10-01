@@ -64,7 +64,7 @@ struct HunkHeaderRow: View {
             } else if case let .rejected(note?) = decision {
                 Text("↳ all'agente: \(note)")
                     .font(Typography.body(size: 12))
-                    .foregroundStyle(Palette.attention)
+                    .foregroundStyle(Palette.textSecondary)
                     .padding(.horizontal, Spacing.small)
                     .padding(.bottom, Spacing.xSmall)
             }

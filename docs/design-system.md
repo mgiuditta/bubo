@@ -71,8 +71,15 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 - Il contenitore si muove poco e in fretta (150–250 ms); l'Orb è l'unica cosa che respira.
 - `prefers-reduced-motion` / Riduci movimento: anelli fermi, Morph in dissolvenza.
 
+## Nel codice
+
+- I token sono in `Bubo/Design/Palette.swift`; `PaletteTests` controlla il contrasto AA di ogni testo su `ink` e su `surface`.
+- **Solo scuro**: l'HUD forza lo schema scuro (fogli compresi) e dà ai controlli `tint(Palette.accent)`, quindi pulsante predefinito, pieno, segmentati e interruttori sono color luna con testo in `ink`; Galassia, Visore e Terminale hanno `darkAqua`.
+- **Anteprima**: la pagina web è dell'utente, non di Bubo. Incorporata nell'HUD o staccata, riceve lo schema del sistema (`prefers-color-scheme`), non quello scuro forzato dell'HUD.
+- L'Orb segnaposto dell'HUD e il radiale del fondo prendono la Tinta del fornitore attivo; il segno accanto a BUBO è color luna.
+- `reference/bubo.html` è superato nei colori (lo dice in testa): la struttura resta di riferimento.
+
 ## Da fare
 
-- Aggiornare `Bubo/Design/Palette.swift` e i punti che usano `accent` come tinta (HUDBackground, HUDHeader, HUDRings, OrbPlaceholder).
-- `reference/bubo.html` è ancora nella palette vecchia: la struttura resta di riferimento, i colori no.
+- La selezione delle liste di sistema (per esempio i file della Galassia) e gli anelli di focus restano nell'accento di sistema: `tint` non li cambia, servirebbe una selezione disegnata da Bubo.
 - Marchio definitivo e logotipo (ora c'è la proposta provvisoria sopra).

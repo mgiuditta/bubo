@@ -114,8 +114,9 @@ private struct QuotaArcs: View {
     var body: some View {
         TimelineView(.everyMinute) { context in
             ZStack {
-                arc(quota.fiveHour, at: context.date, scale: 0.95, color: Palette.attention)
-                arc(quota.sevenDay, at: context.date, scale: 0.93, color: Palette.attention.opacity(0.45))
+                // Lume is only for what waits for the user (design system): the Quota is drawn with lightness.
+                arc(quota.fiveHour, at: context.date, scale: 0.95, color: Palette.textSecondary)
+                arc(quota.sevenDay, at: context.date, scale: 0.93, color: Palette.textFaint)
             }
         }
         .accessibilityHidden(true)

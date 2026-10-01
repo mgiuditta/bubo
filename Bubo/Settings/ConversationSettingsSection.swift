@@ -17,7 +17,7 @@ struct ConversationSettingsSection: View {
             if let failure {
                 Text(failure)
                     .font(.callout)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Palette.danger)
             }
             LabeledContent("Spazio occupato") {
                 if let size {

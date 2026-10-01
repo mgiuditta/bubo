@@ -40,7 +40,7 @@ private struct ConsoleLineRow: View {
                     .accessibilityLabel(Text("Errore"))
             case .warning:
                 Image(systemName: "exclamationmark.triangle")
-                    .foregroundStyle(Palette.attention)
+                    .foregroundStyle(Palette.textPrimary)
                     .accessibilityLabel(Text("Avviso"))
             case .log:
                 EmptyView()

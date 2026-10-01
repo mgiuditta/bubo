@@ -1,20 +1,20 @@
 import SwiftUI
 
-/// The brand mark across the top of the HUD.
+/// The brand mark across the top of the HUD: a moon-colored disc, achromatic like the mark (design system).
 struct HUDHeader: View {
     var body: some View {
         HStack(spacing: Spacing.small) {
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Palette.accentStrong, Palette.accent, Color(hex: 0x6B2C19)],
+                        colors: [Color(hex: 0xF6F7F9), Palette.textSecondary, Color(hex: 0x1C1F24)],
                         center: UnitPoint(x: 0.35, y: 0.3),
                         startRadius: 0,
                         endRadius: 14
                     )
                 )
                 .frame(width: 22, height: 22)
-                .shadow(color: Palette.accent.opacity(0.6), radius: 9)
+                .overlay { Circle().strokeBorder(Palette.lineStrong, lineWidth: 0.5) }
                 .accessibilityHidden(true)
             Text("BUBO")
                 .font(Typography.display(size: 20))
