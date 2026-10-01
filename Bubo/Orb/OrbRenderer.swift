@@ -44,6 +44,8 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private var director = MorphDirector()
     /// The Variante last passed to the Regia, to request each choice once.
     private var requestedVariante: Variante?
+    /// When the Orbite was last requested, the start of its diagram's clock.
+    private var orbiteStart: CFTimeInterval = 0
     private var lastFrameTime = CACurrentMediaTime()
     #if DEBUG
     private var meter = FrameMeter()
@@ -64,6 +66,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         if controls.variante != requestedVariante {
             requestedVariante = controls.variante
+            if controls.variante == Orbite.variante { orbiteStart = now }
             if let forma = controls.variante.flatMap({ Forma(rawValue: $0.forma) }) {
                 _ = pipelines.pipeline(for: forma) // starts loading it while the Orb holds or morphs
             }
@@ -82,6 +85,9 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         let formaPipeline = pipelines.pipeline(for: frame.forma)
         uniforms.morph = formaPipeline == nil || frame.forma == .blob ? 0 : frame.morph
         uniforms.opacity = frame.opacity
+        if frame.forma == .orbite {
+            uniforms.diagramTime = Orbite.diagramTime(since: orbiteStart, at: now, reducesMotion: reducesMotion)
+        }
 
         guard let pass = view.currentRenderPassDescriptor,
               let drawable = view.currentDrawable,

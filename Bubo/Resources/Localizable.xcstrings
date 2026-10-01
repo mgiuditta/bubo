@@ -2716,6 +2716,16 @@
         }
       }
     },
+    "Informazioni su Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About Bubo"
+          }
+        }
+      }
+    },
     "Installa la CLI claude, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -4266,6 +4276,16 @@
         }
       }
     },
+    "Orbite" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orbits"
+          }
+        }
+      }
+    },
     "PR aperta" : {
       "localizations" : {
         "en" : {
@@ -4322,6 +4342,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To approve it, open Bubo."
+          }
+        }
+      }
+    },
+    "Per chi disegna orbite." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For the one who draws orbits."
           }
         }
       }

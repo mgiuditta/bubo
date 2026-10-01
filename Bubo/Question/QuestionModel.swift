@@ -25,16 +25,19 @@ final class QuestionModel {
     /// with `secondBrain`.
     ///
     /// - Parameters:
+    ///   - orb: The Orb that plays the Orbite when the prompt asks for it.
     ///   - bridgeExecutable: The agent bridge; tests pass a stand-in.
     ///   - bridgeArguments: The arguments of `bridgeExecutable`.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
+         orb: OrbControls = .shared,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [],
          apiKey: (() async throws -> String?)? = nil) {
         self.cli = cli
         self.index = index
         self.secondBrain = secondBrain
+        self.orb = orb
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -46,6 +49,7 @@ final class QuestionModel {
     @ObservationIgnored private let cli: ClaudeCLI
     @ObservationIgnored private let index: SearchIndex?
     @ObservationIgnored private let secondBrain: SecondBrain?
+    @ObservationIgnored private let orb: OrbControls
     @ObservationIgnored private let bridgeExecutable: URL
     @ObservationIgnored private let bridgeArguments: [String]
     @ObservationIgnored private let apiKey: () async throws -> String?
@@ -53,12 +57,17 @@ final class QuestionModel {
     @ObservationIgnored private var lastPrompt = ""
     @ObservationIgnored private var quotaReadAt: Date?
 
-    /// Asks the typed prompt, replacing any answer in progress.
+    /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        lastPrompt = text
         prompt = ""
+        // No Domanda, no token: the Orb plays the Orbite and the last answer stays.
+        if Orbite.isPlayed(by: text) {
+            orb.playOrbite()
+            return
+        }
+        lastPrompt = text
         start(text)
     }
 

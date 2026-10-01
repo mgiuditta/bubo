@@ -47,7 +47,8 @@ struct CatalogoTests {
 
     @Test func everyBundledFormaHasItsSDFAndEverySDFIsUsed() throws {
         let required = try Self.bundled.get().formaNames
-        let drawn = Set(Forma.allCases.filter { $0 != .blob }.map(\.rawValue))
+        // The Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
+        let drawn = Set(Forma.allCases.filter { $0 != .blob && $0 != .orbite }.map(\.rawValue))
         #expect(required == drawn)
     }
 
