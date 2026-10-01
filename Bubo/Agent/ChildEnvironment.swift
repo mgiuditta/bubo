@@ -4,7 +4,7 @@ import Foundation
 ///
 /// Nothing of Bubo's own environment leaks through: no `ANTHROPIC_*`, no `CLAUDE_CODE_SANDBOXED`.
 /// The subscription login is read by `claude` from the Keychain, so it needs only `HOME` and `USER`.
-enum ChildEnvironment {
+nonisolated enum ChildEnvironment {
     /// The variables copied from Bubo's environment when present.
     static let copied = ["HOME", "USER", "LOGNAME", "SHELL", "TMPDIR", "LANG"]
 
@@ -29,5 +29,5 @@ enum ChildEnvironment {
 }
 
 private extension Bundle {
-    var shortVersion: String { object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0" }
+    nonisolated var shortVersion: String { object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0" }
 }

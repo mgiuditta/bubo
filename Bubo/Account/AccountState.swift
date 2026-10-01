@@ -40,8 +40,10 @@ extension AccountState {
 }
 
 /// The fields of `claude auth status --json` that Bubo shows. No token is among them.
-private struct AuthStatus: Decodable {
+nonisolated struct AuthStatus: Decodable {
     var loggedIn: Bool
     var email: String?
     var subscriptionType: String?
+    /// `claude.ai` for a subscription, `api_key` for a key, as `claude` reports it.
+    var authMethod: String?
 }

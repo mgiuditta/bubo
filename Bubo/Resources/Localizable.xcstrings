@@ -1305,12 +1305,42 @@
         }
       }
     },
+    "claude %@ · da aggiornare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude %@ · needs an update"
+          }
+        }
+      }
+    },
+    "claude %@ · senza accesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude %@ · not signed in"
+          }
+        }
+      }
+    },
     "claude ha risposto in modo inatteso (codice %d)." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "claude gave an unexpected answer (code %d)."
+          }
+        }
+      }
+    },
+    "claude non trovata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude not found"
           }
         }
       }

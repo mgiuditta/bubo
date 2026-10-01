@@ -26,7 +26,7 @@ struct ClaudeCLITests {
         }
 
         func cli(isOnline: Bool = true) -> ClaudeCLI {
-            ClaudeCLI(runner: runner, isOnline: { isOnline }, shell: URL(filePath: "/bin/zsh"))
+            ClaudeCLI(runner: runner, isOnline: { isOnline }, locator: .onlyLoginShell(runner))
         }
     }
 
@@ -63,7 +63,7 @@ struct ClaudeCLITests {
             }
             throw CocoaError(.executableNotLoadable)
         }
-        let cli = ClaudeCLI(runner: runner, isOnline: { true }, shell: URL(filePath: "/bin/zsh"))
+        let cli = ClaudeCLI(runner: runner, isOnline: { true }, locator: .onlyLoginShell(runner))
         #expect(await cli.status() == .unknownError(exitCode: -1))
     }
 

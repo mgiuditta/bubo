@@ -8,6 +8,8 @@ struct HUDView: View {
     let questions: QuestionModel
     /// The Sessioni of the Colonna; `nil` when they cannot be kept.
     let sessions: SessionStore?
+    /// The `claude` found during onboarding; `nil` while detecting, or with no onboarding.
+    @State private var readiness: ClaudeReadiness?
 
     var body: some View {
         @Bindable var hud = hud
@@ -27,15 +29,26 @@ struct HUDView: View {
         }
         .onAppear { hud.openWindow = openWindow }
         // Runs after the first appearance, once the main thread is free again.
-        .task { Signposts.markHUDInteractive() }
+        .task {
+            Signposts.markHUDInteractive()
+            guard isOnboarding else { return }
+            readiness = await Signposts.measure(.claudeDetection) { await ClaudeReadiness.detect() }
+        }
         // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
         .task { await questions.refreshQuota() }
+    }
+
+    /// Onboarding lasts until there is a Sessione; after it, no `claude` starts at launch (spec 26).
+    // ponytail: until OnboardingFlow (#202) keeps the onboarding's own mark.
+    private var isOnboarding: Bool {
+        sessions?.sessions.isEmpty ?? true
     }
 
     private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
+                if let readiness, isOnboarding { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota)
             }
             Spacer(minLength: Spacing.large)

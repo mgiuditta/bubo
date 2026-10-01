@@ -3,7 +3,7 @@ import Foundation
 import os
 
 /// A child process started by ``ProcessSpawner``, with pipes to its standard input and output.
-struct SpawnedProcess {
+nonisolated struct SpawnedProcess {
     /// The child's process identifier.
     let pid: pid_t
     /// Writes to the child's standard input; closing it tells the child to finish.
@@ -15,7 +15,7 @@ struct SpawnedProcess {
 }
 
 /// Errors from starting a child process.
-enum ProcessSpawnerError: Error, Equatable {
+nonisolated enum ProcessSpawnerError: Error, Equatable {
     /// `posix_spawn` or one of its setup calls failed with this `errno`.
     case failed(errno: Int32)
 }
@@ -24,7 +24,7 @@ enum ProcessSpawnerError: Error, Equatable {
 ///
 /// A disclaimed child is responsible for itself: it does not inherit Bubo's Microphone or
 /// other privacy permissions, and asks for Files and Folders in its own name.
-enum ProcessSpawner {
+nonisolated enum ProcessSpawner {
     /// Starts `executable` with `arguments` and exactly `environment`, standard error inherited.
     ///
     /// - Throws: ``ProcessSpawnerError`` if the process cannot start.
@@ -101,5 +101,5 @@ enum ProcessSpawner {
 }
 
 extension Logger {
-    static let agent = Logger(subsystem: "com.mgiuditta.bubo", category: "agent")
+    nonisolated static let agent = Logger(subsystem: "com.mgiuditta.bubo", category: "agent")
 }
