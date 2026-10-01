@@ -1290,6 +1290,22 @@
         }
       }
     },
+    "Fondere «%@» in %@?" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fondere «%1$@» in %2$@?"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge “%1$@” into %2$@?"
+          }
+        }
+      }
+    },
     "Fondi" : {
       "localizations" : {
         "en" : {
@@ -1316,6 +1332,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Merge Accepted and Discard the Rest…"
+          }
+        }
+      }
+    },
+    "Fondi…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge…"
           }
         }
       }
@@ -1998,6 +2024,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Panel"
+          }
+        }
+      }
+    },
+    "Mostra cosa unisce e dove, poi chiede conferma" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what it merges and where, then asks to confirm"
           }
         }
       }
@@ -2728,6 +2764,16 @@
         }
       }
     },
+    "Rimuove la copia della Sessione e tiene il branch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removes the Session’s copy and keeps the branch"
+          }
+        }
+      }
+    },
     "Rimuovi" : {
       "localizations" : {
         "en" : {
@@ -3240,6 +3286,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A Session always starts in Working: its column follows what it does."
+          }
+        }
+      }
+    },
+    "Unisce %@ in %@ con un commit locale, senza push. Si annulla solo nei %@ successivi, dalla card in Fusa." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unisce %1$@ in %2$@ con un commit locale, senza push. Si annulla solo nei %3$@ successivi, dalla card in Fusa."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merges %1$@ into %2$@ with a local commit, not pushed. You can undo it only in the next %3$@, from the card in Merged."
           }
         }
       }

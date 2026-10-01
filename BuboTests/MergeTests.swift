@@ -198,4 +198,41 @@ extension WorktreeManagerTests {
         }
         #expect(try read("a.txt", in: repo) == "a\n")
     }
+
+    @MainActor
+    @Test func fondiOnTheBoardOpensTheRevisioneUntilEveryBloccoIsAccepted() async throws {
+        let (repo, workspace) = try await makeSession(files: ["a.txt": "a\n"])
+        try write(["a.txt": "a2\n"], in: workspace.folder)
+        let saved = Session(id: UUID(), title: "Prova", project: repo, workspace: workspace, activity: .ferma)
+        let file = base.appending(path: "Sessioni.json")
+        try JSONEncoder().encode([saved]).write(to: file)
+        let store = SessionStore(file: file, worktrees: manager) { throw CancellationError() }
+
+        #expect(try await store.boardMerge(of: saved.id) == nil)
+
+        let hunks = try await store.changes(of: saved.id).flatMap(\.hunks).map(\.id)
+        store.decide(.accepted, on: hunks, in: saved.id)
+        let merge = try #require(try await store.boardMerge(of: saved.id))
+
+        #expect(merge.preview == MergePreview(branch: "main", conflicts: [], dirtyFiles: [], isEmpty: false))
+        #expect(merge.message == "Prova")
+        #expect(try read("a.txt", in: repo) == "a\n")
+    }
+
+    @MainActor
+    @Test func fondiOnTheBoardShowsWhyTheDirtyCheckoutRefusesIt() async throws {
+        let (repo, workspace) = try await makeSession(files: ["a.txt": "a\n"])
+        try write(["a.txt": "a2\n"], in: workspace.folder)
+        try write(["a.txt": "mio\n"], in: repo)
+        var saved = Session(id: UUID(), title: "Prova", project: repo, workspace: workspace, activity: .ferma)
+        for hunk in try await manager.changes(in: workspace).flatMap(\.hunks) { saved.decisions[hunk.id] = .accepted }
+        let file = base.appending(path: "Sessioni.json")
+        try JSONEncoder().encode([saved]).write(to: file)
+        let store = SessionStore(file: file, worktrees: manager) { throw CancellationError() }
+
+        let merge = try #require(try await store.boardMerge(of: saved.id))
+
+        #expect(merge.preview.obstacle == .dirtyCheckout(["a.txt"]))
+        #expect(try read("a.txt", in: repo) == "mio\n")
+    }
 }

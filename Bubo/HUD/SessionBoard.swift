@@ -207,7 +207,7 @@ struct SessionBoard: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
                     ForEach(shown) { session in
-                        card(session)
+                        card(session, in: column)
                     }
                     if isFolded {
                         Button("… \(sessions.count - shown.count) altre") { isFusaUnfolded = true }
@@ -240,17 +240,23 @@ struct SessionBoard: View {
         .accessibilityElement(children: .contain)
     }
 
-    private func card(_ session: Session) -> some View {
+    /// A Sessione with the next step of its column under it.
+    private func card(_ session: Session, in column: BoardColumn) -> some View {
         let border = switch session.activity {
         case .attende where session.phase == .aperta: Palette.attention.opacity(0.45)
         case .errore where session.phase == .aperta: Palette.danger.opacity(0.45)
         default: Palette.line
         }
-        return SessionRow(session: session, store: store, isOnBoard: true)
-            .background(Palette.ink.opacity(0.6), in: .rect(cornerRadius: CornerRadius.medium))
-            .overlay {
-                RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(border)
+        return VStack(alignment: .leading, spacing: 0) {
+            SessionRow(session: session, store: store, isOnBoard: true)
+            if column.hasNextStep || column == .fusa {
+                BoardActions(session: session, column: column, store: store)
             }
+        }
+        .background(Palette.ink.opacity(0.6), in: .rect(cornerRadius: CornerRadius.medium))
+        .overlay {
+            RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(border)
+        }
     }
 }
 

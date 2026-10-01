@@ -238,6 +238,19 @@ final class SessionStore {
         }
     }
 
+    /// What Fondi… on the Board would merge for the Sessione `id`: what Fondi would do now and the commit message
+    /// the revisione proposes; `nil` when some blocco is not accepted yet, or the Sessione has no branch of its own,
+    /// so the revisione opens instead.
+    ///
+    /// - Throws: `MergeError.detachedHead` when the checkout is not on a branch; `WorktreeError` when git fails.
+    func boardMerge(of id: UUID) async throws -> (preview: MergePreview, message: String)? {
+        let review = Review(files: try await changes(of: id))
+        guard let session = sessions.first(where: { $0.id == id }), review.canMerge(with: session.decisions),
+              let preview = try await mergePreview(of: id)
+        else { return nil }
+        return (preview, review.mergeMessage(for: session))
+    }
+
     /// Fondi: merges the work of the Sessione `id` into the branch of its Progetto's checkout as one commit with
     /// `message`, then makes it Fusa. For `undoWindow` the merge can be undone; then the Sessione is Archiviata,
     /// its worktree and its branch go. Never pushes.

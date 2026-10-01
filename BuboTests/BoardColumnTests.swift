@@ -126,4 +126,9 @@ struct BoardColumnTests {
 
         #expect(elapsed < .milliseconds(5))
     }
+
+    /// Fondi… and Archivia only once the agent has finished: never on a Sessione waiting for the user or in Errore.
+    @Test func onlyDaGuardareAndPRApertaHaveTheNextStep() {
+        #expect(BoardColumn.allCases.filter(\.hasNextStep) == [.daGuardare, .prAperta])
+    }
 }
