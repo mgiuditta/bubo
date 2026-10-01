@@ -17,6 +17,10 @@ final class TerminalTab: Identifiable {
     /// Called when a command may have started or stopped a server: a Return typed, a `localhost` URL or an OSC 133
     /// mark in the output.
     @ObservationIgnored private let onServerHint: () -> Void
+    /// The folder the shell started in, which relative paths in the output are resolved against.
+    @ObservationIgnored private let folder: URL
+    /// Called with the file and line of a path ⌘-clicked in the output.
+    @ObservationIgnored private let onOpenFile: (SourceLocation) -> Void
 
     /// How many lines each scheda keeps above the screen: with ten Sessioni, a few MB each at most.
     static let scrollback = 5_000
@@ -26,10 +30,12 @@ final class TerminalTab: Identifiable {
     /// - Parameters:
     ///   - onServerHint: Called on the main thread when a Return is typed or the output hints that a server started
     ///     or stopped.
+    ///   - onOpenFile: Called with the file and line of a `path:line[:column]` ⌘-clicked in the output.
     ///   - onExit: Called on the main thread when the shell exits.
     /// - Throws: ``ProcessSpawnerError`` when the shell cannot start.
     init(folder: URL, environment: [String: String], shell: URL = PTYSession.loginShell,
          arguments: [String] = ["-l"], onServerHint: @escaping () -> Void = {},
+         onOpenFile: @escaping (SourceLocation) -> Void = { _ in },
          onExit: @escaping (TerminalTab) -> Void) throws {
         let font = NSFont(name: "JetBrains Mono", size: 12) ?? .monospacedSystemFont(ofSize: 12, weight: .regular)
         view = TerminalView(frame: .zero, font: font, options: TerminalOptions(scrollback: Self.scrollback))
@@ -38,6 +44,8 @@ final class TerminalTab: Identifiable {
                              columns: terminal.cols, rows: terminal.rows)
         title = shell.lastPathComponent
         self.onServerHint = onServerHint
+        self.folder = folder
+        self.onOpenFile = onOpenFile
         view.terminalDelegate = self
         view.nativeForegroundColor = NSColor(Palette.textPrimary)
         view.nativeBackgroundColor = NSColor(Palette.ink)
@@ -76,6 +84,17 @@ extension TerminalTab: @preconcurrency TerminalViewDelegate {
         guard let text = String(data: content, encoding: .utf8) else { return }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(text, forType: .string)
+    }
+
+    /// A ⌘-clicked link: a file of the worktree opens in the visore at its line, anything else with its default app.
+    ///
+    /// SwiftTerm finds `path:line[:column]` only with a `/` in the path, so `a.swift:3` is not a link.
+    func requestOpenLink(source: TerminalView, link: String, params: [String: String]) {
+        if let location = SourceLocation(link: link, relativeTo: folder), location.isExistingFile {
+            onOpenFile(location)
+        } else {
+            TerminalView.openDefaultLink(link)
+        }
     }
 
     func hostCurrentDirectoryUpdate(source: TerminalView, directory: String?) {}

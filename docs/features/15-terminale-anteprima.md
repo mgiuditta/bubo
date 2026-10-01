@@ -180,7 +180,8 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 ### Visore ed editor (deciso)
 
 - **Visore** in sola lettura con evidenziazione della sintassi e numeri di riga, aperto al punto giusto da Galassia (11), diff (02) e percorsi ⌘-clic nel terminale. Un pulsante "Apri nell'editor" porta alla stessa riga. Nessuna modifica: l'editor vero è fuori portata.
-- **Editor**: VS Code, Cursor, Zed e Xcode rilevati con `NSWorkspace` per bundle id; predefinito il primo trovato, modificabile nelle Impostazioni. Si apre sempre con la CLI del bundle alla riga (`code -g`, `cursor -g`, `zed f:r:c`, `xed -l`), avviata con disclaim; mai con `vscode://`. Per gli altri editor `open -b`, senza riga.
+- **Editor**: VS Code, Cursor, Zed e Xcode rilevati con `NSWorkspace` per bundle id; predefinito il primo trovato, modificabile nelle Impostazioni. Si apre sempre con la CLI del bundle alla riga (`code -g`, `cursor -g`, `zed f:r:c`, `xed -l`), avviata con disclaim; mai con `vscode://`. VS Code, Cursor e Zed ricevono anche la cartella del worktree (`code <worktree> -g <file>:<riga>`), così il file sta nella radice della finestra e Workspace Trust non chiede conferma. Per gli altri editor `open -b`, senza riga.
+- **⌘-clic**: SwiftTerm riconosce `percorso:riga[:colonna]` solo con una `/` nel percorso (`a.swift:3` non è un link); Bubo risolve i relativi rispetto alla cartella della scheda e apre il visore se il file esiste, altrimenti il link va all'app predefinita.
 - **Riuso**: "Nuovo agente" della feature 19 apre il file creato con lo stesso lanciatore.
 
 ### Moduli

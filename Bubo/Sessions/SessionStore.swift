@@ -64,6 +64,7 @@ final class SessionStore {
         }
         servers.owners = { [weak self] in ServerAttribution.Owner.of(self?.sessions ?? []) }
         terminals.onServerHint = { [weak self] in self?.servers.notice() }
+        terminals.onOpenFile = { [weak self] location, folder in self?.viewer.show(location, in: folder) }
         servers.onChange = { [weak self] servers in self?.previews.update(with: servers) }
         // A server already listening when Bubo starts has no event of its own.
         if !ServerAttribution.Owner.of(sessions).isEmpty { servers.notice() }
@@ -79,6 +80,8 @@ final class SessionStore {
     @ObservationIgnored let servers = PortWatcher()
     /// The Anteprime of the Sessioni's servers, closed with their server and at Archivia, Fondi and Cancella.
     @ObservationIgnored let previews = PreviewStore()
+    /// The visore, for the files ⌘-clicked in the terminals.
+    @ObservationIgnored let viewer = CodeViewerStore()
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?

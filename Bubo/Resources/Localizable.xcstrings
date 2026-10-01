@@ -348,6 +348,22 @@
         }
       }
     },
+    "Apre il file in %@ alla riga %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the file in %1$@ at line %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Apre il file in %1$@ alla riga %2$lld"
+          }
+        }
+      }
+    },
     "Apre l'HUD" : {
       "localizations" : {
         "en" : {
@@ -408,6 +424,16 @@
         }
       }
     },
+    "Apri i file con" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open files with"
+          }
+        }
+      }
+    },
     "Apri il terminale" : {
       "localizations" : {
         "en" : {
@@ -418,12 +444,32 @@
         }
       }
     },
+    "Apri in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in %@"
+          }
+        }
+      }
+    },
     "Apri nel browser" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open in Browser"
+          }
+        }
+      }
+    },
+    "Apro il file…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening the file…"
           }
         }
       }
@@ -484,6 +530,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On in System Settings, under Accessibility › Display."
+          }
+        }
+      }
+    },
+    "Automatico (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic (%@)"
           }
         }
       }
@@ -1260,6 +1316,16 @@
         }
       }
     },
+    "Editor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editor"
+          }
+        }
+      }
+    },
     "Elimina Bozza" : {
       "localizations" : {
         "en" : {
@@ -1758,6 +1824,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The connection to Claude was lost."
+          }
+        }
+      }
+    },
+    "Il file è troppo grande per il visore." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is too large for the viewer."
           }
         }
       }
@@ -2348,6 +2424,16 @@
         }
       }
     },
+    "Nessun editor trovato. Installa VS Code, Cursor, Zed o Xcode, o scegli un'altra app." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No editor found. Install VS Code, Cursor, Zed or Xcode, or choose another app."
+          }
+        }
+      }
+    },
     "Nessun messaggio nella console" : {
       "localizations" : {
         "en" : {
@@ -2508,6 +2594,16 @@
         }
       }
     },
+    "Non riesco a leggere il file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the file."
+          }
+        }
+      }
+    },
     "Non riesco a leggere la configurazione di Claude" : {
       "localizations" : {
         "en" : {
@@ -2594,6 +2690,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't find the claude CLI."
+          }
+        }
+      }
+    },
+    "Non è un file di testo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This isn't a text file."
           }
         }
       }
@@ -3024,6 +3130,22 @@
         }
       }
     },
+    "Riga %lld: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Line %1$lld: %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Riga %1$lld: %2$@"
+          }
+        }
+      }
+    },
     "Rimanda all'agente" : {
       "localizations" : {
         "en" : {
@@ -3260,6 +3382,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose Folder…"
+          }
+        }
+      }
+    },
+    "Scegli un'altra app…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Another App…"
           }
         }
       }
@@ -3736,6 +3868,16 @@
         }
       }
     },
+    "VS Code, Cursor, Zed e Xcode aprono il file alla riga giusta; le altre app lo aprono dall'inizio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VS Code, Cursor, Zed and Xcode open the file at the right line; other apps open it at the top."
+          }
+        }
+      }
+    },
     "Vale in tutte le Sessioni del Progetto, anche nelle copie isolate, e in claude dal Terminale. La revochi da Configurazione di Claude." : {
       "localizations" : {
         "en" : {
@@ -3782,6 +3924,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This deletes the isolated copy and the branch %@. These changes will be lost:"
+          }
+        }
+      }
+    },
+    "Visore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viewer"
+          }
+        }
+      }
+    },
+    "Visore · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viewer · %@"
           }
         }
       }
@@ -4141,6 +4303,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "under %@"
+          }
+        }
+      }
+    },
+    "riga %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "line %lld"
           }
         }
       }
