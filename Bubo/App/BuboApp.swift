@@ -13,6 +13,9 @@ struct BuboApp: App {
                 .environment(appDelegate.hud)
         }
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("Informazioni su Bubo", action: appDelegate.showAboutPanel)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Nuova Sessione…") { appDelegate.hud.createSession() }
                     .keyboardShortcut("n")

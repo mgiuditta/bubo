@@ -57,6 +57,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
+    /// Shows the standard About panel, with Bubo's one line of credits.
+    func showAboutPanel() {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        let credits = NSAttributedString(string: String(localized: "Per chi disegna orbite."), attributes: [
+            .font: NSFont.systemFont(ofSize: NSFont.smallSystemFontSize),
+            .foregroundColor: NSColor.secondaryLabelColor,
+            .paragraphStyle: paragraph,
+        ])
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+    }
+
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Before the first frame, or MetricKit refuses to extend the launch.
         MetricsCollector.shared.extendLaunch()

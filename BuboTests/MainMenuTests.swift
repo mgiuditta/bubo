@@ -10,7 +10,8 @@ struct MainMenuTests {
         let mainMenu = try #require(NSApp.mainMenu)
         let appMenu = try #require(mainMenu.items.first?.submenu)
         let actions = appMenu.items.compactMap(\.action)
-        #expect(actions.contains(#selector(NSApplication.orderFrontStandardAboutPanel(_:))), "Manca Informazioni su Bubo.")
+        // Informazioni su Bubo opens the standard panel with Bubo's credits, through its own action.
+        #expect(appMenu.items.contains { $0.title == String(localized: "Informazioni su Bubo") }, "Manca Informazioni su Bubo.")
         #expect(actions.contains(#selector(NSApplication.hide(_:))), "Manca Nascondi Bubo.")
         #expect(actions.contains(#selector(NSApplication.terminate(_:))), "Manca Esci da Bubo.")
         #expect(appMenu.items.contains { $0.keyEquivalent == "," && $0.keyEquivalentModifierMask == .command },

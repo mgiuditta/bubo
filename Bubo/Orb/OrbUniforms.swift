@@ -21,6 +21,8 @@ struct OrbUniforms {
     var gloss: Float = 0
     /// How opaque the whole Orb is, halo included: below 1 only while fading with Reduce Motion on.
     var opacity: Float = 1
+    /// The clock of the Orbite's diagram, in seconds; still at zero with Reduce Motion on.
+    var diagramTime: Float = 0
     /// The Tinta's base and highlight colors.
     var base = Tinta.neutral.base
     var highlight = Tinta.neutral.highlight
