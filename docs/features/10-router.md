@@ -146,7 +146,7 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 - **Override sul turno**: "Rifai più forte" ⌘↑ (un gradino della Scala); "Rifai con…" ⌘⇧↑ (alternative vicine con dove gira, primo token, costo; da qui "Usa sempre per «Tipo»"). Il default non cambia.
 - **Chip nel prompt** (prima di inviare): previsione modello · sforzo · costo con il motivo sopra; Tab/⇧Tab cambia modello, ⌥↑/⌥↓ lo sforzo, Esc torna al router. Il controllo dello sforzo compare solo se il modello lo supporta.
 - **Voce**: con ⌥Spazio tenuto niente chip (invio al rilascio), solo riga dopo e ⌘↑/⌘⇧↑; con ⌥⇧ (dettatura nel prompt) la chip c'è.
-- **Variante**: si vede sotto l'Orb ("Variante lente · Tinta Anthropic"), non nella riga, non si sovrascrive.
+- **Variante**: si vede sotto l'Orb ("Variante Lente · Tinta Anthropic"; "Blob · Tinta Anthropic" con la Variante incerta), mentre la Domanda è in corso, non nella riga, non si sovrascrive.
 - Niente pannello router fisso nell'HUD: le preferenze si gestiscono da "Rifai con…" e dalle impostazioni.
 
 ### Moduli

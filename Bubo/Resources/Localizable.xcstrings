@@ -1310,6 +1310,28 @@
         }
       }
     },
+    "Blob · Tinta %@" : {
+      "comment" : "Line under the Orb during a Domanda. Variante and Blob are the Orb's shape, Tinta the provider's colour; the provider is a brand and is never translated.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blob · %@ Tint"
+          }
+        }
+      }
+    },
+    "Blob · Tinta neutra" : {
+      "comment" : "Line under the Orb during a Domanda. Variante and Blob are the Orb's shape, Tinta the provider's colour; the provider is a brand and is never translated.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blob · Neutral Tint"
+          }
+        }
+      }
+    },
     "Bloccato dalla sandbox: %@" : {
       "localizations" : {
         "en" : {
@@ -5690,12 +5712,13 @@
         }
       }
     },
-    "Orb di Bubo, a riposo" : {
+    "Orb di Bubo" : {
+      "comment" : "VoiceOver label of the Orb in the HUD; its value is the Stato.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bubo Orb, idle"
+            "value" : "Bubo Orb"
           }
         }
       }
@@ -7816,6 +7839,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Variant"
+          }
+        }
+      }
+    },
+    "Variante %@ · Tinta %@" : {
+      "comment" : "Line under the Orb during a Domanda. Variante and Blob are the Orb's shape, Tinta the provider's colour; the provider is a brand and is never translated.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Variant · %2$@ Tint"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Variante %1$@ · Tinta %2$@"
+          }
+        }
+      }
+    },
+    "Variante %@ · Tinta neutra" : {
+      "comment" : "Line under the Orb during a Domanda. Variante and Blob are the Orb's shape, Tinta the provider's colour; the provider is a brand and is never translated.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Variant · Neutral Tint"
           }
         }
       }

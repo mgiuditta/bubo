@@ -40,33 +40,38 @@ nonisolated struct RuleClassifier: ClassificationEngine {
         let categoria = categoria(of: text, type: first.key)
         return RequestClassification(candidate: first.key, alternative: second.value == first.value ? second.key : nil,
                                      categoria: categoria.categoria,
-                                     variante: variante(in: categoria.categoria, text: text, isEvident: categoria.isEvident),
+                                     variante: variante(in: categoria.categoria, text: text, isClear: categoria.isClear),
                                      engine: .rules)
     }
 
     // MARK: Categoria and Variante
 
-    /// The Categoria with the most keyword points, and whether any word pointed to it.
+    /// The Categoria with the most keyword points, whether any word pointed to it, and whether it won clearly.
     ///
-    /// Without a sign, a Sessione is Codice and a Domanda is Chat, the generic Categoria.
-    private func categoria(of text: String, type: RequestType) -> (categoria: Categoria, isEvident: Bool) {
-        var best: (categoria: Categoria, points: Double)?
-        for categoria in Categoria.allCases {
+    /// A Sessione is Codice, Agente or Ricerca, and Codice without a sign; a Domanda without a sign is Chat, the generic
+    /// Categoria. Exploring the code to find
+    /// something is Ricerca, as the labelled set and the Variante `lente` say.
+    private func categoria(of text: String, type: RequestType) -> (categoria: Categoria, isEvident: Bool, isClear: Bool) {
+        var points: [Categoria: Double] = [:]
+        // A Sessione works on a Progetto: its code, its agents, or a search through it.
+        let candidates: [Categoria] = type.isSession ? [.codice, .agente, .ricerca] : Categoria.allCases
+        for categoria in candidates {
             let words = (Self.categoriaKeywords[categoria] ?? []) + catalogo.varianti(in: categoria).flatMap(\.parole)
-            let points = Set(words).reduce(0.0) { $0 + (Self.contains($1, in: text) ? 1 : 0) }
-            if points > (best?.points ?? 0) {
-                best = (categoria, points)
-            }
+            points[categoria] = Set(words).reduce(0.0) { $0 + (Self.contains($1, in: text) ? 1 : 0) }
         }
-        if let best {
-            return (best.categoria, true)
+        if type == .explore, Self.searchWords.contains(where: { Self.contains($0, in: text) }) {
+            points[.ricerca, default: 0] += 2
         }
-        return (type.isSession ? .codice : .chat, type.isSession)
+        // Ties go to the order of the list, so the same text always gets the same Categoria.
+        let ranked = candidates.map { ($0, points[$0, default: 0]) }.sorted { $0.1 > $1.1 }
+        guard ranked[0].1 > 0 else { return (type.isSession ? .codice : .chat, type.isSession, false) }
+        return (ranked[0].0, true, ranked[0].1 - ranked[1].1 >= 1)
     }
 
-    /// The Variante of `categoria` whose words appear most in `text`; with none, its first Variante when the Categoria is
-    /// evident, otherwise `nil` for Blob with the Categoria.
-    private func variante(in categoria: Categoria, text: String, isEvident: Bool) -> Variante? {
+    /// The Variante of `categoria` whose words appear most in `text`; with none, its first Variante when the Categoria won
+    /// clearly; otherwise `nil` for Blob with the Categoria, since a wrong Morph is worse than none.
+    private func variante(in categoria: Categoria, text: String, isClear: Bool) -> Variante? {
+        guard isClear else { return nil }
         let candidates = catalogo.varianti(in: categoria)
         let scored = candidates.map { variante in
             (variante, variante.parole.count { Self.contains($0, in: text) })
@@ -74,8 +79,11 @@ nonisolated struct RuleClassifier: ClassificationEngine {
         if let best = scored.max(by: { $0.1 < $1.1 }), best.1 > 0 {
             return best.0
         }
-        return isEvident ? candidates.first : nil
+        return candidates.first
     }
+
+    /// Words that ask to find something, which turn exploring the code into Ricerca.
+    private static let searchWords = ["trova", "cerca", "find", "search", "look up"]
 
     // MARK: Text
 
