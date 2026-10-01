@@ -73,8 +73,8 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 
 ## Nel codice
 
-- I token sono in `Bubo/Design/Palette.swift`; `PaletteTests` controlla il contrasto AA di ogni testo su `ink` e su `surface`.
-- **Solo scuro**: l'HUD forza lo schema scuro (fogli compresi); HUD, Agenti e Impostazioni danno ai controlli `tint(Palette.accent)`, quindi pulsante predefinito, pieno, segmentati e interruttori sono color luna con testo in `ink`; Galassia, Visore e Terminale hanno `darkAqua`.
+- I token sono in `Bubo/Design/Palette.swift`; `PaletteContrastTests` controlla il contrasto AA di ogni testo su `ink` e su `surface`.
+- **Solo scuro**: l'HUD forza lo schema scuro (fogli compresi); HUD, Agenti e Impostazioni danno ai controlli `tint(Palette.accent)`, quindi pulsante predefinito, pieno, segmentati e interruttori sono color luna con testo in `ink`; Galassia, Visore, Cronologia e Palette ⌘K hanno `darkAqua`; il Terminale staccato (`TerminalWindow`) non ancora.
 - **Anteprima**: la pagina web è dell'utente, non di Bubo. Incorporata nell'HUD o staccata, riceve lo schema del sistema (`prefers-color-scheme`), non quello scuro forzato dell'HUD.
 - L'Orb segnaposto dell'HUD e il radiale del fondo prendono la Tinta del fornitore attivo; il segno accanto a BUBO è color luna.
 - `reference/bubo.html` è superato nei colori (lo dice in testa): la struttura resta di riferimento.
