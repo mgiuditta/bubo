@@ -6,6 +6,8 @@ import os
 final class SessionStore {
     /// The Sessioni, oldest first.
     private(set) var sessions: [Session] = []
+    /// The Richieste di permesso waiting in the Sessioni, and the permissions given "Per questa Sessione".
+    private(set) var permissions = RequestCenter()
 
     /// The Progetti that have Sessioni, most recent first.
     var projects: [URL] {
@@ -52,6 +54,8 @@ final class SessionStore {
     @ObservationIgnored private let alerts: WaitingAlerts?
     @ObservationIgnored private let bridge: () async throws -> AgentBridge
     @ObservationIgnored private let ports = PortAllocator()
+    /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
+    @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
 
     /// The store in Bubo's Application Support folder.
     static func makeDefault(alerts: WaitingAlerts,
@@ -146,6 +150,7 @@ final class SessionStore {
     func delete(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), !session.isRunning else { return }
         sessions.removeAll { $0.id == id }
+        permissions.forget(id)
         save()
         followActivity()
         guard let workspace = session.workspace else { return }
@@ -183,9 +188,18 @@ final class SessionStore {
                     update(id) { $0.setupFailure = failure }
                 }
             }
-            let answer = try await bridge().ask(prompt, in: workspace.folder, environment: environment,
-                                                forkingFrom: session.forkedFrom) { [weak self] progress in
+            let agent = try await bridge()
+            let classifier = RiskClassifier(workingDirectory: workspace.folder)
+            turns[id] = agent
+            defer {
+                turns[id] = nil
+                permissions.clear(id)
+            }
+            let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
+                                   forkingFrom: session.forkedFrom) { [weak self] progress in
                 self?.update(id) { $0.apply(progress) }
+            } permissions: { [weak self] event in
+                self?.receive(event, in: id, from: agent, classifier: classifier)
             }
             for try await _ in answer {}
             update(id) { $0.enter(.ferma) }
@@ -203,6 +217,31 @@ final class SessionStore {
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
             }
+        }
+    }
+
+    /// Answers the Richiesta di permesso `request` of the Sessione `id`; nothing if `claude` no longer waits for it.
+    func answer(_ request: PermissionRequest.ID, in id: UUID, with answer: PermissionAnswer) {
+        guard let allows = permissions.answer(request, in: id, with: answer) else { return }
+        turns[id]?.answerPermission(request, allows: allows)
+    }
+
+    /// Queues a Richiesta di permesso of the Sessione `id`, or answers it at once: no to a critical path,
+    /// yes to what the user already allowed "Per questa Sessione".
+    private func receive(_ event: PermissionEvent, in id: UUID, from bridge: AgentBridge, classifier: RiskClassifier) {
+        switch event {
+        case let .asked(request):
+            switch permissions.receive(request, in: id, risk: classifier.risk(of: request)) {
+            case .denied:
+                Logger.sessions.notice("Critical path refused: \(request.tool, privacy: .public)")
+                bridge.answerPermission(request.id, allows: false)
+            case .allowed:
+                bridge.answerPermission(request.id, allows: true)
+            case .queued:
+                break
+            }
+        case let .withdrawn(request):
+            permissions.withdraw(request, in: id)
         }
     }
 

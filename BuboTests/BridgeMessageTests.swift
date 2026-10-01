@@ -123,6 +123,7 @@ struct BridgeMessageTests {
          .limit(id: "a1", reached: Quota.Limit(window: "five_hour", resetsAt: Date(timeIntervalSince1970: 1_790_852_400)))),
         (#"{"v":3,"type":"limit","id":"a1"}"#, .limit(id: "a1", reached: Quota.Limit())),
         (#"{"v":3,"type":"signInRequired","id":"a1"}"#, .signInRequired(id: "a1")),
+        (#"{"v":3,"type":"permissionWithdrawn","id":"a1","request":"p1"}"#, .permissionWithdrawn(id: "a1", request: "p1")),
         (#"{"v":4,"type":"whatever"}"#, .unsupportedVersion(4)),
     ])
     func eventsDecode(line: String, event: BridgeEvent) throws {
@@ -133,5 +134,23 @@ struct BridgeMessageTests {
         #expect(throws: DecodingError.self) {
             try JSONDecoder().decode(BridgeEvent.self, from: Data(#"{"v":3,"type":"boh"}"#.utf8))
         }
+    }
+
+    @Test func anAnswerToAPermissionIsAllowOrDeny() throws {
+        #expect(String(decoding: try BridgeCommand.answerPermission(request: "p1", allows: true).line(), as: UTF8.self)
+            == #"{"behavior":"allow","request":"p1","type":"permission","v":3}"# + "\n")
+        #expect(String(decoding: try BridgeCommand.answerPermission(request: "p1", allows: false).line(), as: UTF8.self)
+            == #"{"behavior":"deny","request":"p1","type":"permission","v":3}"# + "\n")
+    }
+
+    @Test func aPermissionRequestDecodes() throws {
+        let line = #"{"v":3,"type":"permission","id":"a1","request":"p1","tool":"Bash","command":"git push -f","#
+            + #""title":"Claude wants to run git push -f","description":"Push","fromSubagent":true,"suppressAlwaysAllowRule":true}"#
+        var request = PermissionRequest(id: "p1", tool: "Bash", command: "git push -f")
+        request.title = "Claude wants to run git push -f"
+        request.detail = "Push"
+        request.isFromSubagent = true
+        request.suppressesRule = true
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .permission(id: "a1", request))
     }
 }

@@ -30,6 +30,8 @@ enum BridgeCommand: Equatable {
     case readHistory(id: String, isComplete: Bool)
     /// Reads the messages of `conversation` in the Cronologia CLI.
     case readTranscript(id: String, conversation: String)
+    /// Answers the Richiesta di permesso `request`: the call runs only when `allows`.
+    case answerPermission(request: String, allows: Bool)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -54,6 +56,8 @@ enum BridgeCommand: Equatable {
             object = ["type": "history", "id": id, "all": isComplete]
         case let .readTranscript(id, conversation):
             object = ["type": "transcript", "id": id, "conversation": conversation]
+        case let .answerPermission(request, allows):
+            object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -88,11 +92,16 @@ enum BridgeEvent: Equatable, Decodable {
     case history(id: String, [CLIConversation])
     /// The messages of a conversation, asked by `readTranscript` `id`.
     case transcript(id: String, [CLIConversation.Message])
+    /// The conversation `id` waits for the user to answer a Richiesta di permesso.
+    case permission(id: String, PermissionRequest)
+    /// The conversation `id` no longer waits for the Richiesta `request`.
+    case permissionWithdrawn(id: String, request: String)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages
+        case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages,
+             request
     }
 
     init(from decoder: any Decoder) throws {
@@ -129,6 +138,10 @@ enum BridgeEvent: Equatable, Decodable {
                                         try container.decode([CLIConversation].self, forKey: .conversations))
         case "transcript": self = .transcript(id: try container.decode(String.self, forKey: .id),
                                               try container.decode([CLIConversation.Message].self, forKey: .messages))
+        case "permission": self = .permission(id: try container.decode(String.self, forKey: .id),
+                                              try PermissionRequest(from: decoder))
+        case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
+                                                                request: try container.decode(String.self, forKey: .request))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }

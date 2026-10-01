@@ -191,4 +191,31 @@ struct AgentBridgeTests {
             try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
         }
     }
+
+    /// A bridge that asks one permission of the conversation, then writes Bubo's answer back as the conversation's text.
+    static let askingPermission = answering(#"""
+        echo "{\"v\":3,\"type\":\"permission\",\"id\":\"$id\",\"request\":\"p1\",\"tool\":\"Bash\",\"command\":\"npm test\"}"
+        read answer
+        behavior=$(echo "$answer" | sed 's/.*"behavior":"\([^"]*\)".*/\1/')
+        echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$behavior\"}"
+        echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+        read _
+        """#)
+
+    @Test func aPermissionIsAnsweredOnTheBridgesInput() async throws {
+        let bridge = Self.bridge(Self.askingPermission)
+        var asked: [PermissionEvent] = []
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), permissions: { event in
+            asked.append(event)
+            if case let .asked(request) = event { bridge.answerPermission(request.id, allows: true) }
+        }))
+        #expect(answer == "allow")
+        #expect(asked == [.asked(PermissionRequest(id: "p1", tool: "Bash", command: "npm test"))])
+    }
+
+    @Test func aConversationThatTakesNoPermissionsIsDenied() async throws {
+        let bridge = Self.bridge(Self.askingPermission)
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
+        #expect(answer == "deny")
+    }
 }

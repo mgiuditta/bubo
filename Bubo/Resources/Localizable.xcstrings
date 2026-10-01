@@ -230,6 +230,16 @@
         }
       }
     },
+    "Azione rischiosa: con il puntatore, tieni premuto per un secondo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Risky action: with the pointer, press and hold for one second."
+          }
+        }
+      }
+    },
     "Azioni consentite" : {
       "localizations" : {
         "en" : {
@@ -560,6 +570,16 @@
         }
       }
     },
+    "Consenti solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow just this time"
+          }
+        }
+      }
+    },
     "Continua da dove ti eri fermato." : {
       "localizations" : {
         "en" : {
@@ -676,6 +696,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        }
+      }
+    },
+    "Distruttivo locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locally destructive"
           }
         }
       }
@@ -1010,6 +1040,16 @@
         }
       }
     },
+    "In coda: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queued: %lld"
+          }
+        }
+      }
+    },
     "In connessione" : {
       "localizations" : {
         "en" : {
@@ -1036,6 +1076,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Install it in Terminal with `curl -fsSL https://claude.ai/install.sh | bash`, then come back here."
+          }
+        }
+      }
+    },
+    "Irreversibile esterno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Irreversible, external"
           }
         }
       }
@@ -1120,6 +1170,16 @@
         }
       }
     },
+    "La chiede un subagente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A subagent is asking."
+          }
+        }
+      }
+    },
     "La copia isolata della Sessione non è più in %@. Cancella la Sessione per toglierla dall'elenco." : {
       "localizations" : {
         "en" : {
@@ -1180,6 +1240,32 @@
         }
       }
     },
+    "Lettura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read"
+          }
+        }
+      }
+    },
+    "Livello %lld · %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Livello %1$lld · %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld · %@"
+          }
+        }
+      }
+    },
     "Lo script di setup non è finito in tempo ed è stato fermato." : {
       "localizations" : {
         "en" : {
@@ -1226,6 +1312,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Panel Metrics"
+          }
+        }
+      }
+    },
+    "Modifica reversibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reversible change"
           }
         }
       }
@@ -1316,6 +1412,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No API key saved"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
           }
         }
       }
@@ -1490,6 +1596,16 @@
         }
       }
     },
+    "Per questa Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this Session"
+          }
+        }
+      }
+    },
     "Plugin · %lld" : {
       "localizations" : {
         "en" : {
@@ -1572,6 +1688,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
+    "Rete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Network"
+          }
+        }
+      }
+    },
+    "Richiesta di permesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permission request"
           }
         }
       }
@@ -1852,6 +1988,16 @@
         }
       }
     },
+    "Solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just this time"
+          }
+        }
+      }
+    },
     "Stato" : {
       "localizations" : {
         "en" : {
@@ -1878,6 +2024,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Do you trust this folder?"
+          }
+        }
+      }
+    },
+    "Tieni premuto: Solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold: Just this time"
           }
         }
       }
@@ -2200,6 +2356,16 @@
         }
       }
     },
+    "esc No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esc No"
+          }
+        }
+      }
+    },
     "fase.aperta" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -2280,6 +2446,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "↩ Solo ora · esc No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ Just this time · esc No"
           }
         }
       }
