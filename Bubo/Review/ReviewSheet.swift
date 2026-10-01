@@ -7,7 +7,8 @@ import SwiftUI
 /// `⇧A` accepts the rest of the file; after a decision the cursor goes to the next undecided blocco.
 /// `f` shows one blocco at a time, `s` before and after side by side; the same key goes back to the continuous diff.
 /// `⌘↩` sends the rejected blocchi back to the agent or, with every blocco accepted, Fondi; conflicts are shown
-/// before, and `⌘Z` undoes the merge for `SessionStore.undoWindow`.
+/// before, the agent resolves them in the Sessione's worktree, and `⌘Z` undoes the merge for
+/// `SessionStore.undoWindow`. The secondary menu merges only the accepted blocchi, after a confirmation.
 ///
 /// The diff follows the files through FSEvents while the sheet is open, and runs git only then.
 struct ReviewSheet: View {
@@ -31,6 +32,7 @@ struct ReviewSheet: View {
     @State private var isMerging = false
     /// Why the last Fondi or Annulla merge failed.
     @State private var mergeFailure: String?
+    @State private var isConfirmingPartialMerge = false
     @FocusState private var isFocused: Bool
     @FocusState private var isEditingMessage: Bool
 
@@ -49,7 +51,9 @@ struct ReviewSheet: View {
             header
             if session?.workspace?.branch != nil {
                 MergeBar(preview: preview, canMerge: review.canMerge(with: decisions), undoDeadline: undoDeadline,
-                         failure: mergeFailure, message: $message, isEditingMessage: $isEditingMessage, undo: undo)
+                         failure: mergeFailure, resolvingBranch: session?.resolution?.branch, message: $message,
+                         isEditingMessage: $isEditingMessage, undo: undo,
+                         resolve: canResolve ? { resolveConflicts() } : nil)
             }
             if failed {
                 ErrorNotice("Non riesco a leggere le modifiche della Sessione",
@@ -92,7 +96,30 @@ struct ReviewSheet: View {
         .onChange(of: review.canMerge(with: decisions), initial: true) { _, canMerge in
             if canMerge && message.isEmpty, let session { message = review.mergeMessage(for: session) }
         }
-        .task(id: attempt) { await follow() }
+        // Also when the conflicts are resolved: the revisione then compares with the branch brought in.
+        .task(id: FollowKey(attempt: attempt, base: session?.workspace?.base)) { await follow() }
+    }
+
+    /// What reading the changes again depends on: Riprova, and the base the revisione compares with.
+    private struct FollowKey: Equatable {
+        var attempt: Int
+        var base: String?
+    }
+
+    /// Whether the agent can be asked to resolve the conflicts now: it is still, and Fondi is not merging.
+    private var canResolve: Bool {
+        session?.isRunning == false && session?.phase == .aperta && !isMerging
+    }
+
+    /// How many blocchi Fondi gli accettati would leave out.
+    private var notAcceptedCount: Int {
+        review.hunkIDs.count { decisions[$0] != .accepted }
+    }
+
+    /// Whether Fondi gli accettati can merge now: some blocchi accepted, not all, the agent still.
+    private var canMergeAccepted: Bool {
+        notAcceptedCount > 0 && notAcceptedCount < review.hunkIDs.count && session?.isRunning == false
+            && session?.phase == .aperta && !isMerging
     }
 
     private var header: some View {
@@ -133,11 +160,25 @@ struct ReviewSheet: View {
                         if let project = session?.project { strategy.makePreferred(for: project) }
                     }
                     .help("Come il Progetto fonde le Sessioni: squash in un commit, o merge commit")
-                    Button("Fondi", action: merge)
+                    Button("Fondi") { merge() }
                         .buttonStyle(.borderedProminent)
                         .keyboardShortcut(.return, modifiers: .command)
                         .disabled(!canMerge)
                         .help("Fonde le modifiche accettate nel branch del checkout con un commit locale, senza push")
+                }
+                if session?.workspace?.branch != nil {
+                    Menu("Altre azioni", systemImage: "ellipsis.circle") {
+                        Button("Fondi gli accettati e scarta il resto…") { isConfirmingPartialMerge = true }
+                            .disabled(!canMergeAccepted)
+                    }
+                    .labelStyle(.iconOnly)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .confirmationDialog("Fondere solo i blocchi accettati?", isPresented: $isConfirmingPartialMerge) {
+                        Button("Fondi gli accettati", role: .destructive) { merge(discardingRest: true) }
+                    } message: {
+                        Text("I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge.")
+                    }
                 }
                 Button("Chiudi") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -319,9 +360,9 @@ struct ReviewSheet: View {
         dismiss()
     }
 
-    /// Fondi, with the message as the user left it.
-    private func merge() {
-        let text = message.trimmingCharacters(in: .whitespacesAndNewlines)
+    /// Fondi, with the message as the user left it; only the accepted blocchi when `discardingRest`.
+    private func merge(discardingRest: Bool = false) {
+        let text = discardingRest ? "" : message.trimmingCharacters(in: .whitespacesAndNewlines)
         let commitMessage = text.isEmpty ? session.map(review.mergeMessage(for:)) ?? "" : text
         isMerging = true
         mergeFailure = nil
@@ -330,11 +371,25 @@ struct ReviewSheet: View {
         Task {
             defer { isMerging = false }
             do {
-                try await store.merge(sessionID, message: commitMessage, strategy: strategy)
+                try await store.merge(sessionID, message: commitMessage, strategy: strategy,
+                                      discardingRest: discardingRest)
             } catch {
                 Logger.sessions.error("Fondi failed: \(String(describing: error), privacy: .private)")
                 mergeFailure = Self.explanation(of: error)
                 await refreshPreview()
+            }
+        }
+    }
+
+    /// Risolvi con l'agente: the branch of the checkout comes into the Sessione's worktree, the agent resolves there.
+    private func resolveConflicts() {
+        mergeFailure = nil
+        Task {
+            do {
+                try await store.resolveConflicts(sessionID)
+            } catch {
+                Logger.sessions.error("Conflicts not brought in: \(String(describing: error), privacy: .private)")
+                mergeFailure = Self.explanation(of: error)
             }
         }
     }

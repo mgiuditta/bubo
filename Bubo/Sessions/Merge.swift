@@ -26,11 +26,19 @@ nonisolated enum MergeError: LocalizedError, Equatable {
     case moved
     /// The Sessione has blocchi that are not accepted, also new ones written since the revisione.
     case notAllAccepted
+    /// The Sessione has no accepted blocco to merge.
+    case noneAccepted
+    /// The agent left conflict markers in these files, or gave up the merge.
+    case unresolved([String])
 
     var errorDescription: String? {
         switch self {
         case let .conflicts(files):
-            String(localized: "Fondere ora darebbe conflitti in \(files.formatted()). Chiedi all'agente di risolverli nella Sessione.")
+            String(localized: "Fondere ora darebbe conflitti in \(files.formatted()). L'agente può risolverli nella copia della Sessione; poi rivedi i blocchi nuovi.")
+        case .noneAccepted:
+            String(localized: "Nessun blocco è accettato: non c'è niente da fondere.")
+        case let .unresolved(files):
+            String(localized: "L'agente non ha risolto i conflitti in \(files.formatted()). Ho rimesso la copia della Sessione com'era.")
         case let .dirtyCheckout(files):
             String(localized: "Nel checkout del Progetto ci sono modifiche non salvate in \(files.formatted()), e il merge le cambierebbe. Fai un commit o mettile da parte, poi fondi.")
         case .detachedHead:
