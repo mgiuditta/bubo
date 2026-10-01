@@ -85,6 +85,17 @@ final class TerminalStore {
         updateWindow()
     }
 
+    /// Apri nel terminale: shows the terminal of `session` with `command` typed in a new scheda, in its folder, and
+    /// not run: the user runs it with Return (spec 16).
+    func type(_ command: String, in session: Session) {
+        guard let folder = session.terminalFolder else { return }
+        self.session = session
+        // The shell reads it once it is ready, as if typed, without the Return.
+        openTab(of: session, in: folder)?.pty.write(ArraySlice(Array(command.utf8)))
+        isShown = !tabs(of: session.id).isEmpty || failure != nil
+        updateWindow()
+    }
+
     /// Opens a scheda of `session` in `folder`, with `variables` over the Sessione's environment, and brings it to the
     /// front; `nil` when its shell does not start.
     @discardableResult

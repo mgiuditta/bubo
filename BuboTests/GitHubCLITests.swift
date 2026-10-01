@@ -94,6 +94,7 @@ struct GitHubCLITests {
             try await cli.openIssues(of: repository)
         }
         #expect(GitHubCLIError.notAuthenticated(host: "github.com").errorDescription?.contains("gh auth login") == true)
+        #expect(GitHubCLIError.notAuthenticated(host: "github.com").remedy == "gh auth login")
         try expectEveryCallIsSafe()
     }
 
@@ -112,6 +113,58 @@ struct GitHubCLITests {
         await #expect(throws: GitHubCLIError.missing) { try await missing.openIssues(of: repository) }
         #expect(GitHubCLIError.missing.errorDescription?.contains("brew install gh") == true)
         #expect(try calls().isEmpty)
+    }
+
+    @Test(arguments: [
+        (GitHubCLIError.missing, "brew install gh"),
+        (.notAuthenticated(host: "github.com"), "gh auth login"),
+        (.notAuthenticated(host: "ghe.example.com"), "gh auth login --hostname ghe.example.com"),
+        (.missingWorkflowScope(host: "github.com"), "gh auth refresh -s workflow"),
+        (.missingWorkflowScope(host: "ghe.example.com"), "gh auth refresh -s workflow --hostname ghe.example.com"),
+        // A host a shell could misread is left to gh's own question.
+        (.notAuthenticated(host: "x;rm"), "gh auth login"),
+    ])
+    func eachMissingPieceHasTheCommandThatFixesIt(error: GitHubCLIError, command: String) {
+        #expect(error.remedy == command)
+        #expect(error.remedy?.contains("token") == false)
+    }
+
+    @Test func otherFailuresHaveNoCommand() {
+        #expect(GitHubCLIError.noGitHubRemote.remedy == nil)
+        #expect(GitHubCLIError.failed("boh").remedy == nil)
+    }
+
+    /// GitHub's refusal comes from `git push`, not from `gh`: a bare remote whose hook answers like GitHub.
+    @Test func aPushRefusedForTheWorkflowScopeIsRecognised() async throws {
+        let remote = folder.appending(path: "remoto.git", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: remote, withIntermediateDirectories: true)
+        try Self.git(["init", "-q", "--bare"], in: remote)
+        let hook = remote.appending(path: "hooks/pre-receive")
+        try Data(#"""
+            #!/bin/sh
+            echo 'refusing to allow an OAuth App to create or update workflow `.github/workflows/ci.yml` without `workflow` scope' >&2
+            exit 1
+            """#.utf8).write(to: hook)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hook.path)
+        let work = folder.appending(path: "lavoro", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: work.appending(path: ".github/workflows"), withIntermediateDirectories: true)
+        try Data("on: push\n".utf8).write(to: work.appending(path: ".github/workflows/ci.yml"))
+        try Self.git(["init", "-q", "-b", "main"], in: work)
+        try Self.git(["add", "-A"], in: work)
+        try Self.git(["-c", "user.name=Bubo", "-c", "user.email=bubo@example.com", "commit", "-q", "-m", "CI"], in: work)
+
+        let push = try await ProcessRunner.live.run(URL(filePath: "/usr/bin/git"),
+                                                    ["-C", work.path, "push", remote.path, "main"])
+
+        #expect(push.exitCode != 0)
+        let error = try #require(GitHubCLIError(pushError: push.standardError, host: "github.com"))
+        #expect(error == .missingWorkflowScope(host: "github.com"))
+        #expect(error.remedy == "gh auth refresh -s workflow")
+        #expect(error.errorDescription?.contains("gh auth refresh -s workflow") == true)
+    }
+
+    @Test func anotherRefusedPushIsNotTheWorkflowScope() {
+        #expect(GitHubCLIError(pushError: " ! [rejected] main -> main (non-fast-forward)", host: "github.com") == nil)
     }
 
     @Test func makingTheCLIRunsNothing() throws {

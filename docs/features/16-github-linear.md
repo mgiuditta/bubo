@@ -159,7 +159,7 @@ Fonte: [#134](https://github.com/mgiuditta/bubo/issues/134), scorciatoie da [#14
 ### `gh` assente o non autenticato (deciso)
 
 - Rilevato solo quando serve (⌘I, Apri PR), mai all'avvio di Bubo.
-- Messaggio che spiega cosa manca, più **Apri nel terminale**: lancia `brew install gh` o `gh auth login` nel terminale di Bubo (15). Il terminale di Bubo vive solo nel worktree di una Sessione (15), quindi: da Apri PR, Correggi e Aggiorna PR si apre nel worktree della Sessione; da ⌘I, quando nessuna Sessione esiste ancora, Bubo apre il Terminale di sistema con il comando già scritto (`gh` si installa e si autentica una volta per tutto il Mac).
+- Messaggio che spiega cosa manca, più **Apri nel terminale**: lancia `brew install gh` o `gh auth login` nel terminale di Bubo (15). Il terminale di Bubo vive solo nel worktree di una Sessione (15), quindi: da Apri PR, Correggi e Aggiorna PR si apre nel worktree della Sessione; da ⌘I, quando nessuna Sessione esiste ancora, Bubo apre il Terminale di sistema con il comando già scritto (`gh` si installa e si autentica una volta per tutto il Mac). Senza Apple Events, quindi senza permesso Automazione: un file `.command` temporaneo, aperto dall'app scelta per gli script, si cancella e mette il comando sulla riga di zsh (`vared`); parte solo con Invio. Anche nel terminale di Bubo il comando è scritto, non eseguito.
 - Senza `gh`: ⌘I si apre vuoto con la spiegazione, Apri PR è disattivato con il motivo, il merge locale di 02 resta intatto.
 - Push rifiutato per lo scope `workflow` [17] → messaggio con `gh auth refresh -s workflow` [4] e lo stesso pulsante.
 - Bubo non estrae mai il token (`gh auth token` [15]) e non salva credenziali GitHub: lancia `gh` come processo, e il token resta dove l'utente l'ha messo.
