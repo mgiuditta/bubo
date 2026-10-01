@@ -16,6 +16,7 @@ final class OrbPipelines {
     /// - Throws: An error if the Blob's pipeline cannot be built.
     init(device: MTLDevice, library: MTLLibrary, bundle: Bundle = .main) throws {
         self.library = library
+        functionNames = Set(library.functionNames)
         compiler = try device.makeCompiler(descriptor: MTL4CompilerDescriptor())
         // An archive finds a pipeline only through the very library it was built from, and archiving from the
         // default library would compile every Forma into it: the archive has its own library, Orb.metal alone.
@@ -27,13 +28,15 @@ final class OrbPipelines {
     }
 
     private let library: MTLLibrary
+    /// The library's function names, read once: `functionNames` builds a new array on every call.
+    private let functionNames: Set<String>
     private let compiler: MTL4Compiler
     private var ready: [Forma: MTLRenderPipelineState] = [:]
     private var loads: [Forma: Task<MTLRenderPipelineState?, Never>] = [:]
 
     /// Whether the shader library has the fragment function of `forma`; without it the Orb draws the Blob.
     func draws(_ forma: Forma) -> Bool {
-        library.functionNames.contains(forma.fragmentFunctionName)
+        functionNames.contains(forma.fragmentFunctionName)
     }
 
     /// The pipeline of `forma` if it is ready; otherwise `nil`, after starting to load it.
