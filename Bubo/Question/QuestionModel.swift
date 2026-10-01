@@ -211,8 +211,13 @@ final class QuestionModel {
         }
         do {
             let bridge = try await readyBridge()
+            // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
+            let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
             let stream = bridge.ask(text, in: try Self.directory(), model: route.model, effort: route.effort,
-                                    remembers: true,
+                                    remembers: true, rosa: rosa,
+                                    progress: { [orb] progress in
+                                        if case let .variante(nome) = progress { orb.showWork(nome) }
+                                    },
                                     usage: { [weak self] in self?.routedAnswer?.usage = $0 },
                                     answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
             for try await chunk in stream {

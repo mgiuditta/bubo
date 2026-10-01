@@ -109,6 +109,7 @@ final class AgentBridge {
     ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
     ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
     ///   - permissionMode: How `claude` approves the calls; `nil` lets `claude` pick.
+    ///   - rosa: The Varianti the agent may give the Orb while it works, with the tag `⟦orb:nome⟧`.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
@@ -122,6 +123,7 @@ final class AgentBridge {
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
+             rosa: [Variante] = Catalogo.bundled?.rosa() ?? [],
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -152,7 +154,8 @@ final class AgentBridge {
                                             sandbox: isSandboxed ? sandbox(for: environment, allowances: sandboxAllowances) : nil,
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
-                                            remembers: remembers, permissionMode: permissionMode, effort: effort)
+                                            remembers: remembers, permissionMode: permissionMode, effort: effort,
+                                            rosa: rosa.map(\.nome))
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

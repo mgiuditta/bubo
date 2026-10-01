@@ -19,6 +19,10 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case edit(file: String, lines: [String])
     /// Files the agent read, absolute paths: one for `Read`, those `Grep` or `Glob` found, at most 100.
     case read(files: [String])
+    /// The agent turned to what the Variante `nome` stands for: by its tag `⟦orb:nome⟧`, or by the tool it uses.
+    ///
+    /// The bridge sends only names of the rosa, or of its fallback; Bubo still looks each one up in the Catalogo.
+    case variante(String)
     /// A Bash command of the agent ended, or went to the background: it may have started or stopped a server.
     case ranCommand
     /// The Sandbox stopped the Bash command that just ended from doing this.

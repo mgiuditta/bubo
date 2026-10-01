@@ -20,6 +20,14 @@ final class OrbControls {
 
     /// The Stato the Orb eases toward: the Domanda's while one is under way, otherwise the Sessioni's.
     var displayedState: OrbState { questionState ?? state }
+    /// Gives the Orb the Variante `nome` that an agent at work chose; a name outside the Catalogo changes nothing.
+    ///
+    /// The Regia del Morph keeps every Variante at least 1.5 s and fades instead of morphing with Reduce Motion on.
+    /// The Orbite plays to its end.
+    func showWork(_ nome: String, in catalogo: Catalogo? = .bundled) {
+        guard variante != Orbite.variante, let chosen = catalogo?.variante(named: nome) else { return }
+        variante = chosen
+    }
 
     /// The wait before the Orb goes back from the Orbite to the Blob.
     @ObservationIgnored private var orbiteReturn: Task<Void, Never>?

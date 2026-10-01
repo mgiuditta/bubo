@@ -692,6 +692,7 @@ final class SessionStore {
                                    offersPreview: hasServer) { [weak self] progress in
                 switch progress {
                 case .ranCommand: self?.servers.notice()
+                case let .variante(nome): self?.orb?.showWork(nome)
                 case let .sandboxBlock(block): self?.record(block, in: id)
                 case .read: self?.onFileActivity?(id, progress)
                 case .edit:
