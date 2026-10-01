@@ -1,11 +1,10 @@
 import SwiftUI
 
-/// The trust dialog before the first Sessione in a folder that is not trusted (#266).
+/// The trust dialog, shown by `NewSessionSheet`, before the first Sessione in a folder that is not trusted (#266).
 ///
 /// It lists what the repo would turn on, verbatim and escaped. Fidati writes the trust in
 /// `~/.claude.json`; Non ora starts with the user's settings only and asks again next time.
-// ponytail: opens at the first Sessione once Sessioni exist (#69); Revoca goes in the Progetto's settings, which
-// call `TrustGate.revoke(_:)`.
+// ponytail: Revoca goes in the Progetto's settings, which call `TrustGate.revoke(_:)`.
 struct TrustSheet: View {
     /// The folder the Sessione will run in.
     let folder: URL

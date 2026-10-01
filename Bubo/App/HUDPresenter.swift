@@ -11,6 +11,15 @@ final class HUDPresenter {
     /// no environment of its own.
     @ObservationIgnored var openWindow: OpenWindowAction?
 
+    /// Whether the HUD shows the new Sessione sheet.
+    var isCreatingSession = false
+
+    /// Brings the HUD to the front with the new Sessione sheet (⌘N).
+    func createSession() {
+        isCreatingSession = true
+        show()
+    }
+
     /// Brings the HUD to the front, or hides it if it is already frontmost.
     func toggle() {
         if let window = hudWindow, window.isVisible, window.isKeyWindow, NSApp.isActive {

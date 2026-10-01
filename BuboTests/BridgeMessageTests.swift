@@ -10,6 +10,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":["user"],"type":"ask","v":3}"# + "\n")
     }
 
+    @Test func askInAWorktreeCarriesTheMainCheckout() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                         settingSources: ["user"], projectConfigRoot: URL(filePath: "/tmp/repo/")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/w","id":"a1","projectConfigRoot":"/tmp/repo","prompt":"Ciao","settingSources":["user"],"type":"ask","v":3}"# + "\n")
+    }
+
     @Test func cancelNamesTheConversation() throws {
         let line = try BridgeCommand.cancel(id: "a1").line()
         #expect(String(decoding: line, as: UTF8.self) == #"{"id":"a1","type":"cancel","v":3}"# + "\n")

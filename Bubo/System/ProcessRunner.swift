@@ -3,14 +3,14 @@ import Foundation
 /// Runs an executable to completion and collects its output.
 ///
 /// Injected so tests can replace real processes with fixtures.
-struct ProcessRunner: Sendable {
+nonisolated struct ProcessRunner: Sendable {
     /// Runs `executable` with `arguments` and returns its output once it exits.
     ///
     /// Cancelling the calling task terminates the process.
     var run: @Sendable (_ executable: URL, _ arguments: [String]) async throws -> ProcessOutput
 }
 
-extension ProcessRunner {
+nonisolated extension ProcessRunner {
     /// Runs real processes with `Process`, standard input closed.
     static let live = ProcessRunner { executable, arguments in
         try await runProcess(executable, arguments: arguments)

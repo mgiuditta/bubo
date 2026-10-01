@@ -10,7 +10,7 @@ import { settingSources } from "./settingSources";
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" };
@@ -66,11 +66,13 @@ function buboTools() {
   });
 }
 
-async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[]) {
+// In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
+async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
   const conversation = query({
     prompt,
     options: {
       cwd,
+      projectConfigRoot,
       env: childEnv,
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
@@ -135,7 +137,12 @@ lines.on("line", (line) => {
     return;
   }
   switch (command.type) {
-    case "ask": void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources)); break;
+    case "ask": {
+      const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
+        ? command.projectConfigRoot : undefined;
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root);
+      break;
+    }
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
     case "quota": void quota(); break;

@@ -8,8 +8,15 @@ struct BuboApp: App {
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
-            HUDView(questions: appDelegate.questions)
+            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions)
                 .environment(appDelegate.hud)
+        }
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("Nuova Sessione…") { appDelegate.hud.createSession() }
+                    .keyboardShortcut("n")
+                    .disabled(appDelegate.sessions == nil)
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1200, height: 800)

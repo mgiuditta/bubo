@@ -19,6 +19,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }()
     /// The Domanda of the HUD, answered through the agent bridge.
     private(set) lazy var questions = QuestionModel(index: searchIndex)
+    /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
+    private(set) lazy var sessions: SessionStore? = {
+        do {
+            return try SessionStore.makeDefault { [questions] in try await questions.readyBridge() }
+        } catch {
+            Logger.sessions.error("Sessioni unavailable: \(error)")
+            return nil
+        }
+    }()
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
