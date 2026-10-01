@@ -54,3 +54,18 @@ export async function readQuota(conversation: Query): Promise<Quota> {
   if (typeof read !== "function") return {};
   return quotaFromUsage(await read.call(conversation, { skipBehaviors: true }) as Usage);
 }
+
+/** Il limite che ha fermato un turno: la finestra, se `claude` la nomina, e il reset in secondi Unix. */
+export type Limit = { window?: string; resetsAt?: number };
+
+/**
+ * Da un `rate_limit_event` con `status` `rejected`; gli altri stati non sono un limite.
+ * Il throttle del server non manda questo evento, quindi non passa mai per Quota finita.
+ */
+export function limitFromRateLimit(info: SDKRateLimitInfo): Limit | undefined {
+  if (info.status !== "rejected") return undefined;
+  return {
+    ...(info.rateLimitType && { window: info.rateLimitType }),
+    ...(typeof info.resetsAt === "number" && { resetsAt: info.resetsAt }),
+  };
+}

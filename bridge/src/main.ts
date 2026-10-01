@@ -1,16 +1,18 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
-import { createSdkMcpServer, query, tool, type Query, type SettingSource } from "@anthropic-ai/claude-agent-sdk";
+import {
+  createSdkMcpServer, query, tool, type Query, type SDKAssistantMessageError, type SettingSource,
+} from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
-import { quotaFromRateLimit, readQuota, type Quota } from "./quota";
+import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" };
@@ -20,6 +22,8 @@ type Event =
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
   | { type: "error"; id?: string; message: string }
+  | ({ type: "limit"; id: string } & Limit)
+  | { type: "signInRequired"; id: string }
   | { type: "search"; id: string; query: string; project?: string }
   | ({ type: "quota" } & Quota);
 
@@ -67,12 +71,15 @@ function buboTools() {
 }
 
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
-async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
+// `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
+async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
+                   model?: string) {
   const conversation = query({
     prompt,
     options: {
       cwd,
       projectConfigRoot,
+      model,
       env: childEnv,
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
@@ -83,6 +90,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     },
   });
   running.set(id, conversation);
+  // Perché il turno si è fermato: un limite rifiutato o un accesso non valido diventano eventi a sé.
+  let limit: Limit | undefined;
+  let failure: SDKAssistantMessageError | undefined;
   try {
     for await (const message of conversation) {
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
@@ -90,8 +100,13 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         send({ type: "text", id, text: message.event.delta.text });
       } else if (message.type === "rate_limit_event") {
         sendQuota(quotaFromRateLimit(message.rate_limit_info));
+        limit = limitFromRateLimit(message.rate_limit_info) ?? limit;
+      } else if (message.type === "assistant" && message.error) {
+        failure = message.error;
       } else if (message.type === "result") {
         if (message.subtype === "success" && !message.is_error) send({ type: "done", id });
+        else if (limit) send({ type: "limit", id, ...limit });
+        else if (failure === "authentication_failed") send({ type: "signInRequired", id });
         else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype });
       }
     }
@@ -140,7 +155,8 @@ lines.on("line", (line) => {
     case "ask": {
       const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
         ? command.projectConfigRoot : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root);
+      const model = typeof command.model === "string" ? command.model : undefined;
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model);
       break;
     }
     case "cancel": void running.get(command.id)?.interrupt(); break;

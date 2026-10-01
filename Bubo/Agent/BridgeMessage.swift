@@ -13,8 +13,10 @@ enum BridgeCommand: Equatable {
     /// Starts a conversation with `claude` in `directory`, answering `prompt`, loading only `settingSources`.
     ///
     /// When `directory` is a worktree, `projectConfigRoot` is its main checkout, where `claude` reads the
-    /// Progetto's settings, `.mcp.json` and `.claude/`.
-    case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
+    /// Progetto's settings, `.mcp.json` and `.claude/`. `model` is an alias of `claude`, such as `sonnet`;
+    /// without it, the model the user chose in `claude` answers.
+    case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
+             model: String? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -26,9 +28,10 @@ enum BridgeCommand: Equatable {
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
+            object["model"] = model
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -53,6 +56,10 @@ enum BridgeEvent: Equatable, Decodable {
     case done(id: String)
     /// The conversation `id`, or the bridge itself when `id` is `nil`, failed.
     case error(id: String?, message: String)
+    /// The conversation `id` stopped at a subscription limit.
+    case limit(id: String, reached: Quota.Limit)
+    /// The conversation `id` stopped because the login of `claude` is no longer valid.
+    case signInRequired(id: String)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
     case search(id: String, query: String, project: String?)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
@@ -61,7 +68,7 @@ enum BridgeEvent: Equatable, Decodable {
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, message, query, project, fiveHour, sevenDay
+        case v, type, id, text, message, query, project, fiveHour, sevenDay, window, resetsAt
     }
 
     init(from decoder: any Decoder) throws {
@@ -78,6 +85,11 @@ enum BridgeEvent: Equatable, Decodable {
         case "done": self = .done(id: try container.decode(String.self, forKey: .id))
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
+        case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),
+                                    reached: Quota.Limit(window: try container.decodeIfPresent(String.self, forKey: .window),
+                                                        resetsAt: try container.decodeIfPresent(Double.self, forKey: .resetsAt)
+                                                            .map(Date.init(timeIntervalSince1970:))))
+        case "signInRequired": self = .signInRequired(id: try container.decode(String.self, forKey: .id))
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
                                       project: try container.decodeIfPresent(String.self, forKey: .project))

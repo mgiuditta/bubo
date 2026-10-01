@@ -17,6 +17,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/w","id":"a1","projectConfigRoot":"/tmp/repo","prompt":"Ciao","settingSources":["user"],"type":"ask","v":3}"# + "\n")
     }
 
+    @Test func askWithAModelCarriesIt() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], model: "sonnet").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","model":"sonnet","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
+    }
+
     @Test func cancelNamesTheConversation() throws {
         let line = try BridgeCommand.cancel(id: "a1").line()
         #expect(String(decoding: line, as: UTF8.self) == #"{"id":"a1","type":"cancel","v":3}"# + "\n")
@@ -45,6 +52,10 @@ struct BridgeMessageTests {
                       sevenDay: Quota.Window(used: 0.02, resetsAt: Date(timeIntervalSince1970: 1_791_428_400))))),
         (#"{"v":3,"type":"quota","sevenDay":{"used":0.8,"resetsAt":1791428400}}"#,
          .quota(Quota(sevenDay: Quota.Window(used: 0.8, resetsAt: Date(timeIntervalSince1970: 1_791_428_400))))),
+        (#"{"v":3,"type":"limit","id":"a1","window":"five_hour","resetsAt":1790852400}"#,
+         .limit(id: "a1", reached: Quota.Limit(window: "five_hour", resetsAt: Date(timeIntervalSince1970: 1_790_852_400)))),
+        (#"{"v":3,"type":"limit","id":"a1"}"#, .limit(id: "a1", reached: Quota.Limit())),
+        (#"{"v":3,"type":"signInRequired","id":"a1"}"#, .signInRequired(id: "a1")),
         (#"{"v":4,"type":"whatever"}"#, .unsupportedVersion(4)),
     ])
     func eventsDecode(line: String, event: BridgeEvent) throws {

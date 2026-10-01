@@ -27,6 +27,19 @@ nonisolated struct Quota: Equatable, Sendable {
         }
     }
 
+    /// The subscription limit that stopped a request, as `claude` reports it.
+    struct Limit: Equatable, Sendable {
+        /// The window `claude` names, such as `five_hour` or `seven_day_opus`; `nil` when it names none.
+        var window: String?
+        /// When the window starts again from zero, if `claude` says.
+        var resetsAt: Date?
+
+        /// The `claude` model alias to try instead: Opus at Sonnet's own limit, Sonnet otherwise.
+        var otherModel: String {
+            window == "seven_day_sonnet" ? "opus" : "sonnet"
+        }
+    }
+
     /// The 5-hour window, if `claude` reported it.
     var fiveHour: Window?
     /// The weekly window, if `claude` reported it.

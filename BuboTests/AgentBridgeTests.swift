@@ -67,6 +67,17 @@ struct AgentBridgeTests {
         }
     }
 
+    @Test func aLimitFailsTheConversationWithItsWindowAndReset() async {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":3,\"type\":\"limit\",\"id\":\"$id\",\"window\":\"seven_day\",\"resetsAt\":1791428400}"
+            read _
+            """#))
+        await #expect(throws: AgentBridgeError.limitReached(
+            Quota.Limit(window: "seven_day", resetsAt: Date(timeIntervalSince1970: 1_791_428_400)))) {
+            try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
+        }
+    }
+
     @Test func aBridgeThatExitsFailsThePendingAnswer() async {
         let bridge = Self.bridge("read _; exit 3")
         await #expect(throws: AgentBridgeError.bridgeExited(status: 3)) {
