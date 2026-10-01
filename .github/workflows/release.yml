@@ -1,6 +1,6 @@
 # Release firmata e notarizzata sul tag vX.Y.Z o vX.Y.Z-beta.N (spec 27, #221).
-# Segreti (#220): DEVELOPER_ID_P12_BASE64, DEVELOPER_ID_P12_PASSWORD, ASC_API_KEY_P8_BASE64,
-# ASC_API_KEY_ID, ASC_API_ISSUER_ID, SPARKLE_ED_PRIVATE_KEY, BUBO_RELEASES_TOKEN (scrittura solo su
+# Segreti, con i nomi di #220: DEVELOPER_ID_P12 (base64), DEVELOPER_ID_P12_PASSWORD, NOTARY_KEY_P8,
+# NOTARY_KEY_ID, NOTARY_ISSUER, SPARKLE_ED_PRIVATE_KEY, RELEASES_TOKEN (scrittura solo su
 # mgiuditta/bubo-releases, con Pages sul ramo gh-pages).
 name: Release
 
@@ -58,35 +58,40 @@ jobs:
 
       - name: Segreti presenti
         env:
-          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
           DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
-          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER: ${{ secrets.NOTARY_ISSUER }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
-          BUBO_RELEASES_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          RELEASES_TOKEN: ${{ secrets.RELEASES_TOKEN }}
         run: |
           missing=0
-          for name in DEVELOPER_ID_P12_BASE64 DEVELOPER_ID_P12_PASSWORD ASC_API_KEY_P8_BASE64 ASC_API_KEY_ID ASC_API_ISSUER_ID SPARKLE_ED_PRIVATE_KEY BUBO_RELEASES_TOKEN; do
+          for name in DEVELOPER_ID_P12 DEVELOPER_ID_P12_PASSWORD NOTARY_KEY_P8 NOTARY_KEY_ID NOTARY_ISSUER SPARKLE_ED_PRIVATE_KEY RELEASES_TOKEN; do
             if [[ -z "${!name}" ]]; then echo "::error::segreto $name mancante (#220)"; missing=1; fi
           done
           exit $missing
 
       - name: Portachiavi e chiave di App Store Connect
         env:
-          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12 }}
           DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
-          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
         run: |
           scripts/release/keychain.sh create
           key="$RUNNER_TEMP/AuthKey.p8"
-          printf '%s' "$ASC_API_KEY_P8_BASE64" | base64 --decode > "$key"
+          # Il .p8 è testo PEM: si accetta così com'è o in base64.
+          if [[ "$NOTARY_KEY_P8" == -----BEGIN* ]]; then
+            printf '%s\n' "$NOTARY_KEY_P8" > "$key"
+          else
+            printf '%s' "$NOTARY_KEY_P8" | base64 --decode > "$key"
+          fi
           echo "ASC_API_KEY_PATH=$key" >> "$GITHUB_ENV"
 
       - name: Build e export Developer ID
         env:
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.NOTARY_ISSUER }}
           MARKETING: ${{ steps.version.outputs.marketing }}
           BUILD_NUMBER: ${{ github.run_number }}
         run: scripts/release/build.sh "$MARKETING" "$BUILD_NUMBER" "$RUNNER_TEMP/build"
@@ -104,14 +109,14 @@ jobs:
 
       - name: Notarizzazione e stapling
         env:
-          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
-          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.NOTARY_ISSUER }}
           NAME: ${{ steps.version.outputs.name }}
         run: scripts/release/notarize.sh "$RUNNER_TEMP/Bubo-$NAME.dmg"
 
       - name: Release in bubo-releases
         env:
-          GH_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
           TAG: ${{ github.ref_name }}
           NAME: ${{ steps.version.outputs.name }}
           PRERELEASE: ${{ steps.version.outputs.prerelease }}
@@ -129,7 +134,7 @@ jobs:
 
       - name: Appcast su Pages
         env:
-          GH_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
           TAG: ${{ github.ref_name }}
           NAME: ${{ steps.version.outputs.name }}

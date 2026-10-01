@@ -15,6 +15,23 @@ enum Signposts {
         signposter.emitEvent(event.name)
     }
 
+    /// Runs `work` inside the interval `interval` and returns its result.
+    static func measure<T>(_ interval: Signpost, around work: () async throws -> T) async rethrows -> T {
+        let state = signposter.beginInterval(interval.name, id: signposter.makeSignpostID())
+        defer { signposter.endInterval(interval.name, state) }
+        return try await work()
+    }
+
+    /// Begins the interval `interval`; end it with `endInterval(_:_:)`, when it spans more than one call.
+    static func beginInterval(_ interval: Signpost) -> OSSignpostIntervalState {
+        signposter.beginInterval(interval.name, id: signposter.makeSignpostID())
+    }
+
+    /// Ends the interval `interval` begun with `state`.
+    static func endInterval(_ interval: Signpost, _ state: OSSignpostIntervalState) {
+        signposter.endInterval(interval.name, state)
+    }
+
     /// Emits `HUD interattivo` the first time it is called, and never again.
     ///
     /// The end of launch: later HUD appearances are not launches.
@@ -29,11 +46,26 @@ enum Signposts {
 enum Signpost {
     /// The HUD has drawn and the main thread accepts input: launch is over.
     case hudInteractive
+    /// Interval: finding `claude` and reading its version and login, after `hudInteractive`.
+    case claudeDetection
+    /// Interval: listing the Cronologia CLI through the bridge.
+    case cliHistory
+    /// Interval: from choosing another Vista delle Sessioni to the HUD laid out with it.
+    case vistaSwitch
+    /// Interval: reading a Sessione's changes from git for the revisione.
+    case reviewDiff
+    /// Interval: working out with `git merge-tree` what Fondi would do, before the click.
+    case mergePreview
 
     /// The name shown in Instruments.
     var name: StaticString {
         switch self {
         case .hudInteractive: "HUD interattivo"
+        case .claudeDetection: "Rilevamento claude"
+        case .cliHistory: "Cronologia CLI"
+        case .vistaSwitch: "Cambio vista"
+        case .reviewDiff: "Diff della revisione"
+        case .mergePreview: "Conflitti previsti"
         }
     }
 }

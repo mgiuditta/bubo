@@ -1,5 +1,5 @@
 # Ritiro di una versione dall'appcast (spec 27, #223). Solo a mano, con il tag da ritirare.
-# Segreti (#220): SPARKLE_ED_PRIVATE_KEY, BUBO_RELEASES_TOKEN.
+# Segreti (#220): SPARKLE_ED_PRIVATE_KEY, RELEASES_TOKEN.
 name: Ritira una versione
 
 on:
@@ -30,5 +30,5 @@ jobs:
         env:
           TAG: ${{ inputs.tag }}
           SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
-          GH_TOKEN: ${{ secrets.BUBO_RELEASES_TOKEN }}
+          GH_TOKEN: ${{ secrets.RELEASES_TOKEN }}
         run: scripts/release/yank.sh "$TAG"

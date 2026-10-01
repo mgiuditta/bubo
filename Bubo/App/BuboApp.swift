@@ -8,8 +8,42 @@ struct BuboApp: App {
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
-            HUDView(questions: appDelegate.questions)
+            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions)
                 .environment(appDelegate.hud)
+        }
+        .commands {
+            CommandGroup(replacing: .newItem) {
+                Button("Nuova Sessione…") { appDelegate.hud.createSession() }
+                    .keyboardShortcut("n")
+                    .disabled(appDelegate.sessions == nil)
+                Button("Nuova Bozza…") { appDelegate.hud.createDraft() }
+                    .keyboardShortcut("n", modifiers: [.option, .command])
+                    .disabled(appDelegate.sessions == nil)
+            }
+            CommandGroup(before: .toolbar) {
+                Section("Vista delle Sessioni") {
+                    ForEach(VistaDelleSessioni.allCases) { vista in
+                        Toggle(isOn: Binding {
+                            appDelegate.hud.vista == vista
+                        } set: { isOn in
+                            if isOn { appDelegate.hud.switchVista(to: vista) }
+                        }) {
+                            Text(vista.title)
+                        }
+                        .keyboardShortcut(KeyEquivalent(vista.shortcut))
+                    }
+                }
+                Divider()
+                Button {
+                    appDelegate.toggleTerminal()
+                } label: {
+                    appDelegate.sessions?.terminals.isShown == true ? Text("Nascondi il terminale")
+                        : Text("Mostra il terminale")
+                }
+                .keyboardShortcut("`", modifiers: .control)
+                .disabled(appDelegate.sessions?.terminals.isShown != true && appDelegate.sessions?.terminalSession == nil)
+                Divider()
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1200, height: 800)
@@ -17,6 +51,7 @@ struct BuboApp: App {
 
         Settings {
             SettingsView()
+                .environment(appDelegate.sessions)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         }

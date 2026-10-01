@@ -124,6 +124,7 @@ Fonti: [#131](https://github.com/mgiuditta/bubo/issues/131) (varianti B + C del 
 Fonti: [#138](https://github.com/mgiuditta/bubo/issues/138), [ADR 0006](../adr/0006-bubo-conserva-le-conversazioni.md).
 
 - **Sessioni di Bubo**: copia a specchio con `sessionStore` nel database locale di Bubo. `append` scrive dopo la scrittura locale; `load` rimette la conversazione in un JSONL temporaneo per `resume`. Subagent inclusi (`listSubkeys`). Versione dell'SDK fissata, perché l'API è in alpha; se cambia, il ripiego è copiare il JSONL alla fine di ogni turno, con gli stessi dati.
+- **Scrittura locale**: `sessionStore` non funziona con `persistSession: false`, quindi i turni delle Sessioni girano con `persistSession: true` e un `sessionId` dato da Bubo (uno per turno, salvato nella Sessione). `claude` scrive il suo transcript in `~/.claude/projects`, come dalla riga di comando, e la pulizia della CLI lo cancella; Bubo non scrive nulla in `~/.claude`. Le Domande restano senza transcript. Il database è `~/Library/Application Support/Bubo/Conversazioni.sqlite`; lo scrive solo il ponte.
 - **Cronologia CLI**: Bubo la copia di default con `importSessionToStore` quando la vede per la prima volta. L'interruttore "Conserva anche le conversazioni della riga di comando" nelle Impostazioni lo spegne; spegnendolo le copie si cancellano.
 - **`cleanupPeriodDays` non si tocca**: 0 modifiche a `~/.claude/settings.json`.
 - **Durata**: per sempre. Le Impostazioni mostrano lo spazio occupato. Eliminare una Sessione in Bubo cancella la sua copia; Archiviata non cancella nulla.

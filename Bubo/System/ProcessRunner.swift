@@ -3,17 +3,26 @@ import Foundation
 /// Runs an executable to completion and collects its output.
 ///
 /// Injected so tests can replace real processes with fixtures.
-struct ProcessRunner: Sendable {
+nonisolated struct ProcessRunner: Sendable {
     /// Runs `executable` with `arguments` and returns its output once it exits.
     ///
     /// Cancelling the calling task terminates the process.
     var run: @Sendable (_ executable: URL, _ arguments: [String]) async throws -> ProcessOutput
 }
 
-extension ProcessRunner {
+nonisolated extension ProcessRunner {
     /// Runs real processes with `Process`, standard input closed.
     static let live = ProcessRunner { executable, arguments in
         try await runProcess(executable, arguments: arguments)
+    }
+
+    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed.
+    ///
+    /// Standard error goes to Bubo's own and is not collected.
+    static func disclaimed(environment: [String: String]) -> ProcessRunner {
+        ProcessRunner { executable, arguments in
+            try await runDisclaimed(executable, arguments: arguments, environment: environment)
+        }
     }
 }
 
@@ -45,8 +54,35 @@ private func runProcess(_ executable: URL, arguments: [String]) async throws -> 
     }
 }
 
+@concurrent
+private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String]) async throws -> ProcessOutput {
+    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment)
+    try process.input.close()
+    return try await withTaskCancellationHandler {
+        let standardOutput = try await readText(from: process.output)
+        let exitCode = await ProcessSpawner.waitForExit(of: process.pid)
+        return ProcessOutput(exitCode: exitCode, standardOutput: standardOutput)
+    } onCancel: {
+        kill(process.pid, SIGKILL) // an interactive shell ignores SIGTERM
+    }
+}
+
+/// Everything `handle` gives until end of file, as UTF-8.
+///
+/// Read in chunks as they arrive, never with `bytes`: that stalls while the other pipe stays open and silent, and
+/// a child that fills one pipe then waits forever, as `git diff` does past 64 KB.
 private func readText(from handle: FileHandle) async throws -> String {
+    let (chunks, continuation) = AsyncStream.makeStream(of: Data.self)
+    handle.readabilityHandler = { handle in
+        let chunk = handle.availableData
+        if chunk.isEmpty {
+            handle.readabilityHandler = nil
+            continuation.finish()
+        } else {
+            continuation.yield(chunk)
+        }
+    }
     var data = Data()
-    for try await byte in handle.bytes { data.append(byte) }
+    for await chunk in chunks { data.append(chunk) }
     return String(decoding: data, as: UTF8.self)
 }

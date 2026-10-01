@@ -1,0 +1,217 @@
+import Foundation
+import Testing
+@testable import Bubo
+
+struct SessionTests {
+    @Test func theTitleIsTheFirstSixWordsOfThePrompt() {
+        #expect(Session.proposedTitle(for: "  Correggi il   login quando la rete cade e riprova ") == "Correggi il login quando la rete")
+        #expect(Session.proposedTitle(for: "").isEmpty)
+    }
+
+    @Test(arguments: [
+        ("Correggi il login", "bubo/correggi-il-login"),
+        ("Perché è già così? Sì!", "bubo/perche-e-gia-cosi-si"),
+        ("", "bubo/sessione"),
+        ("日本語", "bubo/sessione"),
+    ])
+    func theBranchIsASlugOfTheTitle(title: String, branch: String) {
+        #expect(Session.proposedBranch(for: title) == branch)
+    }
+
+    @Test func aLongTitleGivesAShortBranch() {
+        let branch = Session.proposedBranch(for: String(repeating: "parola ", count: 20))
+        #expect(branch.count <= "bubo/".count + 40)
+    }
+
+    @MainActor
+    @Test func aSessionThatWasWorkingWhenBuboQuitIsStopped() throws {
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: file) }
+        let saved = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"))
+        try JSONEncoder().encode([saved]).write(to: file)
+
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            throw CancellationError()
+        }
+
+        #expect(store.sessions.map(\.activity) == [.ferma])
+        #expect(store.sessions.map(\.isInterrupted) == [true])
+        #expect(store.projects == [URL(filePath: "/tmp")])
+    }
+
+    /// A store kept in a new temporary file holding `saved`.
+    @MainActor
+    func makeStore(saving saved: [Session]) throws -> SessionStore {
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        try JSONEncoder().encode(saved).write(to: file)
+        return SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            throw CancellationError()
+        }
+    }
+
+    @MainActor
+    @Test func aSessionWhoseProjectIsGoneIsInErrore() throws {
+        let gone = URL(filePath: "/tmp/bubo-sparito-\(UUID().uuidString)")
+        let store = try makeStore(saving: [Session(id: UUID(), title: "Prova", project: gone, activity: .ferma)])
+
+        #expect(store.sessions.map(\.activity) == [.errore])
+        #expect(store.sessions.first?.failure?.contains(gone.path) == true)
+    }
+
+    @MainActor
+    @Test func aSessionWhoseWorktreeIsGoneIsInErrore() throws {
+        let gone = Workspace(folder: URL(filePath: "/tmp/bubo-sparito-\(UUID().uuidString)"), branch: "bubo/prova")
+        let store = try makeStore(saving: [Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"),
+                                                   workspace: gone, activity: .lavora)])
+
+        #expect(store.sessions.map(\.activity) == [.errore])
+    }
+
+    @MainActor
+    @Test func archivingKeepsTheSessionAndFreesItsPorts() throws {
+        let session = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .ferma,
+                              ports: 40_000..<40_010)
+        let store = try makeStore(saving: [session])
+
+        store.archive(session.id)
+
+        #expect(store.sessions.map(\.phase) == [.archiviata])
+        #expect(store.sessions.first?.ports == nil)
+    }
+
+    @MainActor
+    @Test func aSessionInLavoraIsNeitherArchivedNorDeleted() throws {
+        let store = try makeStore(saving: [])
+        try store.start("Prova", title: "Prova", branch: "bubo/prova", in: URL(filePath: "/tmp"))
+        let id = try #require(store.sessions.first?.id)
+
+        store.archive(id)
+        store.delete(id)
+
+        #expect(store.sessions.map(\.phase) == [.aperta])
+    }
+
+    @MainActor
+    @Test func aSecondSessionOnTheCheckoutIsRefused() throws {
+        let store = try makeStore(saving: [])
+        let project = URL(filePath: "/tmp")
+        try store.start("Prova", title: "Prima", branch: "", in: project, onCheckout: true)
+
+        #expect(throws: SessionError.checkoutTaken(by: "Prima")) {
+            try store.start("Prova", title: "Seconda", branch: "", in: URL(filePath: "/tmp/"), onCheckout: true)
+        }
+        try store.start("Prova", title: "Isolata", branch: "bubo/isolata", in: project)
+
+        #expect(store.sessions.map(\.title) == ["Prima", "Isolata"])
+        #expect(store.sessions.first?.workspace == Workspace(folder: project))
+        #expect(store.checkoutSession(of: project)?.title == "Prima")
+    }
+
+    @MainActor
+    @Test func anArchivedSessionFreesTheCheckout() throws {
+        var session = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .ferma)
+        session.isOnCheckout = true
+        let store = try makeStore(saving: [session])
+
+        store.archive(session.id)
+
+        #expect(store.checkoutSession(of: URL(filePath: "/tmp")) == nil)
+    }
+
+    @MainActor
+    @Test func deletingRemovesTheSession() throws {
+        let session = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .ferma)
+        let store = try makeStore(saving: [session])
+
+        store.delete(session.id)
+
+        #expect(store.sessions.isEmpty)
+    }
+
+    @MainActor
+    @Test func aSessionFromTheCLIHistoryKeepsTheConversationItForks() throws {
+        let store = try makeStore(saving: [])
+        let conversation = CLIConversation(id: "c-1", title: "Correggi il login", folder: URL(filePath: "/tmp"),
+                                           branch: nil, lastModified: .now)
+
+        try store.start("Continua", title: "Correggi il login", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                        forkingFrom: conversation)
+
+        #expect(store.sessions.map(\.forkedFrom) == ["c-1"])
+    }
+
+    /// A bridge played by `/bin/sh` that writes every command to `log`, ends every turn at once, and lists as the
+    /// Cronologia CLI the first conversation it was asked to keep, plus `c-1`.
+    static func keepingBridge(log: URL) -> AgentBridge {
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"type":"ask"'*) echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                    *'"type":"history"'*)
+                        kept=$(sed -n 's/.*"keep":"\([^"]*\)".*/\1/p' "$1" | head -1)
+                        echo "{\"v\":3,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
+                esac
+            done
+            """#
+        return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                           environment: ["PATH": "/usr/bin:/bin"]) { _, _ in "" }
+    }
+
+    /// Waits up to 5 s for `condition`.
+    @MainActor
+    static func wait(until condition: () -> Bool) async throws {
+        for _ in 0..<250 {
+            if condition() { return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func eachTurnIsKeptAndDeletingTheSessionForgetsIt() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+
+        try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        let session = try #require(store.sessions.first)
+        let kept = try #require(session.conversations.first)
+        #expect(session.conversations.count == 1)
+        #expect(try String(contentsOf: log, encoding: .utf8).contains(#""keep":"\#(kept)""#))
+
+        #expect(try await store.history().map(\.id) == ["c-1"])
+
+        store.delete(session.id)
+        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":3}"#
+        try await Self.wait { (try? String(contentsOf: log, encoding: .utf8).contains(forget)) == true }
+        #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
+    }
+
+    @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
+        let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
+                                                               lastModified: .now))
+        #expect(draft.canStartEmpty)
+        #expect(draft.firstPrompt("Aggiungi i test") == "Aggiungi i test")
+        #expect(draft.firstPrompt("") == String(localized: "Continua da dove ti eri fermato."))
+        #expect(!SessionDraft().canStartEmpty)
+    }
+
+    @Test func aSessionSavedBeforeItsPhaseWasKeptIsOpen() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.phase) == [.aperta])
+        #expect(sessions.map(\.isInterrupted) == [false])
+        #expect(sessions.map(\.forkedFrom) == [nil])
+        #expect(sessions.map(\.conversations) == [[]])
+    }
+}
