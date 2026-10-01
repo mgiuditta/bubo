@@ -121,9 +121,9 @@ Per ogni richiesta: **Tipo di richiesta** → modello · sforzo (e fornitore per
 Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Progetto per le Sessioni, tutte le Domande per le Domande.
 
 **Classificatore.**
-- Senza Jev: Apple Foundation Models on-device (enum `@Generable` sui Tipi), con **regole** di ripiego (plan mode, Domanda vuota, segnali certi) senza Apple Intelligence o oltre la soglia di latenza.
+- Senza Jev: Apple Foundation Models on-device (solo `SystemLanguageModel.default`, mai Private Cloud Compute), con **regole** di ripiego (parole pesate in italiano e inglese, segni di codice) senza Apple Intelligence, su errore o oltre i 300 ms. Una sola generazione guidata dà Tipo, Categoria e Variante: lo schema si costruisce a runtime (`DynamicGenerationSchema`, scelte chiuse come un enum) perché le Varianti vengono da `catalogo.json`; con centinaia di Varianti andrà in due passi, Categoria poi Variante.
 - Con Jev (facoltativo, consigliato all'avvio con il costo): Jev decide Tipo e Variante (due passi: Categoria, poi Variante, per il limite di 255 opzioni) **solo se passa il cancello di adozione**; altrimenti fa da secondo parere. Jev vede solo il testo della richiesta e il contesto minimo (Sessione o Domanda, nomi dei file allegati), mai file, diff o memoria del Progetto. Versione fissata a `jev-1.13.0`. Budget 300 ms: oltre, su errore o offline → Apple FM + regole, detto nel motivo, nessun nuovo tentativo sul turno. Dettagli in [10-router-jev.md](10-router-jev.md).
-- **Incertezza**: confidenza < 0,6 o prime due a meno di 0,15 (con Jev), o incertezza di Apple FM tra due Tipi → default più forte dei due, detto nel motivo ("Correzione 48% / Modifica ampia 41% → Opus medio"). Variante incerta → Blob con la Categoria scelta. Il router non chiede mai. Soglie tarabili.
+- **Incertezza**: confidenza < 0,6 o prime due a meno di 0,15 (con Jev), o incertezza di Apple FM tra due Tipi (campo facoltativo `alternativa`, perché Foundation Models non dà probabilità) o pari punti tra due Tipi nelle regole → default più forte dei due, detto nel motivo ("Correzione 48% / Modifica ampia 41% → Opus medio"). Variante incerta → Blob con la Categoria scelta. Il router non chiede mai. Soglie tarabili.
 - **Livello di rischio**: Jev è solo un segnale che alza, mai abbassa; i livelli 4–5 restano alle regole (feature 05).
 - **Sintesi parlata**: esclusa da Jev, che non genera testo e dovrebbe vedere la risposta; la scrive il modello che risponde ([08](08-voce.md), [#63](https://github.com/mgiuditta/bubo/issues/63)).
 
@@ -151,7 +151,7 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 
 ### Moduli
 
-- `Router/RequestClassifier`: Apple FM (`@Generable` Tipo + Variante) e regole di ripiego; interfaccia unica per il classificatore Jev.
+- `Router/RequestClassifier`: motori in ordine, ciascuno nel suo budget, poi le regole (`RuleClassifier`); Apple FM in `FoundationModelsClassifier`. Interfaccia unica `ClassificationEngine`: Jev si aggiunge in testa come motore in più, e vede solo `ClassifierInput` (testo e nomi degli Allegati).
 - `Router/JevClient`: `URLSession` su `api.typesafe.ai/v1/systemone` o OpenRouter (`~typesafe/jev-latest`), versione fissata, budget 300 ms, filtro del contenuto inviato.
 - `Router/ModelRouter`: Tipo → modello · sforzo · fornitore; default, preferenze ricordate, Scala da `supportedModels()` con i vincoli dell'org, quota (feature 03), consensi; produce il motivo.
 - `Router/Providers`: client OpenAI-compatibile (Chat Completions, streaming) + `FoundationModels`; rilevamento di Ollama e LM Studio su localhost; OAuth PKCE di OpenRouter; chiavi nel Portachiavi (`Account/`).
