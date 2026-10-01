@@ -15,4 +15,17 @@ enum Motion {
     static let outerRingPeriod: Double = 60
     /// One turn of the inner HUD ring, in seconds; it turns the other way.
     static let innerRingPeriod: Double = 90
+
+    /// The `UserDefaults` key of Riduci movimento in Aspetto.
+    static let reducesMotionKey = "reducesMotion"
+
+    /// Whether Riduci movimento is on, in Aspetto or in the system's settings.
+    static var isReduced: Bool {
+        isReduced(in: .standard, system: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+    }
+
+    /// Whether Riduci movimento is on, given the choice kept in `defaults` and the system's setting.
+    static func isReduced(in defaults: UserDefaults, system: Bool) -> Bool {
+        system || defaults.bool(forKey: reducesMotionKey)
+    }
 }

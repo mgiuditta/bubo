@@ -125,7 +125,7 @@ final class OrbPanelController {
         } catch {
             Logger.panel.error("Panel placement not saved: \(error)")
         }
-        move(to: spot, animated: !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+        move(to: spot, animated: !Motion.isReduced)
     }
 
     private func move(to spot: PanelSpot, animated: Bool) {

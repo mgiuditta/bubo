@@ -49,7 +49,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
-        let reducesMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let reducesMotion = Motion.isReduced
         animation.state = controls.state
         animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion

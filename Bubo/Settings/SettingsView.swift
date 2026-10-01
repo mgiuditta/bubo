@@ -1,12 +1,15 @@
 import SwiftUI
 
 /// Bubo's settings window.
-// ponytail: Aspetto e Permessi si aggiungono con le feature che li riempiono (niente sezioni vuote).
+// ponytail: Permessi si aggiunge con la feature che lo riempie (niente sezioni vuote).
 struct SettingsView: View {
     var body: some View {
         TabView {
             Tab("Generale", systemImage: "gearshape") {
                 GeneralSettingsView()
+            }
+            Tab("Aspetto", systemImage: "paintbrush") {
+                AppearanceSettingsView()
             }
             Tab("Account", systemImage: "person.crop.circle") {
                 AccountSettingsView()
