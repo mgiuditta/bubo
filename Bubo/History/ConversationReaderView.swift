@@ -88,7 +88,7 @@ struct ConversationReaderView: View {
     private func notice(_ text: LocalizedStringKey, detail: LocalizedStringKey?, systemImage: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
             Image(systemName: systemImage)
-                .foregroundStyle(Palette.attention)
+                .foregroundStyle(Palette.textSecondary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: Spacing.xxSmall) {
                 Text(text)

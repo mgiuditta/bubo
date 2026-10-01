@@ -14,7 +14,7 @@ struct TranscriptLineView: View {
                 if isCurrent {
                     // Not only the colour: the point found says so.
                     Text("Trovato")
-                        .foregroundStyle(Palette.accentStrong)
+                        .foregroundStyle(Palette.textPrimary)
                 }
             }
             .font(Typography.mono(size: 10, weight: .medium))
