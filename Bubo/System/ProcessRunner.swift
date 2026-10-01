@@ -16,6 +16,13 @@ nonisolated extension ProcessRunner {
         try await runProcess(executable, arguments: arguments)
     }
 
+    /// Runs real processes with `Process` and exactly `environment`, standard input closed.
+    static func live(environment: [String: String]) -> ProcessRunner {
+        ProcessRunner { executable, arguments in
+            try await runProcess(executable, arguments: arguments, environment: environment)
+        }
+    }
+
     /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed.
     ///
     /// Standard error goes to Bubo's own and is not collected.
@@ -27,10 +34,12 @@ nonisolated extension ProcessRunner {
 }
 
 @concurrent
-private func runProcess(_ executable: URL, arguments: [String]) async throws -> ProcessOutput {
+private func runProcess(_ executable: URL, arguments: [String],
+                        environment: [String: String]? = nil) async throws -> ProcessOutput {
     let process = Process()
     process.executableURL = executable
     process.arguments = arguments
+    if let environment { process.environment = environment }
     process.standardInput = FileHandle.nullDevice
     let output = Pipe()
     let error = Pipe()

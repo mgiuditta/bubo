@@ -67,6 +67,34 @@ nonisolated struct WorktreeManager: Sendable {
         let base = head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : nil
         try await git(base.map { ["worktree", "add", "-b", name, folder.path, $0] }
                       ?? ["worktree", "add", "--orphan", "-b", name, folder.path], in: checkout)
+        try await fill(folder, from: checkout)
+        return Workspace(folder: folder, branch: name, base: base)
+    }
+
+    /// Prepares again the copy of an Archiviata or Fusa Sessione that worked in `workspace`: a worktree on its branch
+    /// while the branch is still there, with the same base; else a new copy as ``prepare(_:branch:)`` makes.
+    ///
+    /// Outside git the Sessione works in `project` itself.
+    ///
+    /// - Throws: `WorktreeError` when git fails.
+    @concurrent func reopen(_ workspace: Workspace, of project: URL) async throws -> Workspace {
+        guard let branch = workspace.branch else { return workspace }
+        let topLevel = try await git(["rev-parse", "--show-toplevel"], in: project)
+        let checkout = URL(filePath: topLevel.trimmingCharacters(in: .newlines), directoryHint: .isDirectory)
+        let isKept = try await run(["show-ref", "--verify", "--quiet", "refs/heads/\(branch)"], in: checkout)
+            .exitCode == 0
+        guard isKept else { return try await prepare(project, branch: branch) }
+        let folder = worktreeFolder(of: branch, in: checkout)
+        try FileManager.default.createDirectory(at: folder.deletingLastPathComponent(), withIntermediateDirectories: true)
+        // The archived worktree's record goes first, or git says the branch is checked out there.
+        try await git(["worktree", "prune"], in: checkout)
+        try await git(["worktree", "add", folder.path, branch], in: checkout)
+        try await fill(folder, from: checkout)
+        return Workspace(folder: folder, branch: branch, base: workspace.base)
+    }
+
+    /// Fills the new worktree `folder` of `checkout`: its submodules, then a clone of the files git ignores.
+    private func fill(_ folder: URL, from checkout: URL) async throws {
         if FileManager.default.fileExists(atPath: folder.appending(path: ".gitmodules").path) {
             // A submodule that cannot be fetched (offline) leaves its folder empty, not the Sessione without a copy.
             do {
@@ -78,7 +106,12 @@ nonisolated struct WorktreeManager: Sendable {
         for path in try await clonablePaths(in: checkout) {
             Self.clone(checkout.appending(path: path), to: folder.appending(path: path))
         }
-        return Workspace(folder: folder, branch: name, base: base)
+    }
+
+    /// The worktree folder of `branch` of `checkout`, in ``root``.
+    private func worktreeFolder(of branch: String, in checkout: URL) -> URL {
+        root.appending(path: checkout.lastPathComponent, directoryHint: .isDirectory)
+            .appending(path: branch.replacing("/", with: "-"), directoryHint: .isDirectory)
     }
 
     /// The changes in the folder of `workspace` since its base, or since `HEAD` without one: commits, edits and
@@ -243,10 +276,9 @@ nonisolated struct WorktreeManager: Sendable {
 
     /// The first free name among `branch`, `branch-2`, `branch-3`…, with its worktree folder.
     private func availableBranch(_ branch: String, of checkout: URL) async throws -> (String, URL) {
-        let projectFolder = root.appending(path: checkout.lastPathComponent, directoryHint: .isDirectory)
         var candidate = branch
         for number in 2... {
-            let folder = projectFolder.appending(path: candidate.replacing("/", with: "-"), directoryHint: .isDirectory)
+            let folder = worktreeFolder(of: candidate, in: checkout)
             let isTaken = try await run(["show-ref", "--verify", "--quiet", "refs/heads/\(candidate)"], in: checkout)
                 .exitCode == 0
             if !isTaken && !FileManager.default.fileExists(atPath: folder.path) { return (candidate, folder) }

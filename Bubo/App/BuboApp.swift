@@ -19,6 +19,9 @@ struct BuboApp: App {
                 Button("Nuova Bozza…") { appDelegate.hud.createDraft() }
                     .keyboardShortcut("n", modifiers: [.option, .command])
                     .disabled(appDelegate.sessions == nil)
+                Button("Sessione da issue GitHub…") { appDelegate.hud.pickIssue() }
+                    .keyboardShortcut("i")
+                    .disabled(appDelegate.sessions == nil)
             }
             CommandGroup(before: .toolbar) {
                 Section("Vista delle Sessioni") {

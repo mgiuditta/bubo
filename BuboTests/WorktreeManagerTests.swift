@@ -410,4 +410,41 @@ struct WorktreeManagerTests {
         #expect(exists("node_modules/pacchetto-799/file-99.js", in: workspace.folder))
         #expect(elapsed < .seconds(2))
     }
+
+    @Test func aNewSessionOnAnIssueWhoseBranchIsTakenGetsASuffix() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let branch = IssueLink.branch(forIssue: 42, titled: "Fix login")
+        try git("branch", branch, in: repo)
+
+        let workspace = try await manager.prepare(repo, branch: branch)
+
+        #expect(workspace.branch == "bubo/42-fix-login-2")
+    }
+
+    @Test func reopeningAnArchivedSessionReusesItsBranchAndItsBase() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let archived = try await manager.prepare(repo, branch: "bubo/42-fix-login")
+        try write(["nuovo.txt": "lavoro"], in: archived.folder)
+        try git("add", "-A", in: archived.folder)
+        try git("commit", "-q", "-m", "Lavoro", in: archived.folder)
+        await manager.remove(archived, of: repo, deletingBranch: false)
+
+        let reopened = try await manager.reopen(archived, of: repo)
+
+        #expect(reopened.branch == "bubo/42-fix-login")
+        #expect(reopened.base == archived.base)
+        #expect(exists("nuovo.txt", in: reopened.folder))
+        #expect(try git("branch", "--show-current", in: reopened.folder) == "bubo/42-fix-login\n")
+    }
+
+    @Test func reopeningASessionWhoseBranchFondiDeletedPreparesANewOne() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let merged = try await manager.prepare(repo, branch: "bubo/42-fix-login")
+        await manager.remove(merged, of: repo, deletingBranch: true)
+
+        let reopened = try await manager.reopen(merged, of: repo)
+
+        #expect(reopened.branch == "bubo/42-fix-login")
+        #expect(exists("README.md", in: reopened.folder))
+    }
 }

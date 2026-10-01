@@ -71,6 +71,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var decisions: [String: HunkDecision] = [:]
     /// The conflicts the agent is resolving in the worktree, with how to put it back; `nil` otherwise.
     var resolution: ConflictResolution?
+    /// The issue the Sessione was started from with ⌘I; `nil` for the others.
+    var issue: IssueLink?
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
@@ -80,6 +82,14 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var terminalFolder: URL? {
         guard phase == .aperta, !isOnCheckout else { return nil }
         return workspace?.folder
+    }
+
+    /// The branch the Sessione's copy is prepared on when it has none yet: from its issue, else from its title.
+    var branchToPrepare: String {
+        if let issue, issue.source == .github, let number = Int(issue.id) {
+            return IssueLink.branch(forIssue: number, titled: title)
+        }
+        return Self.proposedBranch(for: title)
     }
 
     /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
@@ -110,7 +120,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
-    /// revisione and its conversations were kept.
+    /// revisione, its conversations and its issue were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -133,5 +143,6 @@ nonisolated extension Session {
         edits = try container.decodeIfPresent([EditNote].self, forKey: .edits) ?? []
         decisions = try container.decodeIfPresent([String: HunkDecision].self, forKey: .decisions) ?? [:]
         resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)
+        issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
     }
 }
