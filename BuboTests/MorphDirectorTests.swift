@@ -45,7 +45,7 @@ struct MorphDirectorTests {
 
         #expect(Self.frame(of: director, at: 0) == MorphFrame(from: nil, to: Self.lente, progress: 0, opacity: 1))
         let halfway = Self.frame(of: director, at: Self.morph / 2)
-        #expect(halfway.progress == 0.5 && halfway.morph == 0.5 && halfway.forma == .lente)
+        #expect(halfway.progress == 0.5 && halfway.morph == 0.5 && halfway.forma == Forma(rawValue: "lente"))
         #expect(Self.frame(of: director, at: Self.morph - 0.01).morph < 1)
         director.advance(to: Self.morph)
         #expect(director.frame == Self.still(on: Self.lente))
@@ -58,7 +58,7 @@ struct MorphDirectorTests {
 
         let halfway = Self.frame(of: director, at: 10 + Self.morph / 2)
         #expect(halfway.from == Self.lente && halfway.to == nil)
-        #expect(halfway.forma == .lente && halfway.morph == 0.5)
+        #expect(halfway.forma == Forma(rawValue: "lente") && halfway.morph == 0.5)
         #expect(Self.frame(of: director, at: 10 + Self.morph) == Self.still(on: nil))
     }
 
@@ -227,10 +227,10 @@ struct MorphDirectorTests {
 
     // MARK: - Frame
 
-    @Test func aVarianteWithoutAFormaDrawsTheBlob() {
-        let drago = Variante(nome: "drago", forma: "drago", categoria: .creativo, descrizione: "", parole: [])
-        #expect(Self.still(on: drago).forma == .blob)
-        #expect(Self.still(on: Self.lente).forma == .lente)
+    /// Whether the shader library has the Forma is up to the renderer: see `OrbPipelinesTests`.
+    @Test func aFrameDrawsTheFormaOfItsVariante() {
+        #expect(Self.still(on: Self.lente).forma == Forma(rawValue: "lente"))
+        #expect(Self.still(on: nil).forma == .blob)
         #expect(Self.still(on: nil).morph == 0)
     }
 }

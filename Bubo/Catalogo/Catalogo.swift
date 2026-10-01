@@ -67,7 +67,7 @@ nonisolated struct Catalogo: Sendable {
         return Array((firsts + near + varianti).filter { chosen.insert($0).inserted }.prefix(limit))
     }
 
-    /// The names of the Forme the Varianti need; each must have its SDF in `Orb.metal`.
+    /// The names of the Forme the Varianti need; each must have its file in `Orb/Forme`.
     var formaNames: Set<String> {
         Set(varianti.map(\.forma))
     }

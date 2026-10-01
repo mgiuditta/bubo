@@ -67,7 +67,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         if controls.variante != requestedVariante {
             requestedVariante = controls.variante
             if controls.variante == Orbite.variante { orbiteStart = now }
-            if let forma = controls.variante.flatMap({ Forma(rawValue: $0.forma) }) {
+            if let forma = controls.variante.map({ Forma(rawValue: $0.forma) }) {
                 _ = pipelines.pipeline(for: forma) // starts loading it while the Orb holds or morphs
             }
             director.request(controls.variante, at: now)

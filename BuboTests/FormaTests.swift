@@ -4,12 +4,19 @@ import simd
 import Testing
 @testable import Bubo
 
-/// The Forme's SDFs, read through `FormaProbe.metal`: right inside and outside, and nearly exact outside,
-/// since the halo reads the ray's closest distance and an underestimate shows up as streaks.
+/// The Forme's SDFs, read on the GPU through the probe kernel each Forma's file adds to the test bundle
+/// (`FORMA_PROBE`): right inside and outside, and nearly exact outside, since the halo reads the ray's closest
+/// distance and an underestimate shows up as streaks.
 @MainActor
 struct FormaTests {
-    /// Every Forma of the Catalogo.
-    private nonisolated static let forme = Forma.allCases.filter { $0 != .blob }
+    /// Every Forma with a file in `Orb/Forme`, read from the probe kernels of the test bundle's library.
+    private nonisolated static let forme: [Forma] = {
+        let library = try? MTLCreateSystemDefaultDevice()?.makeDefaultLibrary(bundle: Bundle(for: SDFProbe.self))
+        return (library?.functionNames ?? [])
+            .filter { $0.hasPrefix(SDFProbe.kernelPrefix) }
+            .map { Forma(rawValue: String($0.dropFirst(SDFProbe.kernelPrefix.count))) }
+            .sorted { $0.rawValue < $1.rawValue }
+    }()
     /// Shader times to check, still and mid-motion: the Forme with their own motion change over time.
     private nonisolated static let times: [Float] = [0, 0.72, 3.55, 7.5]
     /// The step of the finite differences.
@@ -82,9 +89,15 @@ struct FormaTests {
     }
 
     /// Points the silhouette must cover, and gaps it must leave, with the Forma still (time 0).
+    /// Every Forma has its file and its samples, and no sample is left without its Forma.
+    @Test func everyFormaHasItsSamples() {
+        #expect(!Self.forme.isEmpty)
+        #expect(Set(Self.forme.map(\.rawValue)) == Set(Self.samples.keys))
+    }
+
     @Test(arguments: forme)
     func coversItsSilhouette(forma: Forma) throws {
-        let (inside, outside) = Self.samples(of: forma)
+        let (inside, outside) = try #require(Self.samples[forma.rawValue], "\(forma.rawValue) has no samples")
         let distances = try probe.distances(of: forma, at: inside + outside, time: 0)
         for (point, distance) in zip(inside, distances.prefix(inside.count)) {
             #expect(distance < 0, "\(point) should be inside")
@@ -96,42 +109,43 @@ struct FormaTests {
 
     @Test func theHeartSwellsOnTheBeat() throws {
         let belowTheTip: [SIMD3<Float>] = [[0, -0.8, 0]]  // on the axis the sway turns around
-        let rest = try probe.distances(of: .cuore, at: belowTheTip, time: 0)[0]
-        let beat = try probe.distances(of: .cuore, at: belowTheTip, time: 0.72)[0]
+        let rest = try probe.distances(of: Forma(rawValue: "cuore"), at: belowTheTip, time: 0)[0]
+        let beat = try probe.distances(of: Forma(rawValue: "cuore"), at: belowTheTip, time: 0.72)[0]
         #expect(beat < rest - 0.02)
     }
 
     @Test func theSandRunsOutOfTheTopCone() throws {
         let inTheTopCone: [SIMD3<Float>] = [[0, 0.45, 0]]
-        let early = try probe.distances(of: .clessidra, at: inTheTopCone, time: 6.24)[0]
-        let halfway = try probe.distances(of: .clessidra, at: inTheTopCone, time: 0)[0]
+        let early = try probe.distances(of: Forma(rawValue: "clessidra"), at: inTheTopCone, time: 6.24)[0]
+        let halfway = try probe.distances(of: Forma(rawValue: "clessidra"), at: inTheTopCone, time: 0)[0]
         #expect(early < 0 && halfway > 0)
     }
 
-    /// Inside and outside points of each Forma at rest; y is up and the camera looks down -z.
-    private static func samples(of forma: Forma) -> (inside: [SIMD3<Float>], outside: [SIMD3<Float>]) {
-        switch forma {
-        case .blob: ([.zero], [[0, 1.2, 0]])
-        case .lente: ([[-0.17, 0.19, 0], [0.31, 0.19, 0]], [[0.6, 0.6, 0], [-0.17, 0.19, 0.2]])
-        case .nuvola: ([[0.06, 0.13, 0], [0, -0.33, 0]], [[0, 0.8, 0], [0.75, 0.5, 0]])
-        case .cuore: ([.zero, [0.33, 0.25, 0]], [[0, 0.72, 0], [0, -0.85, 0]])
-        case .busta: ([.zero, [0.6, -0.4, 0]], [[0, 0.7, 0], [0, 0, 0.25]])
-        case .clessidra: ([[0, 0.8, 0], [0.44, 0, 0], [0, 0.15, 0], [0, -0.6, 0]], [[0, 0.55, 0], [0.22, 0, 0]])
-        case .parentesi: ([[-0.4, 0.4, 0], [-0.62, 0, 0], [0.4, -0.4, 0]], [.zero, [-0.4, 0.4, 0.15]])
-        case .nota: ([[-0.38, -0.52, 0], [0.34, -0.4, 0], [0.14, 0.62, 0]], [[0.14, 0.1, 0], [-0.6, 0.5, 0]])
-        case .pennello: ([[-0.51, -0.51, 0], [0.34, 0.34, 0]], [[0.5, -0.5, 0], [-0.5, 0.5, 0]])
-        case .moneta: ([.zero, [0, 0.6, 0]], [[0, 0.9, 0], [0.75, 0.75, 0]])
-        case .aereo: ([.zero, [0.35, 0.35, 0], [-0.35, 0.35, 0]], [[0.707, 0, 0], [0, 0.707, 0], [0, 0, 0.3]])
-        case .fumetto: ([[0, 0.12, 0], [-0.46, -0.45, 0]], [[0.5, -0.5, 0], [0, 0.8, 0]])
-        case .robot: ([[0, -0.19, 0], [0, 0.63, 0], [0.64, -0.18, 0], [0.24, -0.1, 0.36]], [[0.4, 0.5, 0], [0, -0.1, 0.4]])
-        case .orbite: ([.zero], [[0, 0.3, 0]])
-        }
-    }
+    /// Inside and outside points of each Forma at rest, by name; y is up and the camera looks down -z.
+    /// A new Forma adds its own here.
+    private static let samples: [String: (inside: [SIMD3<Float>], outside: [SIMD3<Float>])] = [
+        "lente": ([[-0.17, 0.19, 0], [0.31, 0.19, 0]], [[0.6, 0.6, 0], [-0.17, 0.19, 0.2]]),
+        "nuvola": ([[0.06, 0.13, 0], [0, -0.33, 0]], [[0, 0.8, 0], [0.75, 0.5, 0]]),
+        "cuore": ([.zero, [0.33, 0.25, 0]], [[0, 0.72, 0], [0, -0.85, 0]]),
+        "busta": ([.zero, [0.6, -0.4, 0]], [[0, 0.7, 0], [0, 0, 0.25]]),
+        "clessidra": ([[0, 0.8, 0], [0.44, 0, 0], [0, 0.15, 0], [0, -0.6, 0]], [[0, 0.55, 0], [0.22, 0, 0]]),
+        "parentesi": ([[-0.4, 0.4, 0], [-0.62, 0, 0], [0.4, -0.4, 0]], [.zero, [-0.4, 0.4, 0.15]]),
+        "nota": ([[-0.38, -0.52, 0], [0.34, -0.4, 0], [0.14, 0.62, 0]], [[0.14, 0.1, 0], [-0.6, 0.5, 0]]),
+        "pennello": ([[-0.51, -0.51, 0], [0.34, 0.34, 0]], [[0.5, -0.5, 0], [-0.5, 0.5, 0]]),
+        "moneta": ([.zero, [0, 0.6, 0]], [[0, 0.9, 0], [0.75, 0.75, 0]]),
+        "aereo": ([.zero, [0.35, 0.35, 0], [-0.35, 0.35, 0]], [[0.707, 0, 0], [0, 0.707, 0], [0, 0, 0.3]]),
+        "fumetto": ([[0, 0.12, 0], [-0.46, -0.45, 0]], [[0.5, -0.5, 0], [0, 0.8, 0]]),
+        "robot": ([[0, -0.19, 0], [0, 0.63, 0], [0.64, -0.18, 0], [0.24, -0.1, 0.36]], [[0.4, 0.5, 0], [0, -0.1, 0.4]]),
+        "orbite": ([.zero], [[0, 0.3, 0]]),
+    ]
 }
 
-/// Reads a Forma's distance at many points at once, on the GPU, through the test bundle's `formaProbe` kernel.
+/// Reads a Forma's distance at many points at once, on the GPU, through its probe kernel in the test bundle.
 @MainActor
 private final class SDFProbe {
+    /// The prefix of every Forma's probe kernel: `probe_<name>`, made by `ORB_FORMA` with `FORMA_PROBE` defined.
+    nonisolated static let kernelPrefix = "probe_"
+
     private let device: MTLDevice
     private let queue: MTLCommandQueue
     private let library: MTLLibrary
@@ -166,10 +180,7 @@ private final class SDFProbe {
 
     private func pipeline(for forma: Forma) throws -> MTLComputePipelineState {
         if let pipeline = pipelines[forma] { return pipeline }
-        let constants = MTLFunctionConstantValues()
-        var value = forma.functionConstant
-        constants.setConstantValue(&value, type: .int, index: 0)
-        let function = try library.makeFunction(name: "formaProbe", constantValues: constants)
+        let function = try #require(library.makeFunction(name: Self.kernelPrefix + forma.rawValue))
         let pipeline = try device.makeComputePipelineState(function: function)
         pipelines[forma] = pipeline
         return pipeline

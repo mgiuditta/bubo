@@ -144,23 +144,26 @@ targets:
           - $(SRCROOT)/Bubo/Integrations/LinearOpener.c
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-linear
-      - name: Archivio Metal 4 delle Forme
+      - name: Archivio Metal 4 del Blob
         shell: /bin/zsh
         script: |
           [[ "$CONFIGURATION" == Release ]] || exit 0
           resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
-          "$SRCROOT/scripts/metal-archive.sh" "$resources/default.metallib" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources/Forme.mtl4archive"
+          "$SRCROOT/scripts/metal-archive.sh" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources"
         inputFiles:
           - $(SRCROOT)/scripts/metal-archive.sh
           - $(SRCROOT)/Bubo/Orb/Orb.metal
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/default.metallib
+          - $(SRCROOT)/Bubo/Orb/OrbShading.h
         outputFiles:
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Forme.mtl4archive
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.metallib
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.mtl4archive
   BuboTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: BuboTests
+      # Every Forma again, with its GPU probe kernel (FORMA_PROBE): FormaTests reads the SDFs through it.
+      - path: Bubo/Orb/Forme
       # The frame log reader of the performance tests, checked against what the app writes.
       - path: BuboPerfTests/FrameLog.swift
       # The budgets and the report of scripts/perf.sh.
@@ -174,6 +177,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.tests
+        MTL_PREPROCESSOR_DEFINITIONS: FORMA_PROBE=1
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Bubo.app/Contents/MacOS/Bubo"
         BUNDLE_LOADER: "$(TEST_HOST)"
   BuboPerfTests:

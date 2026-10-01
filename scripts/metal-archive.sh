@@ -1,26 +1,21 @@
 #!/bin/zsh
-# Archivio binario Metal 4 delle Forme: una pipeline per Forma (function constant FORMA), compilata
-# da metal-tt a build time, così l'app non compila le pipeline a runtime.
-# Uso: metal-archive.sh <default.metallib> <Orb.metal> <archivio in uscita>
-# Le Forme si leggono dai `case N:` di forma() in Orb.metal; lo 0 è il Blob.
-# Le pipeline qui descritte devono combaciare con OrbPipelines.makeDescriptor(for:).
+# Archivio binario Metal 4 della pipeline del Blob, compilata da metal-tt a build time: il primo
+# fotogramma dell'Orb non aspetta il compilatore. Le altre Forme si compilano a runtime alla prima
+# richiesta e restano nella cache degli shader di Metal (ADR 0010), così l'archivio non cresce col Catalogo.
+# L'archivio ha una libreria sua, Orb.metallib, fatta del solo Orb.metal: metal-tt compila ogni funzione
+# della libreria che riceve, e a runtime l'archivio trova la pipeline solo con quella stessa libreria.
+# Uso: metal-archive.sh <Orb.metal> <cartella delle risorse>, che riceve Orb.metallib e Orb.mtl4archive.
+# La pipeline qui descritta deve combaciare con OrbPipelines.makeDescriptor(for:).
 set -euo pipefail
 
-metallib=${1:A}
-source=$2
-archive=$3
+source=$1
+resources=${2:A}
+metallib=$resources/Orb.metallib
+archive=$resources/Orb.mtl4archive
 script=${DERIVED_FILE_DIR:-${TMPDIR:-/tmp}}/orb-pipelines.$$.mtl4-json
 trap 'rm -f "$script"' EXIT
 
-formas=(0 ${(f)"$(sed -nE 's/^[[:space:]]*case ([0-9]+):.*/\1/p' "$source")"})
-
-specialized=() pipelines=()
-for forma in $formas; do
-  specialized+=("{\"label\":\"fragment-$forma\",\"function_descriptor\":\"fnd:fragment\",\"constant_values\":[{\"id_type\":\"FunctionConstantIndex\",\"id\":{\"data\":0},\"value_type\":\"ConstantInt\",\"value\":{\"data\":$forma}}]}")
-  pipelines+=("{\"vertex_function_descriptor\":\"fnd:vertex\",\"fragment_function_descriptor\":\"fnd:fragment-$forma\",\"color_attachments\":[{\"pixel_format\":\"BGRA8Unorm\",\"blending_state\":\"Enabled\",\"destination_alpha_blend_factor\":\"OneMinusSourceAlpha\",\"destination_rgb_blend_factor\":\"OneMinusSourceAlpha\"}]}")
-done
-
-cat > "$script" <<EOF
+cat > "$script" <<JSON
 {
   "version": {"major": 0, "minor": 1, "sub_minor": 0},
   "generator": "MetalFramework",
@@ -28,12 +23,17 @@ cat > "$script" <<EOF
   "function_descriptors": {
     "library_function_descriptors": [
       {"label": "vertex", "name": "orbVertex", "library": "orb"},
-      {"label": "fragment", "name": "orbFragment", "library": "orb"}
-    ],
-    "specialized_function_descriptors": [${(j:,:)specialized}]
+      {"label": "blob", "name": "forma_blob", "library": "orb"}
+    ]
   },
-  "pipeline_descriptors": {"render_pipeline_descriptors": [${(j:,:)pipelines}]}
+  "pipeline_descriptors": {"render_pipeline_descriptors": [{
+    "vertex_function_descriptor": "fnd:vertex",
+    "fragment_function_descriptor": "fnd:blob",
+    "color_attachments": [{"pixel_format": "BGRA8Unorm", "blending_state": "Enabled",
+      "destination_alpha_blend_factor": "OneMinusSourceAlpha", "destination_rgb_blend_factor": "OneMinusSourceAlpha"}]
+  }]}
 }
-EOF
+JSON
 
+xcrun metal ${MACOSX_DEPLOYMENT_TARGET:+-mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET} "$source" -o "$metallib"
 xcrun metal-tt -gpu-family apple7 "$script" -o "$archive"

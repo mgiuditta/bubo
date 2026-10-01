@@ -147,8 +147,8 @@ nonisolated struct MorphFrame: Equatable {
     /// The Variante drawn in this frame: of the two ends, the one that is not the Blob.
     var variante: Variante? { to ?? from }
 
-    /// The Forma whose pipeline draws the frame; the Blob for a Variante whose Forma the renderer lacks.
-    var forma: Forma { variante.flatMap { Forma(rawValue: $0.forma) } ?? .blob }
+    /// The Forma whose pipeline draws the frame; the renderer draws the Blob for one the shader library lacks.
+    var forma: Forma { variante.map { Forma(rawValue: $0.forma) } ?? .blob }
 
     /// How far the Orb has turned from the Blob into `variante`: 0 is the Blob, 1 is the Variante's Forma.
     var morph: Float {

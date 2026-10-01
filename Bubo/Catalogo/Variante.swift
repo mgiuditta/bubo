@@ -6,7 +6,7 @@ import Foundation
 nonisolated struct Variante: Hashable, Identifiable, Decodable, Sendable {
     /// The stable name: Italian, kebab-case, ASCII; never renamed, at most retired.
     let nome: String
-    /// The name of the Forma's SDF in `Orb.metal`; one Forma per Variante.
+    /// The name of the Forma, its file in `Orb/Forme`; one Forma per Variante.
     let forma: String
     /// The thematic group.
     let categoria: Categoria

@@ -25,11 +25,12 @@ final class OrbSnapshotter {
 
     /// A still of `variante` in Riposo, halo included, `pixelSize` pixels square on a transparent background.
     ///
-    /// - Returns: The picture, or `nil` if its Forma fails to build; a Forma the renderer lacks is drawn as the Blob.
+    /// - Returns: The picture, or `nil` if its Forma fails to build; a Forma the shader library lacks is drawn as the Blob.
     func snapshot(of variante: Variante, pixelSize: Int) async -> CGImage? {
         let key = Key(nome: variante.nome, pixelSize: pixelSize)
         if let image = cache[key] { return image }
-        let forma = Forma(rawValue: variante.forma) ?? .blob
+        let named = Forma(rawValue: variante.forma)
+        let forma = pipelines.draws(named) ? named : .blob
         guard let pipeline = await pipelines.loadedPipeline(for: forma),
               let image = render(forma, with: pipeline, pixelSize: pixelSize)
         else { return nil }

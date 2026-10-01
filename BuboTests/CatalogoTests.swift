@@ -1,4 +1,5 @@
 import Foundation
+import Metal
 import Testing
 @testable import Bubo
 
@@ -73,26 +74,34 @@ struct CatalogoTests {
         }
     }
 
+    /// The Forme the app's shader library draws, read from its `forma_<name>` fragment functions.
+    private static func drawnForme() throws -> Set<String> {
+        let library = try #require(MTLCreateSystemDefaultDevice()?.makeDefaultLibrary())
+        return Set(library.functionNames.filter { $0.hasPrefix(Forma.fragmentFunctionPrefix) }
+            .map { String($0.dropFirst(Forma.fragmentFunctionPrefix.count)) })
+    }
+
     @Test func everyBundledFormaHasItsSDFAndEverySDFIsUsed() throws {
         let required = try Self.bundled.get().formaNames
-        // The Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
-        let drawn = Set(Forma.allCases.filter { $0 != .blob && $0 != .orbite }.map(\.rawValue))
+        // The Blob is no Variante, and the Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
+        let drawn = try Self.drawnForme().subtracting([Forma.blob.rawValue, Forma.orbite.rawValue])
         #expect(required == drawn)
     }
 
-    @Test func theShaderDrawsExactlyTheFormeTheRendererKnows() throws {
-        let shader = URL(filePath: #filePath).deletingLastPathComponent()
-            .appending(path: "../Bubo/Orb/Orb.metal").standardized
-        let source = try String(contentsOf: shader, encoding: .utf8)
-        var cases: [Int32: String] = [:]
-        for match in source.matches(of: /case (\d+): return (\w+)\(/) {
-            cases[try #require(Int32(match.1))] = String(match.2)
+    /// One Forma per file: `Orb/Forme/<name>.metal` makes `forma_<name>` and nothing else does.
+    @Test func eachFormaIsTheFileNamedAfterIt() throws {
+        let folder = URL(filePath: #filePath).deletingLastPathComponent()
+            .appending(path: "../Bubo/Orb/Forme").standardized
+        let files = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "metal" }
+        for file in files {
+            let name = file.deletingPathExtension().lastPathComponent
+            let source = try String(contentsOf: file, encoding: .utf8)
+            #expect(source.contains("ORB_FORMA(\(name))") || source.contains("ORB_FORMA_SDF(\(name),"), "\(name)")
         }
-        let forme = Forma.allCases.filter { $0 != .blob }
-        #expect(cases == Dictionary(uniqueKeysWithValues: forme.map { ($0.functionConstant, $0.rawValue) }))
-        for forma in forme {
-            #expect(source.contains("static float \(forma.rawValue)(float3 p"), "\(forma)")
-        }
+        let names = Set(files.map { $0.deletingPathExtension().lastPathComponent })
+        let drawn = try Self.drawnForme()
+        #expect(drawn == names.union([Forma.blob.rawValue]))
     }
 
     @Test(arguments: ["it", "en"])
