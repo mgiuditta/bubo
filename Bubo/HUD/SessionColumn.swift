@@ -296,11 +296,15 @@ struct SessionRow: View {
                 .accessibilityLabel(Text("\(lineCounts.added) righe aggiunte, \(lineCounts.removed) tolte"))
             }
             if !isArchived, let server = store.servers.servers[session.id]?.first {
-                // ponytail: a clic opens the Anteprima once it exists (#149).
-                Text(verbatim: "localhost:\(String(server.port))")
-                    .font(Typography.mono(size: 11))
-                    .foregroundStyle(Palette.textPrimary)
-                    .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
+                // The Anteprima opens only from here or with ⌘⇧P, never on its own.
+                Button(action: openPreview) {
+                    Text(verbatim: "localhost:\(String(server.port))")
+                        .font(Typography.mono(size: 11))
+                        .foregroundStyle(Palette.textPrimary)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
+                .help("Apre l'anteprima del server")
             } else if !isArchived, session.terminalFolder != nil, let server = launchServers.first {
                 if launchServers.count == 1 {
                     Button("Avvia server") { launch(server) }
@@ -381,6 +385,11 @@ struct SessionRow: View {
     private func launch(_ server: LaunchConfig) {
         store.terminals.launch(server, in: session)
         if !store.terminals.isDetached { hud.show() }
+    }
+
+    private func openPreview() {
+        store.showPreview(of: session)
+        if !store.previews.isDetached { hud.show() }
     }
 
     private func openTerminal() {

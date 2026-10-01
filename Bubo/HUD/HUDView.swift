@@ -80,10 +80,8 @@ struct HUDView: View {
             QuestionView(model: questions)
                 .frame(maxWidth: 560)
             Spacer(minLength: Spacing.large)
-            if let terminals = sessions?.terminals, terminals.isShown, !terminals.isDetached {
-                TerminalPanel(store: terminals)
-                    .frame(height: 280)
-                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+            if let sessions {
+                PanelRow(terminals: sessions.terminals, previews: sessions.previews)
             }
         }
         .padding(.vertical, Spacing.medium)

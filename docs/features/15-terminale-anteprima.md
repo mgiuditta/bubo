@@ -160,10 +160,10 @@ Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#140](https://gith
 Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#139](https://github.com/mgiuditta/bubo/issues/139).
 
 - **Dove**: pannello accanto al terminale, staccabile. Una `WebPage` per Sessione, la stessa per utente e agente.
-- **Cosa apre**: solo i server `localhost` della Sessione, più l'`url` di `launch.json`. Ogni altra navigazione viene annullata; i link esterni vanno al browser di sistema. `localhost`, mai `127.0.0.1`.
+- **Cosa apre**: solo `localhost` e `*.localhost` sulle porte dei server della Sessione, più l'`url` di `launch.json` se è locale (`127.0.0.1` o `::1` diventano `localhost`). Ogni altra navigazione viene annullata; una pagina esterna aperta come pagina principale va al browser di sistema, un frame esterno no. `localhost`, mai `127.0.0.1`.
 - **Cookie per Sessione**: `WKWebsiteDataStore(forIdentifier:)` con l'id della Sessione. Un login fatto nella Sessione A non esiste nella B; un login fatto dall'utente vale anche per l'agente.
-- **Permessi**: microfono e fotocamera negati sempre (`requestMediaCapturePermissionFor` → nega); nessuna eccezione in v1.
-- **Strumenti per l'utente**: larghezze preimpostate (mobile, tablet, desktop, più `customUserAgent`), console visibile (script iniettato su `console.*`, `onerror`, `unhandledrejection`), Web Inspector attivo (`isInspectable`), ricarica.
+- **Permessi**: microfono e fotocamera negati sempre (`WebPage.Configuration.deviceSensorAuthorization = .init(decision: .deny)`, che copre anche i sensori); nessuna eccezione in v1.
+- **Strumenti per l'utente**: larghezze preimpostate (mobile, tablet, desktop, più `customUserAgent`), console visibile (script iniettato nel mondo della pagina su `console.*`, `onerror`, `unhandledrejection`, che manda a Bubo solo livello e testo), Web Inspector attivo (`isInspectable`), ricarica.
 - **Certificato non fidato**: pagina "Apri nel browser", nessuna eccezione di fiducia in Bubo.
 - **Vita**: la `WebPage` nasce al primo uso (clic dell'utente o primo strumento dell'agente) e resta viva anche a pannello chiuso, perché l'agente la usa fuori schermo; si chiude quando il server non è più rilevato o la Sessione diventa Fusa o Archiviata. L'archivio dei cookie resta.
 
@@ -192,7 +192,7 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 - `Servers/PortWatcher`: scansione `libproc` (`proc_listpids`, `PROC_PIDLISTFDS`, `PROC_PIDFDSOCKETINFO`, `PROC_PIDVNODEPATHINFO`) a raffica dopo un evento, 0 a riposo.
 - `Servers/ServerAttribution`: socket → Sessione (worktree che contiene la `cwd`, poi le 10 porte).
 - `Servers/LaunchConfig`: lettura di `.claude/launch.json` e "Avvia server".
-- `Preview/PreviewPage`: una `WebPage` per Sessione, archivio di cookie per id, criterio di navigazione (solo `localhost` della Sessione), microfono e fotocamera negati, script della console e della rete in un mondo separato.
+- `Preview/PreviewPage`: una `WebPage` per Sessione, archivio di cookie per id, criterio di navigazione (solo `localhost` della Sessione), microfono e fotocamera negati, script della console nel mondo della pagina (solo messaggi di log verso Bubo); gli script di Bubo che leggono il DOM in un mondo separato.
 - `Preview/PreviewPanel`: pannello staccabile, larghezze, console, ⌘⇧P, pagina "Apri nel browser".
 - `Preview/PreviewDriver`: lato Swift degli strumenti dell'agente (screenshot, DOM, click, compilazione, scorrimento, JS), tempi limite, interruzione quando l'utente prende il controllo.
 - `bridge/` (TS): server MCP dell'Anteprima con `createSdkMcpServer`, registrato solo con un server rilevato; inoltro a Swift sul protocollo stdio esistente.

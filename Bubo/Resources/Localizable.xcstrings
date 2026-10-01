@@ -328,12 +328,42 @@
         }
       }
     },
+    "Anteprima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview"
+          }
+        }
+      }
+    },
+    "Anteprima · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preview · %@"
+          }
+        }
+      }
+    },
     "Apre l'HUD" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opens the HUD"
+          }
+        }
+      }
+    },
+    "Apre l'anteprima del server" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the server preview"
           }
         }
       }
@@ -384,6 +414,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Terminal"
+          }
+        }
+      }
+    },
+    "Apri nel browser" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Browser"
           }
         }
       }
@@ -474,6 +514,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start ↩"
+          }
+        }
+      }
+    },
+    "Avviso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warning"
           }
         }
       }
@@ -610,6 +660,16 @@
         }
       }
     },
+    "Bubo non si fida di questo certificato e non apre la pagina. Puoi aprirla nel browser." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo doesn’t trust this certificate and won’t open the page. You can open it in your browser."
+          }
+        }
+      }
+    },
     "Bubo resta sempre nella barra dei menu." : {
       "localizations" : {
         "en" : {
@@ -716,6 +776,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search Sessions and CLI History"
+          }
+        }
+      }
+    },
+    "Certificato non attendibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untrusted Certificate"
           }
         }
       }
@@ -960,6 +1030,16 @@
         }
       }
     },
+    "Console" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Console"
+          }
+        }
+      }
+    },
     "Continua da dove ti eri fermato." : {
       "localizations" : {
         "en" : {
@@ -1136,6 +1216,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Debug Orb…"
+          }
+        }
+      }
+    },
+    "Desktop" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desktop"
           }
         }
       }
@@ -1882,6 +1972,26 @@
         }
       }
     },
+    "Larghezza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Width"
+          }
+        }
+      }
+    },
+    "Larghezza della pagina, con lo user agent del dispositivo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Page width, with the device’s user agent"
+          }
+        }
+      }
+    },
     "Lavora" : {
       "localizations" : {
         "en" : {
@@ -2108,6 +2218,16 @@
         }
       }
     },
+    "Mostra i messaggi della console della pagina" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the page’s console messages"
+          }
+        }
+      }
+    },
     "Mostra il Panel con l'Orb" : {
       "localizations" : {
         "en" : {
@@ -2124,6 +2244,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Terminal"
+          }
+        }
+      }
+    },
+    "Mostra l'anteprima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Preview"
           }
         }
       }
@@ -2148,12 +2278,32 @@
         }
       }
     },
+    "Nasconde l'anteprima; la pagina resta aperta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hides the preview; the page stays open"
+          }
+        }
+      }
+    },
     "Nascondi il terminale" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hide Terminal"
+          }
+        }
+      }
+    },
+    "Nascondi l'anteprima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Preview"
           }
         }
       }
@@ -2194,6 +2344,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No block is accepted: there's nothing to merge."
+          }
+        }
+      }
+    },
+    "Nessun messaggio nella console" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No console messages"
           }
         }
       }
@@ -2814,6 +2974,16 @@
         }
       }
     },
+    "Ricarica la pagina dal server" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reloads the page from the server"
+          }
+        }
+      }
+    },
     "Richiesta di permesso" : {
       "localizations" : {
         "en" : {
@@ -2920,6 +3090,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moves the terminal back into the HUD"
+          }
+        }
+      }
+    },
+    "Riporta l'anteprima nell'HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the preview back to the HUD"
           }
         }
       }
@@ -3310,6 +3490,16 @@
         }
       }
     },
+    "Sposta l'anteprima in una finestra sua" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moves the preview to its own window"
+          }
+        }
+      }
+    },
     "Squash" : {
       "localizations" : {
         "en" : {
@@ -3356,6 +3546,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strip"
+          }
+        }
+      }
+    },
+    "Tablet" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tablet"
+          }
+        }
+      }
+    },
+    "Telefono" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone"
           }
         }
       }

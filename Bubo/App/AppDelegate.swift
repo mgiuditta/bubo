@@ -67,6 +67,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if sessions.terminals.isShown && !sessions.terminals.isDetached { hud.show() }
     }
 
+    /// ⌘⇧P: shows or hides the Anteprima of the current Sessione, in the HUD unless it was detached; with no server,
+    /// nothing.
+    func togglePreview() {
+        guard let sessions else { return }
+        sessions.togglePreview()
+        if sessions.previews.isShown && !sessions.previews.isDetached { hud.show() }
+    }
+
     /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let running = sessions?.terminals.runningCommands ?? []

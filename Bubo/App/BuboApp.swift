@@ -42,6 +42,14 @@ struct BuboApp: App {
                 }
                 .keyboardShortcut("`", modifiers: .control)
                 .disabled(appDelegate.sessions?.terminals.isShown != true && appDelegate.sessions?.terminalSession == nil)
+                Button {
+                    appDelegate.togglePreview()
+                } label: {
+                    appDelegate.sessions?.previews.isShown == true ? Text("Nascondi l'anteprima")
+                        : Text("Mostra l'anteprima")
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+                .disabled(appDelegate.sessions?.previews.isShown != true && appDelegate.sessions?.previewSession == nil)
                 Divider()
             }
         }

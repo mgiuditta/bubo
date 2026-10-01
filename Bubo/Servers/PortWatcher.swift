@@ -14,6 +14,8 @@ final class PortWatcher {
 
     /// The Sessioni that can own a server, read at each scan.
     @ObservationIgnored var owners: () -> [ServerAttribution.Owner] = { [] }
+    /// Called with the servers of each Sessione when they change.
+    @ObservationIgnored var onChange: ([UUID: [ListeningSocket]]) -> Void = { _ in }
     /// Reads the listening sockets; the kernel's outside tests.
     @ObservationIgnored var scan: @Sendable () -> [ListeningSocket] = ListeningSocket.scan
 
@@ -60,6 +62,7 @@ final class PortWatcher {
         if found != servers {
             Logger.servers.debug("Servers: \(found.mapValues { $0.map(\.port) }, privacy: .public)")
             servers = found
+            onChange(found)
         }
         watchExits(of: Set(found.values.joined().map(\.pid)))
     }

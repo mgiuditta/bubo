@@ -64,6 +64,7 @@ final class SessionStore {
         }
         servers.owners = { [weak self] in ServerAttribution.Owner.of(self?.sessions ?? []) }
         terminals.onServerHint = { [weak self] in self?.servers.notice() }
+        servers.onChange = { [weak self] servers in self?.previews.update(with: servers) }
         // A server already listening when Bubo starts has no event of its own.
         if !ServerAttribution.Owner.of(sessions).isEmpty { servers.notice() }
     }
@@ -76,6 +77,8 @@ final class SessionStore {
     @ObservationIgnored let terminals = TerminalStore()
     /// The servers the Sessioni started, from their terminals or their agent.
     @ObservationIgnored let servers = PortWatcher()
+    /// The Anteprime of the Sessioni's servers, closed with their server and at Archivia, Fondi and Cancella.
+    @ObservationIgnored let previews = PreviewStore()
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -287,6 +290,7 @@ final class SessionStore {
         let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy,
                                               keepingOnly: discardingRest ? accepted : nil)
         Logger.sessions.notice("Sessione merged with \(strategy.rawValue, privacy: .public)")
+        previews.close(id)
         Task { await terminals.closeAll(of: id) }
         update(id) { session in
             session.phase = .fusa
@@ -419,6 +423,7 @@ final class SessionStore {
             session.ports = nil
             session.isInterrupted = false
         }
+        previews.close(id)
         Task {
             // The shells leave the worktree before it goes.
             await terminals.closeAll(of: id)
@@ -440,6 +445,7 @@ final class SessionStore {
         undoDeadlines[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
+        previews.close(id)
         Task { await terminals.closeAll(of: id) }
         save()
         followActivity()
