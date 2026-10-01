@@ -22,6 +22,16 @@ enum Signposts {
         return try await work()
     }
 
+    /// Begins the interval `interval`; end it with `endInterval(_:_:)`, when it spans more than one call.
+    static func beginInterval(_ interval: Signpost) -> OSSignpostIntervalState {
+        signposter.beginInterval(interval.name, id: signposter.makeSignpostID())
+    }
+
+    /// Ends the interval `interval` begun with `state`.
+    static func endInterval(_ interval: Signpost, _ state: OSSignpostIntervalState) {
+        signposter.endInterval(interval.name, state)
+    }
+
     /// Emits `HUD interattivo` the first time it is called, and never again.
     ///
     /// The end of launch: later HUD appearances are not launches.
@@ -40,6 +50,8 @@ enum Signpost {
     case claudeDetection
     /// Interval: listing the Cronologia CLI through the bridge.
     case cliHistory
+    /// Interval: from choosing another Vista delle Sessioni to the HUD laid out with it.
+    case vistaSwitch
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -47,6 +59,7 @@ enum Signpost {
         case .hudInteractive: "HUD interattivo"
         case .claudeDetection: "Rilevamento claude"
         case .cliHistory: "Cronologia CLI"
+        case .vistaSwitch: "Cambio vista"
         }
     }
 }
