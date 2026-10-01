@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Login item, Dock icon, Panel, conversations, Secondo cervello, editor and Linear.
+/// Login item, Dock icon, Panel, conversations, Secondo cervello, search by meaning, editor and Linear.
 struct GeneralSettingsView: View {
     @Environment(OrbPanelController.self) private var panel
     @AppStorage(DockIcon.defaultsKey) private var showsDockIcon = true
@@ -25,6 +25,7 @@ struct GeneralSettingsView: View {
             Toggle("Mostra il Panel con l'Orb", isOn: $panel.isShown)
             ConversationSettingsSection()
             SecondBrainSettingsSection()
+            SemanticSearchSettingsSection()
             EditorSettingsSection()
             LinearSettingsSection()
         }

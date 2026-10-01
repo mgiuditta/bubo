@@ -14,6 +14,22 @@
         }
       }
     },
+    "%@ di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ of %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ di %2$@"
+          }
+        }
+      }
+    },
     "%@ diventa:" : {
       "localizations" : {
         "en" : {
@@ -2290,6 +2306,16 @@
         }
       }
     },
+    "Elimina il modello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the Model"
+          }
+        }
+      }
+    },
     "Errore" : {
       "localizations" : {
         "en" : {
@@ -2822,6 +2848,16 @@
         }
       }
     },
+    "Hugging Face non ha consegnato un file del modello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hugging Face didn’t deliver a file of the model."
+          }
+        }
+      }
+    },
     "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
       "localizations" : {
         "en" : {
@@ -3072,6 +3108,16 @@
         }
       }
     },
+    "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model is downloaded once from Hugging Face, then runs only on this Mac: your notes never leave it. Changing the model recalculates the Index."
+          }
+        }
+      }
+    },
     "Il repo non attiva nulla." : {
       "localizations" : {
         "en" : {
@@ -3268,6 +3314,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The HUD opens with this view."
+          }
+        }
+      }
+    },
+    "L'Indice cerca per parole e per significato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Index searches by words and by meaning."
           }
         }
       }
@@ -3914,6 +3970,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autonomous mode"
+          }
+        }
+      }
+    },
+    "Modello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model"
           }
         }
       }
@@ -4788,6 +4854,16 @@
         }
       }
     },
+    "Non riesco a scaricare il modello: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can’t download the model: %@"
+          }
+        }
+      }
+    },
     "Non riesco a scrivere .bubo/regole.json" : {
       "localizations" : {
         "en" : {
@@ -5038,6 +5114,16 @@
         }
       }
     },
+    "Ora l'Indice cerca solo per parole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For now the Index searches by words only."
+          }
+        }
+      }
+    },
     "Orb" : {
       "localizations" : {
         "en" : {
@@ -5104,6 +5190,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Speaking"
+          }
+        }
+      }
+    },
+    "Passa alla qualità alta (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to High Quality (%@)"
           }
         }
       }
@@ -5440,6 +5536,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reloads the page from the server"
+          }
+        }
+      }
+    },
+    "Ricerca per significato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search by Meaning"
           }
         }
       }
@@ -5886,6 +5992,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sandbox off from the next turn"
+          }
+        }
+      }
+    },
+    "Scarica il modello (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download the Model (%@)"
+          }
+        }
+      }
+    },
+    "Scarico %@…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading %@…"
           }
         }
       }
@@ -6496,6 +6622,16 @@
         }
       }
     },
+    "Torna al modello standard (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the Standard Model (%@)"
+          }
+        }
+      }
+    },
     "Trasforma in Sessione" : {
       "localizations" : {
         "en" : {
@@ -6602,6 +6738,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "An agent with this name already exists: %@"
+          }
+        }
+      }
+    },
+    "Un file del modello non è quello atteso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A file of the model isn’t the expected one."
           }
         }
       }

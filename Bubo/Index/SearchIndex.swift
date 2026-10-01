@@ -39,7 +39,8 @@ nonisolated struct SearchHit: Equatable, Sendable {
 }
 
 /// The Indice: a rebuildable SQLite copy of the Memoria di Progetto of every Progetto, of the
-/// user's CLAUDE.md, of the Secondo cervello and of the past conversations, searched by words with FTS5.
+/// user's CLAUDE.md, of the Secondo cervello and of the past conversations, searched by words with FTS5 and,
+/// once an embedding model is installed, also by meaning, the two rankings fused with Reciprocal Rank Fusion.
 ///
 /// It never holds the code of a Progetto. Deleting its file loses nothing: the next start rebuilds it.
 /// The Secondo cervello is the user's own, untrusted text: it is only read, never run, and leaves the Mac
@@ -62,12 +63,14 @@ actor SearchIndex {
         if try Self.integer("PRAGMA user_version", in: connection) != Self.layoutVersion {
             try Self.execute("""
                 DROP TABLE IF EXISTS documents; DROP TABLE IF EXISTS fragments; DROP TABLE IF EXISTS state;
+                DROP TABLE IF EXISTS vectors;
                 CREATE TABLE documents(path TEXT PRIMARY KEY, source TEXT NOT NULL, size INTEGER NOT NULL,
                                        modified REAL NOT NULL);
                 CREATE VIRTUAL TABLE fragments USING fts5(text, path UNINDEXED, project UNINDEXED, source UNINDEXED,
                                                           message UNINDEXED, author UNINDEXED, date UNINDEXED,
                                                           tokenize = 'unicode61 remove_diacritics 2');
                 CREATE TABLE state(key TEXT PRIMARY KEY, value) WITHOUT ROWID;
+                CREATE TABLE vectors(fragment INTEGER PRIMARY KEY, vector BLOB NOT NULL);
                 PRAGMA user_version = \(Self.layoutVersion);
                 """, in: connection)
         }
@@ -85,35 +88,83 @@ actor SearchIndex {
         sqlite3_close(connection)
     }
 
-    private static let layoutVersion = 3
+    private static let layoutVersion = 4
     /// The real path of the `~/.claude` folder.
     private let root: String
     private let connection: OpaquePointer
     /// The folder of the Secondo cervello being followed, as the user chose it; `nil` without one.
     private var secondBrain: String?
+    /// The model the vectors come from; `nil` while none is installed, and the Indice searches only by words.
+    private var embedder: (any TextEmbedder)?
+    /// The vectors of the fragments in memory; `nil` before the first one.
+    private var matrix: VectorMatrix?
+    /// The work computing the vectors still missing.
+    private var vectorizing: Task<Void, Never>?
+    /// How many fragments each ranking hands to the fusion.
+    private static let candidates = 50
+    /// Italian and English words too common to tell fragments apart.
+    private static let stopWords: Set<String> = [
+        "che", "chi", "cui", "non", "come", "dove", "quando", "perché", "perche", "cosa", "con", "per", "tra", "fra",
+        "del", "dello", "della", "dei", "degli", "delle", "nel", "nello", "nella", "nei", "negli", "nelle", "sul", "sullo",
+        "sulla", "sui", "sugli", "sulle", "dal", "dallo", "dalla", "dai", "dagli", "dalle", "all", "allo", "alla", "agli",
+        "alle", "gli", "una", "uno", "sono", "sei", "era", "essere", "avere", "hai", "hanno", "anche", "più", "piu", "molto",
+        "questo", "questa", "quello", "quella", "suo", "sua", "loro", "mio", "mia", "tuo", "tua", "fare", "fatto", "ogni",
+        "sta", "stai", "stanno", "fa", "the", "and", "for", "with", "how", "what", "why", "when", "where", "are", "was", "this", "that", "from", "not",
+    ]
 
     // MARK: Searching
 
-    /// Returns up to `limit` fragments matching the words of `text`, best first.
+    /// Returns up to `limit` fragments matching `text`, best first: by its words and, with an embedding model,
+    /// by its meaning.
     ///
     /// - Parameter project: A Progetto's folder; when given, only its memory is searched.
     /// - Parameter source: When given, only the files from there are searched.
-    func hits(for text: String, project: String? = nil, source: SearchSource? = nil, limit: Int = 8) throws -> [SearchHit] {
+    func hits(for text: String, project: String? = nil, source: SearchSource? = nil, limit: Int = 8) async throws -> [SearchHit] {
         let words = text.split { !$0.isLetter && !$0.isNumber }
         guard !words.isEmpty else { return [] }
+        let filter = (project == nil ? "" : "AND project = ?3 ") + (source == nil ? "" : "AND source = ?4")
         // Every word quoted, so nothing the user types is FTS5 syntax; a prefix match, so "notar" finds "notarizzazione".
-        let match = words.map { "\"\($0)\"*" }.joined(separator: " OR ")
-        let statement = try prepare("""
-            SELECT path, project, source, text, message, author, date FROM fragments WHERE fragments MATCH ?1
-            \(project == nil ? "" : "AND project = ?3") \(source == nil ? "" : "AND source = ?4") ORDER BY rank LIMIT ?2
-            """)
+        func match(_ words: [String]) -> String { words.map { "\"\($0)\"*" }.joined(separator: " OR ") }
+        let byWords = "SELECT rowid FROM fragments WHERE fragments MATCH ?1 \(filter) ORDER BY rank LIMIT ?2"
+        guard let embedder, matrix?.count ?? 0 > 0 else {
+            return try fragments(try rowIDs(byWords, match: match(words.map(String.init)), project: project, source: source)
+                .prefix(limit))
+        }
+        // With the meaning at hand, a word match counts only when strong: the fragment holds at least half of the
+        // words that carry meaning. One word in common, as "casa" in a question about a loan, would outrank the
+        // fragment the meaning found.
+        let searched = Set(words.map { $0.lowercased() }).subtracting(Self.stopWords).filter { $0.count > 2 }.sorted()
+        var found: [Int64: Int] = [:]
+        for word in searched {
+            for rowID in try rowIDs("SELECT rowid FROM fragments WHERE fragments MATCH ?1", match: match([word]),
+                                    project: nil, source: nil) {
+                found[rowID, default: 0] += 1
+            }
+        }
+        let needed = (searched.count + 1) / 2
+        var rankings = searched.isEmpty ? [] : [try rowIDs(byWords, match: match(searched), project: project, source: source)
+            .filter { found[$0, default: 0] >= needed }]
+        do {
+            let query = try await embedder.vectors(for: [text], as: .query)[0]
+            // Read after the wait: the fragments may have changed meanwhile.
+            let allowed = filter.isEmpty ? nil : Set(try rowIDs("SELECT rowid FROM fragments WHERE 1 \(filter)",
+                                                               project: project, source: source))
+            rankings.append(matrix?.nearest(to: query, limit: Self.candidates, allowed: allowed) ?? [])
+        } catch {
+            Logger.index.error("Search by meaning failed, by strong word matches only: \(error)")
+        }
+        return try fragments(ReciprocalRankFusion.fuse(rankings).prefix(limit))
+    }
+
+    /// The fragments `rowIDs`, in order, skipping the ones gone.
+    private func fragments(_ rowIDs: some Sequence<Int64>) throws -> [SearchHit] {
+        let statement = try prepare("SELECT path, project, source, text, message, author, date FROM fragments WHERE rowid = ?1")
         defer { sqlite3_finalize(statement) }
-        bind(match, at: 1, in: statement)
-        sqlite3_bind_int(statement, 2, Int32(limit))
-        if let project { bind(Self.projectName(ofFolder: project), at: 3, in: statement) }
-        if let source { bind(source.rawValue, at: 4, in: statement) }
         var hits: [SearchHit] = []
-        while sqlite3_step(statement) == SQLITE_ROW {
+        for rowID in rowIDs {
+            sqlite3_reset(statement)
+            sqlite3_bind_int64(statement, 1, rowID)
+            guard sqlite3_step(statement) == SQLITE_ROW else { continue }
             let message = column(4, of: statement).map { id in
                 ConversationMessage(id: id, isFromUser: column(5, of: statement) == "utente",
                                     date: Date(timeIntervalSince1970: sqlite3_column_double(statement, 6)))
@@ -125,14 +176,30 @@ actor SearchIndex {
         return hits
     }
 
+    /// Runs `sql`, which selects fragment rows, binding `match` to `?1`, the limit of candidates to `?2`,
+    /// the memory of `project` to `?3` and `source` to `?4`.
+    private func rowIDs(_ sql: String, match: String? = nil, project: String?, source: SearchSource?) throws -> [Int64] {
+        let statement = try prepare(sql)
+        defer { sqlite3_finalize(statement) }
+        if let match { bind(match, at: 1, in: statement) }
+        sqlite3_bind_int(statement, 2, Int32(Self.candidates))
+        if let project { bind(Self.projectName(ofFolder: project), at: 3, in: statement) }
+        if let source { bind(source.rawValue, at: 4, in: statement) }
+        var rowIDs: [Int64] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            rowIDs.append(sqlite3_column_int64(statement, 0))
+        }
+        return rowIDs
+    }
+
     /// Returns the answer to the `cerca` tool: the matching fragments, each under its file.
     ///
     /// When the Secondo cervello is searched but its folder cannot be reached, the answer says the notes are its last copy.
-    func toolResult(for text: String, project: String?, source: SearchSource? = nil) -> String {
+    func toolResult(for text: String, project: String?, source: SearchSource? = nil) async -> String {
         let notice = (source == nil || source == .secondBrain) && project == nil && !isSecondBrainReachable
             ? "La cartella del Secondo cervello non è raggiungibile: le note sono quelle dell'ultima lettura.\n\n" : ""
         do {
-            let hits = try hits(for: text, project: project, source: source)
+            let hits = try await hits(for: text, project: project, source: source)
             guard !hits.isEmpty else { return notice + "Nessun risultato nell'Indice." }
             return notice + hits.map { "### \(Self.heading(of: $0))\n\n\($0.text)" }.joined(separator: "\n\n---\n\n")
         } catch {
@@ -156,6 +223,139 @@ actor SearchIndex {
     /// The name `~/.claude/projects` gives the memory of the Progetto at `folder`.
     nonisolated static func projectName(ofFolder folder: String) -> String {
         String(folder.map { $0.isASCII && ($0.isLetter || $0.isNumber) ? $0 : "-" })
+    }
+
+    // MARK: Searching by meaning
+
+    /// The fragments with a vector in memory.
+    var vectorCount: Int { matrix?.count ?? 0 }
+
+    /// Waits until the vectors missing when called are computed.
+    func vectorsComputed() async {
+        await vectorizing?.value
+    }
+
+    /// Searches by meaning with `embedder` from now on; `nil` goes back to words only.
+    ///
+    /// The vectors of another model, or of another revision, cannot be compared: they are forgotten and computed again,
+    /// in the background, while the search by words goes on.
+    func use(_ embedder: (any TextEmbedder)?) {
+        self.embedder = embedder
+        guard let embedder else {
+            matrix = nil
+            return
+        }
+        if state("vectors.model") != embedder.model.signature {
+            do {
+                try transaction {
+                    try Self.execute("DELETE FROM vectors", in: connection)
+                    try setState("vectors.model", to: embedder.model.signature)
+                }
+            } catch {
+                Logger.index.error("Could not forget the vectors of the previous model: \(error)")
+            }
+        }
+        loadMatrix()
+        computeMissingVectors()
+    }
+
+    /// Starts computing the vectors still missing, unless that is already going on.
+    private func computeMissingVectors() {
+        guard embedder != nil, vectorizing == nil else { return }
+        vectorizing = Task(priority: .utility) { await self.vectorizeMissing() }
+    }
+
+    /// Computes the vectors of the fragments without one, a few at a time, until none is left.
+    private func vectorizeMissing() async {
+        defer { vectorizing = nil }
+        var after: Int64 = 0
+        while let embedder, !Task.isCancelled {
+            // A long first indexing waits for the next change when the Mac saves energy.
+            guard !ProcessInfo.processInfo.isLowPowerModeEnabled else {
+                Logger.index.notice("Low Power Mode: vectors paused")
+                return
+            }
+            let batch = fragmentsWithoutVectors(after: after)
+            guard let last = batch.last else { return }
+            after = last.rowID
+            do {
+                let vectors = try await embedder.vectors(for: batch.map(\.text), as: .passage)
+                // The model may have changed during the wait: its vectors would mix with the new ones.
+                guard embedder === self.embedder else {
+                    after = 0
+                    continue
+                }
+                try transaction {
+                    for (fragment, vector) in zip(batch, vectors) {
+                        try store(VectorMatrix.half(vector), for: fragment.rowID)
+                    }
+                }
+            } catch {
+                Logger.index.error("Could not compute vectors: \(error)")
+                return
+            }
+        }
+    }
+
+    /// Up to 16 fragments after `rowID` without a vector, in order.
+    private func fragmentsWithoutVectors(after rowID: Int64) -> [(rowID: Int64, text: String)] {
+        guard let statement = try? prepare("""
+            SELECT rowid, text FROM fragments WHERE rowid > ?1 AND rowid NOT IN (SELECT fragment FROM vectors)
+            ORDER BY rowid LIMIT 16
+            """) else { return [] }
+        defer { sqlite3_finalize(statement) }
+        sqlite3_bind_int64(statement, 1, rowID)
+        var fragments: [(rowID: Int64, text: String)] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            fragments.append((sqlite3_column_int64(statement, 0), column(1, of: statement) ?? ""))
+        }
+        return fragments
+    }
+
+    /// Saves the half-precision `vector` for the fragment `rowID`, if the fragment still exists.
+    private func store(_ vector: [UInt16], for rowID: Int64) throws {
+        let statement = try prepare("""
+            INSERT OR REPLACE INTO vectors(fragment, vector) SELECT ?1, ?2 WHERE EXISTS (SELECT 1 FROM fragments WHERE rowid = ?1)
+            """)
+        defer { sqlite3_finalize(statement) }
+        sqlite3_bind_int64(statement, 1, rowID)
+        vector.withUnsafeBytes { bytes in
+            _ = sqlite3_bind_blob(statement, 2, bytes.baseAddress, Int32(bytes.count), unsafeBitCast(-1, to: sqlite3_destructor_type.self))
+        }
+        guard sqlite3_step(statement) == SQLITE_DONE else { throw lastError() }
+        guard sqlite3_changes(connection) > 0 else { return }
+        if matrix == nil { matrix = VectorMatrix(dimension: vector.count) }
+        matrix?.insert(vector, for: rowID)
+    }
+
+    /// Forgets the vectors of the fragments matching `condition`, which binds `value` to `?1`.
+    private func forgetVectors(of condition: String, binding value: String) throws {
+        let select = try prepare("SELECT rowid FROM fragments WHERE \(condition)")
+        defer { sqlite3_finalize(select) }
+        bind(value, at: 1, in: select)
+        let delete = try prepare("DELETE FROM vectors WHERE fragment = ?1")
+        defer { sqlite3_finalize(delete) }
+        while sqlite3_step(select) == SQLITE_ROW {
+            let rowID = sqlite3_column_int64(select, 0)
+            sqlite3_reset(delete)
+            sqlite3_bind_int64(delete, 1, rowID)
+            guard sqlite3_step(delete) == SQLITE_DONE else { throw lastError() }
+            matrix?.remove(rowID)
+        }
+    }
+
+    /// Reads every vector into memory; with no model, holds none.
+    private func loadMatrix() {
+        matrix = nil
+        guard embedder != nil, let statement = try? prepare("SELECT fragment, vector FROM vectors") else { return }
+        defer { sqlite3_finalize(statement) }
+        while sqlite3_step(statement) == SQLITE_ROW {
+            let count = Int(sqlite3_column_bytes(statement, 1)) / MemoryLayout<UInt16>.stride
+            guard count > 0, let bytes = sqlite3_column_blob(statement, 1) else { continue }
+            let vector = UnsafeBufferPointer(start: bytes.assumingMemoryBound(to: UInt16.self), count: count)
+            if matrix == nil { matrix = VectorMatrix(dimension: count) }
+            matrix?.insert(vector, for: sqlite3_column_int64(statement, 0))
+        }
     }
 
     // MARK: Staying fresh
@@ -348,9 +548,11 @@ actor SearchIndex {
         sqlite3_bind_int64(document, 3, Int64(stamp.size))
         sqlite3_bind_double(document, 4, stamp.modified)
         guard sqlite3_step(document) == SQLITE_DONE else { throw lastError() }
+        computeMissingVectors()
     }
 
     private func forget(_ path: String) throws {
+        try forgetVectors(of: "path = ?1", binding: path)
         for sql in ["DELETE FROM fragments WHERE path = ?1", "DELETE FROM documents WHERE path = ?1"] {
             let statement = try prepare(sql)
             defer { sqlite3_finalize(statement) }
@@ -360,6 +562,7 @@ actor SearchIndex {
     }
 
     private func forgetAll(from source: SearchSource) throws {
+        try forgetVectors(of: "source = ?1", binding: source.rawValue)
         for sql in ["DELETE FROM fragments WHERE source = ?1", "DELETE FROM documents WHERE source = ?1"] {
             let statement = try prepare(sql)
             defer { sqlite3_finalize(statement) }
@@ -436,7 +639,7 @@ actor SearchIndex {
             ? Date(timeIntervalSince1970: sqlite3_column_double(statement, 0)) : nil
     }
 
-    /// Replaces the conversation `id` in the Indice with `messages`, one fragment each.
+    /// Replaces the conversation `id` in the Indice with `messages`, one fragment each, a long one cut into pieces.
     ///
     /// - Parameters:
     ///   - folder: Where the conversation ran, which makes its Progetto; `nil` if unknown.
@@ -449,15 +652,18 @@ actor SearchIndex {
                 """)
             defer { sqlite3_finalize(insert) }
             for (position, message) in messages.enumerated() {
-                sqlite3_reset(insert)
-                bind(message.text, at: 1, in: insert)
-                bind(id, at: 2, in: insert)
-                if let folder { bind(Self.projectName(ofFolder: folder.path), at: 3, in: insert) } else { sqlite3_bind_null(insert, 3) }
-                bind(SearchSource.conversations.rawValue, at: 4, in: insert)
-                bind(message.id ?? String(position), at: 5, in: insert)
-                bind(message.isFromUser ? "utente" : "agente", at: 6, in: insert)
-                sqlite3_bind_double(insert, 7, (message.date ?? modified).timeIntervalSince1970)
-                guard sqlite3_step(insert) == SQLITE_DONE else { throw lastError() }
+                // An embedding model reads only so far: each piece gets its own vector.
+                for piece in MarkdownFragments.pieces(of: message.text) {
+                    sqlite3_reset(insert)
+                    bind(piece, at: 1, in: insert)
+                    bind(id, at: 2, in: insert)
+                    if let folder { bind(Self.projectName(ofFolder: folder.path), at: 3, in: insert) } else { sqlite3_bind_null(insert, 3) }
+                    bind(SearchSource.conversations.rawValue, at: 4, in: insert)
+                    bind(message.id ?? String(position), at: 5, in: insert)
+                    bind(message.isFromUser ? "utente" : "agente", at: 6, in: insert)
+                    sqlite3_bind_double(insert, 7, (message.date ?? modified).timeIntervalSince1970)
+                    guard sqlite3_step(insert) == SQLITE_DONE else { throw lastError() }
+                }
             }
             let document = try prepare("INSERT INTO documents(path, source, size, modified) VALUES (?1, ?2, ?3, ?4)")
             defer { sqlite3_finalize(document) }
@@ -467,6 +673,7 @@ actor SearchIndex {
             sqlite3_bind_double(document, 4, modified.timeIntervalSince1970)
             guard sqlite3_step(document) == SQLITE_DONE else { throw lastError() }
         }
+        computeMissingVectors()
     }
 
     /// Removes the conversations `ids` from the Indice: a Sessione deleted in Bubo.
@@ -486,6 +693,8 @@ actor SearchIndex {
             try Self.execute("COMMIT", in: connection)
         } catch {
             try? Self.execute("ROLLBACK", in: connection)
+            // The vectors forgotten in memory are back in the database.
+            loadMatrix()
             throw error
         }
     }
@@ -534,9 +743,56 @@ nonisolated enum SearchIndexError: Error, Equatable {
 
 /// Splits Markdown into the fragments the Indice stores: one per section, its heading included.
 nonisolated enum MarkdownFragments {
-    /// Returns the non-empty sections of `markdown`, each starting at a heading or at the top.
-    // ponytail: no size cap; vectors (#112) need ≤ 512 tokens and will cut long sections.
+    /// The longest fragment in characters: about 400 tokens, within what an embedding model reads (512 for e5).
+    static let maximumLength = 1500
+
+    /// Returns the non-empty sections of `markdown`, each starting at a heading or at the top, the long ones
+    /// cut into ``pieces(of:maximumLength:)``.
     static func split(_ markdown: String) -> [String] {
+        sections(of: markdown).flatMap { pieces(of: $0) }
+    }
+
+    /// Cuts `text` into pieces of at most `maximumLength` characters, at paragraphs, else at lines, else at words.
+    ///
+    /// When `text` starts with a Markdown heading, every piece starts with it, so each one says what it is about.
+    static func pieces(of text: String, maximumLength: Int = maximumLength) -> [String] {
+        guard text.count > maximumLength else { return [text] }
+        let firstLine = text.prefix { $0 != "\n" }
+        let heading = firstLine.hasPrefix("#") && firstLine.count < maximumLength / 4 ? String(firstLine) : nil
+        let body = heading == nil ? Substring(text) : text.dropFirst(firstLine.count)
+        let room = maximumLength - (heading.map { $0.count + 1 } ?? 0)
+        // The smallest units that fit: paragraphs, lines of a long paragraph, runs of words of a long line.
+        var units: [String] = []
+        for paragraph in body.components(separatedBy: "\n\n") where !paragraph.isEmpty {
+            guard paragraph.count > room else { units.append(paragraph); continue }
+            for line in paragraph.split(separator: "\n") {
+                guard line.count > room else { units.append(String(line)); continue }
+                var run = ""
+                for word in line.split(separator: " ") {
+                    if !run.isEmpty, run.count + 1 + word.count > room {
+                        units.append(run)
+                        run = ""
+                    }
+                    run += run.isEmpty ? String(word.prefix(room)) : " " + word
+                }
+                if !run.isEmpty { units.append(run) }
+            }
+        }
+        var pieces: [String] = []
+        var current = ""
+        for unit in units.map({ $0.trimmingCharacters(in: .whitespacesAndNewlines) }) where !unit.isEmpty {
+            if !current.isEmpty, current.count + 2 + unit.count > room {
+                pieces.append(current)
+                current = ""
+            }
+            current += current.isEmpty ? unit : "\n\n" + unit
+        }
+        if !current.isEmpty { pieces.append(current) }
+        return pieces.map { piece in heading.map { $0 + "\n" + piece } ?? piece }
+    }
+
+    /// Returns the non-empty sections of `markdown`, each starting at a heading or at the top.
+    private static func sections(of markdown: String) -> [String] {
         var fragments: [String] = []
         var current: [Substring] = []
         var inCode = false

@@ -17,6 +17,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }()
+    /// The search by meaning of the Indice, once its model is downloaded.
+    private(set) lazy var semanticSearch = SemanticSearch(index: searchIndex, store: try? TextEmbeddingModelStore.makeDefault())
     /// The folder of notes the Indice follows, chosen in the settings.
     private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
     /// The Domanda of the HUD, answered through the agent bridge.
@@ -82,8 +84,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             self?.onboarding.isCompleted == false
         } detectClaude: { [weak self] in
             await self?.onboarding.detectClaude()
-        } keepIndexFresh: { [searchIndex, secondBrain] in
+        } keepIndexFresh: { [searchIndex, secondBrain, semanticSearch] in
             secondBrain.start()
+            semanticSearch.start()
             await searchIndex?.keepFresh()
         } subscribeToMetrics: {
             MetricsCollector.shared.subscribe()

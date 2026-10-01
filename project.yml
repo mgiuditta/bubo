@@ -11,6 +11,18 @@ packages:
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm
     exactVersion: 1.20.0
+  # Embedding locali dell'Indice (#112): solo MLXEmbedders, niente MLXHuggingFace e quindi niente macro.
+  # mlx-swift-lm vuole mlx-swift 0.32.x: fissata anche quella, per importare MLX.
+  MLXSwiftLM:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    exactVersion: 3.32.3
+  MLXSwift:
+    url: https://github.com/ml-explore/mlx-swift
+    exactVersion: 0.32.3
+  # Solo il tokenizer dei modelli; i pesi li scarica Bubo (Index/EmbeddingModel).
+  SwiftTransformers:
+    url: https://github.com/huggingface/swift-transformers
+    exactVersion: 1.3.4
 
 settings:
   base:
@@ -44,6 +56,12 @@ targets:
         buildPhase: resources
     dependencies:
       - package: SwiftTerm
+      - package: MLXSwiftLM
+        product: MLXEmbedders
+      - package: MLXSwift
+        product: MLX
+      - package: SwiftTransformers
+        product: Tokenizers
     # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
     info:
       path: Bubo/Info.plist
