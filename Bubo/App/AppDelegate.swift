@@ -30,8 +30,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }()
-    /// The notifications of the Sessioni in Attende te; a click opens the HUD.
-    private lazy var notifier = Notifier { [hud] in hud.show() }
+    /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.
+    private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
+        self?.sessions?.answerFromNotification(request, in: session, allows: allows)
+    }
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 

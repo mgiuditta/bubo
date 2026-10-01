@@ -224,6 +224,18 @@ final class SessionStore {
     func answer(_ request: PermissionRequest.ID, in id: UUID, with answer: PermissionAnswer) {
         guard let allows = permissions.answer(request, in: id, with: answer) else { return }
         turns[id]?.answerPermission(request, allows: allows)
+        followActivity()
+    }
+
+    /// Answers from its notification the Richiesta di permesso `request` of the Sessione `id`: nothing if `claude` no
+    /// longer waits for it, and no approval unless the notification could offer Solo ora.
+    func answerFromNotification(_ request: PermissionRequest.ID, in id: UUID, allows: Bool) {
+        guard let allows = permissions.answerFromNotification(request, in: id, allows: allows) else {
+            Logger.sessions.notice("Notification answer ignored: the Richiesta no longer waits or needs the HUD")
+            return
+        }
+        turns[id]?.answerPermission(request, allows: allows)
+        followActivity()
     }
 
     /// Answers Sempre in questo Progetto: saves the rule of the Richiesta `request` in the Progetto of the Sessione `id`,
@@ -257,6 +269,7 @@ final class SessionStore {
         case let .withdrawn(request):
             permissions.withdraw(request, in: id)
         }
+        followActivity()
     }
 
     private func update(_ id: UUID, _ change: (inout Session) -> Void) {
@@ -270,7 +283,7 @@ final class SessionStore {
     private func followActivity() {
         let state = OrbState(following: sessions)
         if orb?.state != state { orb?.state = state }
-        alerts?.follow(sessions)
+        alerts?.follow(sessions, requests: permissions)
     }
 
     private func save() {
