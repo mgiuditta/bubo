@@ -39,6 +39,7 @@ struct BuboApp: App {
 
         Settings {
             SettingsView()
+                .environment(appDelegate.sessions)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         }

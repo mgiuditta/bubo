@@ -674,6 +674,16 @@
         }
       }
     },
+    "Claude Code cancella le conversazioni dopo 30 giorni; Bubo ne conserva una copia. Quella di una Sessione se ne va quando la elimini." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code deletes conversations after 30 days; Bubo keeps a copy. A Session's copy goes when you delete the Session."
+          }
+        }
+      }
+    },
     "Claude Code non trovato" : {
       "localizations" : {
         "en" : {
@@ -824,6 +834,16 @@
         }
       }
     },
+    "Conserva anche le conversazioni della riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also Keep Command-Line Conversations"
+          }
+        }
+      }
+    },
     "Continua da dove ti eri fermato." : {
       "localizations" : {
         "en" : {
@@ -910,6 +930,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checking your account…"
+          }
+        }
+      }
+    },
+    "Conversazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversations"
           }
         }
       }
@@ -2046,6 +2076,26 @@
         }
       }
     },
+    "Non riesco a cancellare le copie delle conversazioni della riga di comando." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't delete the copies of the command-line conversations."
+          }
+        }
+      }
+    },
+    "Non riesco a copiare le conversazioni della riga di comando ora: ci riprovo più tardi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't copy the command-line conversations right now. Bubo will try again later."
+          }
+        }
+      }
+    },
     "Non riesco a leggere %@: Claude salta le sue regole." : {
       "localizations" : {
         "en" : {
@@ -2874,6 +2924,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only this command, written exactly like this."
+          }
+        }
+      }
+    },
+    "Spazio occupato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Space Used"
           }
         }
       }

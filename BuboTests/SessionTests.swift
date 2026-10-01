@@ -140,6 +140,63 @@ struct SessionTests {
         #expect(store.sessions.map(\.forkedFrom) == ["c-1"])
     }
 
+    /// A bridge played by `/bin/sh` that writes every command to `log`, ends every turn at once, and lists as the
+    /// Cronologia CLI the first conversation it was asked to keep, plus `c-1`.
+    static func keepingBridge(log: URL) -> AgentBridge {
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"type":"ask"'*) echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                    *'"type":"history"'*)
+                        kept=$(sed -n 's/.*"keep":"\([^"]*\)".*/\1/p' "$1" | head -1)
+                        echo "{\"v\":3,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
+                esac
+            done
+            """#
+        return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                           environment: ["PATH": "/usr/bin:/bin"]) { _, _ in "" }
+    }
+
+    /// Waits up to 5 s for `condition`.
+    @MainActor
+    static func wait(until condition: () -> Bool) async throws {
+        for _ in 0..<250 {
+            if condition() { return }
+            try await Task.sleep(for: .milliseconds(20))
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func eachTurnIsKeptAndDeletingTheSessionForgetsIt() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+
+        try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        let session = try #require(store.sessions.first)
+        let kept = try #require(session.conversations.first)
+        #expect(session.conversations.count == 1)
+        #expect(try String(contentsOf: log, encoding: .utf8).contains(#""keep":"\#(kept)""#))
+
+        #expect(try await store.history().map(\.id) == ["c-1"])
+
+        store.delete(session.id)
+        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":3}"#
+        try await Self.wait { (try? String(contentsOf: log, encoding: .utf8).contains(forget)) == true }
+        #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
+    }
+
     @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
         let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
                                                                lastModified: .now))
@@ -155,5 +212,6 @@ struct SessionTests {
         #expect(sessions.map(\.phase) == [.aperta])
         #expect(sessions.map(\.isInterrupted) == [false])
         #expect(sessions.map(\.forkedFrom) == [nil])
+        #expect(sessions.map(\.conversations) == [[]])
     }
 }

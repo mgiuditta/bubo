@@ -23,6 +23,7 @@ struct GeneralSettingsView: View {
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Toggle("Mostra il Panel con l'Orb", isOn: $panel.isShown)
+            ConversationSettingsSection()
         }
         .formStyle(.grouped)
     }

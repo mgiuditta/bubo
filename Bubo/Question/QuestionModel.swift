@@ -178,7 +178,8 @@ final class QuestionModel {
         // The HUD's Quota read and a Domanda can both get here across the awaits: keep one bridge.
         if let bridge { return bridge }
         let bridge = AgentBridge(executable: bridgeExecutable, arguments: bridgeArguments,
-                                 environment: ChildEnvironment.make(claude: claude, apiKey: key),
+                                 environment: ChildEnvironment.make(claude: claude, apiKey: key,
+                                                                    conversations: try? ConversationStore.defaultFile()),
                                  quota: { [weak self] reported in
                                      guard let self else { return }
                                      quota = quota.merging(reported)

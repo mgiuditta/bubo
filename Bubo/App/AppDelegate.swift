@@ -39,7 +39,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillFinishLaunching(_ notification: Notification) {
         FontRegistry.registerBundledFonts()
-        UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true])
+        UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
         notifier.start()
     }
 
@@ -47,6 +47,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         DockIcon.apply(isVisible: UserDefaults.standard.bool(forKey: DockIcon.defaultsKey))
         _ = hotKeys
         Task(priority: .utility) { [searchIndex] in await searchIndex?.keepFresh() }
+        // The copy of the Cronologia CLI waits for the launch to settle: it starts the bridge.
+        Task(priority: .utility) { [weak self] in
+            try? await Task.sleep(for: .seconds(60))
+            await self?.sessions?.keepCLIHistoryFresh()
+        }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
         let menu = NSHostingMenu(rootView: MenuBarContent()
             .environment(hud)

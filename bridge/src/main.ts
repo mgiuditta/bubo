@@ -12,17 +12,21 @@ import { conversation, firstPage, messages, type Conversation, type Message } fr
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
+import { ConversationStore } from "./store";
 
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
   | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "history"; id: string; all?: unknown }
   | { v: number; type: "transcript"; id: string; conversation: string }
+  | { v: number; type: "keep"; id: string }
+  | { v: number; type: "forget"; conversations?: unknown }
+  | { v: number; type: "forgetHistory"; id: string }
   | { v: number; type: "permission"; request: string; behavior?: unknown };
 
 type Event =
@@ -39,6 +43,8 @@ type Event =
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
   | { type: "transcript"; id: string; messages: Message[] }
+  | { type: "kept"; id: string; count: number }
+  | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string };
 
@@ -85,8 +91,19 @@ function sendQuota(quota: Quota) {
 // Swift ha già costruito l'ambiente da zero: il ponte lo passa a `claude` così com'è,
 // meno le proprie variabili, e con la memoria automatica spenta nelle Domande.
 // CLAUDE_CODE_SANDBOXED farebbe passare per fidata qualunque cartella (#266): mai al figlio.
-const { BUBO_CLAUDE_PATH: claudePath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inherited } = process.env;
+const { BUBO_CLAUDE_PATH: claudePath, BUBO_CONVERSATIONS: conversationsPath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inherited } = process.env;
 const childEnv = { ...inherited, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
+
+// La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
+const store = (() => {
+  if (!conversationsPath) return undefined;
+  try {
+    return new ConversationStore(conversationsPath);
+  } catch (error) {
+    console.error("Copia delle conversazioni non disponibile:", error instanceof Error ? error.message : error);
+    return undefined;
+  }
+})();
 
 const running = new Map<string, Query>();
 const searches = new Map<string, (text: string) => void>();
@@ -120,9 +137,12 @@ function buboTools() {
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
 // `resume` è una conversazione della Cronologia CLI: si riprende sempre come fork, con un id nuovo.
-// Il transcript è quello che la CLI ha già scritto; con `persistSession: false` il fork non si scrive in ~/.claude.
+// `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
+// transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
+// e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string, env: Record<string, string> = {}, resume?: string) {
+                   model?: string, env: Record<string, string> = {}, resume?: string, keep?: string) {
+  const mirrored = keep !== undefined && store !== undefined;
   const conversation = query({
     prompt,
     options: {
@@ -137,7 +157,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
-      persistSession: false,
+      ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
       canUseTool: askBubo(id),
     },
   });
@@ -146,8 +166,14 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   let limit: Limit | undefined;
   let failure: SDKAssistantMessageError | undefined;
   let succeeded = false;
+  // Le conversazioni a cui la copia ha perso un pezzo: si rifanno dal transcript a fine turno.
+  const torn = new Set<string>();
   try {
     for await (const message of conversation) {
+      if (message.type === "system" && message.subtype === "mirror_error") {
+        console.error("Copia della conversazione incompleta:", message.error);
+        torn.add(message.key.sessionId);
+      }
       const update = progress(message);
       if (update) send({ ...update, id });
       for (const edit of edits(message)) send({ ...edit, id });
@@ -172,6 +198,47 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {
     running.delete(id);
+    for (const session of torn) await repair(session);
+  }
+}
+
+async function repair(session: string) {
+  try {
+    await store?.replace(session);
+  } catch (error) {
+    console.error("Copia non riparata:", error instanceof Error ? error.message : error);
+  }
+}
+
+// Copia nello store la Cronologia CLI: le conversazioni mai viste, e quelle andate avanti dall'ultima copia.
+// Il transcript si legge con `importSessionToStore`, mai a mano; ~/.claude resta com'è.
+let clearings = 0;
+async function keepHistory(id: string) {
+  if (!store) {
+    send({ type: "error", id, message: "copia delle conversazioni non disponibile" });
+    return;
+  }
+  try {
+    let count = 0;
+    const clearing = clearings;
+    for (const info of await listSessions({ includeProgrammatic: false })) {
+      if ((store.importedAt(info.sessionId) ?? -1) >= info.lastModified) continue;
+      try {
+        await store.replace(info.sessionId);
+        // L'interruttore si è spento durante la copia: niente resta.
+        if (clearings !== clearing) {
+          store.forget([info.sessionId]);
+          break;
+        }
+        store.markImported(info.sessionId, info.lastModified);
+        count += 1;
+      } catch (error) {
+        console.error("Conversazione non copiata:", error instanceof Error ? error.message : error);
+      }
+    }
+    send({ type: "kept", id, count });
+  } catch (error) {
+    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   }
 }
 
@@ -244,7 +311,10 @@ async function history(id: string, all: boolean) {
 
 async function transcript(id: string, session: string) {
   try {
-    send({ type: "transcript", id, messages: messages(await getSessionMessages(session)) });
+    // Dopo la pulizia della CLI il transcript locale non c'è più: resta la copia.
+    let read = await getSessionMessages(session);
+    if (!read.length && store) read = await getSessionMessages(session, { sessionStore: store });
+    send({ type: "transcript", id, messages: messages(read) });
   } catch (error) {
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   }
@@ -276,7 +346,8 @@ lines.on("line", (line) => {
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       const resume = typeof command.resume === "string" ? command.resume : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume);
+      const keep = typeof command.keep === "string" ? command.keep : undefined;
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep);
       break;
     }
     case "config": {
@@ -287,6 +358,17 @@ lines.on("line", (line) => {
     }
     case "history": void history(command.id, command.all === true); break;
     case "transcript": void transcript(command.id, command.conversation); break;
+    case "keep": void keepHistory(command.id); break;
+    case "forget":
+      if (Array.isArray(command.conversations)) {
+        store?.forget(command.conversations.filter((session): session is string => typeof session === "string"));
+      }
+      break;
+    case "forgetHistory":
+      clearings += 1;
+      store?.forgetImported();
+      send({ type: "forgot", id: command.id });
+      break;
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
     case "quota": void quota(); break;
