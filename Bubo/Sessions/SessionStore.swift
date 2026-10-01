@@ -91,6 +91,8 @@ final class SessionStore {
     @ObservationIgnored let previews = PreviewStore()
     /// The visore, for the files ⌘-clicked in the terminals.
     @ObservationIgnored let viewer = CodeViewerStore()
+    /// Called at the first token of each turn's answer; the onboarding ends at the first one (spec 26).
+    @ObservationIgnored var onFirstToken: () -> Void = {}
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -595,7 +597,11 @@ final class SessionStore {
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             }
-            for try await _ in answer {}
+            var hasAnswered = false
+            for try await _ in answer where !hasAnswered {
+                hasAnswered = true
+                onFirstToken()
+            }
             update(id) { $0.enter(.ferma) }
             return true
         } catch {

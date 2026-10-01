@@ -1574,6 +1574,16 @@
         }
       }
     },
+    "Controllo cosa c'è sul Mac…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking what's on your Mac…"
+          }
+        }
+      }
+    },
     "Controllo l'account…" : {
       "localizations" : {
         "en" : {
@@ -1620,6 +1630,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "Cosa è cambiato nell'ultima settimana?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What changed in the last week?"
           }
         }
       }
@@ -2592,6 +2612,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Which Project do you use for %@ issues from Linear? Bubo will remember it."
+          }
+        }
+      }
+    },
+    "In quale Progetto?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which Project?"
           }
         }
       }
@@ -4888,6 +4918,16 @@
         }
       }
     },
+    "Scegli un'altra cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose another folder…"
+          }
+        }
+      }
+    },
     "Scegli una cartella…" : {
       "localizations" : {
         "en" : {
@@ -5174,6 +5214,16 @@
         }
       }
     },
+    "Spiegami com'è fatto questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explain how this Project is built"
+          }
+        }
+      }
+    },
     "Sposta il terminale in una finestra sua" : {
       "localizations" : {
         "en" : {
@@ -5264,6 +5314,16 @@
         }
       }
     },
+    "Su cosa lavoriamo?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What are we working on?"
+          }
+        }
+      }
+    },
     "Tablet" : {
       "localizations" : {
         "en" : {
@@ -5350,6 +5410,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn into Session"
+          }
+        }
+      }
+    },
+    "Trova i TODO più vecchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find the oldest TODOs"
           }
         }
       }

@@ -10,8 +10,8 @@ struct HUDView: View {
     let questions: QuestionModel
     /// The Sessioni; `nil` when they cannot be kept.
     let sessions: SessionStore?
-    /// The `claude` found during onboarding; `nil` while detecting, or with no onboarding.
-    @State private var readiness: ClaudeReadiness?
+    /// The first launch, until the first answer in a Sessione.
+    let onboarding: OnboardingFlow
 
     var body: some View {
         @Bindable var hud = hud
@@ -36,17 +36,23 @@ struct HUDView: View {
         // Runs after the first appearance, once the main thread is free again.
         .task {
             Signposts.markHUDInteractive()
-            guard isOnboarding else { return }
-            readiness = await Signposts.measure(.claudeDetection) { await ClaudeReadiness.detect() }
+            guard !onboarding.isCompleted else { return }
+            async let recents = Self.recentProjects()
+            onboarding.readiness = await Signposts.measure(.claudeDetection) { await ClaudeReadiness.detect() }
+            onboarding.show(await recents)
         }
         // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
         .task { await questions.refreshQuota() }
     }
 
-    /// Onboarding lasts until there is a Sessione; after it, no `claude` starts at launch (spec 26).
-    // ponytail: until OnboardingFlow (#202) keeps the onboarding's own mark.
-    private var isOnboarding: Bool {
-        sessions?.sessions.isEmpty ?? true
+    /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
+    private var showsOnboarding: Bool {
+        !onboarding.isCompleted && sessions?.sessions.isEmpty == true
+    }
+
+    /// The recent Progetti, read off the main thread.
+    @concurrent nonisolated private static func recentProjects() async -> [RecentProject] {
+        RecentProjects.load()
     }
 
     /// The Sessioni to lay out, when there is at least one.
@@ -59,7 +65,7 @@ struct HUDView: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
-                if let readiness, isOnboarding { ClaudePill(readiness: readiness) }
+                if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota)
             }
             // Here, not next to the other sheets: one sheet modifier per view.
@@ -87,8 +93,12 @@ struct HUDView: View {
                 SessionStrip(store: sessions)
                     .padding(.bottom, Spacing.small)
             }
-            QuestionView(model: questions)
-                .frame(maxWidth: 560)
+            if showsOnboarding {
+                OnboardingStage(flow: onboarding)
+            } else {
+                QuestionView(model: questions)
+                    .frame(maxWidth: 560)
+            }
             Spacer(minLength: Spacing.large)
             if let sessions {
                 PanelRow(terminals: sessions.terminals, previews: sessions.previews)
@@ -103,6 +113,6 @@ struct HUDView: View {
 }
 
 #Preview {
-    HUDView(questions: QuestionModel(), sessions: nil)
+    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in })
         .environment(HUDPresenter())
 }

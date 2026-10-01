@@ -59,6 +59,8 @@ enum Signpost {
     case mergePreview
     /// Interval: from opening a Galassia to its first image with stars.
     case galaxyFirstImage
+    /// The first token of the first Sessione's answer: the onboarding is over.
+    case onboardingFirstToken
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -70,6 +72,7 @@ enum Signpost {
         case .reviewDiff: "Diff della revisione"
         case .mergePreview: "Conflitti previsti"
         case .galaxyFirstImage: "Prima immagine della Galassia"
+        case .onboardingFirstToken: "Primo token onboarding"
         }
     }
 }

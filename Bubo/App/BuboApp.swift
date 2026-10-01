@@ -8,7 +8,8 @@ struct BuboApp: App {
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
-            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions)
+            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions,
+                    onboarding: appDelegate.onboarding)
                 .environment(appDelegate.hud)
         }
         .commands {
