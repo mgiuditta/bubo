@@ -77,6 +77,11 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var unstartedPrompt: String?
     /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
     var isAutonomous = false
+    /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
+    var memoryLines: [MemoryLine] = []
+
+    /// The lines Ricordato and Richiamato a Sessione keeps.
+    static let memoryLineLimit = 3
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
@@ -133,7 +138,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
-    /// revisione, its conversations, its issue, its unstarted prompt and its Modalità autonoma were kept.
+    /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma and its lines Ricordato and
+    /// Richiamato were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -159,5 +165,6 @@ nonisolated extension Session {
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
+        memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
     }
 }

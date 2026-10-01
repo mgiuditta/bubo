@@ -162,6 +162,16 @@
         }
       }
     },
+    "%lld ricordi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld memories"
+          }
+        }
+      }
+    },
     "%lld righe aggiunte, %lld tolte" : {
       "localizations" : {
         "en" : {
@@ -556,6 +566,16 @@
         }
       }
     },
+    "Annullato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undone"
+          }
+        }
+      }
+    },
     "Anteprima" : {
       "localizations" : {
         "en" : {
@@ -654,6 +674,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opens another shell in the session's folder"
+          }
+        }
+      }
+    },
+    "Apri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
           }
         }
       }
@@ -2882,6 +2912,26 @@
         }
       }
     },
+    "Il file non c'è più." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is gone."
+          }
+        }
+      }
+    },
+    "Il file è cambiato dopo questa scrittura: annullando perderesti le modifiche successive. Puoi modificarlo da Memoria del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file changed after this write: undoing it would lose the later changes. You can edit it from Project Memory."
+          }
+        }
+      }
+    },
     "Il file è cambiato su disco mentre lo modificavi. Chiudi e riaprilo per vedere la versione nuova." : {
       "localizations" : {
         "en" : {
@@ -3518,6 +3568,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reading the Project’s memory…"
+          }
+        }
+      }
+    },
+    "Leggo la memoria…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading memory…"
           }
         }
       }
@@ -4468,6 +4528,16 @@
         }
       }
     },
+    "Non riesco a rimettere il file com'era. Controlla di poter scrivere nella cartella della memoria, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't restore the file. Check that you can write to the memory folder, then try again."
+          }
+        }
+      }
+    },
     "Non riesco a rimettere la copia della Sessione com'era dopo i conflitti: %@" : {
       "localizations" : {
         "en" : {
@@ -4728,6 +4798,16 @@
         }
       }
     },
+    "OK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
     "Occupazione" : {
       "localizations" : {
         "en" : {
@@ -4924,6 +5004,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Brings the checkout's branch into the Session's copy and asks the agent to resolve the conflicts there"
+          }
+        }
+      }
+    },
+    "Potrai annullare quando nessuna Sessione del Progetto sta lavorando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can undo when no Session in this Project is working"
           }
         }
       }
@@ -5164,12 +5254,32 @@
         }
       }
     },
+    "Richiamato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recalled"
+          }
+        }
+      }
+    },
     "Richiesta di permesso" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permission request"
+          }
+        }
+      }
+    },
+    "Ricordato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remembered"
           }
         }
       }
@@ -5256,6 +5366,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send back to agent"
+          }
+        }
+      }
+    },
+    "Rimette il file com'era prima di questa scrittura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the file to how it was before this write"
           }
         }
       }
@@ -5676,6 +5796,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setup script not run: the project isn't trusted."
+          }
+        }
+      }
+    },
+    "Scrittura non annullata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write Not Undone"
           }
         }
       }
@@ -6276,6 +6406,16 @@
         }
       }
     },
+    "Una Sessione del Progetto sta lavorando. Riprova quando si ferma." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session in this Project is working. Try again when it stops."
+          }
+        }
+      }
+    },
     "Una Sessione del Progetto sta lavorando: potrai cancellare quando si ferma." : {
       "localizations" : {
         "en" : {
@@ -6820,6 +6960,16 @@
         }
       }
     },
+    "dall'Indice: «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from the Index: “%@”"
+          }
+        }
+      }
+    },
     "esc No" : {
       "localizations" : {
         "en" : {
@@ -6967,6 +7117,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "resets at %@"
+          }
+        }
+      }
+    },
+    "sintesi dei ricordi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "summary of memories"
           }
         }
       }

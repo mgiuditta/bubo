@@ -21,4 +21,6 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case ranCommand
     /// The Sandbox stopped the Bash command that just ended from doing this.
     case sandboxBlock(SandboxBlock)
+    /// The agent wrote in the Memoria di Progetto, or memories came into its turn: a line Ricordato or Richiamato.
+    case memory(MemoryLine.Event)
 }

@@ -153,6 +153,10 @@ nonisolated struct ProjectMemory: Equatable, Sendable {
 nonisolated enum ProjectMemoryError: Error, Equatable {
     /// The file changed on disk after Bubo read it: the user sees it again before changing it.
     case changedOnDisk
+    /// A Sessione of the Progetto is in a turn: Bubo never writes in the memory while the agent may.
+    case inTurn
+    /// The file is not in the memory folder of the Progetto.
+    case outsideMemory
 }
 
 extension ProjectMemory {
