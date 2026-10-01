@@ -145,7 +145,7 @@ Fonte: [#268](https://github.com/mgiuditta/bubo/issues/268), vince la variante *
 
 **Destinatario**
 
-- **Quick Look** del `.bubo`: tipo "Consegna Bubo, cifrata"; Da (nome e Macchina se c'è un Biglietto per quella chiave, altrimenti "mittente sconosciuto" in rosso); Per ("questa Macchina" oppure il nome dell'altra, in rosso); peso; nota "si legge in Bubo".
+- **Quick Look** del `.bubo`: tipo "Consegna Bubo, cifrata"; Da (nome e Macchina se c'è un Biglietto per quella chiave, altrimenti "mittente sconosciuto" in `danger`); Per ("questa Macchina" oppure il nome dell'altra, in `danger`); peso; nota "si legge in Bubo".
 - **Apertura** (doppio clic): foglio "Consegna ricevuta" con titolo e chip `verificata`, "da ‹nome› · ‹Macchina›". **Dove**: il Progetto con lo stesso remote; se non c'è, "Scegli…" · "Clona", e Metti tra le Bozze resta disattivato. **Cosa arriva**: messaggi, subagent, "il ragionamento di ‹nome› non c'è", il ramo `consegna/‹mittente›/‹nome›`. Nota "Diventa una Bozza. Quando la avvii, riprende col tuo account e i tuoi Livelli di permesso." Pulsanti: Scarta · **Metti tra le Bozze**.
 - **Bozza** con il chip `consegna` tra le Bozze del Progetto. Avvia crea la Sessione che riprende la conversazione, sulla Macchina del Progetto.
 
@@ -276,7 +276,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Più Mac della stessa persona**: un Biglietto per Mac; nel foglio righe separate "Persona · Macchina".
 - **Biglietto aperto su un Mac che ne ha già uno uguale**: nessun doppione, riga già verificata.
 - **Risorsa di squadra su un ramo diverso**: vale solo ciò che sta nel checkout principale; i cambi in un worktree di Sessione non contano finché non arrivano lì.
-- **`regole.json` non valido**: nessuna `allow` di squadra attiva; `deny` e `ask` non leggibili → avviso rosso nel Progetto "Le regole di squadra non si leggono", per non far credere che un `deny` valga.
+- **`regole.json` non valido**: nessuna `allow` di squadra attiva; `deny` e `ask` non leggibili → avviso in `danger` nel Progetto "Le regole di squadra non si leggono", per non far credere che un `deny` valga.
 - **Automazione dal repo con un agente che il destinatario non ha**: si accetta, ma l'Esecuzione è Saltata "Agente ‹nome› mancante".
 - **Due Automazioni con lo stesso nome** (una locale, una dal repo): quella dal repo porta il segno "dal repo" e non sostituisce l'altra.
 

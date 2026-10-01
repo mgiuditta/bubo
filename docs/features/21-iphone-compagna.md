@@ -86,9 +86,9 @@ Fonte: [#235](https://github.com/mgiuditta/bubo/issues/235), [#239](https://gith
   - Domanda dell'agente (`AskUserQuestion`): le opzioni come pulsanti più "Rispondi…".
   - Vuoto: "Niente da decidere", quante Sessioni lavorano e, sotto, **Novità**: l'ultimo messaggio di ogni Sessione senza richieste.
 - **Sessioni**: gruppi per Progetto; riga con punto di Attività, titolo, "Attività · Fase · N file".
-- **Dettaglio**: Progetto, Fase, titolo, Attività, statistiche del diff (file e righe ±), Richiesta o domanda in attesa, estratto degli ultimi messaggi, barra Rispondi (testo o dettatura), **Ferma** in alto a destra in rosso.
+- **Dettaglio**: Progetto, Fase, titolo, Attività, statistiche del diff (file e righe ±), Richiesta o domanda in attesa, estratto degli ultimi messaggi, barra Rispondi (testo o dettatura), **Ferma** in alto a destra in `danger`.
 - **Domanda**: scelta del Progetto (l'ultimo usato per default) e barra di testo o dettatura, con la riga "Parte sul Mac".
-- **Mac**: Mac accoppiati con il Battito, "+ Accoppia un altro Mac", "Revoca questo iPhone" in rosso, nota "Serve lo stesso Apple ID".
+- **Mac**: Mac accoppiati con il Battito, "+ Accoppia un altro Mac", "Revoca questo iPhone" in `danger`, nota "Serve lo stesso Apple ID".
 - **Fuori v1**: revisione del diff e merge, nuova Sessione, Board, Galassia, Costi, Live Activity.
 
 ### Richieste di permesso da remoto (deciso)
@@ -124,7 +124,7 @@ Fonte: [#235](https://github.com/mgiuditta/bubo/issues/235), [#239](https://gith
 ### Mac in stop (deciso)
 
 - Bubo impedisce lo stop per inattività mentre una Sessione Lavora o Attende te, **solo con l'alimentatore**, acceso per default e disattivabile.
-- L'iPhone mostra sempre il Battito; con più di 2 minuti o il Mac che dorme la riga diventa gialla con "i dati possono essere vecchi".
+- L'iPhone mostra sempre la riga del Battito, in `textSecondary` ("Mac visto 30 s fa"). Oltre 2 minuti o con il Mac che dorme: testo in `textPrimary`, un simbolo (orologio, o luna se il Mac dorme) e "i dati possono essere vecchi". Nessun colore: il Battito vecchio si distingue per testo e simbolo, e VoiceOver lo legge ("dati di 5 minuti fa, possono essere vecchi"; "Mac in stop, i dati possono essere vecchi").
 - Coperchio chiuso senza monitor esterno: limite dichiarato.
 
 ### Cancello (deciso)
@@ -219,7 +219,7 @@ Estensioni: `Permissions/RequestCenter` (una Richiesta può essere risolta da un
 3. **Sessioni e Battito**: `RemoteBridge` con `SessionCard` e `Heartbeat`, schede Sessioni e dettaglio (senza Richieste), Progetti solo Mac, pulizia a 24 h. Dipende da 2 e da 06.
 4. **Richieste dalla notifica e dall'app**: record `Request`, Notification Service Extension, categorie e azioni, Verdetto firmato, verifica sul Mac, scheda Attende te, pagina dei Livelli 4–5, `PresenceMonitor`. Dipende da 3 e da 05.
 5. **Rispondi, Domanda e Ferma**: `Command` firmati, pipeline degli ingressi, scheda Domanda, domande dell'agente. Dipende da 4 e da 09.
-6. **Notifiche passive e Mac in stop**: errore, fine lavoro, Budget, Automazioni fallite; `SleepGuard`; riga del Battito gialla. Dipende da 4, 18 e 19.
+6. **Notifiche passive e Mac in stop**: errore, fine lavoro, Budget, Automazioni fallite; `SleepGuard`; riga del Battito vecchio con simbolo e testo, senza colore. Dipende da 4, 18 e 19.
 
 ## Specifica "migliore di"
 
