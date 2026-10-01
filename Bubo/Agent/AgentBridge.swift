@@ -20,13 +20,16 @@ enum AgentBridgeError: Error, Equatable {
 final class AgentBridge {
     /// Creates a bridge that runs `executable` with `environment`.
     ///
+    /// - Parameter quota: Receives the Quota windows each time `claude` reports them.
     /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder to search in, if any.
     init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
+         quota: @escaping (Quota) -> Void = { _ in },
          search: @escaping (_ query: String, _ project: String?) async -> String) {
         self.executable = executable
         self.arguments = arguments
         self.environment = environment
         self.trustGate = trustGate
+        self.quota = quota
         self.search = search
     }
 
@@ -34,6 +37,7 @@ final class AgentBridge {
     private let arguments: [String]
     private let environment: [String: String]
     private let trustGate: TrustGate
+    private let quota: (Quota) -> Void
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
@@ -63,6 +67,11 @@ final class AgentBridge {
             continuation.finish(throwing: error)
         }
         return answer
+    }
+
+    /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
+    func readQuota() throws {
+        try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
     }
 
     private func cancel(_ id: String) {
@@ -111,6 +120,8 @@ final class AgentBridge {
                 let text = await search(query, project)
                 try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: text).line())
             }
+        case let .quota(reported):
+            quota(reported)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
         }

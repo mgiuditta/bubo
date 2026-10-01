@@ -5,7 +5,7 @@ import Foundation
 /// Every line carries `v`; both sides refuse a version they do not speak.
 enum BridgeProtocol {
     /// The version both sides speak.
-    static let version = 2
+    static let version = 3
 }
 
 /// A command Bubo writes to the bridge, one JSON object per line.
@@ -16,6 +16,8 @@ enum BridgeCommand: Equatable {
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
     case found(id: String, text: String)
+    /// Reads the Quota without a Domanda; the bridge answers with `quota` only if it has one.
+    case readQuota
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -27,6 +29,8 @@ enum BridgeCommand: Equatable {
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
             object = ["type": "found", "id": id, "text": text]
+        case .readQuota:
+            object = ["type": "quota"]
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -47,11 +51,13 @@ enum BridgeEvent: Equatable, Decodable {
     case error(id: String?, message: String)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
     case search(id: String, query: String, project: String?)
+    /// The Quota windows `claude` reported; a window it did not report is `nil`.
+    case quota(Quota)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, message, query, project
+        case v, type, id, text, message, query, project, fiveHour, sevenDay
     }
 
     init(from decoder: any Decoder) throws {
@@ -71,6 +77,8 @@ enum BridgeEvent: Equatable, Decodable {
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
                                       project: try container.decodeIfPresent(String.self, forKey: .project))
+        case "quota": self = .quota(Quota(fiveHour: try container.decodeIfPresent(Quota.Window.self, forKey: .fiveHour),
+                                          sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }

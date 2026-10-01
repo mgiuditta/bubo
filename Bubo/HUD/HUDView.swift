@@ -9,7 +9,10 @@ struct HUDView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HUDHeader()
+            HStack(alignment: .top) {
+                HUDHeader()
+                QuotaView(quota: questions.quota)
+            }
             Spacer(minLength: Spacing.large)
             OrbPlaceholder()
                 .frame(maxWidth: 520, maxHeight: 520)
@@ -26,6 +29,8 @@ struct HUDView: View {
         .onAppear { hud.openWindow = openWindow }
         // Runs after the first appearance, once the main thread is free again.
         .task { Signposts.markHUDInteractive() }
+        // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
+        .task { await questions.refreshQuota() }
     }
 }
 
