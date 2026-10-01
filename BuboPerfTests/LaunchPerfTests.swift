@@ -26,7 +26,7 @@ nonisolated final class LaunchPerfTests: XCTestCase {
 
         let seconds = Array(RecordedMeasurements.values(for: Self.launchIdentifier).suffix(PerfBudgets.launchIterations))
         XCTAssertEqual(seconds.count, PerfBudgets.launchIterations)
-        let p95 = Measurement(value: try XCTUnwrap(Self.percentile95(of: seconds)), unit: UnitDuration.seconds)
+        let p95 = Measurement(value: try XCTUnwrap(seconds.percentile95()), unit: UnitDuration.seconds)
         check(p95.converted(to: .milliseconds), against: PerfBudgets.warmLaunch, named: "Avvio caldo, p95")
     }
 
@@ -59,25 +59,5 @@ nonisolated final class LaunchPerfTests: XCTestCase {
         )
         let claudes = try ProcessTree().descendantNames(of: bubo.processIdentifier).filter { $0 == "claude" }
         XCTAssertEqual(claudes.count, PerfBudgets.claudeProcessesAfterLaunch, "Processi claude sotto Bubo dopo l'avvio")
-    }
-
-    /// Adds the reading to the report and fails beyond the failure factor.
-    @MainActor private func check<U: Dimension>(_ value: Measurement<U>, against budget: Measurement<U>, named name: String) {
-        let limit = budget * PerfBudgets.failureFactor
-        let style = Measurement<U>.FormatStyle(width: .abbreviated, usage: .asProvided, numberFormatStyle: .number.precision(.fractionLength(0)))
-        let line = "\(name): \(value.formatted(style)), budget \(budget.formatted(style)), blocca oltre \(limit.formatted(style))"
-        let attachment = XCTAttachment(string: line)
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
-        print(line)
-        XCTAssertLessThanOrEqual(value.converted(to: budget.unit).value, limit.value, line)
-    }
-
-    /// The 95th percentile by nearest rank, or `nil` when there are no values.
-    private static func percentile95(of values: [Double]) -> Double? {
-        guard !values.isEmpty else { return nil }
-        let rank = Int((0.95 * Double(values.count)).rounded(.up))
-        return values.sorted()[rank - 1]
     }
 }

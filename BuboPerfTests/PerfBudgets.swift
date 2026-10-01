@@ -22,4 +22,25 @@ enum PerfBudgets {
 
     /// How long after launch the `claude` invariant is checked.
     static let settleAfterLaunch: TimeInterval = 10
+
+    /// The Orb's GPU time per frame, p95, over `orbFrames` Morph frames.
+    static let orbGPUTime = Measurement(value: 4, unit: UnitDuration.milliseconds)
+
+    /// Orb frames measured for the GPU time: 10 s at 60 fps.
+    static let orbFrames = 600
+
+    /// Orb frames drawn while the Panel is covered: an invariant.
+    static let framesWhileCovered = 0
+
+    /// How long the Panel stays covered.
+    static let coveredDuration: TimeInterval = 10
+
+    /// Hitch time per second of the HUD's Notte animations: 10 ms per second is a ratio of 1%.
+    static let hitchTimeRatio = Measurement(value: 10, unit: UnitDuration.milliseconds)
+
+    /// How long the hitches of the HUD's animations are measured.
+    static let hitchSampleDuration: TimeInterval = 5
+
+    /// The longest a main-thread interval of a main flow may take: beyond it is a hang.
+    static let mainThreadInterval = Measurement(value: 100, unit: UnitDuration.milliseconds)
 }

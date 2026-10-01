@@ -10,8 +10,10 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     ///   - view: The view to draw into.
     ///   - controls: Where the Stato and the Variante come from and where frame measurements go.
     ///   - isMonochrome: Whether to draw in greys instead of the Tinta, as the Galleria del Catalogo does.
+    ///   - frameLog: Where to write the GPU time of every frame, for the performance tests.
     /// - Throws: An error if the Blob's pipeline cannot be built.
-    init(view: MTKView, controls: OrbControls = .shared, isMonochrome: Bool = false) throws {
+    init(view: MTKView, controls: OrbControls = .shared, isMonochrome: Bool = false,
+         frameLog: OrbFrameLog? = nil) throws {
         guard let device = view.device ?? MTLCreateSystemDefaultDevice(),
               let queue = device.makeCommandQueue(),
               let library = device.makeDefaultLibrary()
@@ -19,6 +21,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         self.queue = queue
         self.controls = controls
+        self.frameLog = frameLog
         animation = OrbAnimation(tinta: Tinta(for: controls.provider))
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
@@ -35,6 +38,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private let queue: MTLCommandQueue
     private let pipelines: OrbPipelines
     private let controls: OrbControls
+    private let frameLog: OrbFrameLog?
     private var uniforms = OrbUniforms()
     private var animation: OrbAnimation
     private var director = MorphDirector()
@@ -91,6 +95,12 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         #if DEBUG
         measure(commands, drawnAt: now)
         #endif
+        if let frameLog {
+            commands.addCompletedHandler { @Sendable buffer in
+                let gpuTime = buffer.gpuEndTime - buffer.gpuStartTime
+                Task { @MainActor in frameLog.record(gpuTime: gpuTime) }
+            }
+        }
         commands.present(drawable)
         commands.commit()
     }

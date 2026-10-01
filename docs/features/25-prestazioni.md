@@ -291,7 +291,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Sospensione** con orologio finto: tabella di condizioni (turno in corso, Richiesta aperta, figlio vivo, subagent in background, niente di questi) → sospende sì o no. Su Mac vero: 10 Sessioni ferme per 10 minuti → totale ≤ 200 MB; messaggio a una sospesa → `Ripresa Sessione` ≤ 1 s, risposta corretta con il contesto di prima.
 - **Ripresa fallita**: worktree cancellato a Sessione sospesa → Errore con motivo, messaggio ancora nel prompt.
 - **Sessione pesante**: `ProcessFootprintMonitor` con un processo finto che alloca oltre 2 GB → avviso entro 30 s; [Riavvia] → nuovo `claude`, stessa Conversazione. 0 processi lanciati dal monitor.
-- **Orb**: 600 fotogrammi di Morph dal pannello debug → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi.
+- **Orb**: 600 fotogrammi di Morph → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi. In Release il pannello debug non c'è: lanciato con `-orbFrameLog <file>`, Bubo scrive il tempo GPU di ogni fotogramma del Panel in quel file, una riga per fotogramma, e fa passare l'Orb da una Variante del Catalogo all'altra.
 - **Hang e hitch**: `XCTOSSignpostMetric` su `Apertura Sessione`, `Palette`, `Cambio vista`: nessun intervallo sul main thread oltre 100 ms. `XCTHitchMetric` durante le animazioni Notte: rapporto < 1%.
 - **CI**: una PR con un ritardo finto di 1,2 s all'avvio fallisce (oltre 2× di 500 ms); una con 600 ms passa con avviso nel report.
 - **`perf.sh`**: sull'M4 Max produce un report con una riga per ogni budget con CI *2×*, *invariante* o *perf.sh*.
