@@ -38,8 +38,13 @@ struct HUDView: View {
             Signposts.markHUDInteractive()
             guard !onboarding.isCompleted else { return }
             async let recents = Self.recentProjects()
-            onboarding.readiness = await Signposts.measure(.claudeDetection) { await ClaudeReadiness.detect() }
+            await onboarding.detectClaude()
             onboarding.show(await recents)
+            await watchClaude()
+        }
+        // Back from the Terminal: the login there leaves no other trace Bubo is allowed to read.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await onboarding.recheck() }
         }
         // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
         .task { await questions.refreshQuota() }
@@ -48,6 +53,15 @@ struct HUDView: View {
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
     private var showsOnboarding: Bool {
         !onboarding.isCompleted && sessions?.sessions.isEmpty == true
+    }
+
+    /// Checks `claude` again at each installation or login seen by FSEvents, until it is ready.
+    private func watchClaude() async {
+        guard onboarding.needsRemedy else { return }
+        for await _ in InstallWatcher().changes() {
+            await onboarding.recheck()
+            if !onboarding.needsRemedy { return }
+        }
     }
 
     /// The recent Progetti, read off the main thread.

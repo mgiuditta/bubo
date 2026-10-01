@@ -34,7 +34,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }()
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
-        let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false) { [weak self] question, project in
+        let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
+                                  moveToAPIKey: { [weak self] in self?.questions.moveToAPIKey() }) { [weak self] question, project in
             guard let sessions = self?.sessions else { throw CocoaError(.fileWriteUnknown) }
             let title = Session.proposedTitle(for: question)
             // In a folder not trusted yet `claude` loads only the user's settings (#266): no dialog in the onboarding.

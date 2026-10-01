@@ -96,6 +96,99 @@ struct OnboardingFlowTests {
         #expect(makeFlow(hasSessions: true).isCompleted)
     }
 
+    /// The answers of `claude` to each detection, in order; the last one repeats.
+    final class Detections {
+        var answers: [ClaudeReadiness]
+        var count = 0
+
+        init(_ answers: ClaudeReadiness...) {
+            self.answers = answers
+        }
+
+        func next() -> ClaudeReadiness {
+            defer { count += 1 }
+            return answers[min(count, answers.count - 1)]
+        }
+    }
+
+    func makeFlow(detections: Detections, starts: Starts, movedToAPIKey: Starts? = nil) -> OnboardingFlow {
+        OnboardingFlow(hasSessions: false, defaults: defaults, checkInterval: .zero,
+                       detect: { detections.next() },
+                       moveToAPIKey: { movedToAPIKey?.started.append(("", URL(filePath: "/"))) }) { question, project in
+            starts.started.append((question, project))
+        }
+    }
+
+    @Test func theQuestionWaitingStartsOnItsOwnOnceClaudeIsInstalledAndSignedIn() async {
+        let starts = Starts()
+        let detections = Detections(.missing, .signedOut(version: "2.1.286"), ready)
+        let flow = makeFlow(detections: detections, starts: starts)
+        flow.choose(project)
+        flow.draft = "Trova i TODO più vecchi"
+        flow.send()
+
+        await flow.detectClaude()
+        #expect(flow.needsRemedy)
+        await flow.recheck()
+        #expect(flow.readiness == .signedOut(version: "2.1.286"))
+        #expect(starts.started.isEmpty)
+        await flow.recheck()
+
+        #expect(!flow.needsRemedy)
+        #expect(starts.started.map(\.question) == ["Trova i TODO più vecchi"])
+    }
+
+    @Test func aReadyClaudeIsNotCheckedAgain() async {
+        let detections = Detections(ready)
+        let flow = makeFlow(detections: detections, starts: Starts())
+        await flow.detectClaude()
+        await flow.recheck()
+        #expect(detections.count == 1)
+    }
+
+    @Test func anOutdatedClaudeStaysARemedyUntilUpdated() async {
+        let detections = Detections(.outdated(version: "2.0.77"), .outdated(version: "2.0.77"), ready)
+        let flow = makeFlow(detections: detections, starts: Starts())
+        await flow.detectClaude()
+        await flow.recheck()
+        #expect(flow.readiness == .outdated(version: "2.0.77"))
+        await flow.recheck()
+        #expect(flow.isClaudeReady)
+    }
+
+    @Test func theAPIKeyStandsInForTheLogin() async {
+        let starts = Starts()
+        let moved = Starts()
+        let flow = makeFlow(detections: Detections(.signedOut(version: "2.1.286")), starts: starts, movedToAPIKey: moved)
+        flow.choose(project)
+        flow.draft = "Ciao"
+        flow.send()
+        await flow.detectClaude()
+
+        await flow.useAPIKey()
+
+        #expect(moved.started.count == 1)
+        #expect(flow.readiness == .ready(version: "2.1.286", method: "API key"))
+        #expect(starts.started.map(\.question) == ["Ciao"])
+    }
+
+    @Test func theAPIKeyWithoutClaudeStillNeedsTheInstallationButNotTheLogin() async {
+        let starts = Starts()
+        let flow = makeFlow(detections: Detections(.missing, .signedOut(version: "2.1.286")), starts: starts)
+        flow.choose(project)
+        flow.draft = "Ciao"
+        flow.send()
+        await flow.detectClaude()
+
+        await flow.useAPIKey()
+        #expect(flow.readiness == .missing)
+        #expect(starts.started.isEmpty)
+
+        await flow.recheck()
+        #expect(flow.readiness == .ready(version: "2.1.286", method: "API key"))
+        #expect(starts.started.count == 1)
+    }
+
     @Test func aQuitDuringTheFirstTurnKeepsTheOnboardingUntilItAnswers() {
         let flow = makeFlow()
         flow.draft = "Ciao"
