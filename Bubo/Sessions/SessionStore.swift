@@ -107,6 +107,13 @@ final class SessionStore {
     @ObservationIgnored var onTurnFailure: (_ session: UUID, _ error: any Error) -> Void = { _, _ in }
     /// The turns started by `start` and `restart`, which `restart` interrupts.
     @ObservationIgnored private var turnTasks: [UUID: Task<Void, Never>] = [:]
+    /// The version of `claude` when it is too old to start a turn, checked before each one (spec 27); `nil` lets it
+    /// start. By default nothing is checked here: the bridge still checks at `init`.
+    @ObservationIgnored var outdatedClaude: () async -> String? = { nil }
+    /// Called when a turn did not start because `claude` is too old, with its version if known.
+    @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
+    /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.
+    private(set) var awaitingClaudeUpdate: Set<UUID> = []
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -293,8 +300,8 @@ final class SessionStore {
         Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
     }
 
-    /// Riprova on a Sessione whose turn did not start because its Sandbox could not: the same turn again, with the
-    /// Sandbox as the Progetto has it now. Nothing for any other Sessione.
+    /// Riprova on a Sessione whose turn did not start, because its Sandbox could not or `claude` was too old: the same
+    /// turn again, with the Sandbox as the Progetto has it now. Nothing for any other Sessione.
     func retry(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
               session.activity == .errore, let prompt = session.unstartedPrompt
@@ -307,6 +314,13 @@ final class SessionStore {
             session.isInterrupted = false
         }
         Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+    }
+
+    /// Starts again the turns that waited for `claude` to be updated, now that it is ready: no click needed.
+    func startTurnsAwaitingUpdate() {
+        let waiting = awaitingClaudeUpdate
+        awaitingClaudeUpdate = []
+        for id in waiting { retry(id) }
     }
 
     /// Riprendi on an Archiviata Sessione: Aperta again, its copy prepared again on its branch, or on a new one when
@@ -629,6 +643,8 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         let environment = session.portEnvironment
         do {
+            // Before the copy and the prompt: a `claude` too old starts nothing.
+            if let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
             let workspace: Workspace
             if let prepared = session.workspace {
                 workspace = prepared
@@ -705,9 +721,10 @@ final class SessionStore {
             onTurnFailure(id, error)
             update(id) { session in
                 session.enter(.errore)
-                if case AgentBridgeError.sandboxUnavailable = error {
+                switch error {
+                case AgentBridgeError.sandboxUnavailable, AgentBridgeError.claudeOutdated:
                     session.unstartedPrompt = prompt
-                } else {
+                default:
                     session.unstartedPrompt = nil
                 }
                 session.failure = switch error {
@@ -719,9 +736,17 @@ final class SessionStore {
                 case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
                 case let AgentBridgeError.sandboxUnavailable(reason):
                     String(localized: "Sandbox non disponibile: \(reason). La Sessione non è partita.")
+                case let AgentBridgeError.claudeOutdated(version?):
+                    String(localized: "Claude Code \(version) è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
+                case AgentBridgeError.claudeOutdated:
+                    String(localized: "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
+            }
+            if case let AgentBridgeError.claudeOutdated(version) = error {
+                awaitingClaudeUpdate.insert(id)
+                onClaudeOutdated(version)
             }
             return false
         }

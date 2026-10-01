@@ -54,6 +54,9 @@ targets:
       - path: Bubo/Resources/Fonts
         type: folder
         buildPhase: resources
+      # La minima di claude, la stessa che legge il ponte (spec 27): ClaudeCompatibility la legge dal bundle.
+      - path: bridge/compat.json
+        buildPhase: resources
     dependencies:
       - package: SwiftTerm
       - package: MLXSwiftLM
@@ -105,6 +108,7 @@ targets:
           codesign --force --options runtime --entitlements entitlements.plist --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$helper"
         inputFiles:
           - $(SRCROOT)/bridge/src/main.ts
+          - $(SRCROOT)/bridge/compat.json
           - $(SRCROOT)/bridge/package.json
           - $(SRCROOT)/bridge/bun.lock
           - $(SRCROOT)/bridge/entitlements.plist

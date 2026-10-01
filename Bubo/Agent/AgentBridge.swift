@@ -19,6 +19,8 @@ enum AgentBridgeError: Error, Equatable {
     case signInRequired
     /// The Sandbox could not start, for this reason as `claude` wrote it: nothing ran.
     case sandboxUnavailable(reason: String)
+    /// `claude` is too old: nothing ran. `version` is `nil` when `claude` did not say it.
+    case claudeOutdated(version: String?)
 }
 
 /// What a conversation asks of the user while it waits.
@@ -77,6 +79,8 @@ final class AgentBridge {
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
     private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
+    /// The `claude` of the latest conversation, from its `init`: it changes when `claude` updates with Bubo open.
+    private(set) var claude: (version: String, capabilities: Set<ClaudeCapability>)?
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///
@@ -362,6 +366,10 @@ final class AgentBridge {
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .sandboxUnavailable(id, reason):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.sandboxUnavailable(reason: reason))
+        case let .claude(_, version, capabilities):
+            claude = (version, capabilities)
+        case let .outdated(id, version):
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.claudeOutdated(version: version))
         case let .search(id, query, project, source, conversation):
             Task {
                 let text = await search(query, project, source)

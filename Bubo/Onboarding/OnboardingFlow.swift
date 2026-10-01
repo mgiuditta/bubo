@@ -28,12 +28,16 @@ final class OnboardingFlow {
     /// The recent Progetti offered; empty until loaded.
     private(set) var recents: [RecentProject] = []
     /// The `claude` that will answer; `nil` while detecting. Signed out counts as ready once the user chose the API key.
+    /// After the onboarding it stays `nil` until a Sessione finds `claude` too old (spec 27).
     var readiness: ClaudeReadiness? {
         didSet {
             if usesAPIKey, case let .signedOut(version) = readiness { readiness = .ready(version: version, method: "API key") }
             startIfReady()
+            if case .ready = readiness, oldValue != readiness { onClaudeReady() }
         }
     }
+    /// Called each time `claude` becomes ready: the Sessioni waiting for it start.
+    @ObservationIgnored var onClaudeReady: () -> Void = {}
     /// Whether the user chose to answer with the API key, until Bubo quits.
     private(set) var usesAPIKey = false
     /// What the user is typing in the input bar.

@@ -152,6 +152,11 @@ enum BridgeEvent: Equatable, Decodable {
     case signInRequired(id: String)
     /// The conversation `id` did not start: its Sandbox could not, for `reason`, as `claude` wrote it.
     case sandboxUnavailable(id: String, reason: String)
+    /// The `claude` of the conversation `id`, from its `init`: its version and the capabilities Bubo knows.
+    case claude(id: String, version: String, capabilities: Set<ClaudeCapability>)
+    /// The conversation `id` stopped before the model's turn: its `claude` is older than the minimum, or than the one
+    /// Anthropic requires; `version` is `nil` when `claude` did not say it.
+    case outdated(id: String, version: String?)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` and only in `source`
     /// when given. `conversation` is the answer that called it, for its line Richiamato.
     case search(id: String, query: String, project: String?, source: SearchSource? = nil, conversation: String? = nil)
@@ -188,7 +193,7 @@ enum BridgeEvent: Equatable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
-             rules, conversation, before, after, mode, memories, files, status, noResponse
+             rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities
     }
 
     init(from decoder: any Decoder) throws {
@@ -245,6 +250,12 @@ enum BridgeEvent: Equatable, Decodable {
         case "signInRequired": self = .signInRequired(id: try container.decode(String.self, forKey: .id))
         case "sandboxUnavailable": self = .sandboxUnavailable(id: try container.decode(String.self, forKey: .id),
                                                               reason: try container.decode(String.self, forKey: .reason))
+        case "claude": self = .claude(id: try container.decode(String.self, forKey: .id),
+                                      version: try container.decode(String.self, forKey: .version),
+                                      capabilities: ClaudeCapability.known(
+                                          in: try container.decodeIfPresent([String].self, forKey: .capabilities)))
+        case "outdated": self = .outdated(id: try container.decode(String.self, forKey: .id),
+                                          version: try container.decodeIfPresent(String.self, forKey: .version))
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
                                       project: try container.decodeIfPresent(String.self, forKey: .project),

@@ -1482,6 +1482,16 @@
         }
       }
     },
+    "Bubo avvia le Sessioni in attesa appena Claude Code è aggiornato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo starts the waiting Sessions as soon as Claude Code is updated."
+          }
+        }
+      }
+    },
     "Bubo ha scritto il comando qui sotto. Premi Invio per eseguirlo, oppure chiudi la finestra." : {
       "localizations" : {
         "en" : {
@@ -1892,6 +1902,16 @@
         }
       }
     },
+    "Claude Code %@ è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code %@ is too old for Bubo. Update it and the Session starts on its own."
+          }
+        }
+      }
+    },
     "Claude Code cancella le conversazioni dopo 30 giorni; Bubo ne conserva una copia. Quella di una Sessione se ne va quando la elimini." : {
       "localizations" : {
         "en" : {
@@ -1948,6 +1968,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code is installed, but you haven't signed in yet. Sign in from Terminal: Bubo notices on its own."
+          }
+        }
+      }
+    },
+    "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code is too old for Bubo. Update it and the Session starts on its own."
           }
         }
       }
@@ -5978,6 +6008,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When Claude should use it"
+          }
+        }
+      }
+    },
+    "Questa versione di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of Claude Code is too old for Bubo. Update it from Terminal."
+          }
+        }
+      }
+    },
+    "Questa versione è troppo vecchia per Bubo. Aggiornala nel Terminale, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version is too old for Bubo. Update it from Terminal, then try again."
           }
         }
       }

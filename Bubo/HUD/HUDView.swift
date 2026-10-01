@@ -43,8 +43,9 @@ struct HUDView: View {
             // The sequence finds `claude` during onboarding, after the bridge.
             await launching.value
             onboarding.show(await recents)
-            await watchClaude()
         }
+        // Each time `claude` needs a remedy: during the onboarding, or when a Sessione finds it too old (spec 27).
+        .task(id: onboarding.needsRemedy) { await watchClaude() }
         // Back from the Terminal: the login there leaves no other trace Bubo is allowed to read.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             Task { await onboarding.recheck() }
@@ -119,9 +120,10 @@ struct HUDView: View {
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {
-                // The first Sessione did not answer: the remedy stays until the first token.
-                if onboarding.problem != nil && !onboarding.isCompleted {
-                    FixCard(flow: onboarding)
+                // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
+                // the first token, or until `claude` is ready.
+                if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
+                    FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
                         .padding(.bottom, Spacing.small)
                 }
                 QuestionView(model: questions)

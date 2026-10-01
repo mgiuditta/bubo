@@ -96,6 +96,9 @@ struct QuestionView: View {
         case .bridge(.unsupportedVersion):
             ErrorNotice("Il collegamento con Claude non è aggiornato", remedy: "Reinstalla Bubo, poi riprova.",
                         actionTitle: "Riprova", action: model.retry)
+        case .bridge(.claudeOutdated):
+            ErrorNotice("Aggiorna Claude Code", remedy: "Questa versione è troppo vecchia per Bubo. Aggiornala nel Terminale, poi riprova.",
+                        actionTitle: "Riprova", action: model.retry)
         case .bridge(.limitReached(let limit)):
             LimitNotice(limit: limit, resume: model.resumeAfterReset,
                         switchModel: { model.retry(model: limit.otherModel) },
