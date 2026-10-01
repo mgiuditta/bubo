@@ -20,10 +20,16 @@ nonisolated enum RemedyCommand {
 
     /// Updates `claude`, installed at `installation` once its links are followed.
     ///
-    /// `claude update` does not update a Homebrew cask, so a `claude` in a `Caskroom` is upgraded with that cask.
-    // ponytail: until spec 27 (#225) chooses the command with ClaudeCompatibility.
+    /// `claude update` updates only the native installation: a `claude` in a `Caskroom` is upgraded with its cask,
+    /// one in npm's global `node_modules` with npm, never `npm update -g`. npm runs with its own folder first on the
+    /// `PATH`, where its `node` is.
     static func update(claude: URL, installation: URL) -> String {
         let components = installation.pathComponents
+        if let modules = components.firstIndex(of: "node_modules"), modules >= 2, components[modules - 1] == "lib",
+           components.dropFirst(modules + 1).starts(with: ["@anthropic-ai", "claude-code"]) {
+            let bin = URL(filePath: NSString.path(withComponents: Array(components[..<(modules - 1)]))).appending(path: "bin")
+            return "PATH=\(quoted(bin.path)):\"$PATH\" \(quoted(bin.appending(path: "npm").path)) install -g @anthropic-ai/claude-code@latest"
+        }
         if let caskroom = components.firstIndex(of: "Caskroom"), caskroom + 1 < components.count {
             let brew = URL(filePath: NSString.path(withComponents: Array(components[..<caskroom]))).appending(path: "bin/brew")
             return "\(quoted(brew.path)) upgrade \(quoted(components[caskroom + 1]))"

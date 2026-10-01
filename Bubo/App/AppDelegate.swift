@@ -47,6 +47,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         sessions?.onFirstToken = { [weak flow] in flow?.receiveFirstToken() }
         sessions?.onTurnFailure = { [weak flow] session, error in flow?.receiveFailure(error, in: session) }
+        // A `claude` too old stops the Sessione before its prompt and shows the remedy; once updated, it starts.
+        sessions?.outdatedClaude = { await ClaudeReadiness.outdatedVersion() }
+        sessions?.onClaudeOutdated = { [weak flow] version in flow?.readiness = .outdated(version: version ?? "") }
+        flow.onClaudeReady = { [weak self] in self?.sessions?.startTurnsAwaitingUpdate() }
         return flow
     }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.

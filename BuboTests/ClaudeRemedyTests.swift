@@ -60,6 +60,17 @@ struct ClaudeRemedyTests {
         #expect(RemedyCommand.update(claude: claude, installation: URL(filePath: installation)) == command)
     }
 
+    @Test(arguments: [
+        ("/opt/homebrew/bin/claude", "/opt/homebrew/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe",
+         "PATH=/opt/homebrew/bin:\"$PATH\" /opt/homebrew/bin/npm install -g @anthropic-ai/claude-code@latest"),
+        ("/Users/Ada Rossi/.npm-global/bin/claude",
+         "/Users/Ada Rossi/.npm-global/lib/node_modules/@anthropic-ai/claude-code/bin/claude.exe",
+         "PATH='/Users/Ada Rossi/.npm-global/bin':\"$PATH\" '/Users/Ada Rossi/.npm-global/bin/npm' install -g @anthropic-ai/claude-code@latest"),
+    ])
+    func anNPMClaudeIsInstalledAgainAtTheLatest(claude: String, installation: String, command: String) {
+        #expect(RemedyCommand.update(claude: URL(filePath: claude), installation: URL(filePath: installation)) == command)
+    }
+
     // MARK: Watched folders
 
     @Test func theHomeFolderCoversEveryInstallationUnderItAndMissingSystemFoldersAreNotWatched() {
@@ -116,6 +127,55 @@ struct ClaudeRemedyTests {
         }
         return await ClaudeReadiness.detect(locator: locator(shell: shell),
                                             runner: .live(environment: ["PATH": "/usr/bin:/bin"]))
+    }
+
+    /// The version check before a Sessione's prompt, on `home` as `detect()`.
+    func outdatedVersion() async -> String? {
+        _ = await detect()
+        return await ClaudeReadiness.outdatedVersion(locator: locator(shell: home.appending(path: "login-shell")),
+                                                     runner: .live(environment: ["PATH": "/usr/bin:/bin"]))
+    }
+
+    @Test func onlyAClaudeBelowTheMinimumStopsASessione() async throws {
+        #expect(await outdatedVersion() == nil)
+        try installClaude(version: "2.1.274", signedIn: true)
+        #expect(await outdatedVersion() == "2.1.274")
+        try installClaude(version: "2.1.275", signedIn: false)
+        #expect(await outdatedVersion() == nil)
+    }
+
+    @Test func aSessioneHeldByAnOldClaudeStartsOnItsOwnAfterTheUpdate() async throws {
+        try installClaude(version: "2.1.274", signedIn: true)
+        let log = home.appending(path: "bridge.log")
+        let bridge = ClaudeCompatibilityTests.agingBridge(log: log, oldTurns: 0)
+        let defaults = try #require(UserDefaults(suiteName: "ClaudeRemedyTests-\(UUID().uuidString)"))
+        let flow = OnboardingFlow(hasSessions: true, defaults: defaults, detect: { await detect() }) { _, _ in UUID() }
+        let store = SessionStore(file: home.appending(path: "Sessioni.json"), worktrees: WorktreeManager(root: home)) {
+            bridge
+        }
+        // As AppDelegate wires them.
+        store.outdatedClaude = { await outdatedVersion() }
+        store.onClaudeOutdated = { version in flow.readiness = .outdated(version: version ?? "") }
+        flow.onClaudeReady = { store.startTurnsAwaitingUpdate() }
+
+        try store.start("Trova i TODO", title: "Prova", branch: "", in: home, onCheckout: true)
+        try await SessionTests.wait { flow.needsRemedy }
+        #expect(flow.readiness == .outdated(version: "2.1.274"))
+        #expect(store.sessions.first?.activity == .errore)
+
+        let changes = watcher().changes()
+        try await Task.sleep(for: .milliseconds(300))
+        try installClaude(version: "2.1.286", signedIn: true)
+        for await _ in changes {
+            await flow.recheck()
+            if !flow.needsRemedy { break }
+        }
+        try await SessionTests.wait { store.sessions.first?.activity == .ferma }
+
+        #expect(store.sessions.first?.activity == .ferma)
+        let asks = ClaudeCompatibilityTests.asks(in: log)
+        #expect(asks.count == 1)
+        #expect(asks.first?.contains(#""prompt":"Trova i TODO""#) == true)
     }
 
     @Test func eachStateOfAFakeClaudeIsDetected() async throws {

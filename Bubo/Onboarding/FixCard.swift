@@ -1,19 +1,24 @@
 import AppKit
 import SwiftUI
 
-/// The remedy under the Orb when `claude` is not ready (spec 26): missing, signed out or outdated; or when the first
-/// Sessione did not answer: a refused credential, no network, no first token in time.
+/// The remedy under the Orb when `claude` is not ready (spec 26): missing, signed out or outdated, also when a
+/// Sessione finds it too old after the onboarding (spec 27); or when the first Sessione did not answer: a refused
+/// credential, no network, no first token in time.
 ///
 /// Never a window or a sheet. The Terminal opens on a `.command` file, with no Apple Events; the API key goes in a
 /// secure field here, into the keychain. The question waiting stays, and starts on its own once `claude` is ready.
 struct FixCard: View {
     let flow: OnboardingFlow
+    /// Whether Sessioni wait for `claude` to be updated, and start on their own once it is.
+    var holdsSessions = false
     @State private var isEnteringKey = false
     @State private var key = ""
     /// Whether a key is already in the keychain; `nil` until read.
     @State private var hasSavedKey: Bool?
     /// Why the last action failed, if it did. Never contains the key.
     @State private var failure: String?
+    /// The command that updates the `claude` Bubo found; `nil` until found, or when it is not outdated.
+    @State private var updateCommand: String?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -26,13 +31,9 @@ struct FixCard: View {
                 .foregroundStyle(Palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             if flow.readiness == .missing {
-                Text(verbatim: RemedyCommand.install)
-                    .font(Typography.mono(size: 12))
-                    .foregroundStyle(Palette.textPrimary)
-                    .textSelection(.enabled)
-                    .padding(Spacing.xSmall)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Palette.ink, in: .rect(cornerRadius: CornerRadius.medium))
+                command(RemedyCommand.install)
+            } else if isOutdated, let updateCommand {
+                command(updateCommand)
             }
             actions
             if isEnteringKey { keyField }
@@ -46,6 +47,20 @@ struct FixCard: View {
         .accessibilityIdentifier("onboarding.fixCard")
         .onAppear { AccessibilityNotification.Announcement(title).post() }
         .onChange(of: title) { _, title in AccessibilityNotification.Announcement(title).post() }
+        .task(id: flow.readiness) {
+            guard isOutdated, let claude = await ClaudeLocator().executableURL() else { return }
+            updateCommand = RemedyCommand.update(claude: claude, installation: claude.resolvingSymlinksInPath())
+        }
+    }
+
+    private func command(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(Typography.mono(size: 12))
+            .foregroundStyle(Palette.textPrimary)
+            .textSelection(.enabled)
+            .padding(Spacing.xSmall)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Palette.ink, in: .rect(cornerRadius: CornerRadius.medium))
     }
 
     private var title: String {
@@ -84,6 +99,8 @@ struct FixCard: View {
         return switch flow.readiness {
         case .signedOut:
             String(localized: "Claude Code è installato ma non hai ancora fatto l'accesso. Accedi nel Terminale: Bubo se ne accorge da solo.")
+        case .outdated(""):
+            String(localized: "Questa versione di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale.")
         case let .outdated(version):
             String(localized: "La versione \(version) di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale.")
         default:
@@ -189,6 +206,11 @@ struct FixCard: View {
         }
         if flow.usesAPIKey && flow.readiness == .missing {
             Text("La API key è salvata, ma serve comunque Claude Code.")
+                .font(Typography.body(size: 12))
+                .foregroundStyle(Palette.textSecondary)
+        }
+        if holdsSessions {
+            Text("Bubo avvia le Sessioni in attesa appena Claude Code è aggiornato.")
                 .font(Typography.body(size: 12))
                 .foregroundStyle(Palette.textSecondary)
         }

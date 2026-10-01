@@ -10,6 +10,7 @@ import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { turnFailure, type TurnFailure } from "./failure";
+import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
@@ -61,6 +62,8 @@ type Event =
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
+  | ({ type: "claude"; id: string } & ClaudeInfo)
+  | { type: "outdated"; id: string; version?: string }
   | { type: "search"; id: string; query: string; project?: string; source?: string; conversation: string }
   | (PreviewCall & { id: string })
   | { type: "remember"; id: string; title: string; text: string }
@@ -332,10 +335,24 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   const torn = new Set<string>();
   // Le cifre del turno: abbonamento o API key secondo la credenziale che `claude` dice di usare.
   let usage: UsageReader | undefined;
+  // La versione di un `claude` troppo vecchio, vuota se non si sa.
+  let outdated: string | undefined;
   try {
     for await (const message of conversation) {
       if (message.type === "system" && message.subtype === "init") {
         usage ??= new UsageReader(message.apiKeySource === "none" ? "subscription" : "apiKey", restored);
+      }
+      // A ogni `init` il `claude` di questa Conversazione: si aggiorna anche con Bubo aperto. Sotto la minima di
+      // Bubo, o rifiutato da Anthropic, la Conversazione si chiude prima del turno del modello.
+      const claude = claudeInfo(message);
+      if (claude) send({ type: "claude", id, ...claude });
+      if (claude && isBelowMinimum(claude.version)) {
+        outdated = claude.version;
+        break;
+      }
+      if (isTooOldForAnthropic(message)) {
+        outdated = "";
+        break;
       }
       const turn = usage?.read(message);
       if (turn) send({ type: "usage", id, ...turn });
@@ -366,8 +383,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
                     ...turnFailure(failure, retry) });
       }
     }
+    if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
-    if (succeeded) send({ type: "done", id });
+    else if (succeeded) send({ type: "done", id });
   } catch (error) {
     // Interrotto senza un `result` valido: i token visti finora, con la cifra segnata incompleta.
     const turn = usage?.turn();
@@ -376,6 +394,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     if (reason) send({ type: "sandboxUnavailable", id, reason });
     else send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {
+    if (outdated !== undefined) conversation.close();
     stopped.abort();
     running.delete(id);
     for (const session of torn) await repair(session);
