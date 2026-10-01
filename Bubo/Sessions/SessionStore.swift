@@ -12,6 +12,11 @@ final class SessionStore {
     private(set) var undoDeadlines: [UUID: Date] = [:]
     /// Whether the turn in progress of each Sessione runs in the Sandbox, from when its `claude` is asked.
     private(set) var sandboxedTurns: [UUID: Bool] = [:]
+    /// What the Sandbox stopped in the latest turn of each Sessione, oldest first, one line each.
+    private(set) var sandboxBlocks: [UUID: [SandboxBlock]] = [:]
+
+    /// The most blocks kept per Sessione: the latest ones.
+    static let sandboxBlockLimit = 20
 
     /// How long Annulla merge is offered after Fondi.
     static let undoWindow = Duration.seconds(10)
@@ -129,6 +134,11 @@ final class SessionStore {
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
     func configuration(of project: URL) async throws -> ClaudeConfiguration {
         try await configurationSpare.configuration(of: project) { try await bridge().configuration(of: $0) }
+    }
+
+    /// The Regole di permesso of `claude` in `project` that widen its Sandbox.
+    func sandboxRules(of project: URL) async throws -> [SandboxWideningRule] {
+        try await bridge().sandboxRules(in: project)
     }
 
     /// The Cronologia CLI, most recent first: the 50 most recent, or all of it when `isComplete`.
@@ -515,6 +525,7 @@ final class SessionStore {
         undoDeadlines[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
+        sandboxBlocks[id] = nil
         previews.close(id)
         Task { await terminals.closeAll(of: id) }
         save()
@@ -581,6 +592,7 @@ final class SessionStore {
             let permissionMode = sessions.first { $0.id == id }?.permissionMode ?? .manual
             turns[id] = agent
             sandboxedTurns[id] = isSandboxed
+            sandboxBlocks[id] = nil
             previewOffers[id] = (answerID, hasServer)
             defer {
                 turns[id] = nil
@@ -593,12 +605,13 @@ final class SessionStore {
             update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
                                    forkingFrom: session.forkedFrom, keeping: conversation,
-                                   isSandboxed: isSandboxed, permissionMode: permissionMode, id: answerID,
+                                   isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
+                                   permissionMode: permissionMode, id: answerID,
                                    offersPreview: hasServer) { [weak self] progress in
-                if progress == .ranCommand {
-                    self?.servers.notice()
-                } else {
-                    self?.update(id) { $0.apply(progress) }
+                switch progress {
+                case .ranCommand: self?.servers.notice()
+                case let .sandboxBlock(block): self?.record(block, in: id)
+                default: self?.update(id) { $0.apply(progress) }
                 }
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
@@ -650,8 +663,10 @@ final class SessionStore {
 
     /// Answers the Richiesta di permesso `request` of the Sessione `id`; nothing if `claude` no longer waits for it.
     func answer(_ request: PermissionRequest.ID, in id: UUID, with answer: PermissionAnswer) {
+        let isLasting = (answer == .allowForSession || answer == .allowInProject)
+            && permissions.pending(request, in: id)?.allowsSessionRule == true
         guard let allows = permissions.answer(request, in: id, with: answer) else { return }
-        turns[id]?.answerPermission(request, allows: allows)
+        turns[id]?.answerPermission(request, allows: allows, isLasting: isLasting)
         followActivity()
     }
 
@@ -680,6 +695,25 @@ final class SessionStore {
         answer(request, in: id, with: .allowInProject)
     }
 
+    /// Answers Sempre in questo Progetto to a Richiesta "Rete: host": adds its host to the Sandbox of the Progetto of the
+    /// Sessione `id`, in Bubo's store and never in the settings, then allows the call for the rest of the Sessione.
+    /// Nothing if `claude` no longer waits for it or it is not such a Richiesta.
+    func allowDomainInProject(_ request: PermissionRequest.ID, in id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }),
+              let domain = permissions.pending(request, in: id)?.projectDomain
+        else { return }
+        sandbox.allow(domain, in: session.project)
+        answer(request, in: id, with: .allowInProject)
+    }
+
+    /// Keeps `block` among the latest of the Sessione `id`, once.
+    private func record(_ block: SandboxBlock, in id: UUID) {
+        var blocks = sandboxBlocks[id] ?? []
+        blocks.removeAll { $0 == block }
+        blocks.append(block)
+        sandboxBlocks[id] = Array(blocks.suffix(Self.sandboxBlockLimit))
+    }
+
     /// Queues a Richiesta di permesso of the Sessione `id`, or answers it at once: no to a critical path,
     /// yes to what the user already allowed "Per questa Sessione".
     private func receive(_ event: PermissionEvent, in id: UUID, from bridge: AgentBridge, classifier: RiskClassifier) {
@@ -690,7 +724,7 @@ final class SessionStore {
                 Logger.sessions.notice("Critical path refused: \(request.tool, privacy: .public)")
                 bridge.answerPermission(request.id, allows: false)
             case .allowed:
-                bridge.answerPermission(request.id, allows: true)
+                bridge.answerPermission(request.id, allows: true, isLasting: true)
             case .queued:
                 break
             }

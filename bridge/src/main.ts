@@ -10,10 +10,12 @@ import { edits, progress, type Edit, type Progress } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
-import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
+import { sandboxRules, type SandboxRule } from "./sandboxRules";
+import { blockedLine, blocksOf, type SandboxBlock } from "./violations";
 import { settingSources } from "./settingSources";
 import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore } from "./store";
@@ -36,7 +38,8 @@ type Command =
   | { v: number; type: "keep"; id: string }
   | { v: number; type: "forget"; conversations?: unknown }
   | { v: number; type: "forgetHistory"; id: string }
-  | { v: number; type: "permission"; request: string; behavior?: unknown }
+  | { v: number; type: "permission"; request: string; behavior?: unknown; scope?: unknown }
+  | { v: number; type: "sandboxRules"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "previewServer"; id: string; available?: unknown }
   | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown }
   | { v: number; type: "risk"; request: string; dangerous?: unknown };
@@ -63,6 +66,8 @@ type Event =
   | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
+  | (SandboxBlock & { type: "sandboxBlock"; id: string })
+  | { type: "sandboxRules"; id: string; rules: SandboxRule[] }
   | (RiskQuestion & { type: "risk"; id: string; request: string })
   | ({ type: "usage"; id: string } & TurnUsage);
 
@@ -70,12 +75,17 @@ function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
 }
 
-// Le Richieste di permesso in attesa della risposta di Bubo: si risolvono una volta sola, con `true` solo per "allow".
-const permissions = new Map<string, (allowed: boolean) => void>();
+// La risposta di Bubo a una Richiesta: `lasting` quando vale per il resto della Sessione.
+type Answer = { allowed: boolean; lasting: boolean };
+const denied: Answer = { allowed: false, lasting: false };
+
+// Le Richieste di permesso in attesa della risposta di Bubo: si risolvono una volta sola, approvate solo con "allow".
+const permissions = new Map<string, (answer: Answer) => void>();
 
 // `canUseTool` della conversazione `id`. Chiude sempre su "no": se Bubo non si raggiunge, se la CLI ritira la
 // Richiesta, se la risposta non è "allow". Se Bubo esce, stdin si chiude e il ponte esce senza approvare nulla.
 // Con la Sandbox accesa, un Bash che chiede di uscirne arriva a Bubo segnato "fuori dalla sandbox".
+// Un host fuori dai domini della Sandbox approvato per la Sessione porta con sé `WebFetch(domain:host)` di sessione.
 function askBubo(id: string, isSandboxed: boolean): CanUseTool {
   return async (toolName, input, options) => {
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
@@ -85,21 +95,22 @@ function askBubo(id: string, isSandboxed: boolean): CanUseTool {
     if (isSandboxed && isOutsideSandbox(toolName, input)) shown.outsideSandbox = true;
     if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
     let reached = true;
-    const allowed = await new Promise<boolean>((resolve) => {
+    const answer = await new Promise<Answer>((resolve) => {
       permissions.set(request, resolve);
       options.signal.addEventListener("abort", () => {
-        resolve(false);
+        resolve(denied);
         if (permissions.delete(request)) send({ type: "permissionWithdrawn", id, request });
       }, { once: true });
       try {
         send({ ...shown, id });
       } catch {
         reached = false;
-        resolve(false);
+        resolve(denied);
       }
     });
     permissions.delete(request);
-    return permissionResult(allowed, input, reached ? undefined : deniedWithoutBubo);
+    const rule = answer.lasting && toolName === networkTool ? networkRule(input.host) : undefined;
+    return permissionResult(answer.allowed, input, reached ? undefined : deniedWithoutBubo, rule && [rule]);
   };
 }
 
@@ -196,9 +207,16 @@ function buboTools(remembers: boolean) {
 // Le chiamate agli strumenti dell'Anteprima, in attesa di `PreviewDriver`.
 const previewCalls = new PreviewCalls((id, call) => send({ ...call, id }));
 
-// L'hook che dice a Bubo della fine di un Bash della conversazione `id`.
-function ranBash(id: string): HookCallbackMatcher {
-  return { matcher: "Bash", hooks: [async () => { send({ type: "ran", id }); return {}; }] };
+// L'hook che dice a Bubo della fine di un Bash della conversazione `id`. Con la Sandbox accesa, ogni blocco del
+// comando va a Bubo e, come riga "Bloccato dalla sandbox: …", anche all'agente.
+function ranBash(id: string, isSandboxed: boolean): HookCallbackMatcher {
+  return { matcher: "Bash", hooks: [async (input) => {
+    send({ type: "ran", id });
+    const blocks = isSandboxed ? blocksOf(input) : [];
+    for (const block of blocks) send({ type: "sandboxBlock", id, ...block });
+    if (!blocks.length || (input.hook_event_name !== "PostToolUse" && input.hook_event_name !== "PostToolUseFailure")) return {};
+    return { hookSpecificOutput: { hookEventName: input.hook_event_name, additionalContext: blocks.map(blockedLine).join("\n") } };
+  }] };
 }
 
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
@@ -251,7 +269,11 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       canUseTool: askBubo(id, sandbox !== undefined),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
-      hooks: { PreToolUse: [{ hooks: [gate] }], PostToolUse: [ranBash(id)], PostToolUseFailure: [ranBash(id)] },
+      hooks: {
+        PreToolUse: [{ hooks: [gate] }],
+        PostToolUse: [ranBash(id, sandbox !== undefined)],
+        PostToolUseFailure: [ranBash(id, sandbox !== undefined)],
+      },
     },
   });
   running.set(id, conversation);
@@ -464,6 +486,22 @@ async function readConfiguration(conversation: Query, loaded: Instructions[], cl
   return undefined;
 }
 
+// Le Regole di permesso di `claude` in `cwd` che allargano la Sandbox, con le stesse fonti di una Sessione lì.
+// Come la Quota: `claude` parte, risponde sul canale di controllo e si chiude prima di ogni turno.
+async function readSandboxRules(id: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
+  const conversation = query({
+    prompt: (async function* () { await new Promise(() => {}); })(),
+    options: { cwd, projectConfigRoot, env: childEnv, pathToClaudeCodeExecutable: claudePath, settingSources: sources, persistSession: false },
+  });
+  try {
+    send({ type: "sandboxRules", id, rules: await sandboxRules(conversation) });
+  } catch (error) {
+    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+  } finally {
+    conversation.close();
+  }
+}
+
 // La Cronologia CLI come `/resume` della CLI: solo le conversazioni interattive, le più recenti prima.
 // Senza `all`, la prima pagina; la ricerca le chiede tutte.
 async function history(id: string, all: boolean) {
@@ -558,7 +596,16 @@ lines.on("line", (line) => {
     }
     case "previewResult": previewCalls.answer(command.call, command); break;
     case "risk": risks.get(command.request)?.(command.dangerous !== false); risks.delete(command.request); break;
-    case "permission": permissions.get(command.request)?.(isAllowed(command.behavior)); permissions.delete(command.request); break;
+    case "permission":
+      permissions.get(command.request)?.({ allowed: isAllowed(command.behavior), lasting: isLasting(command.scope) });
+      permissions.delete(command.request);
+      break;
+    case "sandboxRules": {
+      const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
+        ? command.projectConfigRoot : undefined;
+      void readSandboxRules(command.id, command.cwd, settingSources(command.settingSources), root);
+      break;
+    }
   }
 });
 // stdin chiuso: Bubo è uscito o ha chiuso il ponte.

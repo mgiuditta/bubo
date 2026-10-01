@@ -92,12 +92,13 @@ final class AgentBridge {
     ///     `nil` writes nothing of it.
     ///   - isSandboxed: Whether the commands of `claude` run in the Sandbox; if it cannot start, neither does the
     ///     conversation, with `AgentBridgeError.sandboxUnavailable`.
+    ///   - sandboxAllowances: The hosts and folders the Sandbox also reaches, beyond the preset.
     ///   - id: The answer's id, to offer it the Anteprima later with ``offerPreview(_:to:)``.
     ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
     ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
     ///   - permissionMode: How `claude` approves the calls; `nil` lets `claude` pick.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
-    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
+    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
@@ -106,8 +107,8 @@ final class AgentBridge {
     ///     Sandbox or the Modalità autonoma would let it run; `nil` counts every call as dangerous.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
-             permissionMode: PermissionMode? = nil, id: String = UUID().uuidString, offersPreview: Bool = false,
-             remembers: Bool = false,
+             sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
+             id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -133,7 +134,7 @@ final class AgentBridge {
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
                                             model: model, environment: environment, resuming: conversation,
                                             keeping: kept,
-                                            sandbox: isSandboxed ? sandbox(for: environment) : nil,
+                                            sandbox: isSandboxed ? sandbox(for: environment, allowances: sandboxAllowances) : nil,
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
                                             remembers: remembers, permissionMode: permissionMode)
@@ -147,9 +148,9 @@ final class AgentBridge {
         return answer
     }
 
-    /// The Sandbox of a `claude` that gets the bridge's environment and `environment`.
-    private func sandbox(for environment: [String: String]) -> SandboxPolicy {
-        SandboxPolicy(environment: self.environment.merging(environment) { $1 })
+    /// The Sandbox of a `claude` that gets the bridge's environment and `environment`, reaching also `allowances`.
+    private func sandbox(for environment: [String: String], allowances: SandboxAllowances) -> SandboxPolicy {
+        SandboxPolicy(environment: self.environment.merging(environment) { $1 }, allowances: allowances)
     }
 
     /// The configuration `claude` loads in `directory`: CLAUDE.md, skills, plugins and MCP servers, as it reports them.
@@ -187,6 +188,20 @@ final class AgentBridge {
     /// Where `claude` reads the Progetto's settings for `directory`: the main checkout when it is a worktree.
     private static func projectConfigRoot(of directory: URL) -> URL? {
         TrustGate.mainCheckout(ofWorktree: directory).map { URL(filePath: $0, directoryHint: .isDirectory) }
+    }
+
+    /// The Regole di permesso of `claude` in `directory` that widen the Sandbox, with the same settings as a Sessione
+    /// there. `claude` answers on its control channel, so no turn of the model and no Quota spent.
+    func sandboxRules(in directory: URL) async throws -> [SandboxWideningRule] {
+        let id = UUID().uuidString
+        let command = BridgeCommand.readSandboxRules(id: id, directory: directory,
+                                                     settingSources: trustGate.settingSources(for: directory),
+                                                     projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
+                                                         .map { URL(filePath: $0, directoryHint: .isDirectory) })
+        guard case let .sandboxRules(_, rules) = try await request(command, id: id) else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+        return rules
     }
 
     /// The Cronologia CLI, most recent first, as the SDK lists it: only what the user ran in a terminal.
@@ -247,10 +262,12 @@ final class AgentBridge {
         }
     }
 
-    /// Answers the Richiesta di permesso `request`. If the bridge is gone, so is the call waiting for it: nothing runs.
-    func answerPermission(_ request: PermissionRequest.ID, allows: Bool) {
+    /// Answers the Richiesta di permesso `request`; `isLasting` when the user allowed it for the rest of the Sessione.
+    /// If the bridge is gone, so is the call waiting for it: nothing runs.
+    func answerPermission(_ request: PermissionRequest.ID, allows: Bool, isLasting: Bool = false) {
         do {
-            try process?.input.write(contentsOf: BridgeCommand.answerPermission(request: request, allows: allows).line())
+            try process?.input.write(contentsOf: BridgeCommand.answerPermission(request: request, allows: allows,
+                                                                                isLasting: isLasting).line())
         } catch {
             Logger.agent.error("Permission answer not sent: \(error)")
         }
@@ -383,7 +400,8 @@ final class AgentBridge {
             usageHandlers[id]?(usage)
         case let .quota(reported):
             quota(reported)
-        case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id):
+        case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id),
+             let .sandboxRules(id, _):
             requests.removeValue(forKey: id)?.resume(returning: event)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))

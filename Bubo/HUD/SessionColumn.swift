@@ -244,8 +244,15 @@ struct SessionRow: View {
                     store.answer(pending.id, in: session.id, with: answer)
                 } allowInProject: {
                     try store.allowInProject(pending.id, in: session.id)
+                } allowDomainInProject: {
+                    store.allowDomainInProject(pending.id, in: session.id)
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element too, so each Consenti stays a button of its own.
+            if let blocks = store.sandboxBlocks[session.id], !blocks.isEmpty, !isArchived {
+                SandboxBlockList(blocks: blocks, project: session.project, sandbox: store.sandbox)
+                    .padding([.horizontal, .bottom], Spacing.xSmall)
             }
         }
         // Read again each time the Sessione changes Attività: the agent may have written the file.
@@ -253,7 +260,8 @@ struct SessionRow: View {
             launchServers = session.terminalFolder.map(LaunchConfig.read(in:)) ?? []
         }
         .sheet(isPresented: $isShowingConfiguration) {
-            ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:))
+            ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:),
+                        readSandboxRules: store.sandboxRules(of:))
         }
         .sheet(isPresented: $isReviewing) {
             ReviewSheet(sessionID: session.id, store: store)

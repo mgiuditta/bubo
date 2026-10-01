@@ -8,12 +8,14 @@ import Foundation
 /// Sessione's folder, the temporary folder and the package caches, reach only the package registries, and cannot
 /// read `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.netrc` or the variables that hold tokens.
 nonisolated struct SandboxPolicy: Equatable, Sendable {
-    /// The package registries that sandboxed commands reach without asking. Never `github.com`: the proxy reads only
-    /// the host name, so a domain that wide lets anything out.
-    static let allowedDomains = ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org", "crates.io",
+    /// The package registries that sandboxed commands reach without asking, always: the preset. Never `github.com`:
+    /// the proxy reads only the host name, so a domain that wide lets anything out.
+    static let presetDomains = ["registry.npmjs.org", "pypi.org", "files.pythonhosted.org", "crates.io",
                                  "index.crates.io", "static.crates.io", "rubygems.org", "index.rubygems.org"]
 
-    /// The folders sandboxed commands also write in, beyond the Sessione's own.
+    /// The hosts sandboxed commands reach without asking: the preset, then the Progetto's.
+    let allowedDomains: [String]
+    /// The folders sandboxed commands also write in, beyond the Sessione's own: the preset, then the Progetto's.
     let writablePaths: [String]
     /// The credential files and folders sandboxed commands cannot read.
     let deniedFiles: [String]
@@ -26,14 +28,21 @@ nonisolated struct SandboxPolicy: Equatable, Sendable {
     ///   - environment: The environment `claude` gets; its variables that look like tokens are denied, by name.
     ///   - userTemporaryFolder: `DARWIN_USER_TEMP_DIR`, writable.
     ///   - userCacheFolder: `DARWIN_USER_CACHE_DIR`, writable.
+    ///   - allowances: The hosts and folders the user let the Progetto's Sandbox reach.
     init(environment: [String: String], userTemporaryFolder: String? = Self.darwinFolder(_CS_DARWIN_USER_TEMP_DIR),
-         userCacheFolder: String? = Self.darwinFolder(_CS_DARWIN_USER_CACHE_DIR)) {
+         userCacheFolder: String? = Self.darwinFolder(_CS_DARWIN_USER_CACHE_DIR),
+         allowances: SandboxAllowances = SandboxAllowances()) {
         let home = environment["HOME"] ?? NSHomeDirectory()
-        writablePaths = [userTemporaryFolder, userCacheFolder].compactMap(\.self)
-            + [".npm", ".cargo/registry", "Library/Caches/pip"].map { "\(home)/\($0)" }
+        let preset = [userTemporaryFolder, userCacheFolder].compactMap(\.self)
+            + Self.presetFolders.map { "\(home)/\($0)" }
+        writablePaths = preset + allowances.folders.filter { !preset.contains($0) }
+        allowedDomains = Self.presetDomains + allowances.domains.filter { !Self.presetDomains.contains($0) }
         deniedFiles = [".ssh", ".aws", ".gnupg", ".netrc"].map { "\(home)/\($0)" }
         deniedVariables = environment.keys.filter(Self.holdsSecret).sorted()
     }
+
+    /// The folders of the home folder in the preset: the package caches.
+    static let presetFolders = [".npm", ".cargo/registry", "Library/Caches/pip"]
 
     /// Whether the variable `name` looks like it holds a token, a key or a password.
     static func holdsSecret(_ name: String) -> Bool {
@@ -43,15 +52,15 @@ nonisolated struct SandboxPolicy: Equatable, Sendable {
     /// The Sandbox as the JSON object of `Options.sandbox`.
     ///
     /// Sandboxed commands run without asking: the bridge's gate still asks for levels 4–5 and for every command that
-    /// wants out of the Sandbox. Until Bubo shows "Rete: host" Richieste (spec 22, step 3), a host outside
-    /// `allowedDomains` is denied at once.
+    /// wants out of the Sandbox. A host outside `allowedDomains` becomes a Richiesta "Rete: host" (`strictAllowlist`
+    /// off); only an Esecuzione, with nobody to ask, will deny it at once.
     var jsonObject: [String: Any] {
         [
             "enabled": true,
             "failIfUnavailable": true,
             "autoAllowBashIfSandboxed": true,
             "allowUnsandboxedCommands": true,
-            "network": ["allowedDomains": Self.allowedDomains, "allowLocalBinding": true, "strictAllowlist": true],
+            "network": ["allowedDomains": allowedDomains, "allowLocalBinding": true, "strictAllowlist": false],
             "filesystem": ["allowWrite": writablePaths],
             "credentials": [
                 "files": deniedFiles.map { ["path": $0, "mode": "deny"] },

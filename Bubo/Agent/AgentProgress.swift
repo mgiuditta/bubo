@@ -19,4 +19,6 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case edit(file: String, lines: [String])
     /// A Bash command of the agent ended, or went to the background: it may have started or stopped a server.
     case ranCommand
+    /// The Sandbox stopped the Bash command that just ended from doing this.
+    case sandboxBlock(SandboxBlock)
 }
