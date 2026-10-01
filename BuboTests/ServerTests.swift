@@ -20,8 +20,8 @@ struct ServerTests {
         second = ServerAttribution.Owner(id: UUID(), folder: root.appending(path: "b"), ports: 47_110..<47_120)
     }
 
-    /// `nc` listening on `port` in `folder`, as a dev server would.
-    private func listen(on port: Int, in folder: URL) throws -> Process {
+    /// `nc` listening on `port` in `folder`, as a dev server would, once the kernel shows it listening.
+    private func listen(on port: Int, in folder: URL) async throws -> Process {
         let process = Process()
         process.executableURL = URL(filePath: "/usr/bin/nc")
         process.arguments = ["-l", String(port)]
@@ -29,7 +29,33 @@ struct ServerTests {
         process.standardInput = FileHandle.nullDevice
         process.standardOutput = FileHandle.nullDevice
         try process.run()
+        let pid = process.processIdentifier
+        let listening = try await waitUntil(within: .seconds(5)) {
+            ListeningSocket.scan().contains { $0.pid == pid && $0.port == port }
+        }
+        try #require(listening, "nc on \(port)")
         return process
+    }
+
+    /// A watcher that sees only `servers`: other test runs on this Mac listen on the same ports, and those inside
+    /// a Sessione's port range would be attributed to it.
+    private func watcher(of servers: [Process], owners: [ServerAttribution.Owner]) -> PortWatcher {
+        let watcher = PortWatcher()
+        let pids = Set(servers.map(\.processIdentifier))
+        watcher.scan = { ListeningSocket.scan().filter { pids.contains($0.pid) } }
+        watcher.owners = { owners }
+        return watcher
+    }
+
+    /// Waits until `condition` holds, checking every 10 ms; `false` when it still does not after `limit`.
+    @discardableResult
+    private func waitUntil(within limit: Duration, _ condition: () -> Bool) async throws -> Bool {
+        let deadline = ContinuousClock.now + limit
+        while !condition() {
+            guard ContinuousClock.now < deadline else { return false }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        return true
     }
 
     @Test func aSocketBelongsToTheSessioneThatHoldsItsFolderThenToTheOneWithItsPort() {
@@ -57,18 +83,15 @@ struct ServerTests {
     }
 
     @Test func serversAreFoundWithinASecondAndAttributedToTheRightSessione() async throws {
-        let watcher = PortWatcher()
-        watcher.owners = { [first, second] in [first, second] }
         // Both Sessioni start the same server on their PORT; a third listens on a port of the first from elsewhere.
-        let servers = try [listen(on: 47_100, in: root.appending(path: "a")),
-                           listen(on: 47_110, in: root.appending(path: "b")),
-                           listen(on: 47_105, in: root.appending(path: "altrove"))]
+        let servers = try await [listen(on: 47_100, in: root.appending(path: "a")),
+                                 listen(on: 47_110, in: root.appending(path: "b")),
+                                 listen(on: 47_105, in: root.appending(path: "altrove"))]
         defer { servers.forEach { $0.terminate() } }
-        try await Task.sleep(for: .milliseconds(200))
-        let start = ContinuousClock.now
+        let watcher = watcher(of: servers, owners: [first, second])
         watcher.notice()
-        while watcher.servers.count < 2 || watcher.servers[first.id]?.count != 2, ContinuousClock.now - start < .seconds(1) {
-            try await Task.sleep(for: .milliseconds(10))
+        try await waitUntil(within: .seconds(1)) {
+            watcher.servers[first.id]?.count == 2 && watcher.servers[second.id] != nil
         }
         #expect(watcher.servers[first.id]?.map(\.port) == [47_100, 47_105])
         #expect(watcher.servers[second.id]?.map(\.port) == [47_110])
@@ -76,16 +99,15 @@ struct ServerTests {
     }
 
     @Test func theLabelGoesWhenTheServerStops() async throws {
-        let watcher = PortWatcher()
-        watcher.owners = { [first] in [first] }
-        let server = try listen(on: 47_101, in: root.appending(path: "a"))
-        try await Task.sleep(for: .milliseconds(200))
+        let server = try await listen(on: 47_101, in: root.appending(path: "a"))
+        defer { server.terminate() }
+        let watcher = watcher(of: [server], owners: [first])
         watcher.notice()
-        try await Task.sleep(for: .milliseconds(400))
+        try await waitUntil(within: .seconds(1)) { watcher.servers[first.id] != nil }
         #expect(watcher.servers[first.id]?.map(\.port) == [47_101])
         server.terminate()
-        // The exit of the server's process is itself an event.
-        try await Task.sleep(for: .milliseconds(500))
+        // The exit of the server's process is itself an event: nothing else calls `notice()`.
+        try await waitUntil(within: .seconds(1)) { watcher.servers[first.id] == nil }
         #expect(watcher.servers[first.id] == nil)
     }
 
