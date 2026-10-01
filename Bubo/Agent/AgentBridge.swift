@@ -42,8 +42,9 @@ final class AgentBridge {
     /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder and the source to
     ///   search in, if any.
     /// - Parameter remember: Answers the `ricorda` tool of a Domanda: the text to save and its title.
+    /// - Parameter catalog: Receives the Claude models the account offers, read with the Quota.
     init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
-         quota: @escaping (Quota) -> Void = { _ in },
+         quota: @escaping (Quota) -> Void = { _ in }, catalog: @escaping (ModelCatalog) -> Void = { _ in },
          remember: @escaping (_ text: String, _ title: String) async -> String = { _, _ in "Non posso salvare note." },
          search: @escaping (_ query: String, _ project: String?, _ source: SearchSource?) async -> String) {
         self.executable = executable
@@ -51,6 +52,7 @@ final class AgentBridge {
         self.environment = environment
         self.trustGate = trustGate
         self.quota = quota
+        self.catalog = catalog
         self.remember = remember
         self.search = search
     }
@@ -62,6 +64,7 @@ final class AgentBridge {
     /// The accepted Risorse di squadra, read again at each turn.
     private let ledger = TrustLedger.standard
     private let quota: (Quota) -> Void
+    private let catalog: (ModelCatalog) -> Void
     private let search: (String, String?, SearchSource?) async -> String
     private let remember: (String, String) async -> String
     private var process: SpawnedProcess?
@@ -74,6 +77,8 @@ final class AgentBridge {
     private var riskHandlers: [String: (PermissionRequest) -> Bool] = [:]
     /// What receives the tokens and the figure of each answer in `answers`.
     private var usageHandlers: [String: (TurnUsage) -> Void] = [:]
+    /// What learns which model answered each answer in `answers`, and with which effort.
+    private var answeringHandlers: [String: (AnsweringModel) -> Void] = [:]
     /// What does the Anteprima's actions of each answer in `answers`; without one, they fail.
     private var previewHandlers: [String: (PreviewAction) async -> PreviewReply] = [:]
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
@@ -92,6 +97,7 @@ final class AgentBridge {
     ///
     /// - Parameters:
     ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
+    ///   - effort: The effort to ask for; `nil` for the model's default.
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
     ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
     ///   - kept: The id, a UUID, to give the agent's conversation so that Bubo keeps a copy of it (ADR 0006);
@@ -109,9 +115,10 @@ final class AgentBridge {
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
     ///   - preview: Does what the agent asks of the Anteprima; `nil` fails every call.
+    ///   - answeredBy: Learns the model that answered and its effective effort, once, just before the answer ends.
     ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5, so that it asks even when the
     ///     Sandbox or the Modalità autonoma would let it run; `nil` counts every call as dangerous.
-    func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
+    func ask(_ prompt: String, in directory: URL, model: String? = nil, effort: Effort? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
@@ -119,6 +126,7 @@ final class AgentBridge {
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
              preview: ((PreviewAction) async -> PreviewReply)? = nil,
+             answeredBy: @escaping (AnsweringModel) -> Void = { _ in },
              isDangerous: ((PermissionRequest) -> Bool)? = nil) -> AsyncThrowingStream<String, any Error> {
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -131,6 +139,7 @@ final class AgentBridge {
             progressHandlers[id] = progress
             permissionHandlers[id] = permissions
             usageHandlers[id] = usage
+            answeringHandlers[id] = answeredBy
             previewHandlers[id] = preview
             riskHandlers[id] = isDangerous
             // Trust and settings both come from the main checkout when `directory` is a worktree.
@@ -143,7 +152,7 @@ final class AgentBridge {
                                             sandbox: isSandboxed ? sandbox(for: environment, allowances: sandboxAllowances) : nil,
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
-                                            remembers: remembers, permissionMode: permissionMode)
+                                            remembers: remembers, permissionMode: permissionMode, effort: effort)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -296,7 +305,8 @@ final class AgentBridge {
         _ = try runningProcess()
     }
 
-    /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
+    /// Asks for the Quota and the catalog of models without a Domanda; each reaches `quota` and `catalog` only if
+    /// `claude` can tell it.
     func readQuota() throws {
         try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
     }
@@ -413,8 +423,12 @@ final class AgentBridge {
             }
         case let .usage(id, usage):
             usageHandlers[id]?(usage)
+        case let .answeredBy(id, model):
+            answeringHandlers[id]?(model)
         case let .quota(reported):
             quota(reported)
+        case let .models(models):
+            catalog(models)
         case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id),
              let .sandboxRules(id, _):
             requests.removeValue(forKey: id)?.resume(returning: event)
@@ -430,6 +444,7 @@ final class AgentBridge {
         progressHandlers[id] = nil
         permissionHandlers[id] = nil
         usageHandlers[id] = nil
+        answeringHandlers[id] = nil
         previewHandlers[id] = nil
         riskHandlers[id] = nil
         return answers.removeValue(forKey: id)
@@ -441,6 +456,7 @@ final class AgentBridge {
         progressHandlers = [:]
         permissionHandlers = [:]
         usageHandlers = [:]
+        answeringHandlers = [:]
         previewHandlers = [:]
         riskHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }

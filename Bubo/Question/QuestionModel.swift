@@ -19,6 +19,8 @@ final class QuestionModel {
     private(set) var resumesAt: Date?
     /// Whether `claude` runs with the API key, paid per use; only after the user's consent (ADR 0003).
     private(set) var usesAPIKey = false
+    /// What the reason line under the last answer says: who answered, why, and at what cost; `nil` before the first.
+    private(set) var routedAnswer: RoutedAnswer?
     /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
     private(set) var savedNote: URL?
     /// The road every Domanda takes to `claude`, moving the Orb on the way.
@@ -66,6 +68,10 @@ final class QuestionModel {
     @ObservationIgnored private var lastPrompt = ""
     /// Whether the Quota was asked for, or reported by `claude`, since launch.
     @ObservationIgnored private var hasFreshQuota = false
+    /// How many times `claude` reported the Quota since launch, to tell whether a turn moved the 5-hour window.
+    @ObservationIgnored private var quotaReports = 0
+    /// The Claude models the account offers, read with the Quota; `nil` until then, and the router does without.
+    @ObservationIgnored private var catalog: ModelCatalog?
 
     /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
@@ -86,7 +92,7 @@ final class QuestionModel {
         start(lastPrompt)
     }
 
-    /// Asks the last prompt again with `model`, a `claude` alias such as `sonnet`.
+    /// Asks the last prompt again with `model`, a `claude` alias such as `sonnet`, instead of the router's choice.
     func retry(model: String) {
         start(lastPrompt, model: model)
     }
@@ -178,6 +184,7 @@ final class QuestionModel {
         failure = nil
         resumesAt = nil
         savedNote = nil
+        routedAnswer = nil
         isAnswering = true
         answering = Task { await stream(text, model: model) }
     }
@@ -189,11 +196,26 @@ final class QuestionModel {
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         // Domande go to `claude` until the router chooses among providers (feature 10): Anthropic's Tinta.
-        let submission = await intake.submit(Richiesta(text: text), to: .anthropic)
+        let submission = await intake.submit(Richiesta(text: text), to: .anthropic, catalog: catalog)
         defer { intake.finish(submission) }
+        let route = model.map(Route.chosen) ?? submission.route
+        let windowBefore = quotaReports > 0 ? quota.fiveHour : nil
+        let reportsBefore = quotaReports
+        // A Domanda replaced while it was classified leaves the line to the newer one.
+        if !Task.isCancelled { routedAnswer = RoutedAnswer(route: route, provider: .anthropic) }
+        defer {
+            // Only a window `claude` reported both before and during the turn says what the turn used.
+            if !Task.isCancelled, quotaReports > reportsBefore {
+                routedAnswer?.fiveHourShare = RoutedAnswer.fiveHourShare(from: windowBefore, to: quota.fiveHour)
+            }
+        }
         do {
             let bridge = try await readyBridge()
-            for try await chunk in bridge.ask(text, in: try Self.directory(), model: model, remembers: true) {
+            let stream = bridge.ask(text, in: try Self.directory(), model: route.model, effort: route.effort,
+                                    remembers: true,
+                                    usage: { [weak self] in self?.routedAnswer?.usage = $0 },
+                                    answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
+            for try await chunk in stream {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
                     waitingForFirstToken = nil
@@ -241,9 +263,11 @@ final class QuestionModel {
                                  quota: { [weak self] reported in
                                      guard let self else { return }
                                      hasFreshQuota = true
+                                     quotaReports += 1
                                      quota = quota.merging(reported)
                                      quota.save(to: defaults)
                                  },
+                                 catalog: { [weak self] in self?.catalog = $0 },
                                  remember: { [weak self] text, title in
                                      await self?.remember(text, titled: title) ?? "Bubo non è disponibile."
                                  }) { [index] query, project, source in

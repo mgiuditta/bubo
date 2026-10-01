@@ -45,6 +45,15 @@ struct IntakePipelineTests {
         #expect(submission.classification?.variante == lente)
     }
 
+    // The router decides within the decision step, so the route is there when the Morph starts.
+    @Test func theRouteComesWithTheDecision() async throws {
+        let lente = try #require(catalogo.variante(named: "lente"))
+        let intake = pipeline(engine: WitnessEngine(orb: orb, variante: lente) { _, _ in })
+        let submission = await intake.submit(Richiesta(text: "Cerca le notizie di oggi"), to: .anthropic)
+        #expect(submission.route == Route(family: .sonnet, model: "sonnet", effort: .low,
+                                          reason: .type(.webSearch, runnerUp: nil)))
+    }
+
     @Test func theFirstTokenTurnsTheOrbToWorkAndTheEndGivesItBack() async {
         orb.state = .listening
         let intake = pipeline()
@@ -81,6 +90,7 @@ struct IntakePipelineTests {
         let intake = IntakePipeline(orb: orb) { nil }
         let submission = await intake.submit(Richiesta(text: "Ciao"), to: .anthropic)
         #expect(submission.classification == nil)
+        #expect(submission.route.reason == .unclassified)
         #expect(orb.displayedState == .thinking)
         #expect(intake.forecast == nil)
     }

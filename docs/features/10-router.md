@@ -142,7 +142,7 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 ### Interfaccia (variante A + chip da C, [prototipo](https://github.com/mgiuditta/bubo/tree/prototype/router))
 
 - **Riga sotto ogni risposta**: pallino della Tinta, modello · sforzo **effettivo** (hook `effort.level`), motivo in una riga, costo stimato. Origine indicata: "(tua preferenza)", "scelto da te", "rifatto da te".
-- **Costo**: Claude in % della finestra di 5 ore (login CLI, ADR 0003); altri fornitori in $ sulla chiave dell'utente; modelli sul Mac "gratis". Il costo di Jev non entra nella riga: totale mensile nelle impostazioni, nessun tetto.
+- **Costo**: Claude in % della finestra di 5 ore (login CLI, ADR 0003): è la crescita di `five_hour` tra prima e dopo il turno, se `claude` l'ha riportata in tutti e due i momenti; altrimenti, o se non si è mossa, il Valore a listino del turno (con la API key la Spesa). L'SDK non dà la % di una singola risposta, solo quella cumulata, quindi conta anche il lavoro delle Sessioni nello stesso intervallo; altri fornitori in $ sulla chiave dell'utente; modelli sul Mac "gratis". Il costo di Jev non entra nella riga: totale mensile nelle impostazioni, nessun tetto.
 - **Override sul turno**: "Rifai più forte" ⌘↑ (un gradino della Scala); "Rifai con…" ⌘⇧↑ (alternative vicine con dove gira, primo token, costo; da qui "Usa sempre per «Tipo»"). Il default non cambia.
 - **Chip nel prompt** (prima di inviare): previsione modello · sforzo · costo con il motivo sopra; Tab/⇧Tab cambia modello, ⌥↑/⌥↓ lo sforzo, Esc torna al router. Il controllo dello sforzo compare solo se il modello lo supporta.
 - **Voce**: con ⌥Spazio tenuto niente chip (invio al rilascio), solo riga dopo e ⌘↑/⌘⇧↑; con ⌥⇧ (dettatura nel prompt) la chip c'è.
@@ -153,9 +153,9 @@ Una preferenza "Usa sempre per «Tipo»" sostituisce il default: ambito il Proge
 
 - `Router/RequestClassifier`: motori in ordine, ciascuno nel suo budget, poi le regole (`RuleClassifier`); Apple FM in `FoundationModelsClassifier`. Interfaccia unica `ClassificationEngine`: Jev si aggiunge in testa come motore in più, e vede solo `ClassifierInput` (testo e nomi degli Allegati).
 - `Router/JevClient`: `URLSession` su `api.typesafe.ai/v1/systemone` o OpenRouter (`~typesafe/jev-latest`), versione fissata, budget 300 ms, filtro del contenuto inviato.
-- `Router/ModelRouter`: Tipo → modello · sforzo · fornitore; default, preferenze ricordate, Scala da `supportedModels()` con i vincoli dell'org, quota (feature 03), consensi; produce il motivo.
+- `Router/ModelRouter`: Tipo → modello · sforzo · fornitore; default, preferenze ricordate, Scala da `supportedModels()` con i vincoli dell'org, quota (feature 03), consensi; produce il motivo. Decide nello stesso passo della classificazione, prima del Morph, senza aspettare il catalogo: il ponte lo legge con la Quota (`supportedModels()` nella stessa query senza prompt, all'apertura dell'HUD) e Bubo lo tiene in memoria; senza catalogo `claude` riceve l'alias e lo sforzo come da tabella.
 - `Router/Providers`: client OpenAI-compatibile (Chat Completions, streaming) + `FoundationModels`; rilevamento di Ollama e LM Studio su localhost; OAuth PKCE di OpenRouter; chiavi nel Portachiavi (`Account/`).
-- `Agent/AgentBridge`: comandi `setModel` e `applyFlagSettings({effortLevel})` nel protocollo stdio; sforzo effettivo dall'hook `effort` verso Swift.
+- `Agent/AgentBridge`: comandi `setModel` e `applyFlagSettings({effortLevel})` nel protocollo stdio; sforzo effettivo dall'hook `Stop` (`effort.level`, assente per i modelli senza sforzo) e modello dai messaggi dell'assistente del thread principale, mandati a Swift con l'evento `answeredBy` prima di `done`; `effort` nel comando `ask`.
 - `HUD/RouterLine`, `HUD/RouterChip`, menu "Rifai con…": interfaccia sopra.
 - Persistenza: preferenze per Tipo (per Progetto e globali), consensi per fornitore, soglie di quota e di incertezza.
 

@@ -121,4 +121,81 @@ struct QuestionModelTests {
         #expect(model.resumesAt == nil)
         #expect(model.failure == .bridge(.limitReached(Self.limit)))
     }
+
+    /// A classifier engine that always answers `type`, so the route does not depend on the rules' words.
+    nonisolated struct FixedEngine: ClassificationEngine {
+        let type: RequestType
+        var budget: Duration { .seconds(1) }
+
+        func classification(of input: ClassifierInput) async throws -> RequestClassification {
+            RequestClassification(type: type, categoria: .chat, variante: nil, engine: .foundationModels)
+        }
+    }
+
+    /// A bridge played by `/bin/sh` that answers only the router's choice for Scrittura and Fatto breve: for Sonnet
+    /// medio the SDK downgrades the effort to basso; Haiku has no effort. Anything else is an error.
+    static let routedBridge = #"""
+        while read line; do
+          id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+          case "$line" in
+            *'"effort":"medium"'*'"model":"sonnet"'*)
+              by='"model":"claude-sonnet-5-5","effort":"low"' ;;
+            *'"effort"'*) by='' ;;
+            *'"model":"haiku"'*)
+              by='"model":"claude-haiku-4-5-20251001"' ;;
+            *) by='' ;;
+          esac
+          if [ -z "$by" ]; then
+            echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"rotta sbagliata\"}"
+            continue
+          fi
+          echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"Ecco\"}"
+          echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"subscription\",\"cost\":0.012,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
+          echo "{\"v\":4,\"type\":\"answeredBy\",\"id\":\"$id\",$by}"
+          echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+        done
+        """#
+
+    static func routedModel(_ type: RequestType) throws -> QuestionModel {
+        let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
+        let orb = OrbControls()
+        let rules = RuleClassifier(catalogo: try Catalogo(bundle: .main))
+        let intake = IntakePipeline(orb: orb) { RequestClassifier(engines: [FixedEngine(type: type)], rules: rules) }
+        return QuestionModel(cli: cli, orb: orb, intake: intake, bridgeExecutable: URL(filePath: "/bin/sh"),
+                             bridgeArguments: ["-c", routedBridge], defaults: UserDefaults(suiteName: UUID().uuidString)!)
+    }
+
+    // The reason line under the answer shows the effort the SDK applied, not the one the router asked for.
+    @Test func theLineShowsTheEffortTheSDKDowngradedTo() async throws {
+        let model = try Self.routedModel(.writing)
+        await Self.ask(model)
+
+        #expect(model.failure == nil)
+        #expect(model.answer == "Ecco")
+        let line = try #require(model.routedAnswer)
+        #expect(line.route == Route(family: .sonnet, model: "sonnet", effort: .medium, reason: .type(.writing, runnerUp: nil)))
+        #expect(line.answeringModel == AnsweringModel(model: "claude-sonnet-5-5", effort: .low))
+        #expect(line.cost == .listValue(Decimal(string: "0.012")!))
+    }
+
+    @Test func haikuGoesWithoutEffortAndAnswersWithout() async throws {
+        let model = try Self.routedModel(.shortFact)
+        await Self.ask(model)
+
+        #expect(model.failure == nil)
+        let line = try #require(model.routedAnswer)
+        #expect(line.route.effort == nil)
+        #expect(line.answeringModel == AnsweringModel(model: "claude-haiku-4-5-20251001", effort: nil))
+        #expect(line.answeringModel?.name == "Haiku 4.5")
+    }
+
+    @Test func aModelPickedByTheUserIsSaidSo() async throws {
+        let model = try Self.routedModel(.writing)
+        await Self.ask(model)
+        model.retry(model: "haiku")
+        await model.answering?.value
+
+        #expect(model.routedAnswer?.route == .chosen("haiku"))
+        #expect(model.routedAnswer?.answeringModel?.name == "Haiku 4.5")
+    }
 }

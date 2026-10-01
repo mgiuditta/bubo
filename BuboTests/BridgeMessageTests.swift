@@ -24,6 +24,32 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","model":"sonnet","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func askWithTheRoutersEffortCarriesIt() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], model: "sonnet", effort: .low).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","effort":"low","id":"a1","model":"sonnet","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
+    }
+
+    @Test func answeredByCarriesTheEffectiveEffortOrNone() throws {
+        let decoder = JSONDecoder()
+        let opus = #"{"v":4,"type":"answeredBy","id":"a1","model":"claude-opus-5-5","effort":"high"}"#
+        #expect(try decoder.decode(BridgeEvent.self, from: Data(opus.utf8))
+            == .answeredBy(id: "a1", AnsweringModel(model: "claude-opus-5-5", effort: .high)))
+        let haiku = #"{"v":4,"type":"answeredBy","id":"a1","model":"claude-haiku-4-5-20251001"}"#
+        #expect(try decoder.decode(BridgeEvent.self, from: Data(haiku.utf8))
+            == .answeredBy(id: "a1", AnsweringModel(model: "claude-haiku-4-5-20251001", effort: nil)))
+    }
+
+    @Test func modelsSkipAnEffortLevelBuboDoesNotKnow() throws {
+        let line = #"{"v":4,"type":"models","models":[{"value":"haiku","resolvedModel":"claude-haiku-4-5-20251001","#
+            + #""displayName":"Haiku"},{"value":"opus","displayName":"Opus","supportedEffortLevels":["low","medium","ultra"]}]}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .models(ModelCatalog(entries: [
+            ModelCatalog.Entry(value: "haiku", resolvedModel: "claude-haiku-4-5-20251001", displayName: "Haiku"),
+            ModelCatalog.Entry(value: "opus", displayName: "Opus", supportedEffortLevels: [.low, .medium]),
+        ])))
+    }
+
     @Test func askWithAnEnvironmentCarriesIt() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
                                          settingSources: [], environment: ["PORT": "40000"]).line()
