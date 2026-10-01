@@ -180,6 +180,86 @@ struct WorktreeManagerTests {
                 .contains("node_modules/"))
     }
 
+    @Test func archivingRemovesTheWorktreeAndKeepsTheBranch() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao", ".gitignore": "node_modules/\n"])
+        try write(["node_modules/a.js": "a"], in: repo)
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try write(["nuovo.txt": "x"], in: workspace.folder)
+
+        await manager.remove(workspace, of: repo, deletingBranch: false)
+
+        #expect(!FileManager.default.fileExists(atPath: workspace.folder.path))
+        #expect(try git("branch", "--list", "bubo/prova", in: repo).contains("bubo/prova"))
+        #expect(try git("worktree", "list", "--porcelain", in: repo).components(separatedBy: "worktree ").count == 2)
+        #expect(exists("node_modules/a.js", in: repo))
+    }
+
+    @Test func deletingRemovesTheWorktreeAndTheBranch() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+
+        await manager.remove(workspace, of: repo, deletingBranch: true)
+
+        #expect(!FileManager.default.fileExists(atPath: workspace.folder.path))
+        #expect(try git("branch", "--list", "bubo/prova", in: repo).isEmpty)
+    }
+
+    @Test func removingAWorktreeLeavesWhatItsLinksPointTo() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let outside = base.appending(path: "fuori", directoryHint: .isDirectory)
+        try write(["prezioso.txt": "non toccare"], in: outside)
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try FileManager.default.createSymbolicLink(at: workspace.folder.appending(path: "collegamento"),
+                                                   withDestinationURL: outside)
+
+        await manager.remove(workspace, of: repo, deletingBranch: true)
+
+        #expect(!FileManager.default.fileExists(atPath: workspace.folder.path))
+        #expect(exists("prezioso.txt", in: outside))
+    }
+
+    @Test func aFolderOutsideTheRootIsNeverRemoved() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+
+        await manager.remove(Workspace(folder: repo, branch: "main"), of: repo, deletingBranch: false)
+        let link = manager.root.appending(path: "repo/collegamento", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: link.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: repo)
+        await manager.remove(Workspace(folder: link, branch: "main"), of: repo, deletingBranch: false)
+
+        #expect(exists("README.md", in: repo))
+    }
+
+    @Test func aWorktreeIsRemovedEvenWhenItsProjectIsGone() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try FileManager.default.removeItem(at: repo)
+
+        await manager.remove(workspace, of: repo, deletingBranch: true)
+
+        #expect(!FileManager.default.fileExists(atPath: workspace.folder.path))
+    }
+
+    @Test func theLostChangesAreTheChangedFilesAndTheCommitsOnlyTheBranchHas() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+        try write(["fatto.txt": "x"], in: workspace.folder)
+        try git("add", "-A", in: workspace.folder)
+        try git("commit", "-q", "-m", "Aggiunge fatto", in: workspace.folder)
+        try write(["README.md": "cambiato", "bozza.txt": "y"], in: workspace.folder)
+
+        let lost = await manager.lostChanges(in: workspace, of: repo)
+
+        #expect(Set(lost) == ["README.md", "bozza.txt", "Aggiunge fatto"])
+    }
+
+    @Test func aBranchWithNothingNewLosesNothing() async throws {
+        let repo = try makeRepo("repo", files: ["README.md": "ciao"])
+        let workspace = try await manager.prepare(repo, branch: "bubo/prova")
+
+        #expect(await manager.lostChanges(in: workspace, of: repo).isEmpty)
+    }
+
     /// `manager` with `repo` trusted, as if accepted in the CLI.
     func managerTrusting(_ repo: URL) throws -> WorktreeManager {
         let configuration = base.appending(path: "claude.json")

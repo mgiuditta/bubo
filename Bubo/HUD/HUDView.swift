@@ -15,7 +15,7 @@ struct HUDView: View {
         @Bindable var hud = hud
         HStack(alignment: .top, spacing: Spacing.large) {
             if let sessions, !sessions.sessions.isEmpty {
-                SessionColumn(sessions: sessions.sessions)
+                SessionColumn(store: sessions)
                     .padding(.vertical, Spacing.medium)
             }
             main

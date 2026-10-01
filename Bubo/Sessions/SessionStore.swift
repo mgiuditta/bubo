@@ -15,7 +15,8 @@ final class SessionStore {
 
     /// Creates a store kept in `file`, preparing copies with `worktrees` and talking to `claude` through `bridge`.
     ///
-    /// A Sessione that was in Lavora when Bubo quit is Ferma: nothing resumes on its own.
+    /// A Sessione that was in Lavora when Bubo quit is Ferma and waits for Riprendi: nothing resumes on its own.
+    /// One whose Progetto or worktree is gone is in Errore.
     init(file: URL, worktrees: WorktreeManager, bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
         self.worktrees = worktrees
@@ -26,8 +27,15 @@ final class SessionStore {
         } catch {
             Logger.sessions.error("Sessioni unreadable: \(error)")
         }
-        for index in sessions.indices where sessions[index].activity == .lavora {
-            sessions[index].activity = .ferma
+        for index in sessions.indices {
+            if sessions[index].activity == .lavora {
+                sessions[index].activity = .ferma
+                sessions[index].isInterrupted = true
+            }
+            if let failure = Self.missingFolder(of: sessions[index]) {
+                sessions[index].activity = .errore
+                sessions[index].failure = failure
+            }
         }
     }
 
@@ -47,6 +55,7 @@ final class SessionStore {
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     func start(_ prompt: String, title: String, branch: String, in project: URL) {
         var session = Session(id: UUID(), title: title, project: project)
+        session.prompt = prompt
         session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         Signposts.signposter.withIntervalSignpost("Apertura Sessione") {
             sessions.append(session)
@@ -55,16 +64,77 @@ final class SessionStore {
         Task { await run(session.id, prompt: prompt, branch: branch) }
     }
 
+    /// Asks `claude` again, in the same worktree, the prompt of a Sessione that Bubo's quitting interrupted.
+    // ponytail: the same prompt in a new Conversazione; the SDK's `resume` comes with #159.
+    func resume(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.isInterrupted, let prompt = session.prompt
+        else { return }
+        update(id) { session in
+            session.activity = .lavora
+            session.isInterrupted = false
+        }
+        Task { await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title)) }
+    }
+
+    /// Archives a Sessione: its worktree goes in the background, its branch stays, its ports are free again.
+    func archive(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+              session.activity != .lavora
+        else { return }
+        update(id) { session in
+            session.phase = .archiviata
+            session.ports = nil
+            session.isInterrupted = false
+        }
+        guard let workspace = session.workspace else { return }
+        Task { await worktrees.remove(workspace, of: session.project, deletingBranch: false) }
+    }
+
+    /// What deleting the Sessione `id` would lose, as file paths and commit subjects.
+    func lostChanges(_ id: UUID) async -> [String] {
+        guard let session = sessions.first(where: { $0.id == id }), let workspace = session.workspace else { return [] }
+        return await worktrees.lostChanges(in: workspace, of: session.project)
+    }
+
+    /// Deletes a Sessione with its worktree and its branch, in the background.
+    func delete(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.activity != .lavora else { return }
+        sessions.removeAll { $0.id == id }
+        save()
+        guard let workspace = session.workspace else { return }
+        Task { await worktrees.remove(workspace, of: session.project, deletingBranch: true) }
+    }
+
+    /// Why an open Sessione cannot work any more: its Progetto or its worktree is gone.
+    private static func missingFolder(of session: Session) -> String? {
+        guard session.phase == .aperta else { return nil }
+        if !FileManager.default.fileExists(atPath: session.project.path) {
+            return String(localized: "Il Progetto non è più in \(session.project.path). Riporta lì la cartella o cancella la Sessione.")
+        }
+        if let workspace = session.workspace, workspace.branch != nil,
+           !FileManager.default.fileExists(atPath: workspace.folder.path) {
+            return String(localized: "La copia isolata della Sessione non è più in \(workspace.folder.path). Cancella la Sessione per toglierla dall'elenco.")
+        }
+        return nil
+    }
+
+    /// Prepares the Sessione's copy on `branch` if it has none yet, then asks `claude` `prompt` there.
     private func run(_ id: UUID, prompt: String, branch: String) async {
         guard let session = sessions.first(where: { $0.id == id }) else { return }
         let environment = session.portEnvironment
         do {
-            let preparing = Signposts.signposter.beginInterval("Sessione pronta", id: Signposts.signposter.makeSignpostID())
-            let workspace = try await worktrees.prepare(session.project, branch: branch)
-            Signposts.signposter.endInterval("Sessione pronta", preparing)
-            update(id) { $0.workspace = workspace }
-            if let failure = await worktrees.runSetup(in: workspace, environment: environment) {
-                update(id) { $0.setupFailure = failure }
+            let workspace: Workspace
+            if let prepared = session.workspace {
+                workspace = prepared
+            } else {
+                let preparing = Signposts.signposter.beginInterval("Sessione pronta",
+                                                                   id: Signposts.signposter.makeSignpostID())
+                workspace = try await worktrees.prepare(session.project, branch: branch)
+                Signposts.signposter.endInterval("Sessione pronta", preparing)
+                update(id) { $0.workspace = workspace }
+                if let failure = await worktrees.runSetup(in: workspace, environment: environment) {
+                    update(id) { $0.setupFailure = failure }
+                }
             }
             for try await _ in try await bridge().ask(prompt, in: workspace.folder, environment: environment) {}
             update(id) { $0.activity = .ferma }

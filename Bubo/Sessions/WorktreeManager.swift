@@ -118,6 +118,50 @@ nonisolated struct WorktreeManager: Sendable {
         return ([reason] + output.split(whereSeparator: \.isNewline).suffix(3).map(String.init)).joined(separator: "\n")
     }
 
+    /// What deleting the Sessione of `workspace` in `project` would lose: the files changed in its worktree and
+    /// the commits of its branch that no other branch has. Empty outside git, or when git cannot tell.
+    @concurrent func lostChanges(in workspace: Workspace, of project: URL) async -> [String] {
+        guard let branch = workspace.branch else { return [] }
+        var lost: [String] = []
+        if let status = try? await git(["status", "--porcelain", "--untracked-files=all"], in: workspace.folder) {
+            lost += status.split(whereSeparator: \.isNewline).map { String($0.dropFirst(3)) }
+        }
+        if let log = try? await git(["log", "--format=%s", "refs/heads/\(branch)", "--not", "--exclude=\(branch)",
+                                     "--branches", "--remotes"], in: project) {
+            lost += log.split(whereSeparator: \.isNewline).map(String.init)
+        }
+        return lost
+    }
+
+    /// Removes the worktree of `workspace` from `project`, and its branch when `deletingBranch`.
+    ///
+    /// Only a folder inside `root` is ever removed, never what its symbolic links point to. When the Progetto
+    /// was moved or deleted, the folder goes anyway.
+    @concurrent func remove(_ workspace: Workspace, of project: URL, deletingBranch: Bool) async {
+        guard let branch = workspace.branch else { return }
+        let folder = workspace.folder
+        if !FileManager.default.fileExists(atPath: folder.path) {
+            // Already gone, as after Archivia: nothing to remove but git's record of it.
+        } else if !isInsideRoot(folder) {
+            Logger.sessions.error("Worktree outside the root not removed")
+        } else if (try? await git(["worktree", "remove", "--force", folder.path], in: project)) == nil {
+            // git cannot help when the Progetto is gone. FileManager removes a symbolic link, not what it points to.
+            do {
+                try FileManager.default.removeItem(at: folder)
+            } catch {
+                Logger.sessions.error("Worktree not removed: \(String(describing: error), privacy: .private)")
+            }
+        }
+        _ = try? await git(["worktree", "prune"], in: project)
+        if deletingBranch { _ = try? await git(["branch", "-D", branch], in: project) }
+    }
+
+    /// Whether `folder` is a real folder inside `root`, not a symbolic link that leads elsewhere.
+    private func isInsideRoot(_ folder: URL) -> Bool {
+        let root = TrustGate.realPath(root.path).trimmingSuffix("/") + "/"
+        return TrustGate.realPath(folder.path).hasPrefix(root)
+    }
+
     /// `text` in single quotes for any shell.
     private static func quoted(_ text: String) -> String {
         "'\(text.replacing("'", with: #"'\''"#))'"
