@@ -82,13 +82,40 @@ struct SessionTests {
     @MainActor
     @Test func aSessionInLavoraIsNeitherArchivedNorDeleted() throws {
         let store = try makeStore(saving: [])
-        store.start("Prova", title: "Prova", branch: "bubo/prova", in: URL(filePath: "/tmp"))
+        try store.start("Prova", title: "Prova", branch: "bubo/prova", in: URL(filePath: "/tmp"))
         let id = try #require(store.sessions.first?.id)
 
         store.archive(id)
         store.delete(id)
 
         #expect(store.sessions.map(\.phase) == [.aperta])
+    }
+
+    @MainActor
+    @Test func aSecondSessionOnTheCheckoutIsRefused() throws {
+        let store = try makeStore(saving: [])
+        let project = URL(filePath: "/tmp")
+        try store.start("Prova", title: "Prima", branch: "", in: project, onCheckout: true)
+
+        #expect(throws: SessionError.checkoutTaken(by: "Prima")) {
+            try store.start("Prova", title: "Seconda", branch: "", in: URL(filePath: "/tmp/"), onCheckout: true)
+        }
+        try store.start("Prova", title: "Isolata", branch: "bubo/isolata", in: project)
+
+        #expect(store.sessions.map(\.title) == ["Prima", "Isolata"])
+        #expect(store.sessions.first?.workspace == Workspace(folder: project))
+        #expect(store.checkoutSession(of: project)?.title == "Prima")
+    }
+
+    @MainActor
+    @Test func anArchivedSessionFreesTheCheckout() throws {
+        var session = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .ferma)
+        session.isOnCheckout = true
+        let store = try makeStore(saving: [session])
+
+        store.archive(session.id)
+
+        #expect(store.checkoutSession(of: URL(filePath: "/tmp")) == nil)
     }
 
     @MainActor

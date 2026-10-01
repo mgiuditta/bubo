@@ -444,6 +444,26 @@
         }
       }
     },
+    "Continua da qui, lavorando nel Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carry on from here, working in the Project."
+          }
+        }
+      }
+    },
+    "Continua la Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues the Question"
+          }
+        }
+      }
+    },
     "Controlla ~/.claude.json, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -934,6 +954,16 @@
         }
       }
     },
+    "Lavora sul checkout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work on the checkout"
+          }
+        }
+      }
+    },
     "Lo script di setup non è finito in tempo ed è stato fermato." : {
       "localizations" : {
         "en" : {
@@ -1174,6 +1204,22 @@
         }
       }
     },
+    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@\n\n%3$@"
+          }
+        }
+      }
+    },
     "Progetto" : {
       "localizations" : {
         "en" : {
@@ -1394,6 +1440,16 @@
         }
       }
     },
+    "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No isolated copy: changes go straight into the Project's folder."
+          }
+        }
+      }
+    },
     "Server MCP" : {
       "localizations" : {
         "en" : {
@@ -1426,16 +1482,16 @@
     },
     "Si azzera %@ alle %@." : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Si azzera %1$@ alle %2$@."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resets %1$@ at %2$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Si azzera %1$@ alle %2$@."
           }
         }
       }
@@ -1486,6 +1542,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Title"
+          }
+        }
+      }
+    },
+    "Trasforma in Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn into Session"
           }
         }
       }
@@ -1744,16 +1810,16 @@
     "fase.aperta" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Aperta"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Aperta"
           }
         }
       }
@@ -1761,16 +1827,16 @@
     "fase.archiviata" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Archiviata"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Archived"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Archiviata"
           }
         }
       }
@@ -1801,6 +1867,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "resets at %@"
+          }
+        }
+      }
+    },
+    "sul checkout" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "on the checkout"
+          }
+        }
+      }
+    },
+    "«%@» lavora già sul checkout di questo Progetto. Archiviala, o lavora in una copia isolata." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
           }
         }
       }

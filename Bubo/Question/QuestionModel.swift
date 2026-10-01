@@ -73,6 +73,15 @@ final class QuestionModel {
         resumesAt = nil
     }
 
+    /// Stops the Domanda and hands it to a new Sessione: what is typed, and the last prompt with what arrived of its
+    /// answer; with no answer, what is typed or else the last prompt.
+    func turnIntoSession() -> SessionDraft {
+        stop()
+        let typed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !answer.isEmpty else { return SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed) }
+        return SessionDraft(prompt: typed, question: lastPrompt, answer: answer)
+    }
+
     /// Waits until the limit that stopped the last Domanda resets, then asks it again.
     func resumeAfterReset() {
         guard case let .bridge(.limitReached(limit)) = failure, let resetsAt = limit.resetsAt else { return }

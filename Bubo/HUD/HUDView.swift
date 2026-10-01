@@ -25,7 +25,7 @@ struct HUDView: View {
         .background { HUDBackground() }
         .foregroundStyle(Palette.textPrimary)
         .sheet(isPresented: $hud.isCreatingSession) {
-            if let sessions { NewSessionSheet(store: sessions) }
+            if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }
         }
         .onAppear { hud.openWindow = openWindow }
         // Runs after the first appearance, once the main thread is free again.

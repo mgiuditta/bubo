@@ -1,16 +1,21 @@
+import os
 import SwiftUI
 
-/// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt.
+/// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda it
+/// continues.
 ///
 /// In a folder that is not trusted, the trust dialog comes first (#266).
 struct NewSessionSheet: View {
     let store: SessionStore
+    /// What the sheet starts from: empty for ⌘N, the Domanda for Trasforma in Sessione.
+    var draft = SessionDraft()
     var gate = TrustGate()
     @Environment(\.dismiss) private var dismiss
     @State private var project: URL?
     @State private var prompt = ""
     @State private var title = ""
     @State private var branch = Session.proposedBranch(for: "")
+    @State private var isOnCheckout = false
     @State private var isChoosingFolder = false
     @State private var isAskingTrust = false
     @FocusState private var isPromptFocused: Bool
@@ -33,12 +38,26 @@ struct NewSessionSheet: View {
                         Button(project == nil ? "Scegli cartella…" : "Cambia…") { isChoosingFolder = true }
                     }
                 }
+                if draft.continuesQuestion {
+                    LabeledContent("Continua la Domanda") {
+                        Text(verbatim: draft.question)
+                            .lineLimit(2)
+                    }
+                }
                 TextField("Cosa deve fare Claude?", text: $prompt, axis: .vertical)
                     .lineLimit(3...6)
                     .focused($isPromptFocused)
                 TextField("Titolo", text: $title)
-                TextField("Branch", text: $branch)
-                    .font(.body.monospaced())
+                Toggle(isOn: $isOnCheckout) {
+                    Text("Lavora sul checkout")
+                    Text(checkoutTaken?.errorDescription
+                         ?? String(localized: "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto."))
+                        .foregroundStyle(checkoutTaken == nil ? Color.secondary : Palette.danger)
+                }
+                if !isOnCheckout {
+                    TextField("Branch", text: $branch)
+                        .font(.body.monospaced())
+                }
             }
             .formStyle(.grouped)
 
@@ -48,14 +67,15 @@ struct NewSessionSheet: View {
                     .keyboardShortcut(.cancelAction)
                 Button("Crea", action: create)
                     .keyboardShortcut(.defaultAction)
-                    .disabled(project == nil || branch.trimmingCharacters(in: .whitespaces).isEmpty
-                              || prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(!canCreate)
             }
         }
         .padding(Spacing.medium)
         .frame(width: 520)
         .onAppear {
             project = project ?? store.projects.first
+            if draft.continuesQuestion { title = Session.proposedTitle(for: draft.question) }
+            prompt = draft.prompt
             isPromptFocused = true
         }
         // The proposals follow the prompt until the user writes their own.
@@ -68,6 +88,18 @@ struct NewSessionSheet: View {
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }
         }
+    }
+
+    /// Why the Sessione cannot work on the checkout: another one of the Progetto already does.
+    private var checkoutTaken: SessionError? {
+        guard isOnCheckout, let project, let session = store.checkoutSession(of: project) else { return nil }
+        return .checkoutTaken(by: session.title)
+    }
+
+    private var canCreate: Bool {
+        project != nil && checkoutTaken == nil
+            && (isOnCheckout || !branch.trimmingCharacters(in: .whitespaces).isEmpty)
+            && (draft.continuesQuestion || !prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
 
     private func create() {
@@ -85,7 +117,13 @@ struct NewSessionSheet: View {
         guard let project else { return }
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
-        store.start(text, title: name.isEmpty ? Session.proposedTitle(for: text) : name,
-                    branch: branch.trimmingCharacters(in: .whitespaces), in: project)
+        do {
+            try store.start(draft.firstPrompt(text),
+                            title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
+                            branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout)
+        } catch {
+            // The sheet does not offer Crea while the checkout is taken: only a race gets here.
+            Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")
+        }
     }
 }
