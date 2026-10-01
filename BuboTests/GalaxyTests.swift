@@ -40,6 +40,7 @@ struct GalaxyTests {
         let after = GalaxyLayout(files: Self.files + added)
         #expect(after.clusters.map(\.path) == before.clusters.map(\.path))
         #expect(after.clusters.map(\.center) == before.clusters.map(\.center))
+        #expect(after.clusters.map(\.core) == before.clusters.map(\.core))
         #expect(after.clusters.map(\.radius) == before.clusters.map(\.radius))
         #expect(after.stars.count == before.stars.count + added.count)
     }
@@ -48,6 +49,7 @@ struct GalaxyTests {
         let before = GalaxyLayout(files: Self.files)
         let after = GalaxyLayout(files: Self.files.filter { $0 != "Sources/Core/Store.swift" && $0 != "docs/a.md" })
         #expect(after.clusters.map(\.center) == before.clusters.map(\.center))
+        #expect(after.clusters.map(\.core) == before.clusters.map(\.core))
     }
 
     @Test func aNewFolderMovesNoFolderBeforeItOrElsewhere() {
@@ -56,6 +58,7 @@ struct GalaxyTests {
         for cluster in before.clusters where !cluster.path.hasPrefix("docs") && cluster.path != "" {
             let moved = after.clusters.first { $0.path == cluster.path }
             #expect(moved?.center == cluster.center, "\(cluster.path) moved")
+            #expect(moved?.core == cluster.core, "\(cluster.path) moved its core")
         }
     }
 

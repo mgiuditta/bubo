@@ -289,8 +289,9 @@ final class GalaxyModel {
         let plane = camera.plane(at: point, in: viewSize)
         var nearest: (index: Int, distance: Float)?
         let highlighted = Set(matches)
+        // Every core disc has the same radius: the stars show all together or not at all.
+        let shown = GalaxyLayout.coreRadius * camera.scale >= Self.starsAppearRadius
         for (index, star) in layout.stars.enumerated() {
-            let shown = GalaxyLayout.coreRadius * camera.scale >= Self.starsAppearRadius
             guard shown || highlighted.contains(index) || index == selection || writers[star.path] != nil
             else { continue }
             let distance = Self.screenDistance(star.position - plane, scale: camera.scale)
