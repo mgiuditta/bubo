@@ -18,19 +18,23 @@ final class QuestionModel {
     private(set) var resumesAt: Date?
     /// Whether `claude` runs with the API key, paid per use; only after the user's consent (ADR 0003).
     private(set) var usesAPIKey = false
+    /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
+    private(set) var savedNote: URL?
 
-    /// Creates a model that finds `claude` with `cli` and answers its `cerca` tool with `index`.
+    /// Creates a model that finds `claude` with `cli`, answers its `cerca` tool with `index` and its `ricorda` tool
+    /// with `secondBrain`.
     ///
     /// - Parameters:
     ///   - bridgeExecutable: The agent bridge; tests pass a stand-in.
     ///   - bridgeArguments: The arguments of `bridgeExecutable`.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
-    init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil,
+    init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [],
          apiKey: (() async throws -> String?)? = nil) {
         self.cli = cli
         self.index = index
+        self.secondBrain = secondBrain
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -41,6 +45,7 @@ final class QuestionModel {
     @ObservationIgnored private(set) var answering: Task<Void, Never>?
     @ObservationIgnored private let cli: ClaudeCLI
     @ObservationIgnored private let index: SearchIndex?
+    @ObservationIgnored private let secondBrain: SecondBrain?
     @ObservationIgnored private let bridgeExecutable: URL
     @ObservationIgnored private let bridgeArguments: [String]
     @ObservationIgnored private let apiKey: () async throws -> String?
@@ -133,6 +138,7 @@ final class QuestionModel {
         answer = ""
         failure = nil
         resumesAt = nil
+        savedNote = nil
         isAnswering = true
         answering = Task { await stream(text, model: model) }
     }
@@ -145,7 +151,7 @@ final class QuestionModel {
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         do {
             let bridge = try await readyBridge()
-            for try await chunk in bridge.ask(text, in: try Self.directory(), model: model) {
+            for try await chunk in bridge.ask(text, in: try Self.directory(), model: model, remembers: true) {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
                     waitingForFirstToken = nil
@@ -183,11 +189,32 @@ final class QuestionModel {
                                  quota: { [weak self] reported in
                                      guard let self else { return }
                                      quota = quota.merging(reported)
+                                 },
+                                 remember: { [weak self] text, title in
+                                     await self?.remember(text, titled: title) ?? "Bubo non è disponibile."
                                  }) { [index] query, project, source in
             await index?.toolResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
         return bridge
+    }
+
+    /// Saves a note for the `ricorda` tool, and returns what the tool answers `claude`.
+    func remember(_ text: String, titled title: String) async -> String {
+        do {
+            guard let note = try await secondBrain?.remember(text, titled: title) else {
+                return "Nota non salvata: l'utente non ha scelto il Secondo cervello. Digli di sceglierlo in "
+                    + "Impostazioni › Generale › Secondo cervello."
+            }
+            savedNote = note.file
+            return "Nota salvata nel Secondo cervello: Bubo/Note/\(note.file.lastPathComponent)"
+        } catch NoteWriter.Failure.unreachable {
+            return "Nota non salvata: la cartella del Secondo cervello non è raggiungibile (disco scollegato o "
+                + "cartella spostata)."
+        } catch {
+            Logger.index.error("Note not saved: \(error)")
+            return "Nota non salvata: Bubo non è riuscito a scriverla."
+        }
     }
 
     /// Where Domande run: they have no Progetto, so an empty folder of Bubo's own.

@@ -43,6 +43,23 @@ final class SecondBrain {
         follow()
     }
 
+    /// Saves `text` as a new note titled `title` in `Bubo/Note/`, off the main actor.
+    ///
+    /// - Returns: The note; `nil` when no folder is chosen, so nothing is written.
+    /// - Throws: `NoteWriter.Failure` or a file system error when the note could not be written.
+    func remember(_ text: String, titled title: String) async throws -> NoteWriter.WrittenNote? {
+        guard let location else { return nil }
+        let note = try await Self.write(text, titled: title, with: NoteWriter(root: location.url))
+        Logger.index.notice("Note saved in the Secondo cervello")
+        return note
+    }
+
+    @concurrent
+    private static func write(_ text: String, titled title: String,
+                              with writer: NoteWriter) async throws -> NoteWriter.WrittenNote {
+        try writer.remember(text, titled: title)
+    }
+
     private func remember(_ location: SecondBrainLocation?) {
         self.location = location
         SecondBrainLocation.save(location, in: defaults)

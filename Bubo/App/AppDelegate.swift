@@ -20,7 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The folder of notes the Indice follows, chosen in the settings.
     private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
     /// The Domanda of the HUD, answered through the agent bridge.
-    private(set) lazy var questions = QuestionModel(index: searchIndex)
+    private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain)
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {

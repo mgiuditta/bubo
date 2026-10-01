@@ -37,14 +37,17 @@ final class AgentBridge {
     /// - Parameter quota: Receives the Quota windows each time `claude` reports them.
     /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder and the source to
     ///   search in, if any.
+    /// - Parameter remember: Answers the `ricorda` tool of a Domanda: the text to save and its title.
     init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
          quota: @escaping (Quota) -> Void = { _ in },
+         remember: @escaping (_ text: String, _ title: String) async -> String = { _, _ in "Non posso salvare note." },
          search: @escaping (_ query: String, _ project: String?, _ source: SearchSource?) async -> String) {
         self.executable = executable
         self.arguments = arguments
         self.environment = environment
         self.trustGate = trustGate
         self.quota = quota
+        self.remember = remember
         self.search = search
     }
 
@@ -56,6 +59,7 @@ final class AgentBridge {
     private let ledger = TrustLedger.standard
     private let quota: (Quota) -> Void
     private let search: (String, String?, SearchSource?) async -> String
+    private let remember: (String, String) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
     /// What receives the progress of each answer in `answers`.
@@ -88,6 +92,7 @@ final class AgentBridge {
     ///     conversation, with `AgentBridgeError.sandboxUnavailable`.
     ///   - id: The answer's id, to offer it the Anteprima later with ``offerPreview(_:to:)``.
     ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
+    ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
     ///     `nil` refuses them all.
@@ -97,6 +102,7 @@ final class AgentBridge {
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
              id: String = UUID().uuidString, offersPreview: Bool = false,
+             remembers: Bool = false,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -122,7 +128,8 @@ final class AgentBridge {
                                             keeping: kept,
                                             sandbox: isSandboxed ? sandbox(for: environment) : nil,
                                             offersPreview: offersPreview,
-                                            teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger))
+                                            teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
+                                            remembers: remembers)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -318,6 +325,11 @@ final class AgentBridge {
                 } catch {
                     Logger.agent.error("Anteprima answer not sent: \(error)")
                 }
+            }
+        case let .remember(id, title, text):
+            Task {
+                let result = await remember(text, title)
+                try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: result).line())
             }
         case let .permission(id, request):
             if let handler = permissionHandlers[id] {
