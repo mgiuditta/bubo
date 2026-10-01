@@ -67,6 +67,8 @@ nonisolated enum PermissionAnswer: Equatable, Sendable {
     case allowOnce
     /// Per questa Sessione: this call, and the same one again in the Sessione until Bubo quits.
     case allowForSession
+    /// Sempre in questo Progetto: this call, and a Regola di permesso saved in the Progetto for every later one.
+    case allowInProject
 
     /// Whether the call may run.
     var allows: Bool { self != .deny }

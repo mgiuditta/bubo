@@ -2,9 +2,9 @@ import os
 import SwiftUI
 
 /// The configuration of Claude in a Progetto, as `claude` loads it: CLAUDE.md, server MCP with status and source,
-/// plugins with their errors, skills (spec 04).
+/// plugins with their errors, skills (spec 04); and its Regole di permesso, read from the files (#79).
 ///
-/// Nothing is read from the files: `claude` reports it through the bridge. In a Progetto that is not trusted only
+/// Apart from the rules, nothing is read from the files: `claude` reports it through the bridge. In a Progetto that is not trusted only
 /// the user's configuration is loaded, and the panel says so instead of loading the Progetto's to show it.
 struct ConfigPanel: View {
     /// The Progetto's folder.
@@ -73,6 +73,8 @@ private struct ConfigurationForm: View {
             } header: {
                 Text("Configurazione di Claude")
             }
+
+            ProjectRulesSection(project: project)
 
             Section("CLAUDE.md · \(configuration.instructions.count)") {
                 if configuration.instructions.isEmpty {

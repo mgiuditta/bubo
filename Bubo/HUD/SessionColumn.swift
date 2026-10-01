@@ -199,9 +199,11 @@ struct SessionRow: View {
             details
             // Outside the combined element, so each answer stays a button of its own.
             if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
-                PermissionRequestView(pending: pending, queued: queue.count - 1,
+                PermissionRequestView(pending: pending, project: session.project, queued: queue.count - 1,
                                       hasKeyboard: store.permissions.first?.id == pending.id) { answer in
                     store.answer(pending.id, in: session.id, with: answer)
+                } allowInProject: {
+                    try store.allowInProject(pending.id, in: session.id)
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }

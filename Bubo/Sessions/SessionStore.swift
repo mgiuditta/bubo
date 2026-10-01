@@ -226,6 +226,20 @@ final class SessionStore {
         turns[id]?.answerPermission(request, allows: allows)
     }
 
+    /// Answers Sempre in questo Progetto: saves the rule of the Richiesta `request` in the Progetto of the Sessione `id`,
+    /// then allows the call. Nothing if `claude` no longer waits for it or no rule is offered.
+    ///
+    /// - Throws: `RuleStoreError.untrusted` until the Progetto is trusted, since `claude` would not read the rule;
+    ///   `RuleStoreError` or a file error when it cannot be saved. The Richiesta keeps waiting then.
+    func allowInProject(_ request: PermissionRequest.ID, in id: UUID) throws {
+        guard let session = sessions.first(where: { $0.id == id }),
+              let rule = permissions.pending(request, in: id)?.projectRule
+        else { return }
+        guard worktrees.trustGate.isTrusted(session.project) else { throw RuleStoreError.untrusted }
+        try RuleStore(project: session.project).add(rule.text)
+        answer(request, in: id, with: .allowInProject)
+    }
+
     /// Queues a Richiesta di permesso of the Sessione `id`, or answers it at once: no to a critical path,
     /// yes to what the user already allowed "Per questa Sessione".
     private func receive(_ event: PermissionEvent, in id: UUID, from bridge: AgentBridge, classifier: RiskClassifier) {

@@ -15,6 +15,9 @@ nonisolated struct RequestCenter: Equatable {
         var needsHold: Bool { risk.level.isDangerous || request.defaultsToNo }
         /// Whether "Per questa Sessione" is offered: never from levels 4–5, nor when `claude` says no lasting permission.
         var allowsSessionRule: Bool { !needsHold && !request.suppressesRule && SessionRule(request) != nil }
+        /// The rule "Sempre in questo Progetto" would save: never from levels 4–5, nor when `claude` says no lasting
+        /// permission, nor when no CLI rule could be as narrow as the call.
+        var projectRule: ProjectRule? { allowsSessionRule ? ProjectRule(request) : nil }
     }
 
     /// What happens to a Richiesta as it arrives.
@@ -48,12 +51,20 @@ nonisolated struct RequestCenter: Equatable {
 
     /// Removes the Richiesta `id` of `session` with `answer`; returns whether the call may run, `nil` if it was not
     /// waiting. "Per questa Sessione" becomes a permission only where it is offered; elsewhere it counts as Solo ora.
+    /// "Sempre in questo Progetto", once its rule is saved, also counts for the rest of the Sessione: `claude` may not
+    /// read the file again before its next start.
     mutating func answer(_ id: PermissionRequest.ID, in session: UUID, with answer: PermissionAnswer) -> Bool? {
         guard let pending = remove(id, in: session) else { return nil }
-        if answer == .allowForSession, pending.allowsSessionRule, let rule = SessionRule(pending.request) {
+        if answer == .allowForSession || answer == .allowInProject, pending.allowsSessionRule,
+           let rule = SessionRule(pending.request) {
             sessionRules[session, default: []].insert(rule)
         }
         return answer.allows
+    }
+
+    /// The Richiesta `id` waiting in `session`, if any.
+    func pending(_ id: PermissionRequest.ID, in session: UUID) -> Pending? {
+        queues[session]?.first { $0.id == id }
     }
 
     /// Removes the Richiesta `id` of `session`, which `claude` no longer waits for.

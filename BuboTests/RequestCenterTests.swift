@@ -98,4 +98,28 @@ struct RequestCenterTests {
         #expect(PermissionRequestView.shown("rm a\rb\u{202E}c\ntouch d")
             == "rm a\\u{D}b\\u{202E}c\ntouch d")
     }
+
+    @Test func sempreInQuestoProgettoIsOfferedOnlyWherePerQuestaSessioneIs() {
+        var center = RequestCenter()
+        _ = center.receive(Self.bash("1", "npm test"), in: session, risk: Risk(level: .modifica))
+        _ = center.receive(Self.bash("2", "git push --force"), in: other, risk: Risk(level: .irreversibile))
+        #expect(center.pending("1", in: session)?.projectRule?.text == "Bash(npm test)")
+        #expect(center.pending("2", in: other)?.projectRule == nil)
+
+        var request = Self.bash("3", "npm test")
+        request.suppressesRule = true
+        _ = center.receive(request, in: session, risk: Risk(level: .modifica))
+        #expect(center.pending("3", in: session)?.projectRule == nil)
+        request = Self.bash("4", "npm test")
+        request.defaultsToNo = true
+        _ = center.receive(request, in: session, risk: Risk(level: .modifica))
+        #expect(center.pending("4", in: session)?.projectRule == nil)
+    }
+
+    @Test func sempreInQuestoProgettoAlsoCountsForTheRestOfTheSessione() {
+        var center = RequestCenter()
+        _ = center.receive(Self.bash("1", "npm test"), in: session, risk: Risk(level: .modifica))
+        #expect(center.answer("1", in: session, with: .allowInProject) == true)
+        #expect(center.receive(Self.bash("2", "npm test"), in: session, risk: Risk(level: .modifica)) == .allowed)
+    }
 }
