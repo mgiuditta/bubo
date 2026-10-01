@@ -3,11 +3,12 @@ import SwiftUI
 /// A static stand-in for the Metal Orb, framed by the HUD rings.
 // ponytail: sostituito dal renderer Metal della fase 2 (mappa fase 1–2, Blob in Metal nel Panel).
 struct OrbPlaceholder: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceMotion) private var systemReducesMotion
+    @AppStorage(Motion.reducesMotionKey) private var reducesMotion = false
 
     var body: some View {
         ZStack {
-            HUDRings(isAnimated: !reduceMotion)
+            HUDRings(isAnimated: !(systemReducesMotion || reducesMotion))
             Circle()
                 .fill(
                     RadialGradient(

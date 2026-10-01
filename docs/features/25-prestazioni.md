@@ -235,7 +235,9 @@ Non decisi nelle issue, facili da cambiare.
 - **Pressione di memoria**: con `DispatchSource.makeMemoryPressureSource` a livello `.critical` Bubo sospende subito le Sessioni idonee, senza aspettare i 10 minuti.
 - **Riavvia durante un turno**: se la Sessione è in Lavora, il pulsante diventa "Riavvia a fine turno" e agisce appena il turno finisce. In un'Esecuzione (19) solo l'avviso, nessun riavvio automatico.
 - **Budget leggibili dalla macchina**: un solo file `BuboPerfTests/PerfBudgets.swift` con i numeri della colonna CI; `perf.sh` e la CI leggono quello. La tabella qui resta la versione per le persone.
-- **Report di `perf.sh`**: Markdown e JSON in `.build/perf/<data>/`, una riga per budget con valore, soglia ed esito.
+- **Report di `perf.sh`**: Markdown e JSON in `.build/perf/<data>/`, una riga per budget con valore, soglia ed esito. Giudica al budget esatto (1×) ed esce con 1 se un budget è superato o un invariante è rotto; le righe non misurate dicono perché e non bloccano. Con più letture dello stesso budget conta la peggiore.
+- **Uso di `perf.sh`**: `scripts/perf.sh` a Bubo chiuso e senza toccare il Mac (i UI test vogliono schermo e fuoco); `--freddo` subito dopo un riavvio misura l'avvio freddo dal lancio al signpost `HUD interattivo`; `--live` apre una Sessione vera per l'intervallo sul main thread. La build non è firmata (`CODE_SIGNING_ALLOWED=NO`) e usa `.build/DerivedData` come `check.sh`: il permesso di Accessibilità del runner resta legato a quel percorso.
+- **Letture**: i test allegano ogni lettura all'`.xcresult` come JSON `perf-<id>` (`BuboPerfTests/PerfMeasurement.swift`); lo script aggiunge le sue. Il tempo GPU dell'Orb si legge anche dal log del Metal HUD (`MTL_HUD_LOG_ENABLED`, solo con `TEST_RUNNER_BUBO_METAL_HUD=1`). Il report è `scripts/perf/`, compilato da `perf.sh` insieme a `PerfBudgets.swift`.
 - **Metal assente sul runner**: i test di fotogrammi si saltano con un avviso nel report, non falliscono.
 - **Isteresi dell'avviso**: "Sessione pesante" sparisce sotto 1,5 GB, per non lampeggiare vicino ai 2 GB.
 - **Dopo un riavvio di Bubo** le Sessioni partono sospese: nessun `claude` finché l'utente non scrive (coerente con la 01, niente ripresa automatica).
@@ -291,7 +293,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Sospensione** con orologio finto: tabella di condizioni (turno in corso, Richiesta aperta, figlio vivo, subagent in background, niente di questi) → sospende sì o no. Su Mac vero: 10 Sessioni ferme per 10 minuti → totale ≤ 200 MB; messaggio a una sospesa → `Ripresa Sessione` ≤ 1 s, risposta corretta con il contesto di prima.
 - **Ripresa fallita**: worktree cancellato a Sessione sospesa → Errore con motivo, messaggio ancora nel prompt.
 - **Sessione pesante**: `ProcessFootprintMonitor` con un processo finto che alloca oltre 2 GB → avviso entro 30 s; [Riavvia] → nuovo `claude`, stessa Conversazione. 0 processi lanciati dal monitor.
-- **Orb**: 600 fotogrammi di Morph dal pannello debug → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi.
+- **Orb**: 600 fotogrammi di Morph → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi. In Release il pannello debug non c'è: lanciato con `-orbFrameLog <file>`, Bubo scrive il tempo GPU di ogni fotogramma del Panel in quel file, una riga per fotogramma, e fa passare l'Orb da una Variante del Catalogo all'altra.
 - **Hang e hitch**: `XCTOSSignpostMetric` su `Apertura Sessione`, `Palette`, `Cambio vista`: nessun intervallo sul main thread oltre 100 ms. `XCTHitchMetric` durante le animazioni Notte: rapporto < 1%.
 - **CI**: una PR con un ritardo finto di 1,2 s all'avvio fallisce (oltre 2× di 500 ms); una con 600 ms passa con avviso nel report.
 - **`perf.sh`**: sull'M4 Max produce un report con una riga per ogni budget con CI *2×*, *invariante* o *perf.sh*.

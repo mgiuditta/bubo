@@ -6,6 +6,12 @@ options:
   developmentLanguage: it
   createIntermediateGroups: true
 
+packages:
+  # Solo la vista del terminale, versione fissata: dopo la 1.20 arrivano cambi di API (spec 15).
+  SwiftTerm:
+    url: https://github.com/migueldeicaza/SwiftTerm
+    exactVersion: 1.20.0
+
 settings:
   base:
     SWIFT_VERSION: "6.0"
@@ -32,9 +38,12 @@ targets:
         excludes:
           - Resources/Fonts
           - "**/*.md"
+          - "**/*.c"
       - path: Bubo/Resources/Fonts
         type: folder
         buildPhase: resources
+    dependencies:
+      - package: SwiftTerm
     entitlements:
       path: Bubo/Bubo.entitlements
       properties:
@@ -71,6 +80,21 @@ targets:
           - $(SRCROOT)/bridge/entitlements.plist
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-agent
+      - name: Lanciatore del terminale
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          launcher="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/bubo-terminal"
+          mkdir -p "${launcher:h}"
+          flags=()
+          for arch in ${=ARCHS}; do flags+=(-arch $arch); done
+          xcrun clang -O2 -Wall -Werror $flags -mmacosx-version-min="$MACOSX_DEPLOYMENT_TARGET" \
+            "$SRCROOT/Bubo/Terminal/TerminalLauncher.c" -o "$launcher"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$launcher"
+        inputFiles:
+          - $(SRCROOT)/Bubo/Terminal/TerminalLauncher.c
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-terminal
       - name: Archivio Metal 4 delle Forme
         shell: /bin/zsh
         script: |
@@ -88,6 +112,13 @@ targets:
     platform: macOS
     sources:
       - path: BuboTests
+      # The frame log reader of the performance tests, checked against what the app writes.
+      - path: BuboPerfTests/FrameLog.swift
+      # The budgets and the report of scripts/perf.sh.
+      - path: BuboPerfTests/PerfBudgets.swift
+      - path: BuboPerfTests/PerfMeasurement.swift
+      - path: scripts/perf/BudgetReport.swift
+      - path: scripts/perf/MetalHUDLog.swift
     dependencies:
       - target: Bubo
     settings:

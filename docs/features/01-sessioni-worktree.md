@@ -223,8 +223,8 @@ Fonte: [Modello di Sessione condiviso](https://github.com/mgiuditta/bubo/issues/
 - **Sessione** = unità stabile: id proprio, worktree, branch, catena di Conversazioni dell'agente (resume e fork cambiano l'id SDK, non la Sessione).
 - Worktree per impostazione predefinita; "Lavora sul checkout" facoltativo, al massimo una Sessione per Progetto.
 - Branch `bubo/<slug>` dal branch attivo nel checkout principale, rinominabile.
-- Preparazione: `clonefile` di tutti i file ignorati da git, rispettando `.worktreeinclude` / `.worktreeignore`, cache di build escluse di default; script di setup facoltativo per Progetto.
-- 10 porte libere per Sessione, in `BUBO_PORT` e `PORT`.
+- Preparazione: `clonefile` di tutti i file ignorati da git, rispettando `.worktreeinclude` / `.worktreeignore`, cache di build escluse di default; script di setup facoltativo per Progetto ([#70](https://github.com/mgiuditta/bubo/issues/70)): `.bubo/setup` nel repo, eseguito con `/bin/sh` nel worktree dalla shell di login dell'utente, con disclaim e tetto di 120 s, solo se il Progetto è fidato (come i suoi hook); se fallisce la Sessione parte comunque e mostra l'errore con le ultime righe dell'output.
+- 10 porte libere per Sessione, in `BUBO_PORT` e `PORT` (più `BUBO_PORTS`, l'intervallo): blocchi da 10 tra 40000 e 48999, liberi in IPv4 e IPv6 e non dati ad altre Sessioni, salvati con la Sessione.
 - **Attività** (Lavora, Attende te, Ferma, Errore) e **Fase** (Aperta, In revisione, Fusa, Archiviata) indipendenti; badge nel Dock = Sessioni in Attende te.
 - Al riavvio di Bubo, Lavora → Ferma con "Riprendi" in evidenza; nessuna ripresa automatica.
 - Dopo il merge: worktree rimosso, branch cancellato, Fase Archiviata, transcript consultabile. Archiviare senza merge: worktree rimosso, branch tenuto. Cancellare: conferma con elenco delle modifiche perse.
