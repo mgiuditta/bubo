@@ -94,3 +94,36 @@ nonisolated struct Hunk: Identifiable, Equatable, Sendable {
         return pairs
     }
 }
+
+nonisolated extension Hunk {
+    /// The line of the file after the change nearest to the blocco's line at `index`, from 1: an added or
+    /// unchanged line is there; a removed line is where it was, at the line that follows it, or at the one before it
+    /// when nothing follows it in the blocco.
+    ///
+    /// The diff's lines carry no numbers: they come from the `@@ -a,b +c,d @@` header. `nil` when the header is not
+    /// one, as for a binary file.
+    func newFileLine(at index: Int) -> Int? {
+        guard lines.indices.contains(index),
+              let match = header.prefixMatch(of: /@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/),
+              let start = Int(match.1) else { return nil }
+        // With no line after the change, `+c,0` names the line the blocco comes after.
+        var next = match.2.flatMap { Int($0) } == 0 ? start + 1 : start
+        for line in lines[..<index] where line.kind != .removed {
+            next += 1
+        }
+        let isRemovedAtTheEnd = lines[index].kind == .removed
+            && !lines[index...].contains { $0.kind != .removed }
+        return max(isRemovedAtTheEnd ? next - 1 : next, 1)
+    }
+
+    /// The line of the file after the change nearest to the side-by-side row at `index`: the line after, or the line
+    /// before when the row only removes.
+    func newFileLine(atPair index: Int) -> Int? {
+        guard pairs.indices.contains(index) else { return nil }
+        // The lines after, and the lines before, are in the pairs in the same order as in `lines`.
+        let isAfter = pairs[index].after != nil
+        let rank = pairs[..<index].count { isAfter ? $0.after != nil : $0.before != nil }
+        let side = lines.indices.filter { isAfter ? lines[$0].kind != .removed : lines[$0].kind != .added }
+        return side.indices.contains(rank) ? newFileLine(at: side[rank]) : nil
+    }
+}

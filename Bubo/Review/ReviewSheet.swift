@@ -247,6 +247,7 @@ struct ReviewSheet: View {
                         LazyVStack(alignment: .leading, spacing: 0) {
                             ForEach(hunk.lines.indices, id: \.self) { index in
                                 DiffLineRow(line: hunk.lines[index], isDecided: decisions[id] != nil, size: 13.5)
+                                    .opensInViewer { openViewer(file) { hunk.newFileLine(at: index) } }
                             }
                         }
                     }
@@ -287,11 +288,15 @@ struct ReviewSheet: View {
             let file = review.files[fileIndex]
             hunkHeader(file: file, hunk: file.hunks[hunkIndex])
         case let .line(fileIndex, hunkIndex, lineIndex):
-            let hunk = review.files[fileIndex].hunks[hunkIndex]
+            let file = review.files[fileIndex]
+            let hunk = file.hunks[hunkIndex]
             DiffLineRow(line: hunk.lines[lineIndex], isDecided: decisions[hunk.id] != nil)
+                .opensInViewer { openViewer(file) { hunk.newFileLine(at: lineIndex) } }
         case let .pair(fileIndex, hunkIndex, pairIndex):
-            let hunk = review.files[fileIndex].hunks[hunkIndex]
+            let file = review.files[fileIndex]
+            let hunk = file.hunks[hunkIndex]
             SideBySideLineRow(pair: hunk.pairs[pairIndex], isDecided: decisions[hunk.id] != nil)
+                .opensInViewer { openViewer(file) { hunk.newFileLine(atPair: pairIndex) } }
         }
     }
 
@@ -310,6 +315,19 @@ struct ReviewSheet: View {
             isFocused = true
         }
         .onTapGesture { cursor = hunk.id }
+    }
+
+    /// Opens the visore at `line` of `file` in the Sessione's folder, where the file is as the agent left it.
+    ///
+    /// The line is worked out only now, from the blocco's `@@` header; a deleted file has nothing to show.
+    private func openViewer(_ file: ChangedFile, at line: () -> Int?) {
+        guard let folder = session?.workspace?.folder, let line = line() else { return }
+        let location = SourceLocation(file: folder.appending(path: file.path), line: line)
+        guard location.isExistingFile else {
+            NSSound.beep()
+            return
+        }
+        store.viewer.show(location, in: folder)
     }
 
     private func handle(_ press: KeyPress) -> KeyPress.Result {

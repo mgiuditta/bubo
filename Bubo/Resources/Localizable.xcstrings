@@ -504,6 +504,16 @@
         }
       }
     },
+    "Apri nel visore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Viewer"
+          }
+        }
+      }
+    },
     "Apro il file…" : {
       "localizations" : {
         "en" : {
