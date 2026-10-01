@@ -50,7 +50,7 @@ struct NewAgentSheet: View {
         let refusal = writer.refusal(name: name, description: description)
         VStack(alignment: .leading, spacing: Spacing.medium) {
             Text("Nuovo agente")
-                .font(.title3.weight(.semibold))
+                .font(Typography.body(size: 15, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)
             Form {
                 Picker("Dove", selection: $destination) {
@@ -65,16 +65,16 @@ struct NewAgentSheet: View {
                     .lineLimit(2...5)
                 LabeledContent("File") {
                     Text(verbatim: writer.file(named: name.isEmpty ? "…" : name).path)
-                        .font(.callout.monospaced())
-                        .foregroundStyle(.secondary)
+                        .font(Typography.mono(size: 11))
+                        .foregroundStyle(Palette.textSecondary)
                         .lineLimit(1)
                         .truncationMode(.head)
                         .textSelection(.enabled)
                 }
             }
             Text("Bubo scrive solo nome e descrizione, poi apre il file nel tuo editor: il resto lo scrivi tu.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                .font(Typography.body(size: 12))
+                .foregroundStyle(Palette.textSecondary)
             HStack(alignment: .firstTextBaseline) {
                 if let failure {
                     Text(verbatim: failure)
@@ -82,7 +82,7 @@ struct NewAgentSheet: View {
                         .textSelection(.enabled)
                 } else if let refusal {
                     Text(refusal.message)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Palette.textSecondary)
                 }
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }

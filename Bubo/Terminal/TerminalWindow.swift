@@ -12,7 +12,8 @@ final class TerminalWindow {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 760, height: 420),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered, defer: true)
-        window.contentViewController = NSHostingController(rootView: TerminalPanel(store: store, isInWindow: true))
+        window.contentViewController = NSHostingController(rootView: TerminalPanel(store: store, isInWindow: true)
+            .background(Palette.ink))
         window.titlebarAppearsTransparent = true
         // Dark like the HUD it comes from, whatever the system appearance; the terminal's own colors are explicit.
         window.appearance = NSAppearance(named: .darkAqua)

@@ -92,6 +92,9 @@ struct BuboApp: App {
                 .environment(appDelegate.semanticSearch)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
+                // System controls, as macOS expects of the Impostazioni, but only dark like the rest of Bubo
+                // (design system, ADR 0004).
+                .preferredColorScheme(.dark)
         }
 
         MenuBarExtra {

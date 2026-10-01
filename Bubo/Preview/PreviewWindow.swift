@@ -12,7 +12,10 @@ final class PreviewWindow {
         window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 1_024, height: 720),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered, defer: true)
-        window.contentViewController = NSHostingController(rootView: PreviewPanel(store: store, isInWindow: true))
+        window.contentViewController = NSHostingController(rootView: PreviewPanel(store: store, isInWindow: true)
+            // The graphite of the HUD the panel comes from; the window keeps the system's appearance, which the page
+            // reads as its color scheme.
+            .background(Palette.ink))
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         if !window.setFrameUsingName("Anteprima") { window.center() }

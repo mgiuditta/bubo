@@ -46,6 +46,12 @@ struct AgentsWindow: View {
         }
         .padding(Spacing.medium)
         .frame(minWidth: 560, idealWidth: 680, minHeight: 420, idealHeight: 620)
+        .font(Typography.body(size: 13))
+        .foregroundStyle(Palette.textPrimary)
+        // The Notte direction's graphite, under the title bar too, like the Galassia and the Visore (ADR 0004).
+        .containerBackground(Palette.ink, for: .window)
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .preferredColorScheme(.dark)
         .onAppear { project = project ?? store?.projects.first }
         .task(id: chosenEditor) { editor = EditorLauncher.preferred(chosen: chosenEditor) }
         .task(id: LoadKey(project: project, attempt: attempt)) { await follow() }
@@ -64,8 +70,9 @@ struct AgentsWindow: View {
     private var header: some View {
         HStack {
             Text("Progetto")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.textSecondary)
             Text(verbatim: project?.lastPathComponent ?? "")
+                .font(Typography.body(size: 13, weight: .semibold))
                 .help(project?.path ?? "")
             Button(project == nil ? "Scegli cartella…" : "Cambia…") { isChoosingFolder = true }
             Spacer()
@@ -84,7 +91,7 @@ struct AgentsWindow: View {
         }
         if let configuration, !configuration.loadsProject {
             Label("Progetto non fidato: claude non carica i suoi agenti.", systemImage: "lock")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.textSecondary)
         }
         if let catalog, catalog.exceedsDescriptionBudget {
             notice("""
@@ -106,7 +113,7 @@ struct AgentsWindow: View {
                 .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: "exclamationmark.triangle.fill")
-                .symbolRenderingMode(.multicolor)
+                .foregroundStyle(Palette.danger)
                 .accessibilityLabel("Avviso")
         }
     }
@@ -132,10 +139,15 @@ struct AgentsWindow: View {
                                 }
                             } header: {
                                 Text("\(Text(section.title)) · \(entries.count)")
+                                    .font(Typography.mono(size: 10, weight: .medium))
+                                    .textCase(.uppercase)
+                                    .foregroundStyle(Palette.textSecondary)
                             }
+                            .listRowSeparatorTint(Palette.line)
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
             }
         } else {
             LoadingLabel("Leggo gli agenti…")
