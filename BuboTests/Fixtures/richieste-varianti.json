@@ -1,0 +1,3443 @@
+{
+  "versione": 1,
+  "revisione": "provvisoria: proposta da Claude (#381), da rivedere dall'utente insieme all'elenco (#393)",
+  "elenco": "docs/catalogo-elenco.json",
+  "tipi": [
+    "sessione.pianifica",
+    "sessione.correzione-piccola",
+    "sessione.modifica-ampia",
+    "sessione.esplora",
+    "sessione.revisione",
+    "domanda.fatto-breve",
+    "domanda.riassunto",
+    "domanda.scrittura",
+    "domanda.ragionamento",
+    "domanda.ricerca-web"
+  ],
+  "richieste": [
+    {
+      "id": "v001",
+      "lingua": "it",
+      "testo": "Prima di scrivere una riga, fammi un piano per aggiungere la modalità offline a NotesSync.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "compasso",
+      "seconda": "parentesi"
+    },
+    {
+      "id": "v002",
+      "lingua": "it",
+      "testo": "voglio rifare il login con le passkey, dimmi i passi prima di toccare qualcosa",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "compasso",
+      "seconda": null
+    },
+    {
+      "id": "v003",
+      "lingua": "it",
+      "testo": "Organizza il lavoro: una sessione per il backend e una per l'app, poi dimmi come le coordini.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "robot",
+      "seconda": "alveare"
+    },
+    {
+      "id": "v004",
+      "lingua": "it",
+      "testo": "Pianifica come dividere la migrazione a Swift 6 tra tre subagenti, uno per target.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "alveare",
+      "seconda": "robot"
+    },
+    {
+      "id": "v005",
+      "lingua": "it",
+      "testo": "Scrivimi la lista dei passi per portare il progetto Fattura2 da CocoaPods a SwiftPM, senza eseguirli.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "elenco",
+      "seconda": "pacco"
+    },
+    {
+      "id": "v006",
+      "lingua": "it",
+      "testo": "Come imposteresti lo schema per gestire ordini e resi nel db? Solo il piano, niente codice.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "compasso"
+    },
+    {
+      "id": "v007",
+      "lingua": "it",
+      "testo": "Prima di spostare lo staging su una macchina nuova, fammi un piano con i rischi e il ritorno indietro.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "server",
+      "seconda": null
+    },
+    {
+      "id": "v008",
+      "lingua": "it",
+      "testo": "Pianifica come mettere in container tutti i servizi di bubo-api, con l'ordine dei passi.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "container",
+      "seconda": null
+    },
+    {
+      "id": "v009",
+      "lingua": "it",
+      "testo": "Vorrei ristrutturare il modulo Pagamenti senza cambiare il comportamento: proponi un piano a tappe.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "mattoni",
+      "seconda": "compasso"
+    },
+    {
+      "id": "v010",
+      "lingua": "it",
+      "testo": "PlayerViewModel.swift ha 3000 righe: come lo spezzeresti? Dammi solo la proposta dei file.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "sega",
+      "seconda": "mattoni"
+    },
+    {
+      "id": "v011",
+      "lingua": "it",
+      "testo": "Devo collegare l'app al servizio del corriere per le spedizioni: fammi il piano dell'integrazione.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": null
+    },
+    {
+      "id": "v012",
+      "lingua": "it",
+      "testo": "Fammi un piano per arrivare a una suite di test decente sul parser CSV, partendo da zero.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "piramide"
+    },
+    {
+      "id": "v013",
+      "lingua": "it",
+      "testo": "Il modulo legacy di fatturazione è pieno di debito tecnico: come lo affronteresti in tre mesi? Solo il piano.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "iceberg",
+      "seconda": null
+    },
+    {
+      "id": "v014",
+      "lingua": "it",
+      "testo": "La schermata Home ci mette troppo ad aprirsi. Prima di cambiare, proponi come indagare e cosa misurare.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "lumaca",
+      "seconda": "radar"
+    },
+    {
+      "id": "v015",
+      "lingua": "it",
+      "testo": "Come organizzo i rami per lavorare su due release in parallelo? Proponi una strategia prima di creare qualcosa.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": null
+    },
+    {
+      "id": "v016",
+      "lingua": "it",
+      "testo": "Il ramo feature/mappe è indietro di 200 commit rispetto a main: pianifica come riportarlo pari senza disastri.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "frullatore",
+      "seconda": "ramo"
+    },
+    {
+      "id": "v017",
+      "lingua": "it",
+      "testo": "Pianifica come separare la configurazione di debug, staging e produzione in file diversi.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": null
+    },
+    {
+      "id": "v018",
+      "lingua": "it",
+      "testo": "Vorrei un hook che blocchi i commit con dentro dei segreti: progettalo, non installarlo ancora.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "uncino",
+      "seconda": "chiave"
+    },
+    {
+      "id": "v019",
+      "lingua": "it",
+      "testo": "Quali skill e server MCP mi servirebbero per automatizzare le release? Fammi una proposta prima di installare.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "cassetta-attrezzi",
+      "seconda": null
+    },
+    {
+      "id": "v020",
+      "lingua": "it",
+      "testo": "Prima di decidere, manda un subagente a guardare il modulo sync e poi proponi un piano.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "drone",
+      "seconda": "lanterna"
+    },
+    {
+      "id": "v021",
+      "lingua": "it",
+      "testo": "Devo aggiungere un nuovo tipo Abbonamento: in che file lo metto e con quali campi? Proponi prima di crearlo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "foglio",
+      "seconda": "compasso"
+    },
+    {
+      "id": "v022",
+      "lingua": "it",
+      "testo": "Sto per iniziare un pacchetto Swift nuovo per i grafici: proponi la struttura delle cartelle e dei target.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "germoglio",
+      "seconda": "cartella"
+    },
+    {
+      "id": "v023",
+      "lingua": "it",
+      "testo": "Pianifica il primo rilascio su TestFlight: cosa manca e in che ordine farlo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "razzo",
+      "seconda": "coccarda"
+    },
+    {
+      "id": "v024",
+      "lingua": "it",
+      "testo": "Bisogna rinominare Utente in Account in tutto il progetto: come lo faresti a tappe senza rompere la build?",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "elmetto",
+      "seconda": "carriola"
+    },
+    {
+      "id": "v025",
+      "lingua": "it",
+      "testo": "Pianifica l'aggiunta della ricerca full-text nell'app di ricette, modulo per modulo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "compasso"
+    },
+    {
+      "id": "v026",
+      "lingua": "it",
+      "testo": "Voglio tirare fuori la logica di validazione dai controller in un tipo a sé: fammi vedere il piano prima.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "pinza",
+      "seconda": "mattoni"
+    },
+    {
+      "id": "v027",
+      "lingua": "it",
+      "testo": "Ci sono tre client HTTP quasi identici nel repo: proponi come unificarli, senza fretta e senza toccare niente oggi.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "fotocopiatrice",
+      "seconda": "mattoni"
+    },
+    {
+      "id": "v028",
+      "lingua": "it",
+      "testo": "Serve una cache per le risposte dell'API meteo: dove la metteresti e con che scadenza? Solo il piano.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "barattolo",
+      "seconda": null
+    },
+    {
+      "id": "v029",
+      "lingua": "it",
+      "testo": "Ragioniamo insieme su come dovrebbe funzionare annulla e ripeti nell'editor, prima di scriverlo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "papera",
+      "seconda": "compasso"
+    },
+    {
+      "id": "v030",
+      "lingua": "it",
+      "testo": "Riprendi il piano di ieri e dimmi quali punti sono già fatti e quali restano.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "spunta",
+      "seconda": "elenco"
+    },
+    {
+      "id": "v031",
+      "lingua": "it",
+      "testo": "Prepara la sequenza di comandi per rigenerare il progetto Xcode, ma non lanciarli: voglio vederla prima.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "terminale",
+      "seconda": null
+    },
+    {
+      "id": "v032",
+      "lingua": "it",
+      "testo": "Abbiamo 400 warning dopo il passaggio a Swift 6: proponi un ordine per smaltirli.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": "scopa"
+    },
+    {
+      "id": "v033",
+      "lingua": "it",
+      "testo": "Come impostiamo le revisioni delle PR nel team, chi guarda cosa e quando? Proponi un processo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": "timbro"
+    },
+    {
+      "id": "v034",
+      "lingua": "it",
+      "testo": "Progetta un agente che ogni notte apra una PR con le traduzioni mancanti, senza implementarlo.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "robot",
+      "seconda": null
+    },
+    {
+      "id": "v035",
+      "lingua": "it",
+      "testo": "dammi un piano x aggiungere la sincronizzazione icloud all'app delle spese, step by step",
+      "tipo": "sessione.pianifica",
+      "categoria": "codice",
+      "variante": "compasso",
+      "seconda": null
+    },
+    {
+      "id": "v036",
+      "lingua": "it",
+      "testo": "Spezza il lavoro della nuova onboarding in una todo list ordinata, con le dipendenze tra i punti.",
+      "tipo": "sessione.pianifica",
+      "categoria": "agente",
+      "variante": "elenco",
+      "seconda": null
+    },
+    {
+      "id": "v037",
+      "lingua": "it",
+      "testo": "Nel file Settings.swift cambia il titolo della sezione da 'Generale' a 'Preferenze'.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "matita",
+      "seconda": "chiave-inglese"
+    },
+    {
+      "id": "v038",
+      "lingua": "it",
+      "testo": "riga 112 di CartView: il padding è 8, mettilo a 12",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "matita",
+      "seconda": null
+    },
+    {
+      "id": "v039",
+      "lingua": "it",
+      "testo": "C'è un refuso nel messaggio di benvenuto, 'Benvenuot': sistemalo.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "chiave-inglese",
+      "seconda": "matita"
+    },
+    {
+      "id": "v040",
+      "lingua": "it",
+      "testo": "Correggi il calcolo dell'IVA che arrotonda per difetto in Fattura.swift.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "chiave-inglese",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v041",
+      "lingua": "it",
+      "testo": "Il tasto Annulla nel foglio di modifica non chiude il foglio. Sistemalo.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "insetto",
+      "seconda": "chiave-inglese"
+    },
+    {
+      "id": "v042",
+      "lingua": "it",
+      "testo": "Quando la lista è vuota l'app crasha con index out of range, guarda ListaSpesaView.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "insetto",
+      "seconda": "avviso"
+    },
+    {
+      "id": "v043",
+      "lingua": "it",
+      "testo": "Togli il warning 'variable was never mutated' in Router.swift.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": "scopa"
+    },
+    {
+      "id": "v044",
+      "lingua": "it",
+      "testo": "Il compilatore dice 'cannot convert value of type Int to String' alla riga 58 di Totale.swift, correggi.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": null
+    },
+    {
+      "id": "v045",
+      "lingua": "it",
+      "testo": "Aggiungi un valore di default al parametro timeout di fetchOrders.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "matita"
+    },
+    {
+      "id": "v046",
+      "lingua": "it",
+      "testo": "Rendi opzionale il campo note nel modello Cliente e sistema chi lo usa.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": null
+    },
+    {
+      "id": "v047",
+      "lingua": "it",
+      "testo": "Cancella la funzione legacyExport, non la chiama più nessuno.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "forbici",
+      "seconda": "cestino"
+    },
+    {
+      "id": "v048",
+      "lingua": "it",
+      "testo": "Togli i print di debug rimasti in AppDelegate.swift.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "forbici",
+      "seconda": "scopa"
+    },
+    {
+      "id": "v049",
+      "lingua": "it",
+      "testo": "Fai un commit con solo il fix del colore e scrivi un messaggio decente.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": null
+    },
+    {
+      "id": "v050",
+      "lingua": "it",
+      "testo": "Ho sbagliato il messaggio dell'ultimo commit, cambialo in 'Corregge il totale del carrello'.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": null
+    },
+    {
+      "id": "v051",
+      "lingua": "it",
+      "testo": "Lancia swift test sul pacchetto Core e dimmi solo se passa.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "terminale",
+      "seconda": "provetta"
+    },
+    {
+      "id": "v052",
+      "lingua": "it",
+      "testo": "Alza il deployment target a macOS 26 nelle impostazioni di build.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": null
+    },
+    {
+      "id": "v053",
+      "lingua": "it",
+      "testo": "Nel file .env.example aggiungi la variabile API_TIMEOUT con valore 30.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": "chiave"
+    },
+    {
+      "id": "v054",
+      "lingua": "it",
+      "testo": "Il test testDateParsing fallisce per il fuso orario: correggi il test, non il codice.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v055",
+      "lingua": "it",
+      "testo": "Aggiungi un caso di test per la stringa vuota in SlugTests.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": null
+    },
+    {
+      "id": "v056",
+      "lingua": "it",
+      "testo": "La query dei clienti non esclude quelli cancellati: aggiungi la condizione deleted_at is null.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v057",
+      "lingua": "it",
+      "testo": "L'URL dell'endpoint nel client dei pagamenti è sbagliato, va /v2/orders e non /v1/orders.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": "ragnatela"
+    },
+    {
+      "id": "v058",
+      "lingua": "it",
+      "testo": "Sul server di staging cambia la porta del servizio da 8080 a 8081 nel file di configurazione.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "server",
+      "seconda": "ingranaggio"
+    },
+    {
+      "id": "v059",
+      "lingua": "it",
+      "testo": "Nel Dockerfile aggiorna l'immagine base a Python 3.12.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "container",
+      "seconda": "pacco"
+    },
+    {
+      "id": "v060",
+      "lingua": "it",
+      "testo": "Se la CI è verde approva la PR 128 e fai il merge.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "timbro",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v061",
+      "lingua": "it",
+      "testo": "C'è un solo conflitto in Package.resolved, risolvilo tenendo la versione di main.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "frullatore",
+      "seconda": null
+    },
+    {
+      "id": "v062",
+      "lingua": "it",
+      "testo": "Aggiorna il mio fork con le ultime modifiche del repository originale.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "forchetta",
+      "seconda": "ramo"
+    },
+    {
+      "id": "v063",
+      "lingua": "it",
+      "testo": "La build fallisce perché un file non è nel target: aggiungilo e ricompila.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "incudine",
+      "seconda": "avviso"
+    },
+    {
+      "id": "v064",
+      "lingua": "it",
+      "testo": "La query della lista prodotti non ha indice, aggiungi l'indice su categoria_id.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "lumaca",
+      "seconda": "database"
+    },
+    {
+      "id": "v065",
+      "lingua": "it",
+      "testo": "La cache delle miniature non scade mai: mettile una scadenza di 24 ore.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "barattolo",
+      "seconda": null
+    },
+    {
+      "id": "v066",
+      "lingua": "it",
+      "testo": "Spiegami passo per passo perché questo if non entra mai, poi correggilo.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "papera",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v067",
+      "lingua": "it",
+      "testo": "Estrai il formattatore delle date in una funzione privata, è ripetuto due volte nello stesso file.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "pinza",
+      "seconda": "fotocopiatrice"
+    },
+    {
+      "id": "v068",
+      "lingua": "it",
+      "testo": "Le due funzioni formatPrice e formatCost fanno la stessa cosa: tienine una.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "fotocopiatrice",
+      "seconda": "forbici"
+    },
+    {
+      "id": "v069",
+      "lingua": "it",
+      "testo": "Cambia 'Salva' in 'Salva modifiche' sul pulsante del form del profilo.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "matita",
+      "seconda": null
+    },
+    {
+      "id": "v070",
+      "lingua": "it",
+      "testo": "sistema l'icona nella toolbar che è storta di un pixel",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "codice",
+      "variante": "chiave-inglese",
+      "seconda": "squadra"
+    },
+    {
+      "id": "v071",
+      "lingua": "it",
+      "testo": "Aggiungi il server MCP del filesystem alla configurazione del progetto.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "agente",
+      "variante": "cassetta-attrezzi",
+      "seconda": "ingranaggio"
+    },
+    {
+      "id": "v072",
+      "lingua": "it",
+      "testo": "Segna come chiusa la issue del crash, ora che il fix è su main.",
+      "tipo": "sessione.correzione-piccola",
+      "categoria": "agente",
+      "variante": "spunta",
+      "seconda": "timbro"
+    },
+    {
+      "id": "v073",
+      "lingua": "it",
+      "testo": "Sostituisci il vecchio sistema di log con Logger in tutti i file del progetto.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "elmetto",
+      "seconda": null
+    },
+    {
+      "id": "v074",
+      "lingua": "it",
+      "testo": "Porta tutte le viste da ObservableObject a @Observable.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "elmetto",
+      "seconda": "mattoni"
+    },
+    {
+      "id": "v075",
+      "lingua": "it",
+      "testo": "Riorganizza il modulo Rete in livelli separati, client, servizi e modelli, con lo stesso comportamento.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "mattoni",
+      "seconda": "elmetto"
+    },
+    {
+      "id": "v076",
+      "lingua": "it",
+      "testo": "Rifattorizza CheckoutFlow in un coordinatore, senza cambiare quello che vede l'utente.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "mattoni",
+      "seconda": null
+    },
+    {
+      "id": "v077",
+      "lingua": "it",
+      "testo": "Spezza Utils.swift in file per argomento: date, stringhe, numeri.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "sega",
+      "seconda": "carriola"
+    },
+    {
+      "id": "v078",
+      "lingua": "it",
+      "testo": "modello_ordini.py è diventato enorme, dividilo in un pacchetto con più moduli.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "sega",
+      "seconda": null
+    },
+    {
+      "id": "v079",
+      "lingua": "it",
+      "testo": "Crea un nuovo modulo Notifiche con i suoi tipi e un servizio di invio.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "foglio",
+      "seconda": "germoglio"
+    },
+    {
+      "id": "v080",
+      "lingua": "it",
+      "testo": "Aggiungi i file per la schermata Statistiche: vista, modello e test vuoti.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "foglio",
+      "seconda": "schermo"
+    },
+    {
+      "id": "v081",
+      "lingua": "it",
+      "testo": "Implementa l'esportazione in PDF delle fatture, con anteprima e salvataggio.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "elmetto"
+    },
+    {
+      "id": "v082",
+      "lingua": "it",
+      "testo": "aggiungi la ricerca con i filtri alla lista contatti, sia l'interfaccia che la logica",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": null
+    },
+    {
+      "id": "v083",
+      "lingua": "it",
+      "testo": "Migra lo schema: separa la tabella utenti in utenti e profili e aggiorna tutte le query.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "ponte"
+    },
+    {
+      "id": "v084",
+      "lingua": "it",
+      "testo": "Passa da SQLite a Postgres in tutto il backend di gestionale-negozio.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "ponte"
+    },
+    {
+      "id": "v085",
+      "lingua": "it",
+      "testo": "Sposta il backend dal server vecchio al nuovo: script di provisioning, configurazione e servizi.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "server",
+      "seconda": "container"
+    },
+    {
+      "id": "v086",
+      "lingua": "it",
+      "testo": "Metti in container tutto lo stack, API, worker e database, con il compose per lo sviluppo.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "container",
+      "seconda": null
+    },
+    {
+      "id": "v087",
+      "lingua": "it",
+      "testo": "Integra i pagamenti ricorrenti con l'API del provider: app, backend e webhook.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": "elmetto"
+    },
+    {
+      "id": "v088",
+      "lingua": "it",
+      "testo": "Collega l'app al calendario dell'utente per importare gli eventi.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": null
+    },
+    {
+      "id": "v089",
+      "lingua": "it",
+      "testo": "Aggiungi una cache su disco per tutte le immagini remote dell'app, con pulizia automatica.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "barattolo",
+      "seconda": null
+    },
+    {
+      "id": "v090",
+      "lingua": "it",
+      "testo": "Scrivi i test per tutto il modulo Carrello, che oggi non ne ha nessuno.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "piramide"
+    },
+    {
+      "id": "v091",
+      "lingua": "it",
+      "testo": "Porta tutti i test da XCTest a Swift Testing.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": null
+    },
+    {
+      "id": "v092",
+      "lingua": "it",
+      "testo": "Riorganizza schemi e configurazioni di build: Debug, Beta e Release, ognuna con le sue variabili.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": null
+    },
+    {
+      "id": "v093",
+      "lingua": "it",
+      "testo": "Estrai il motore di calcolo dei prezzi in un pacchetto a parte, usato dall'app e dal widget.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "pinza",
+      "seconda": "sega"
+    },
+    {
+      "id": "v094",
+      "lingua": "it",
+      "testo": "Lo stesso codice di validazione è copiato in sei schermate: mettilo in un posto solo.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "fotocopiatrice",
+      "seconda": "pinza"
+    },
+    {
+      "id": "v095",
+      "lingua": "it",
+      "testo": "Togli tutto il supporto a iOS 15: codice condizionale, workaround e asset vecchi.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "forbici",
+      "seconda": "cestino"
+    },
+    {
+      "id": "v096",
+      "lingua": "it",
+      "testo": "Ripaga un po' di debito tecnico nel modulo Sync: via i force unwrap e i TODO più vecchi.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "iceberg",
+      "seconda": "scopa"
+    },
+    {
+      "id": "v097",
+      "lingua": "it",
+      "testo": "L'app scatta quando scorre le liste lunghe: ottimizza le celle e il caricamento delle immagini.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "lumaca",
+      "seconda": null
+    },
+    {
+      "id": "v098",
+      "lingua": "it",
+      "testo": "Avvia una sessione che porti tutto il progetto a Swift 6 e apra la PR alla fine.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "agente",
+      "variante": "robot",
+      "seconda": "elmetto"
+    },
+    {
+      "id": "v099",
+      "lingua": "it",
+      "testo": "Dividi la traduzione dell'app tra più subagenti, uno per lingua, e poi unisci il lavoro.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "agente",
+      "variante": "alveare",
+      "seconda": "bandierine"
+    },
+    {
+      "id": "v100",
+      "lingua": "it",
+      "testo": "Lancia in parallelo il refactor di Rete e quello di Persistenza, in due sessioni separate.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "agente",
+      "variante": "alveare",
+      "seconda": null
+    },
+    {
+      "id": "v101",
+      "lingua": "it",
+      "testo": "Riscrivi la cronologia del ramo feature/report in commit puliti, uno per modifica.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": "frullatore"
+    },
+    {
+      "id": "v102",
+      "lingua": "it",
+      "testo": "Fai il rebase di tutti i rami aperti su main e risolvi i conflitti.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "frullatore",
+      "seconda": null
+    },
+    {
+      "id": "v103",
+      "lingua": "it",
+      "testo": "Fai il fork di quella libreria di grafici, applica la nostra patch e usala nel progetto al posto dell'originale.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "forchetta",
+      "seconda": "pacco"
+    },
+    {
+      "id": "v104",
+      "lingua": "it",
+      "testo": "Rifai tutte le schermate delle impostazioni con il nuovo stile, sidebar compresa.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "schermo",
+      "seconda": "elmetto"
+    },
+    {
+      "id": "v105",
+      "lingua": "it",
+      "testo": "Sposta tutti i file dei modelli nella cartella Models e aggiorna i riferimenti.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "carriola",
+      "seconda": "cartella"
+    },
+    {
+      "id": "v106",
+      "lingua": "it",
+      "testo": "Scrivi la documentazione di tutte le API pubbliche del pacchetto Core.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "info",
+      "seconda": null
+    },
+    {
+      "id": "v107",
+      "lingua": "it",
+      "testo": "Aggiungi lo spagnolo e il tedesco a tutta l'app.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "bandierine",
+      "seconda": "alveare"
+    },
+    {
+      "id": "v108",
+      "lingua": "it",
+      "testo": "Rendi thread-safe tutto il gestore dei download usando gli actor.",
+      "tipo": "sessione.modifica-ampia",
+      "categoria": "codice",
+      "variante": "treccia",
+      "seconda": "parentesi"
+    },
+    {
+      "id": "v109",
+      "lingua": "it",
+      "testo": "dov'è che leggiamo il token dal portachiavi? trovamelo",
+      "tipo": "sessione.esplora",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": null
+    },
+    {
+      "id": "v110",
+      "lingua": "it",
+      "testo": "Cerca tutti i punti in cui creiamo un DateFormatter nel progetto.",
+      "tipo": "sessione.esplora",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": null
+    },
+    {
+      "id": "v111",
+      "lingua": "it",
+      "testo": "In quali file compare ancora la stringa 'beta_flag'?",
+      "tipo": "sessione.esplora",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": null
+    },
+    {
+      "id": "v112",
+      "lingua": "it",
+      "testo": "Non conosco questo repo: fammi un giro dei moduli principali e di come si parlano.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "lanterna",
+      "seconda": "lavagna"
+    },
+    {
+      "id": "v113",
+      "lingua": "it",
+      "testo": "Guarda la cartella Sync e dimmi come è organizzata, non modificare nulla.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "lanterna",
+      "seconda": null
+    },
+    {
+      "id": "v114",
+      "lingua": "it",
+      "testo": "Spiegami come passa un ordine dall'app al database, passo per passo.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "lavagna",
+      "seconda": "lanterna"
+    },
+    {
+      "id": "v115",
+      "lingua": "it",
+      "testo": "Come funziona il sistema dei permessi in questo progetto?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "lavagna",
+      "seconda": "lanterna"
+    },
+    {
+      "id": "v116",
+      "lingua": "it",
+      "testo": "Manda un subagente a capire come funziona l'importazione CSV e fammi un riassunto.",
+      "tipo": "sessione.esplora",
+      "categoria": "agente",
+      "variante": "drone",
+      "seconda": "lanterna"
+    },
+    {
+      "id": "v117",
+      "lingua": "it",
+      "testo": "Fai esplorare a un subagente la libreria di rendering e fatti dire quali sono i punti d'ingresso.",
+      "tipo": "sessione.esplora",
+      "categoria": "agente",
+      "variante": "drone",
+      "seconda": null
+    },
+    {
+      "id": "v118",
+      "lingua": "it",
+      "testo": "Ragioniamo: perché secondo te il timer parte due volte? Leggi il codice ma non cambiarlo.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "papera",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v119",
+      "lingua": "it",
+      "testo": "Dammi un'idea di quanto debito tecnico c'è nel modulo Fatturazione: cose nascoste, workaround, TODO.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "iceberg",
+      "seconda": null
+    },
+    {
+      "id": "v120",
+      "lingua": "it",
+      "testo": "Quali parti del codice ci faranno più male quando aggiorneremo il framework? Guarda e dimmi.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "iceberg",
+      "seconda": "ponte"
+    },
+    {
+      "id": "v121",
+      "lingua": "it",
+      "testo": "Che tabelle ci sono nel database e come sono collegate tra loro?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "gerarchia"
+    },
+    {
+      "id": "v122",
+      "lingua": "it",
+      "testo": "Mostrami le query più pesanti usate dalla dashboard admin.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "lumaca"
+    },
+    {
+      "id": "v123",
+      "lingua": "it",
+      "testo": "Perché l'avvio dell'app è così lento? Guarda il codice di avvio e dimmi i sospetti, niente modifiche.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "lumaca",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v124",
+      "lingua": "it",
+      "testo": "Su quali server gira il servizio notifiche e come è configurato?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "server",
+      "seconda": "ingranaggio"
+    },
+    {
+      "id": "v125",
+      "lingua": "it",
+      "testo": "Che immagini usiamo nei container e da dove partono i servizi?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "container",
+      "seconda": null
+    },
+    {
+      "id": "v126",
+      "lingua": "it",
+      "testo": "Quali servizi esterni chiama l'app? Fammi l'elenco delle API e dei punti in cui si collegano.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": "ragnatela"
+    },
+    {
+      "id": "v127",
+      "lingua": "it",
+      "testo": "Dove teniamo i dati in cache e per quanto tempo? Voglio capire prima di toccare.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "barattolo",
+      "seconda": null
+    },
+    {
+      "id": "v128",
+      "lingua": "it",
+      "testo": "Quali flag di build e file di configurazione ci sono per i vari ambienti?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": null
+    },
+    {
+      "id": "v129",
+      "lingua": "it",
+      "testo": "Chi ha toccato per ultimo PaymentService.swift e perché? Guarda la cronologia git.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": "orme"
+    },
+    {
+      "id": "v130",
+      "lingua": "it",
+      "testo": "Fammi vedere i rami aperti e cosa contiene ognuno.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": null
+    },
+    {
+      "id": "v131",
+      "lingua": "it",
+      "testo": "Cosa significa l'errore di linking nel log di build? Spiega senza cambiare niente.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": "rotolo"
+    },
+    {
+      "id": "v132",
+      "lingua": "it",
+      "testo": "Leggi il crash report allegato e dimmi dove si rompe.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": "insetto",
+      "allegati": [
+        "crash-2026-09-30.ips"
+      ]
+    },
+    {
+      "id": "v133",
+      "lingua": "it",
+      "testo": "Il numero sul badge a volte è sbagliato: indaga e dimmi la causa, senza correggere.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "insetto",
+      "seconda": "lente"
+    },
+    {
+      "id": "v134",
+      "lingua": "it",
+      "testo": "Quali parti del modulo Account non sono coperte dai test?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "metro"
+    },
+    {
+      "id": "v135",
+      "lingua": "it",
+      "testo": "Come sono organizzati i test in questo progetto e come si lanciano?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": null
+    },
+    {
+      "id": "v136",
+      "lingua": "it",
+      "testo": "Che strumenti ha l'agente in questo progetto? Elenca skill e server MCP.",
+      "tipo": "sessione.esplora",
+      "categoria": "agente",
+      "variante": "cassetta-attrezzi",
+      "seconda": null
+    },
+    {
+      "id": "v137",
+      "lingua": "it",
+      "testo": "Quali hook sono configurati in .claude/settings.json e quando scattano?",
+      "tipo": "sessione.esplora",
+      "categoria": "agente",
+      "variante": "uncino",
+      "seconda": "cassetta-attrezzi"
+    },
+    {
+      "id": "v138",
+      "lingua": "it",
+      "testo": "Che script ci sono nella cartella scripts e cosa fa ognuno?",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "terminale",
+      "seconda": "lente"
+    },
+    {
+      "id": "v139",
+      "lingua": "it",
+      "testo": "Fammi vedere come dipendono tra loro i target dell'app.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "gerarchia",
+      "seconda": "lavagna"
+    },
+    {
+      "id": "v140",
+      "lingua": "it",
+      "testo": "Che sessioni sono aperte su questo progetto e a che punto sono?",
+      "tipo": "sessione.esplora",
+      "categoria": "agente",
+      "variante": "robot",
+      "seconda": "alveare"
+    },
+    {
+      "id": "v141",
+      "lingua": "it",
+      "testo": "Cosa fa esattamente la funzione mergeSnapshots? Leggila e spiegamela.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "lavagna"
+    },
+    {
+      "id": "v142",
+      "lingua": "it",
+      "testo": "trova dove viene mostrato l'errore 'Sessione scaduta' e da dove arriva",
+      "tipo": "sessione.esplora",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": "insetto"
+    },
+    {
+      "id": "v143",
+      "lingua": "it",
+      "testo": "Da dove viene il numero magico 0.37 nel codice delle animazioni? Ricostruisci la storia.",
+      "tipo": "sessione.esplora",
+      "categoria": "ricerca",
+      "variante": "segugio",
+      "seconda": "ramo"
+    },
+    {
+      "id": "v144",
+      "lingua": "it",
+      "testo": "Questo file fa troppe cose: individua le responsabilità prima di separarle, senza modificarlo.",
+      "tipo": "sessione.esplora",
+      "categoria": "codice",
+      "variante": "mattoni",
+      "seconda": "sega"
+    },
+    {
+      "id": "v145",
+      "lingua": "it",
+      "testo": "Rivedi la PR 241 e dimmi cosa non ti convince.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": null
+    },
+    {
+      "id": "v146",
+      "lingua": "it",
+      "testo": "dai un occhio al diff di stamattina sul modulo login, ci sono problemi?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": null
+    },
+    {
+      "id": "v147",
+      "lingua": "it",
+      "testo": "Fai la review delle modifiche non ancora committate prima che le mandi.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": "ramo"
+    },
+    {
+      "id": "v148",
+      "lingua": "it",
+      "testo": "Se la review è ok, approva la PR del collega e mettila in coda per il merge.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "timbro",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v149",
+      "lingua": "it",
+      "testo": "Dai il via libera alla PR delle traduzioni se nei file non ci sono errori.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "timbro",
+      "seconda": "bandierine"
+    },
+    {
+      "id": "v150",
+      "lingua": "it",
+      "testo": "Controlla questa PR cercando bug: casi limite, nil, divisioni per zero.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "insetto",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v151",
+      "lingua": "it",
+      "testo": "Rivedi i test aggiunti in questa PR: coprono davvero i casi importanti?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v152",
+      "lingua": "it",
+      "testo": "I test della PR sono sensati o testano solo i mock?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "provetta",
+      "seconda": "manichino"
+    },
+    {
+      "id": "v153",
+      "lingua": "it",
+      "testo": "Guarda il log di build della PR e dimmi quali warning sono nuovi.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "avviso",
+      "seconda": "rotolo"
+    },
+    {
+      "id": "v154",
+      "lingua": "it",
+      "testo": "Questa PR peggiora le prestazioni? Guarda soprattutto il codice del feed.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "lumaca",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v155",
+      "lingua": "it",
+      "testo": "La PR aggiunge debito tecnico? Dimmi cosa ci costerà dopo.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "iceberg",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v156",
+      "lingua": "it",
+      "testo": "Rileggi con me la logica dello scheduler nella PR, ragionando passo passo se è corretta.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "papera",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v157",
+      "lingua": "it",
+      "testo": "Rivedi le migrazioni del database in questa PR: si possono annullare?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v158",
+      "lingua": "it",
+      "testo": "La query nuova nella PR è sicura e usa gli indici?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "database",
+      "seconda": null
+    },
+    {
+      "id": "v159",
+      "lingua": "it",
+      "testo": "Controlla la configurazione nginx cambiata nella PR prima che vada sul server.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "server",
+      "seconda": "ingranaggio"
+    },
+    {
+      "id": "v160",
+      "lingua": "it",
+      "testo": "Rivedi il Dockerfile della PR: immagine base, utente, strati.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "container",
+      "seconda": "scudo"
+    },
+    {
+      "id": "v161",
+      "lingua": "it",
+      "testo": "Guarda come la PR gestisce gli errori dell'API dei pagamenti: va bene?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "spina",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v162",
+      "lingua": "it",
+      "testo": "La strategia di cache di questa PR rischia di servire dati vecchi?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "barattolo",
+      "seconda": null
+    },
+    {
+      "id": "v163",
+      "lingua": "it",
+      "testo": "Rivedi le modifiche ai file di configurazione: niente di strano tra staging e produzione?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "ingranaggio",
+      "seconda": "chiave"
+    },
+    {
+      "id": "v164",
+      "lingua": "it",
+      "testo": "Rivedi i commit di questo ramo: messaggi chiari, commit atomici?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": null
+    },
+    {
+      "id": "v165",
+      "lingua": "it",
+      "testo": "Controlla che il merge di ieri non abbia perso modifiche nei file in conflitto.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "frullatore",
+      "seconda": null
+    },
+    {
+      "id": "v166",
+      "lingua": "it",
+      "testo": "Questo refactor cambia il comportamento da qualche parte? Rivedilo con attenzione.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "mattoni",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v167",
+      "lingua": "it",
+      "testo": "La divisione in moduli fatta nella PR ha senso o ha solo spostato il problema?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "sega",
+      "seconda": "mattoni"
+    },
+    {
+      "id": "v168",
+      "lingua": "it",
+      "testo": "La PR toglie molto codice: controlla che non sparisca niente che si usa ancora.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "forbici",
+      "seconda": "cestino"
+    },
+    {
+      "id": "v169",
+      "lingua": "it",
+      "testo": "Nella PR ci sono pezzi duplicati che si potevano riusare?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "fotocopiatrice",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v170",
+      "lingua": "it",
+      "testo": "Rivedi l'estrazione del servizio di pagamento: l'interfaccia nuova è pulita?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "pinza",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v171",
+      "lingua": "it",
+      "testo": "Rivedi i file nuovi aggiunti nella PR: sono nel posto giusto?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "foglio",
+      "seconda": "cartella"
+    },
+    {
+      "id": "v172",
+      "lingua": "it",
+      "testo": "Guarda questa funzione e dimmi se si può scrivere meglio.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v173",
+      "lingua": "it",
+      "testo": "Fai una revisione di sicurezza della PR sul login: input, token, log.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "scudo",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v174",
+      "lingua": "it",
+      "testo": "La PR rispetta le nostre convenzioni di nomi e formattazione?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "livella",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v175",
+      "lingua": "it",
+      "testo": "Rivedi il lavoro della sessione di stanotte prima che lo unisca.",
+      "tipo": "sessione.revisione",
+      "categoria": "agente",
+      "variante": "robot",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v176",
+      "lingua": "it",
+      "testo": "Controlla che tutti i punti della checklist della PR siano fatti davvero.",
+      "tipo": "sessione.revisione",
+      "categoria": "agente",
+      "variante": "spunta",
+      "seconda": "elenco"
+    },
+    {
+      "id": "v177",
+      "lingua": "it",
+      "testo": "revisiona sto diff x favore, sopratutto la parte async",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": "treccia"
+    },
+    {
+      "id": "v178",
+      "lingua": "it",
+      "testo": "La PR compila in Release? Guarda anche le impostazioni di ottimizzazione.",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "incudine",
+      "seconda": "ingranaggio"
+    },
+    {
+      "id": "v179",
+      "lingua": "it",
+      "testo": "Il fix piccolo nella PR 77 è giusto o nasconde il problema?",
+      "tipo": "sessione.revisione",
+      "categoria": "codice",
+      "variante": "chiave-inglese",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v180",
+      "lingua": "it",
+      "testo": "Rivedi insieme le tre PR aperte dai subagenti e dimmi se si pestano i piedi.",
+      "tipo": "sessione.revisione",
+      "categoria": "agente",
+      "variante": "alveare",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v181",
+      "lingua": "it",
+      "testo": "Quanti abitanti ha la Norvegia?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "punto-interrogativo",
+      "seconda": null
+    },
+    {
+      "id": "v182",
+      "lingua": "it",
+      "testo": "In che anno è caduto il muro di Berlino?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "punto-interrogativo",
+      "seconda": null
+    },
+    {
+      "id": "v183",
+      "lingua": "it",
+      "testo": "Bubo, cosa puoi fare con i miei file?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "gufo",
+      "seconda": null
+    },
+    {
+      "id": "v184",
+      "lingua": "it",
+      "testo": "come ti cambio la voce?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "gufo",
+      "seconda": null
+    },
+    {
+      "id": "v185",
+      "lingua": "it",
+      "testo": "Quante uova servono per un tiramisù da sei persone?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "gelato",
+      "seconda": "pentola"
+    },
+    {
+      "id": "v186",
+      "lingua": "it",
+      "testo": "A che temperatura va il forno per la pizza in teglia?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "pizza",
+      "seconda": "pentola"
+    },
+    {
+      "id": "v187",
+      "lingua": "it",
+      "testo": "Quanto cresce in un anno un ulivo giovane?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "albero",
+      "seconda": null
+    },
+    {
+      "id": "v188",
+      "lingua": "it",
+      "testo": "I chiodini si possono mangiare crudi?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "fungo",
+      "seconda": null
+    },
+    {
+      "id": "v189",
+      "lingua": "it",
+      "testo": "Quando si piantano i bulbi dei tulipani?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "chat",
+      "variante": "girasole",
+      "seconda": "annaffiatoio"
+    },
+    {
+      "id": "v190",
+      "lingua": "it",
+      "testo": "Scrivi una guida breve per fare ritratti con lo sfondo sfocato.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "macchina-fotografica",
+      "seconda": null
+    },
+    {
+      "id": "v191",
+      "lingua": "it",
+      "testo": "Quanta stoffa serve per una tenda larga due metri?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "creativo",
+      "variante": "rocchetto",
+      "seconda": "calcolatrice"
+    },
+    {
+      "id": "v192",
+      "lingua": "it",
+      "testo": "Cos'è la tredicesima e quando arriva?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "finanza",
+      "variante": "banconota",
+      "seconda": null
+    },
+    {
+      "id": "v193",
+      "lingua": "it",
+      "testo": "Cos'è il codice CVV della carta?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "finanza",
+      "variante": "carta-di-credito",
+      "seconda": null
+    },
+    {
+      "id": "v194",
+      "lingua": "it",
+      "testo": "Quanto fa il 22% di 340 euro?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "finanza",
+      "variante": "calcolatrice",
+      "seconda": null
+    },
+    {
+      "id": "v195",
+      "lingua": "it",
+      "testo": "Riassumimi i messaggi non letti di Marco.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "cassetta-postale",
+      "seconda": "busta"
+    },
+    {
+      "id": "v196",
+      "lingua": "it",
+      "testo": "Quanto ci mette una raccomandata da Napoli a Milano?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "mail",
+      "variante": "francobollo",
+      "seconda": null
+    },
+    {
+      "id": "v197",
+      "lingua": "it",
+      "testo": "Che dimensione massima può avere un allegato in una mail?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "mail",
+      "variante": "graffetta",
+      "seconda": null
+    },
+    {
+      "id": "v198",
+      "lingua": "it",
+      "testo": "Come cambio l'indirizzo email principale del mio account?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "mail",
+      "variante": "chiocciola",
+      "seconda": null
+    },
+    {
+      "id": "v199",
+      "lingua": "it",
+      "testo": "Cerca le previsioni di domani per Bergamo, ora per ora.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "meteo",
+      "variante": "nuvola",
+      "seconda": null
+    },
+    {
+      "id": "v200",
+      "lingua": "it",
+      "testo": "Durante un temporale è pericoloso stare in macchina?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "fulmine",
+      "seconda": null
+    },
+    {
+      "id": "v201",
+      "lingua": "it",
+      "testo": "Sabato a Genova c'è il sole?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "sole",
+      "seconda": "nuvola"
+    },
+    {
+      "id": "v202",
+      "lingua": "it",
+      "testo": "Che fase lunare c'è stasera?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "luna",
+      "seconda": null
+    },
+    {
+      "id": "v203",
+      "lingua": "it",
+      "testo": "Quanta umidità c'è oggi a Venezia?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "goccia",
+      "seconda": null
+    },
+    {
+      "id": "v204",
+      "lingua": "it",
+      "testo": "Stasera rientro alle 20, mi serve l'ombrello?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "ombrello",
+      "seconda": "nuvola"
+    },
+    {
+      "id": "v205",
+      "lingua": "it",
+      "testo": "A che quota nevica domani in Valle d'Aosta?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "meteo",
+      "variante": "fiocco-di-neve",
+      "seconda": null
+    },
+    {
+      "id": "v206",
+      "lingua": "it",
+      "testo": "Come si accorda una chitarra in Re aperto?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "musica",
+      "variante": "chitarra",
+      "seconda": null
+    },
+    {
+      "id": "v207",
+      "lingua": "it",
+      "testo": "Quanti tasti ha un pianoforte?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "musica",
+      "variante": "pianoforte",
+      "seconda": null
+    },
+    {
+      "id": "v208",
+      "lingua": "it",
+      "testo": "Quanti pistoni ha una tromba?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "musica",
+      "variante": "tromba",
+      "seconda": null
+    },
+    {
+      "id": "v209",
+      "lingua": "it",
+      "testo": "Per un bambino di otto anni è meglio un cajón o un djembe?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "musica",
+      "variante": "tamburo",
+      "seconda": null
+    },
+    {
+      "id": "v210",
+      "lingua": "it",
+      "testo": "Come si cura una vescica sul tallone?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "salute",
+      "variante": "cerotto",
+      "seconda": null
+    },
+    {
+      "id": "v211",
+      "lingua": "it",
+      "testo": "Ogni quanti anni si fa il richiamo dell'antitetanica?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "salute",
+      "variante": "siringa",
+      "seconda": null
+    },
+    {
+      "id": "v212",
+      "lingua": "it",
+      "testo": "A che ritmo devo correre per fare 10 km in 50 minuti?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "salute",
+      "variante": "scarpa-da-corsa",
+      "seconda": "cronometro"
+    },
+    {
+      "id": "v213",
+      "lingua": "it",
+      "testo": "Quanti giorni mancano alla consegna del 15 novembre?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "clessidra",
+      "seconda": null
+    },
+    {
+      "id": "v214",
+      "lingua": "it",
+      "testo": "Mettimi una sveglia alle 6:45.",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "sveglia",
+      "seconda": null
+    },
+    {
+      "id": "v215",
+      "lingua": "it",
+      "testo": "Promemoria domani alle 9 per pagare il bollo.",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "sveglia",
+      "seconda": "clessidra"
+    },
+    {
+      "id": "v216",
+      "lingua": "it",
+      "testo": "Mi dici l'ora esatta?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "orologio",
+      "seconda": null
+    },
+    {
+      "id": "v217",
+      "lingua": "it",
+      "testo": "Quanto ci vuole in media a correre una maratona?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "cronometro",
+      "seconda": "scarpa-da-corsa"
+    },
+    {
+      "id": "v218",
+      "lingua": "it",
+      "testo": "Stanotte si cambia l'ora? Si dorme di più o di meno?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "meridiana",
+      "seconda": null
+    },
+    {
+      "id": "v219",
+      "lingua": "it",
+      "testo": "Se a Milano sono le 18, che ora è a New York?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "giorno-notte",
+      "seconda": null
+    },
+    {
+      "id": "v220",
+      "lingua": "it",
+      "testo": "Quando inizia la primavera astronomica?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "tempo",
+      "variante": "foglia",
+      "seconda": null
+    },
+    {
+      "id": "v221",
+      "lingua": "it",
+      "testo": "Cerca quanti chili si possono portare nel bagaglio a mano sui voli low cost.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "aereo",
+      "seconda": "valigia"
+    },
+    {
+      "id": "v222",
+      "lingua": "it",
+      "testo": "Cerca il percorso a piedi più breve dal Colosseo a Trastevere.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "bussola",
+      "seconda": "mappa"
+    },
+    {
+      "id": "v223",
+      "lingua": "it",
+      "testo": "Il biglietto regionale per quanto tempo vale dopo la convalida?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "viaggi",
+      "variante": "treno",
+      "seconda": "biglietto"
+    },
+    {
+      "id": "v224",
+      "lingua": "it",
+      "testo": "Che differenza c'è tra let e var in Swift?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": null
+    },
+    {
+      "id": "v225",
+      "lingua": "it",
+      "testo": "Che comando uso per vedere quale processo occupa la porta 3000?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "codice",
+      "variante": "terminale",
+      "seconda": null
+    },
+    {
+      "id": "v226",
+      "lingua": "it",
+      "testo": "Un graffio del gatto va disinfettato?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "salute",
+      "variante": "cerotto",
+      "seconda": "zampa"
+    },
+    {
+      "id": "v227",
+      "lingua": "it",
+      "testo": "Che differenza c'è tra il suono del violino e quello della viola?",
+      "tipo": "domanda.fatto-breve",
+      "categoria": "musica",
+      "variante": "violino",
+      "seconda": null
+    },
+    {
+      "id": "v228",
+      "lingua": "it",
+      "testo": "Riassumi la chat del gruppo calcetto di ieri sera.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "fumetto",
+      "seconda": null
+    },
+    {
+      "id": "v229",
+      "lingua": "it",
+      "testo": "Fammi un riassunto del verbale allegato in cinque punti.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "imbuto",
+      "seconda": null,
+      "allegati": [
+        "verbale-cda.pdf"
+      ]
+    },
+    {
+      "id": "v230",
+      "lingua": "it",
+      "testo": "Accorcia questo articolo a metà senza perdere il senso.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "imbuto",
+      "seconda": "gomma"
+    },
+    {
+      "id": "v231",
+      "lingua": "it",
+      "testo": "Riassumi questa guida alla cura delle ortensie.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "girasole",
+      "seconda": "annaffiatoio",
+      "allegati": [
+        "guida-ortensie.pdf"
+      ]
+    },
+    {
+      "id": "v232",
+      "lingua": "it",
+      "testo": "Riassumi la sceneggiatura allegata scena per scena.",
+      "tipo": "domanda.riassunto",
+      "categoria": "creativo",
+      "variante": "ciak",
+      "seconda": "imbuto",
+      "allegati": [
+        "sceneggiatura_v3.pdf"
+      ]
+    },
+    {
+      "id": "v233",
+      "lingua": "it",
+      "testo": "Riassumi le mie spese di settembre dall'estratto conto.",
+      "tipo": "domanda.riassunto",
+      "categoria": "finanza",
+      "variante": "portafoglio",
+      "seconda": "grafico-barre",
+      "allegati": [
+        "estratto-conto-settembre.csv"
+      ]
+    },
+    {
+      "id": "v234",
+      "lingua": "it",
+      "testo": "Dall'estratto della carta elencami gli abbonamenti che pago.",
+      "tipo": "domanda.riassunto",
+      "categoria": "finanza",
+      "variante": "carta-di-credito",
+      "seconda": "portafoglio",
+      "allegati": [
+        "estratto-carta.pdf"
+      ]
+    },
+    {
+      "id": "v235",
+      "lingua": "it",
+      "testo": "Fammi i numeri chiave del bilancio 2025 della mia associazione.",
+      "tipo": "domanda.riassunto",
+      "categoria": "finanza",
+      "variante": "grafico-barre",
+      "seconda": null,
+      "allegati": [
+        "bilancio-2025.xlsx"
+      ]
+    },
+    {
+      "id": "v236",
+      "lingua": "it",
+      "testo": "Riassumi le mail di oggi del capo.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "busta",
+      "seconda": "cassetta-postale"
+    },
+    {
+      "id": "v237",
+      "lingua": "it",
+      "testo": "Cosa mi è arrivato di importante stamattina nella posta?",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "cassetta-postale",
+      "seconda": "busta"
+    },
+    {
+      "id": "v238",
+      "lingua": "it",
+      "testo": "Raggruppa le mail della casella per mittente e dimmi cosa posso archiviare.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "vassoio",
+      "seconda": null
+    },
+    {
+      "id": "v239",
+      "lingua": "it",
+      "testo": "Riassumi il PDF allegato alla mail di Luca.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "graffetta",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v240",
+      "lingua": "it",
+      "testo": "Riassumi l'allerta per i temporali di stanotte.",
+      "tipo": "domanda.riassunto",
+      "categoria": "meteo",
+      "variante": "fulmine",
+      "seconda": null,
+      "allegati": [
+        "allerta-protezione-civile.pdf"
+      ]
+    },
+    {
+      "id": "v241",
+      "lingua": "it",
+      "testo": "Riassumi i dati di pioggia di settembre della stazione meteo.",
+      "tipo": "domanda.riassunto",
+      "categoria": "meteo",
+      "variante": "goccia",
+      "seconda": null,
+      "allegati": [
+        "pioggia-settembre.csv"
+      ]
+    },
+    {
+      "id": "v242",
+      "lingua": "it",
+      "testo": "Riassumi le notizie principali di stamattina.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "giornale",
+      "seconda": null
+    },
+    {
+      "id": "v243",
+      "lingua": "it",
+      "testo": "Dai un'occhiata a questo link e dimmi in due righe di cosa parla.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "periscopio",
+      "seconda": null
+    },
+    {
+      "id": "v244",
+      "lingua": "it",
+      "testo": "Fammi una panoramica veloce di cosa c'è in questa cartella di documenti.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "periscopio",
+      "seconda": "scaffale"
+    },
+    {
+      "id": "v245",
+      "lingua": "it",
+      "testo": "Spiegami in parole semplici il referto della visita.",
+      "tipo": "domanda.riassunto",
+      "categoria": "salute",
+      "variante": "stetoscopio",
+      "seconda": "cuore",
+      "allegati": [
+        "referto-cardiologo.pdf"
+      ]
+    },
+    {
+      "id": "v246",
+      "lingua": "it",
+      "testo": "Cosa ho in agenda giovedì?",
+      "tipo": "domanda.riassunto",
+      "categoria": "tempo",
+      "variante": "calendario",
+      "seconda": "riunione"
+    },
+    {
+      "id": "v247",
+      "lingua": "it",
+      "testo": "tl;dr del thread su Slack sul trasloco dell'ufficio pls",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "fumetto",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v248",
+      "lingua": "it",
+      "testo": "Riassumi in tre righe il capitolo 4 della tesi.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "imbuto",
+      "seconda": null,
+      "allegati": [
+        "tesi-capitolo4.docx"
+      ]
+    },
+    {
+      "id": "v249",
+      "lingua": "it",
+      "testo": "Riassumi cosa fa questo file Python in poche righe.",
+      "tipo": "domanda.riassunto",
+      "categoria": "codice",
+      "variante": "parentesi",
+      "seconda": "imbuto",
+      "allegati": [
+        "import_ordini.py"
+      ]
+    },
+    {
+      "id": "v250",
+      "lingua": "it",
+      "testo": "Riassumi i commenti della review sulla PR 312: cosa chiedono di cambiare?",
+      "tipo": "domanda.riassunto",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v251",
+      "lingua": "it",
+      "testo": "Cosa è successo ieri in Parlamento? Dammi il succo.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "giornale",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v252",
+      "lingua": "it",
+      "testo": "Fammi il riassunto del thread di mail con l'agenzia sul contratto.",
+      "tipo": "domanda.riassunto",
+      "categoria": "mail",
+      "variante": "busta",
+      "seconda": null
+    },
+    {
+      "id": "v253",
+      "lingua": "it",
+      "testo": "Riassumi le recensioni dell'hotel che ti ho incollato: cosa dicono di buono e di male?",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "stella",
+      "seconda": null
+    },
+    {
+      "id": "v254",
+      "lingua": "it",
+      "testo": "Riassumi l'itinerario che mi ha mandato l'agenzia, giorno per giorno.",
+      "tipo": "domanda.riassunto",
+      "categoria": "viaggi",
+      "variante": "mappa",
+      "seconda": null,
+      "allegati": [
+        "itinerario-giappone.pdf"
+      ]
+    },
+    {
+      "id": "v255",
+      "lingua": "it",
+      "testo": "Riassumi il bugiardino di questo farmaco: dosi ed effetti collaterali.",
+      "tipo": "domanda.riassunto",
+      "categoria": "salute",
+      "variante": "pillola",
+      "seconda": "imbuto",
+      "allegati": [
+        "bugiardino.pdf"
+      ]
+    },
+    {
+      "id": "v256",
+      "lingua": "it",
+      "testo": "Riassumi la storia della band in un paragrafo, da questa pagina.",
+      "tipo": "domanda.riassunto",
+      "categoria": "musica",
+      "variante": "nota",
+      "seconda": null
+    },
+    {
+      "id": "v257",
+      "lingua": "it",
+      "testo": "Riassumimi gli impegni della prossima settimana.",
+      "tipo": "domanda.riassunto",
+      "categoria": "tempo",
+      "variante": "calendario",
+      "seconda": null
+    },
+    {
+      "id": "v258",
+      "lingua": "it",
+      "testo": "Riassumi l'andamento delle mie spese dell'anno dal foglio.",
+      "tipo": "domanda.riassunto",
+      "categoria": "finanza",
+      "variante": "moneta",
+      "seconda": "grafico-barre",
+      "allegati": [
+        "spese-2026.numbers"
+      ]
+    },
+    {
+      "id": "v259",
+      "lingua": "it",
+      "testo": "Riassumi cosa è cambiato negli ultimi dieci commit di main.",
+      "tipo": "domanda.riassunto",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v260",
+      "lingua": "it",
+      "testo": "Dai documenti allegati ricostruisci in breve chi ha deciso il cambio di fornitore e quando.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "segugio",
+      "seconda": "imbuto",
+      "allegati": [
+        "mail-fornitore.pdf",
+        "verbale-giugno.pdf"
+      ]
+    },
+    {
+      "id": "v261",
+      "lingua": "it",
+      "testo": "Riassumi in italiano questo articolo in inglese.",
+      "tipo": "domanda.riassunto",
+      "categoria": "chat",
+      "variante": "cubi-alfabeto",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v262",
+      "lingua": "it",
+      "testo": "Riassumi questa issue lunghissima: qual è il bug e cosa si è già provato?",
+      "tipo": "domanda.riassunto",
+      "categoria": "codice",
+      "variante": "insetto",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v263",
+      "lingua": "it",
+      "testo": "Riassumi cosa dicono i cinque articoli che ti ho dato sulla settimana corta.",
+      "tipo": "domanda.riassunto",
+      "categoria": "ricerca",
+      "variante": "binocolo",
+      "seconda": "imbuto"
+    },
+    {
+      "id": "v264",
+      "lingua": "it",
+      "testo": "Riassumi le istruzioni del cartamodello allegato per la gonna.",
+      "tipo": "domanda.riassunto",
+      "categoria": "creativo",
+      "variante": "rocchetto",
+      "seconda": null,
+      "allegati": [
+        "cartamodello-gonna.pdf"
+      ]
+    },
+    {
+      "id": "v265",
+      "lingua": "it",
+      "testo": "Rispondi tu a Giulia nella chat, dille che arrivo alle nove.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "fumetto",
+      "seconda": "aeroplanino"
+    },
+    {
+      "id": "v266",
+      "lingua": "it",
+      "testo": "Sistema la grammatica di questa lettera di presentazione, è piena di errori.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "gomma",
+      "seconda": null
+    },
+    {
+      "id": "v267",
+      "lingua": "it",
+      "testo": "Rendi più cordiale il tono di questo messaggio per il condominio.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "gomma",
+      "seconda": null
+    },
+    {
+      "id": "v268",
+      "lingua": "it",
+      "testo": "Traduci in inglese questo paragrafo per il sito della pensione.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "cubi-alfabeto",
+      "seconda": null
+    },
+    {
+      "id": "v269",
+      "lingua": "it",
+      "testo": "Scrivimi la ricetta del ragù come la farebbe una nonna, passo passo.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "pentola",
+      "seconda": null
+    },
+    {
+      "id": "v270",
+      "lingua": "it",
+      "testo": "Inventa una storia della buonanotte su un riccio coraggioso.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "pennello",
+      "seconda": "drago"
+    },
+    {
+      "id": "v271",
+      "lingua": "it",
+      "testo": "Crea un'illustrazione per la copertina del mio podcast di cucina.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "pennello",
+      "seconda": "bacchetta-magica"
+    },
+    {
+      "id": "v272",
+      "lingua": "it",
+      "testo": "Proponimi tre colori che stiano bene con il verde salvia per il soggiorno.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "tavolozza",
+      "seconda": null
+    },
+    {
+      "id": "v273",
+      "lingua": "it",
+      "testo": "Scrivi un haiku sulla nebbia in Pianura Padana.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "piuma",
+      "seconda": null
+    },
+    {
+      "id": "v274",
+      "lingua": "it",
+      "testo": "Mi scrivi una poesia in rima per i 70 anni di mio padre?",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "piuma",
+      "seconda": "rosa"
+    },
+    {
+      "id": "v275",
+      "lingua": "it",
+      "testo": "Scrivi la scaletta di un video di cinque minuti per presentare il mio forno a legna.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "ciak",
+      "seconda": null
+    },
+    {
+      "id": "v276",
+      "lingua": "it",
+      "testo": "Dammi dieci idee per il nome di un bar a Bologna.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "lampadina",
+      "seconda": null
+    },
+    {
+      "id": "v277",
+      "lingua": "it",
+      "testo": "Brainstorming: temi per la festa aziendale di fine anno.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "lampadina",
+      "seconda": "pennello"
+    },
+    {
+      "id": "v278",
+      "lingua": "it",
+      "testo": "Scrivi un dialogo comico tra due vicini per la recita di quartiere.",
+      "tipo": "domanda.scrittura",
+      "categoria": "creativo",
+      "variante": "sipario",
+      "seconda": null
+    },
+    {
+      "id": "v279",
+      "lingua": "it",
+      "testo": "Scrivimi un piano di risparmio mensile da attaccare al frigo.",
+      "tipo": "domanda.scrittura",
+      "categoria": "finanza",
+      "variante": "salvadanaio",
+      "seconda": null
+    },
+    {
+      "id": "v280",
+      "lingua": "it",
+      "testo": "Scrivi una mail al padrone di casa per la caldaia rotta.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "busta",
+      "seconda": null
+    },
+    {
+      "id": "v281",
+      "lingua": "it",
+      "testo": "Scrivi una lettera di ringraziamento da spedire alla maestra di mia figlia.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "francobollo",
+      "seconda": "busta"
+    },
+    {
+      "id": "v282",
+      "lingua": "it",
+      "testo": "Rispondi a Carla che giovedì va bene e mandala.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "aeroplanino",
+      "seconda": "busta"
+    },
+    {
+      "id": "v283",
+      "lingua": "it",
+      "testo": "Manda la mail di conferma al fornitore con il preventivo allegato.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "aeroplanino",
+      "seconda": "graffetta",
+      "allegati": [
+        "preventivo-ottobre.pdf"
+      ]
+    },
+    {
+      "id": "v284",
+      "lingua": "it",
+      "testo": "Scrivi la newsletter di ottobre per i clienti della palestra.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "megafono",
+      "seconda": null
+    },
+    {
+      "id": "v285",
+      "lingua": "it",
+      "testo": "Prepara un avviso per tutti i condomini sulla riunione di lunedì.",
+      "tipo": "domanda.scrittura",
+      "categoria": "mail",
+      "variante": "megafono",
+      "seconda": "busta"
+    },
+    {
+      "id": "v286",
+      "lingua": "it",
+      "testo": "Scrivi la tablatura semplificata di un giro di blues in La.",
+      "tipo": "domanda.scrittura",
+      "categoria": "musica",
+      "variante": "chitarra",
+      "seconda": null
+    },
+    {
+      "id": "v287",
+      "lingua": "it",
+      "testo": "Inventa un ritmo semplice per bonghi da fare con i bambini dell'asilo.",
+      "tipo": "domanda.scrittura",
+      "categoria": "musica",
+      "variante": "tamburo",
+      "seconda": null
+    },
+    {
+      "id": "v288",
+      "lingua": "it",
+      "testo": "Scrivi un esercizio di riscaldamento vocale da cinque minuti prima del coro.",
+      "tipo": "domanda.scrittura",
+      "categoria": "musica",
+      "variante": "microfono",
+      "seconda": null
+    },
+    {
+      "id": "v289",
+      "lingua": "it",
+      "testo": "Fammi una scheda per la palestra, tre giorni a settimana.",
+      "tipo": "domanda.scrittura",
+      "categoria": "salute",
+      "variante": "manubrio",
+      "seconda": null
+    },
+    {
+      "id": "v290",
+      "lingua": "it",
+      "testo": "Preparami un piano di camminate per tornare in forma dopo l'estate.",
+      "tipo": "domanda.scrittura",
+      "categoria": "salute",
+      "variante": "scarpa-da-corsa",
+      "seconda": null
+    },
+    {
+      "id": "v291",
+      "lingua": "it",
+      "testo": "Fammi la lista di cosa portare per tre giorni a Berlino a novembre.",
+      "tipo": "domanda.scrittura",
+      "categoria": "viaggi",
+      "variante": "valigia",
+      "seconda": null
+    },
+    {
+      "id": "v292",
+      "lingua": "it",
+      "testo": "Organizzami un itinerario di una settimana nella Sicilia orientale.",
+      "tipo": "domanda.scrittura",
+      "categoria": "viaggi",
+      "variante": "mappa",
+      "seconda": null
+    },
+    {
+      "id": "v293",
+      "lingua": "it",
+      "testo": "Scrivi il messaggio di commit per queste modifiche al carrello.",
+      "tipo": "domanda.scrittura",
+      "categoria": "codice",
+      "variante": "ramo",
+      "seconda": "occhiali"
+    },
+    {
+      "id": "v294",
+      "lingua": "it",
+      "testo": "Scrivi la descrizione della PR per il fix dei pagamenti.",
+      "tipo": "domanda.scrittura",
+      "categoria": "codice",
+      "variante": "occhiali",
+      "seconda": "ramo"
+    },
+    {
+      "id": "v295",
+      "lingua": "it",
+      "testo": "rispondi al messaggio di mamma su whatsapp che domenica ci siamo",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "fumetto",
+      "seconda": null
+    },
+    {
+      "id": "v296",
+      "lingua": "it",
+      "testo": "Scrivimi un promemoria per la scadenza del modulo ISEE di fine mese.",
+      "tipo": "domanda.scrittura",
+      "categoria": "tempo",
+      "variante": "clessidra",
+      "seconda": "sveglia"
+    },
+    {
+      "id": "v297",
+      "lingua": "it",
+      "testo": "Scrivi l'invito per la cena di classe di sabato 18, con l'orario.",
+      "tipo": "domanda.scrittura",
+      "categoria": "tempo",
+      "variante": "calendario",
+      "seconda": "riunione"
+    },
+    {
+      "id": "v298",
+      "lingua": "it",
+      "testo": "Scrivi il README per il mio script di backup delle foto.",
+      "tipo": "domanda.scrittura",
+      "categoria": "codice",
+      "variante": "info",
+      "seconda": "parentesi"
+    },
+    {
+      "id": "v299",
+      "lingua": "it",
+      "testo": "Scrivi la richiesta all'assicurazione per il rimborso della grandine sull'auto.",
+      "tipo": "domanda.scrittura",
+      "categoria": "finanza",
+      "variante": "cassaforte",
+      "seconda": "busta"
+    },
+    {
+      "id": "v300",
+      "lingua": "it",
+      "testo": "Riscrivi questo post del blog in metà parole.",
+      "tipo": "domanda.scrittura",
+      "categoria": "chat",
+      "variante": "imbuto",
+      "seconda": "gomma"
+    },
+    {
+      "id": "v301",
+      "lingua": "it",
+      "testo": "Ha senso dire che una macchina capisce davvero quello che legge?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "cervello",
+      "seconda": null
+    },
+    {
+      "id": "v302",
+      "lingua": "it",
+      "testo": "È giusto mentire per non ferire qualcuno?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "cervello",
+      "seconda": "bilancia"
+    },
+    {
+      "id": "v303",
+      "lingua": "it",
+      "testo": "Meglio comprare casa adesso o aspettare un anno? Pro e contro.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "bilancia",
+      "seconda": "casa"
+    },
+    {
+      "id": "v304",
+      "lingua": "it",
+      "testo": "Ho due offerte, Torino e Bologna: aiutami a confrontarle per bene.",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "bilancia",
+      "seconda": "cravatta"
+    },
+    {
+      "id": "v305",
+      "lingua": "it",
+      "testo": "Se raddoppio la dose della panna cotta, devo raddoppiare anche la gelatina?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "gelato",
+      "seconda": "pentola"
+    },
+    {
+      "id": "v306",
+      "lingua": "it",
+      "testo": "Per un giardino piccolo conviene piantare un acero o un tiglio?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "chat",
+      "variante": "albero",
+      "seconda": "girasole"
+    },
+    {
+      "id": "v307",
+      "lingua": "it",
+      "testo": "Blu notte e arancio insieme stanno bene o è troppo?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "creativo",
+      "variante": "tavolozza",
+      "seconda": null
+    },
+    {
+      "id": "v308",
+      "lingua": "it",
+      "testo": "Meglio un 35mm o un 50mm per fotografare per strada?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "creativo",
+      "variante": "macchina-fotografica",
+      "seconda": null
+    },
+    {
+      "id": "v309",
+      "lingua": "it",
+      "testo": "Mi conviene pagare in contanti o a rate un'auto da 18.000 euro?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "moneta",
+      "seconda": "calcolatrice"
+    },
+    {
+      "id": "v310",
+      "lingua": "it",
+      "testo": "Come faccio a mettere da parte 5.000 euro in un anno con 1.600 di stipendio?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "salvadanaio",
+      "seconda": "banconota"
+    },
+    {
+      "id": "v311",
+      "lingua": "it",
+      "testo": "Con 2.100 netti al mese quanto posso spendere di affitto?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "banconota",
+      "seconda": "portafoglio"
+    },
+    {
+      "id": "v312",
+      "lingua": "it",
+      "testo": "Quanto mi resta questo mese se pago ancora le bollette e l'assicurazione?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "portafoglio",
+      "seconda": null
+    },
+    {
+      "id": "v313",
+      "lingua": "it",
+      "testo": "Quanti mesi di spese dovrei tenere come fondo emergenze?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "cassaforte",
+      "seconda": "salvadanaio"
+    },
+    {
+      "id": "v314",
+      "lingua": "it",
+      "testo": "Dal report trimestrale, l'azienda sta andando meglio o peggio dell'anno scorso?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "grafico-barre",
+      "seconda": null,
+      "allegati": [
+        "report-Q3.pdf"
+      ]
+    },
+    {
+      "id": "v315",
+      "lingua": "it",
+      "testo": "Quanto pago di interessi in totale con un prestito di 10.000 euro al 6% in 4 anni?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "finanza",
+      "variante": "calcolatrice",
+      "seconda": null
+    },
+    {
+      "id": "v316",
+      "lingua": "it",
+      "testo": "Come organizzo le cartelle della posta per non impazzire?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "mail",
+      "variante": "vassoio",
+      "seconda": null
+    },
+    {
+      "id": "v317",
+      "lingua": "it",
+      "testo": "Mi conviene avere un indirizzo email separato per il lavoro?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "mail",
+      "variante": "chiocciola",
+      "seconda": null
+    },
+    {
+      "id": "v318",
+      "lingua": "it",
+      "testo": "La luna influisce davvero sulla crescita delle piante?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "meteo",
+      "variante": "luna",
+      "seconda": "albero"
+    },
+    {
+      "id": "v319",
+      "lingua": "it",
+      "testo": "Se esco alle 8 e torno a mezzogiorno, rischio di bagnarmi?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "meteo",
+      "variante": "ombrello",
+      "seconda": "nuvola"
+    },
+    {
+      "id": "v320",
+      "lingua": "it",
+      "testo": "Per un bambino di sei anni meglio un pianoforte digitale o acustico?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "musica",
+      "variante": "pianoforte",
+      "seconda": null
+    },
+    {
+      "id": "v321",
+      "lingua": "it",
+      "testo": "A 40 anni è troppo tardi per imparare il violoncello?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "musica",
+      "variante": "violino",
+      "seconda": null
+    },
+    {
+      "id": "v322",
+      "lingua": "it",
+      "testo": "Che microfono prendo per registrare un podcast in camera?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "musica",
+      "variante": "microfono",
+      "seconda": null
+    },
+    {
+      "id": "v323",
+      "lingua": "it",
+      "testo": "Ho il battito a 95 a riposo, devo preoccuparmi?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "salute",
+      "variante": "cuore",
+      "seconda": "stetoscopio"
+    },
+    {
+      "id": "v324",
+      "lingua": "it",
+      "testo": "Ho mal di gola da una settimana: vado dal medico o aspetto?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "salute",
+      "variante": "stetoscopio",
+      "seconda": null
+    },
+    {
+      "id": "v325",
+      "lingua": "it",
+      "testo": "Posso prendere l'antistaminico se bevo un bicchiere di vino?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "salute",
+      "variante": "pillola",
+      "seconda": null
+    },
+    {
+      "id": "v326",
+      "lingua": "it",
+      "testo": "Panca piana o piegamenti, cosa conviene per il petto?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "salute",
+      "variante": "manubrio",
+      "seconda": null
+    },
+    {
+      "id": "v327",
+      "lingua": "it",
+      "testo": "Bici muscolare o elettrica per 12 km al giorno in città?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "salute",
+      "variante": "bicicletta",
+      "seconda": null
+    },
+    {
+      "id": "v328",
+      "lingua": "it",
+      "testo": "Se parto alle 7:40 e il viaggio dura 3 ore e 50, a che ora arrivo?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "orologio",
+      "seconda": "cronometro"
+    },
+    {
+      "id": "v329",
+      "lingua": "it",
+      "testo": "Quanto tempo perdo in un anno se faccio 40 minuti di coda al giorno?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "cronometro",
+      "seconda": "calcolatrice"
+    },
+    {
+      "id": "v330",
+      "lingua": "it",
+      "testo": "L'ora legale tutto l'anno farebbe risparmiare energia?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "meridiana",
+      "seconda": null
+    },
+    {
+      "id": "v331",
+      "lingua": "it",
+      "testo": "Quale orario va bene per una call tra Roma, Londra e San Francisco?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "giorno-notte",
+      "seconda": "riunione"
+    },
+    {
+      "id": "v332",
+      "lingua": "it",
+      "testo": "Perché in autunno le giornate si accorciano così in fretta?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "foglia",
+      "seconda": null
+    },
+    {
+      "id": "v333",
+      "lingua": "it",
+      "testo": "Per due settimane in Giappone meglio un trolley grande o due piccoli?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": "valigia",
+      "seconda": null
+    },
+    {
+      "id": "v334",
+      "lingua": "it",
+      "testo": "Senza telefono, come mi oriento in un bosco?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": "bussola",
+      "seconda": "montagna"
+    },
+    {
+      "id": "v335",
+      "lingua": "it",
+      "testo": "Meglio il traghetto di notte o di giorno per la Grecia con due bambini?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": "nave",
+      "seconda": null
+    },
+    {
+      "id": "v336",
+      "lingua": "it",
+      "testo": "Quanto spendo di autostrada e benzina da Milano a Bari?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": "auto",
+      "seconda": "calcolatrice"
+    },
+    {
+      "id": "v337",
+      "lingua": "it",
+      "testo": "Riesco a incastrare dentista e palestra mercoledì, guardando l'agenda?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "tempo",
+      "variante": "calendario",
+      "seconda": null
+    },
+    {
+      "id": "v338",
+      "lingua": "it",
+      "testo": "Meglio fare Toscana e Umbria in un solo viaggio o separati?",
+      "tipo": "domanda.ragionamento",
+      "categoria": "viaggi",
+      "variante": "mappa",
+      "seconda": null
+    },
+    {
+      "id": "v339",
+      "lingua": "it",
+      "testo": "Cerca sul web quando esce la prossima versione di Python.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "globo",
+      "seconda": "antenna"
+    },
+    {
+      "id": "v340",
+      "lingua": "it",
+      "testo": "Trova il sito del comune per rinnovare la carta d'identità.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "globo",
+      "seconda": null
+    },
+    {
+      "id": "v341",
+      "lingua": "it",
+      "testo": "Che notizie ci sono oggi sullo sciopero dei treni?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "giornale",
+      "seconda": null
+    },
+    {
+      "id": "v342",
+      "lingua": "it",
+      "testo": "Confronta cinque robot aspirapolvere sotto i 300 euro guardando più siti.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "binocolo",
+      "seconda": "carrello"
+    },
+    {
+      "id": "v343",
+      "lingua": "it",
+      "testo": "Cosa dicono le varie fonti sul lavoro di quattro giorni a settimana? Mettile a confronto.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "binocolo",
+      "seconda": null
+    },
+    {
+      "id": "v344",
+      "lingua": "it",
+      "testo": "Chi ha detto davvero 'sii il cambiamento che vuoi vedere nel mondo'?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "segugio",
+      "seconda": "virgolette"
+    },
+    {
+      "id": "v345",
+      "lingua": "it",
+      "testo": "Com'è valutato il ristorante Da Gino a Trastevere?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "stella",
+      "seconda": "segnaposto"
+    },
+    {
+      "id": "v346",
+      "lingua": "it",
+      "testo": "Cerca le recensioni della friggitrice ad aria che ho nel carrello.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "stella",
+      "seconda": null
+    },
+    {
+      "id": "v347",
+      "lingua": "it",
+      "testo": "Dove costa meno una PS5 oggi?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "carrello",
+      "seconda": null
+    },
+    {
+      "id": "v348",
+      "lingua": "it",
+      "testo": "Trova un seggiolino auto omologato sotto i 150 euro.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "carrello",
+      "seconda": "stella"
+    },
+    {
+      "id": "v349",
+      "lingua": "it",
+      "testo": "Com'è finita Inter-Juve?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "trofeo",
+      "seconda": null
+    },
+    {
+      "id": "v350",
+      "lingua": "it",
+      "testo": "C'è una farmacia aperta adesso vicino a piazza Dante?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "segnaposto",
+      "seconda": null
+    },
+    {
+      "id": "v351",
+      "lingua": "it",
+      "testo": "Trova un meccanico vicino a casa che lavori anche il sabato.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "segnaposto",
+      "seconda": null
+    },
+    {
+      "id": "v352",
+      "lingua": "it",
+      "testo": "Cerca tra le mie note quella sul preventivo del bagno.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": "taccuino"
+    },
+    {
+      "id": "v353",
+      "lingua": "it",
+      "testo": "Trova una pizzeria che consegna a domicilio a Lambrate.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "chat",
+      "variante": "pizza",
+      "seconda": "segnaposto"
+    },
+    {
+      "id": "v354",
+      "lingua": "it",
+      "testo": "Cerca quando apre la raccolta funghi in Trentino quest'anno.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "chat",
+      "variante": "fungo",
+      "seconda": "globo"
+    },
+    {
+      "id": "v355",
+      "lingua": "it",
+      "testo": "Che spettacoli ci sono al Piccolo Teatro questo mese?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "creativo",
+      "variante": "sipario",
+      "seconda": "globo"
+    },
+    {
+      "id": "v356",
+      "lingua": "it",
+      "testo": "Previsioni per il weekend sulle Dolomiti.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "meteo",
+      "variante": "nuvola",
+      "seconda": "montagna"
+    },
+    {
+      "id": "v357",
+      "lingua": "it",
+      "testo": "Che tempo farà in Sardegna la prima settimana di ottobre, ci sarà il sereno?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "meteo",
+      "variante": "sole",
+      "seconda": "nuvola"
+    },
+    {
+      "id": "v358",
+      "lingua": "it",
+      "testo": "Cerca se è prevista neve a Roccaraso per l'Immacolata.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "meteo",
+      "variante": "fiocco-di-neve",
+      "seconda": "sci"
+    },
+    {
+      "id": "v359",
+      "lingua": "it",
+      "testo": "Trova la playlist più ascoltata di questa settimana in Italia.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "musica",
+      "variante": "nota",
+      "seconda": "jukebox"
+    },
+    {
+      "id": "v360",
+      "lingua": "it",
+      "testo": "Cerca un corso di tromba per adulti a Padova.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "musica",
+      "variante": "tromba",
+      "seconda": "globo"
+    },
+    {
+      "id": "v361",
+      "lingua": "it",
+      "testo": "Cerca dove fare il vaccino antinfluenzale a Torino senza prenotazione.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "salute",
+      "variante": "siringa",
+      "seconda": "segnaposto"
+    },
+    {
+      "id": "v362",
+      "lingua": "it",
+      "testo": "Cerca un giro in bici facile intorno al lago di Garda.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "salute",
+      "variante": "bicicletta",
+      "seconda": "mappa"
+    },
+    {
+      "id": "v363",
+      "lingua": "it",
+      "testo": "Trova un volo per Lisbona a fine ottobre sotto i 120 euro.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "aereo",
+      "seconda": null
+    },
+    {
+      "id": "v364",
+      "lingua": "it",
+      "testo": "A che ora è l'ultimo Frecciarossa da Firenze a Roma stasera?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "treno",
+      "seconda": null
+    },
+    {
+      "id": "v365",
+      "lingua": "it",
+      "testo": "Trova i traghetti per l'Elba di sabato mattina.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "nave",
+      "seconda": null
+    },
+    {
+      "id": "v366",
+      "lingua": "it",
+      "testo": "Trova un noleggio auto all'aeroporto di Catania con ritiro alle 23.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "auto",
+      "seconda": null
+    },
+    {
+      "id": "v367",
+      "lingua": "it",
+      "testo": "Cerca le ultime novità sulla legge di bilancio.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "giornale",
+      "seconda": "globo"
+    },
+    {
+      "id": "v368",
+      "lingua": "it",
+      "testo": "Trova la documentazione ufficiale di SwiftUI sulle animazioni di layout.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "globo",
+      "seconda": "lente"
+    },
+    {
+      "id": "v369",
+      "lingua": "it",
+      "testo": "Qual è la classifica della Serie A dopo l'ultima giornata?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "trofeo",
+      "seconda": null
+    },
+    {
+      "id": "v370",
+      "lingua": "it",
+      "testo": "Com'è andata oggi la borsa di Milano?",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "finanza",
+      "variante": "moneta",
+      "seconda": "toro"
+    },
+    {
+      "id": "v371",
+      "lingua": "it",
+      "testo": "Cerca studi recenti su quanti passi al giorno servono davvero.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "salute",
+      "variante": "cuore",
+      "seconda": null
+    },
+    {
+      "id": "v372",
+      "lingua": "it",
+      "testo": "Trova una ricetta della pastiera napoletana fatta bene, da un sito affidabile.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "chat",
+      "variante": "pentola",
+      "seconda": "globo"
+    },
+    {
+      "id": "v373",
+      "lingua": "it",
+      "testo": "cerca nel web e nei miei appunti tutto quello che ho su 'bonus mobili'",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "ricerca",
+      "variante": "lente",
+      "seconda": null
+    },
+    {
+      "id": "v374",
+      "lingua": "it",
+      "testo": "Cerca cosa vedere in due giorni a Matera.",
+      "tipo": "domanda.ricerca-web",
+      "categoria": "viaggi",
+      "variante": "mappa",
+      "seconda": "globo"
+    }
+  ]
+}
