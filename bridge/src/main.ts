@@ -1,20 +1,24 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
-import { query, type Query, type SettingSource } from "@anthropic-ai/claude-agent-sdk";
+import { createSdkMcpServer, query, tool, type Query, type SettingSource } from "@anthropic-ai/claude-agent-sdk";
+import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
+import { z } from "zod";
 import { settingSources } from "./settingSources";
 
-const version = 1;
+const version = 2;
 
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown }
-  | { v: number; type: "cancel"; id: string };
+  | { v: number; type: "cancel"; id: string }
+  | { v: number; type: "found"; id: string; text: string };
 
 type Event =
   | { type: "ready" }
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
-  | { type: "error"; id?: string; message: string };
+  | { type: "error"; id?: string; message: string }
+  | { type: "search"; id: string; query: string; project?: string };
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -27,6 +31,32 @@ const { BUBO_CLAUDE_PATH: claudePath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inhe
 const childEnv = { ...inherited, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
 
 const running = new Map<string, Query>();
+const searches = new Map<string, (text: string) => void>();
+
+// `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
+// Un server per conversazione: un'istanza MCP si collega a un solo trasporto.
+function buboTools() {
+  return createSdkMcpServer({
+    name: "bubo",
+    tools: [tool(
+      "cerca",
+      "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti e il CLAUDE.md dell'utente. Restituisce i frammenti con il percorso del file.",
+      {
+        testo: z.string().describe("Le parole da cercare"),
+        progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
+      },
+      async ({ testo, progetto }) => {
+        const id = randomUUID();
+        const text = await new Promise<string>((resolve) => {
+          searches.set(id, resolve);
+          send({ type: "search", id, query: testo, project: progetto });
+        });
+        return { content: [{ type: "text", text }] };
+      },
+      { annotations: { readOnlyHint: true } },
+    )],
+  });
+}
 
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[]) {
   const conversation = query({
@@ -36,6 +66,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       env: childEnv,
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
+      mcpServers: { bubo: buboTools() },
+      allowedTools: ["mcp__bubo__cerca"],
       includePartialMessages: true,
       persistSession: false,
     },
@@ -79,6 +111,7 @@ lines.on("line", (line) => {
   switch (command.type) {
     case "ask": void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources)); break;
     case "cancel": void running.get(command.id)?.interrupt(); break;
+    case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
   }
 });
 // stdin chiuso: Bubo è uscito o ha chiuso il ponte.

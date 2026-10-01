@@ -13,12 +13,14 @@ final class QuestionModel {
     /// Why the last Domanda got no answer, if it failed.
     private(set) var failure: QuestionFailure?
 
-    /// Creates a model that finds `claude` with `cli`.
-    init(cli: ClaudeCLI = ClaudeCLI()) {
+    /// Creates a model that finds `claude` with `cli` and answers its `cerca` tool with `index`.
+    init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil) {
         self.cli = cli
+        self.index = index
     }
 
     @ObservationIgnored private let cli: ClaudeCLI
+    @ObservationIgnored private let index: SearchIndex?
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
     @ObservationIgnored private var answering: Task<Void, Never>?
@@ -81,7 +83,9 @@ final class QuestionModel {
         if let bridge { return bridge }
         guard let claude = await cli.executableURL() else { throw QuestionFailure.claudeMissing }
         let bridge = AgentBridge(executable: Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
-                                 environment: ChildEnvironment.make(claude: claude))
+                                 environment: ChildEnvironment.make(claude: claude)) { [index] query, project in
+            await index?.toolResult(for: query, project: project) ?? "L'Indice non è disponibile."
+        }
         self.bridge = bridge
         return bridge
     }
