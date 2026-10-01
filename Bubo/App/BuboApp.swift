@@ -17,6 +17,21 @@ struct BuboApp: App {
                     .keyboardShortcut("n")
                     .disabled(appDelegate.sessions == nil)
             }
+            CommandGroup(before: .toolbar) {
+                Section("Vista delle Sessioni") {
+                    ForEach(VistaDelleSessioni.allCases) { vista in
+                        Toggle(isOn: Binding {
+                            appDelegate.hud.vista == vista
+                        } set: { isOn in
+                            if isOn { appDelegate.hud.switchVista(to: vista) }
+                        }) {
+                            Text(vista.title)
+                        }
+                        .keyboardShortcut(KeyEquivalent(vista.shortcut))
+                    }
+                }
+                Divider()
+            }
         }
         .windowStyle(.hiddenTitleBar)
         .defaultSize(width: 1200, height: 800)

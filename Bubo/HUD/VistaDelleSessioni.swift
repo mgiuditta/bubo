@@ -10,6 +10,20 @@ nonisolated enum VistaDelleSessioni: String, CaseIterable, Identifiable, Sendabl
 
     var id: Self { self }
 
+    /// The Vista chosen in Aspetto and kept in `defaults`; Colonna until one is chosen.
+    static func chosen(in defaults: UserDefaults = .standard) -> Self {
+        defaults.string(forKey: defaultsKey).flatMap(Self.init(rawValue:)) ?? .colonna
+    }
+
+    /// The key that, with ⌘, shows the Vista in the HUD.
+    var shortcut: Character {
+        switch self {
+        case .colonna: "1"
+        case .orbita: "2"
+        case .striscia: "3"
+        }
+    }
+
     /// The Vista's name in Aspetto.
     var title: LocalizedStringResource {
         switch self {

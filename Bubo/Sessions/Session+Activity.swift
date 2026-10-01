@@ -35,4 +35,9 @@ nonisolated extension Session {
             return (activity, members)
         }
     }
+
+    /// `sessions` in the order of the Colonna's groups, in one list: Attende te first, the longest wait on top.
+    static func inActivityOrder(_ sessions: [Session]) -> [Session] {
+        grouped(sessions).flatMap(\.sessions)
+    }
 }

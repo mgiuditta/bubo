@@ -181,10 +181,10 @@ private struct CLIConversationRow: View {
     }
 }
 
-/// A Sessione in the Colonna: title, how long it has been in its Attività, the one-line summary, and
+/// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
 /// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Archivia, Cancella… and the configuration
 /// of Claude in its Progetto in its menu.
-private struct SessionRow: View {
+struct SessionRow: View {
     let session: Session
     let store: SessionStore
     /// What deleting the Sessione would lose, while its confirmation is shown.
@@ -198,7 +198,7 @@ private struct SessionRow: View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
                 Circle()
-                    .fill(dotColor)
+                    .fill(session.activity.color)
                     .frame(width: 6, height: 6)
                     .accessibilityHidden(true)
                 Text(verbatim: session.title)
@@ -272,16 +272,6 @@ private struct SessionRow: View {
         }
     }
 
-    /// The dot before the title: Lume only for Attende te, danger for Errore, faint once it stops.
-    private var dotColor: Color {
-        switch session.activity {
-        case .attende: Palette.attention
-        case .errore: Palette.danger
-        case .lavora: Palette.textPrimary
-        case .ferma: Palette.textFaint
-        }
-    }
-
     private func confirmDeletion() {
         Task {
             lostChanges = await store.lostChanges(session.id)
@@ -300,6 +290,18 @@ private struct SessionRow: View {
         let shown = lostChanges.prefix(12) + (lostChanges.count > 12 ? ["…"] : [])
         return String(localized: "Verranno cancellati la copia isolata e il branch \(branch). Queste modifiche andranno perse:")
             + "\n" + shown.joined(separator: "\n")
+    }
+}
+
+extension Session.Activity {
+    /// The dot of a Sessione: Lume only for Attende te, danger for Errore, faint once it stops.
+    var color: Color {
+        switch self {
+        case .attende: Palette.attention
+        case .errore: Palette.danger
+        case .lavora: Palette.textPrimary
+        case .ferma: Palette.textFaint
+        }
     }
 }
 
