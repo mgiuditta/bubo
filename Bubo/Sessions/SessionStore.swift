@@ -53,15 +53,31 @@ final class SessionStore {
     }
 
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
-    func start(_ prompt: String, title: String, branch: String, in project: URL) {
+    ///
+    /// - Parameter onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
+    /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
+    func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false) throws {
+        if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project)
         session.prompt = prompt
+        if onCheckout {
+            session.isOnCheckout = true
+            session.workspace = Workspace(folder: project)
+        }
         session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         Signposts.signposter.withIntervalSignpost("Apertura Sessione") {
             sessions.append(session)
             save()
         }
         Task { await run(session.id, prompt: prompt, branch: branch) }
+    }
+
+    /// The open Sessione that works on the checkout of `project`, if any.
+    func checkoutSession(of project: URL) -> Session? {
+        sessions.first { session in
+            session.isOnCheckout && session.phase == .aperta
+                && session.project.standardizedFileURL.path == project.standardizedFileURL.path
+        }
     }
 
     /// Asks `claude` again, in the same worktree, the prompt of a Sessione that Bubo's quitting interrupted.
@@ -167,6 +183,19 @@ final class SessionStore {
             try JSONEncoder().encode(sessions).write(to: file, options: .atomic)
         } catch {
             Logger.sessions.error("Sessioni not saved: \(error)")
+        }
+    }
+}
+
+/// Why a Sessione cannot start.
+nonisolated enum SessionError: LocalizedError, Equatable {
+    /// Another open Sessione, with this title, already works on the Progetto's checkout.
+    case checkoutTaken(by: String)
+
+    var errorDescription: String? {
+        switch self {
+        case let .checkoutTaken(title):
+            String(localized: "«\(title)» lavora già sul checkout di questo Progetto. Archiviala, o lavora in una copia isolata.")
         }
     }
 }

@@ -14,8 +14,12 @@ final class HUDPresenter {
     /// Whether the HUD shows the new Sessione sheet.
     var isCreatingSession = false
 
-    /// Brings the HUD to the front with the new Sessione sheet (⌘N).
-    func createSession() {
+    /// What the new Sessione sheet starts from.
+    private(set) var sessionDraft = SessionDraft()
+
+    /// Brings the HUD to the front with the new Sessione sheet (⌘N), filled in from `draft`.
+    func createSession(from draft: SessionDraft = SessionDraft()) {
+        sessionDraft = draft
         isCreatingSession = true
         show()
     }

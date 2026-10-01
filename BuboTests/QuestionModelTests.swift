@@ -74,6 +74,31 @@ struct QuestionModelTests {
         #expect(model.answer == "a consumo")
     }
 
+    @Test func anAnsweredDomandaBecomesASessioneWithItsConversation() async {
+        let model = Self.model(Keychain(key: "sk-ant-test"))
+        await Self.ask(model)
+        await model.useAPIKey()
+        await model.answering?.value
+        model.prompt = "Fallo"
+
+        let draft = model.turnIntoSession()
+
+        #expect(draft == SessionDraft(prompt: "Fallo", question: "Ciao", answer: "a consumo"))
+        #expect(draft.firstPrompt("Fallo").contains("Ciao"))
+        #expect(draft.firstPrompt("Fallo").contains("a consumo"))
+        #expect(draft.firstPrompt("Fallo").hasSuffix("Fallo"))
+    }
+
+    @Test func aDomandaWithNoAnswerBecomesASessioneWithItsPrompt() async {
+        let model = Self.model(Keychain(key: nil))
+        await Self.ask(model)
+
+        let draft = model.turnIntoSession()
+
+        #expect(draft == SessionDraft(prompt: "Ciao"))
+        #expect(draft.firstPrompt("Ciao") == "Ciao")
+    }
+
     @Test func consentWithoutASavedKeyStaysOnTheSubscription() async {
         let model = Self.model(Keychain(key: nil))
         await Self.ask(model)

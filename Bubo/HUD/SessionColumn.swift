@@ -44,8 +44,9 @@ private struct SessionRow: View {
                     .textCase(.uppercase)
                     .foregroundStyle(session.activity == .errore && !isArchived ? Palette.danger : Palette.textSecondary)
             }
-            Text(verbatim: [session.project.lastPathComponent, session.workspace?.branch].compactMap(\.self)
-                .joined(separator: " · "))
+            Text(verbatim: [session.project.lastPathComponent,
+                            session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch]
+                .compactMap(\.self).joined(separator: " · "))
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)

@@ -5,6 +5,7 @@ import SwiftUI
 struct QuestionView: View {
     @Bindable var model: QuestionModel
     @Environment(\.openSettings) private var openSettings
+    @Environment(HUDPresenter.self) private var hud
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -16,6 +17,15 @@ struct QuestionView: View {
                     // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
                     .accessibilityLabel("Chiedi qualcosa a Claude")
                     .accessibilityIdentifier("question.prompt")
+                // The Domanda ↔ Sessione switch: the conversation so far goes with it.
+                Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
+                    hud.createSession(from: model.turnIntoSession())
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.textSecondary)
+                .help("Trasforma in Sessione")
+                .accessibilityIdentifier("question.turnIntoSession")
                 if model.isAnswering {
                     Button("Ferma", systemImage: "stop.fill", action: model.stop)
                         .labelStyle(.iconOnly)
@@ -92,4 +102,5 @@ struct QuestionView: View {
     QuestionView(model: QuestionModel())
         .padding()
         .background(Palette.ink)
+        .environment(HUDPresenter())
 }
