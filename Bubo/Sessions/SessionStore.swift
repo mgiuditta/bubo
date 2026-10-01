@@ -101,6 +101,8 @@ final class SessionStore {
     @ObservationIgnored let viewer = CodeViewerStore()
     /// Called at the first token of each turn's answer; the onboarding ends at the first one (spec 26).
     @ObservationIgnored var onFirstToken: () -> Void = {}
+    /// What brings each turn's conversation into the Indice when it ends; `nil` without an Indice.
+    @ObservationIgnored var indexer: ConversationIndexer?
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -125,13 +127,15 @@ final class SessionStore {
     @ObservationIgnored private var merging: Set<UUID> = []
 
     /// The store in Bubo's Application Support folder.
-    static func makeDefault(alerts: WaitingAlerts,
+    static func makeDefault(alerts: WaitingAlerts, index: SearchIndex?,
                             bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
-        return SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                            orb: .shared, alerts: alerts, ledger: try .makeDefault(),
-                            drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")), bridge: bridge)
+        let store = SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
+                                 orb: .shared, alerts: alerts, ledger: try .makeDefault(),
+                                 drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")), bridge: bridge)
+        store.indexer = index.map { ConversationIndexer(index: $0, bridge: bridge) }
+        return store
     }
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
@@ -154,7 +158,7 @@ final class SessionStore {
     }
 
     /// Copies the Cronologia CLI in Bubo's database now, then every `ConversationStore.refreshInterval`, while the
-    /// user keeps it on; until the task is cancelled.
+    /// user keeps it on, and brings in the Indice the conversations it is missing; until the task is cancelled.
     func keepCLIHistoryFresh() async {
         while !Task.isCancelled {
             if UserDefaults.standard.bool(forKey: ConversationStore.keepsCLIHistoryKey) {
@@ -165,7 +169,23 @@ final class SessionStore {
                     Logger.sessions.error("Cronologia CLI not copied: \(String(describing: error), privacy: .private)")
                 }
             }
+            await indexMissingConversations()
             try? await Task.sleep(for: ConversationStore.refreshInterval)
+        }
+    }
+
+    /// Brings in the Indice the conversations it is missing: the turns that ended, and the Cronologia CLI.
+    private func indexMissingConversations() async {
+        guard let indexer else { return }
+        // A turn in progress enters the Indice when it ends.
+        let turns = sessions.flatMap { session in
+            (session.isRunning ? session.conversations.dropLast() : session.conversations[...]).map { ($0, session.project) }
+        }
+        do {
+            await indexer.catchUp(turns: turns, history: try await history(isComplete: true))
+        } catch {
+            Logger.index.error("Cronologia CLI not indexed: \(String(describing: error), privacy: .private)")
+            await indexer.catchUp(turns: turns, history: [])
         }
     }
 
@@ -534,6 +554,7 @@ final class SessionStore {
         save()
         followActivity()
         if !session.conversations.isEmpty {
+            Task { [indexer] in await indexer?.forget(session.conversations) }
             Task {
                 do {
                     try await bridge().forget(session.conversations)
@@ -606,6 +627,8 @@ final class SessionStore {
             // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
             let conversation = UUID().uuidString.lowercased()
             update(id) { $0.conversations.append(conversation) }
+            // Also after an error: what was said enters the Indice.
+            defer { Task { [indexer, project = session.project] in await indexer?.add(conversation, in: project) } }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
                                    forkingFrom: session.forkedFrom, keeping: conversation,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),

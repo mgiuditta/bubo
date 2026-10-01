@@ -10,7 +10,7 @@ import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { configuration, type Configuration, type Instructions } from "./config";
-import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
+import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
@@ -36,7 +36,7 @@ type Command =
   | { v: number; type: "warm"; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "cool" }
   | { v: number; type: "history"; id: string; all?: unknown }
-  | { v: number; type: "transcript"; id: string; conversation: string }
+  | { v: number; type: "transcript"; id: string; conversation: string; all?: unknown }
   | { v: number; type: "keep"; id: string }
   | { v: number; type: "forget"; conversations?: unknown }
   | { v: number; type: "forgetHistory"; id: string }
@@ -182,12 +182,12 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
 function buboTools(conversation: string, remembers = false) {
   const search = tool(
     "cerca",
-    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente e il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian). Le note non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file.",
+    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente, il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian), e le conversazioni passate, delle Sessioni di Bubo e della riga di comando. Note e conversazioni non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file, o con la conversazione, chi ha scritto e la data.",
     {
       testo: z.string().describe("Le parole da cercare"),
       progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
-      fonte: z.enum(["memoria", "secondo-cervello"]).optional()
-        .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md) o \"secondo-cervello\" (le note dell'utente); senza, ovunque"),
+      fonte: z.enum(["memoria", "secondo-cervello", "conversazioni"]).optional()
+        .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md), \"secondo-cervello\" (le note dell'utente) o \"conversazioni\" (le conversazioni passate); senza, ovunque"),
     },
     async ({ testo, progetto, fonte }) => {
       const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte, conversation }));
@@ -562,12 +562,13 @@ async function history(id: string, all: boolean) {
   }
 }
 
-async function transcript(id: string, session: string) {
+// Gli ultimi messaggi di `session`, o tutti con `all`, per l'Indice: sempre con le funzioni dell'SDK.
+async function transcript(id: string, session: string, all: boolean) {
   try {
     // Dopo la pulizia della CLI il transcript locale non c'è più: resta la copia.
     let read = await getSessionMessages(session);
     if (!read.length && store) read = await getSessionMessages(session, { sessionStore: store });
-    send({ type: "transcript", id, messages: messages(read) });
+    send({ type: "transcript", id, messages: messages(read, dates(store?.entries(session) ?? []), all ? Infinity : transcriptLimit) });
   } catch (error) {
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   }
@@ -620,7 +621,7 @@ lines.on("line", (line) => {
     }
     case "cool": spares.cool(); break;
     case "history": void history(command.id, command.all === true); break;
-    case "transcript": void transcript(command.id, command.conversation); break;
+    case "transcript": void transcript(command.id, command.conversation, command.all === true); break;
     case "keep": void keepHistory(command.id); break;
     case "forget":
       if (Array.isArray(command.conversations)) {

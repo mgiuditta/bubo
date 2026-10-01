@@ -119,6 +119,9 @@ struct BridgeMessageTests {
             == #"{"all":false,"id":"h1","type":"history","v":4}"# + "\n")
         #expect(String(decoding: try BridgeCommand.readTranscript(id: "t1", conversation: "c-1").line(), as: UTF8.self)
             == #"{"conversation":"c-1","id":"t1","type":"transcript","v":4}"# + "\n")
+        let complete = try BridgeCommand.readTranscript(id: "t1", conversation: "c-1", isComplete: true).line()
+        #expect(String(decoding: complete, as: UTF8.self)
+            == #"{"all":true,"conversation":"c-1","id":"t1","type":"transcript","v":4}"# + "\n")
     }
 
     @Test func askKeepingAConversationCarriesItsId() throws {
@@ -171,6 +174,12 @@ struct BridgeMessageTests {
             """#
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(transcript.utf8)) == .transcript(id: "t1", [
             CLIConversation.Message(isFromUser: true, text: "Ciao"), CLIConversation.Message(isFromUser: false, text: "Eccomi"),
+        ]))
+        let dated = #"""
+            {"v":3,"type":"transcript","id":"t1","messages":[{"id":"m1","role":"user","text":"Ciao","date":1790846145117}]}
+            """#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(dated.utf8)) == .transcript(id: "t1", [
+            CLIConversation.Message(id: "m1", isFromUser: true, text: "Ciao", date: Date(timeIntervalSince1970: 1_790_846_145.117)),
         ]))
     }
 

@@ -1,9 +1,9 @@
 import { expect, test } from "bun:test";
 import type { SessionMessage } from "@anthropic-ai/claude-agent-sdk";
-import { conversation, messages, transcriptLimit } from "./history";
+import { conversation, dates, messages, transcriptLimit } from "./history";
 
-function entry(type: SessionMessage["type"], content: unknown, toolUse: string | null = null): SessionMessage {
-  return { type, uuid: "u", session_id: "s", message: { role: type, content }, parent_tool_use_id: toolUse, parent_agent_id: null };
+function entry(type: SessionMessage["type"], content: unknown, toolUse: string | null = null, uuid = "u"): SessionMessage {
+  return { type, uuid, session_id: "s", message: { role: type, content }, parent_tool_use_id: toolUse, parent_agent_id: null };
 }
 
 test("una conversazione prende il titolo che mostra la CLI", () => {
@@ -19,7 +19,7 @@ test("restano solo i testi di chi parla", () => {
     entry("assistant", [{ type: "text", text: "dal subagente" }], "t"),
     entry("user", "<command-name>/context</command-name>"),
     entry("system", "compattato"),
-  ])).toEqual([{ role: "user", text: "Ciao" }, { role: "assistant", text: "Eccomi" }]);
+  ])).toEqual([{ id: "u", role: "user", text: "Ciao" }, { id: "u", role: "assistant", text: "Eccomi" }]);
 });
 
 test("di una conversazione lunga, solo gli ultimi messaggi", () => {
@@ -27,4 +27,12 @@ test("di una conversazione lunga, solo gli ultimi messaggi", () => {
   const read = messages(long);
   expect(read.length).toBe(transcriptLimit);
   expect(read[0].text).toBe("5");
+});
+
+test("per l'Indice, tutti i messaggi con la data della copia", () => {
+  const long = Array.from({ length: transcriptLimit + 5 }, (_, index) => entry("user", `${index}`, null, `m${index}`));
+  const read = messages(long, dates([{ type: "user", uuid: "m0", timestamp: "2026-10-01T08:00:00.000Z" }, { type: "user", uuid: "m1" }]), Infinity);
+  expect(read.length).toBe(transcriptLimit + 5);
+  expect(read[0]).toEqual({ id: "m0", role: "user", text: "0", date: Date.parse("2026-10-01T08:00:00.000Z") });
+  expect(read[1]).toEqual({ id: "m1", role: "user", text: "1" });
 });

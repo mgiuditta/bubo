@@ -26,7 +26,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
                                        withdraw: notifier.withdraw)
-            return try SessionStore.makeDefault(alerts: alerts) { [questions] in try await questions.readyBridge() }
+            return try SessionStore.makeDefault(alerts: alerts, index: searchIndex) { [questions] in try await questions.readyBridge() }
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")
             return nil
