@@ -104,7 +104,7 @@ struct CostLedgerTests {
             read _
             """#
         let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
-                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _ in "" }
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
         let ledger = CostLedger()
         let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory),
                                  ledger: ledger) { bridge }

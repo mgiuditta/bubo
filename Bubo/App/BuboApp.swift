@@ -69,6 +69,7 @@ struct BuboApp: App {
         Settings {
             SettingsView()
                 .environment(appDelegate.sessions)
+                .environment(appDelegate.secondBrain)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         }

@@ -35,10 +35,11 @@ final class AgentBridge {
     /// Creates a bridge that runs `executable` with `environment`.
     ///
     /// - Parameter quota: Receives the Quota windows each time `claude` reports them.
-    /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder to search in, if any.
+    /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder and the source to
+    ///   search in, if any.
     init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
          quota: @escaping (Quota) -> Void = { _ in },
-         search: @escaping (_ query: String, _ project: String?) async -> String) {
+         search: @escaping (_ query: String, _ project: String?, _ source: SearchSource?) async -> String) {
         self.executable = executable
         self.arguments = arguments
         self.environment = environment
@@ -54,7 +55,7 @@ final class AgentBridge {
     /// The accepted Risorse di squadra, read again at each turn.
     private let ledger = TrustLedger.standard
     private let quota: (Quota) -> Void
-    private let search: (String, String?) async -> String
+    private let search: (String, String?, SearchSource?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
     /// What receives the progress of each answer in `answers`.
@@ -299,9 +300,9 @@ final class AgentBridge {
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .sandboxUnavailable(id, reason):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.sandboxUnavailable(reason: reason))
-        case let .search(id, query, project):
+        case let .search(id, query, project, source):
             Task {
-                let text = await search(query, project)
+                let text = await search(query, project, source)
                 try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: text).line())
             }
         case let .previewCall(id, call, action):

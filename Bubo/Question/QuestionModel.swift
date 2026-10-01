@@ -183,8 +183,8 @@ final class QuestionModel {
                                  quota: { [weak self] reported in
                                      guard let self else { return }
                                      quota = quota.merging(reported)
-                                 }) { [index] query, project in
-            await index?.toolResult(for: query, project: project) ?? "L'Indice non è disponibile."
+                                 }) { [index] query, project, source in
+            await index?.toolResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
         return bridge
