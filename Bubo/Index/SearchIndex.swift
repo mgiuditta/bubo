@@ -9,23 +9,37 @@ nonisolated enum SearchSource: String, Sendable {
     case memory = "memoria"
     /// The Secondo cervello, the user's folder of notes.
     case secondBrain = "secondo-cervello"
+    /// The past conversations: the Sessioni's turns and the Cronologia CLI.
+    case conversations = "conversazioni"
+}
+
+/// Who wrote a message of a past conversation in the Indice, and when.
+nonisolated struct ConversationMessage: Equatable, Sendable {
+    /// The message's id in its conversation.
+    var id: String
+    /// Whether the user wrote it; otherwise Claude did.
+    var isFromUser: Bool
+    /// When it was written, or when its conversation last changed if the SDK did not say.
+    var date: Date
 }
 
 /// A fragment of a file in the Indice that matches a search.
 nonisolated struct SearchHit: Equatable, Sendable {
-    /// The file the fragment comes from.
+    /// The file the fragment comes from, or the id of its conversation.
     var path: String
-    /// The Progetto whose memory holds the file, as `~/.claude/projects` names it; `nil` for the user's CLAUDE.md
-    /// and for the Secondo cervello.
+    /// The Progetto whose memory holds the file, or where the conversation ran, as `~/.claude/projects` names it;
+    /// `nil` for the user's CLAUDE.md and for the Secondo cervello.
     var project: String?
     /// Where the file comes from.
     var source: SearchSource = .memory
-    /// The fragment: one Markdown section of the file.
+    /// The fragment: one Markdown section of the file, or one message of the conversation.
     var text: String
+    /// Who wrote the message and when, for a conversation; `nil` for a file.
+    var message: ConversationMessage?
 }
 
 /// The Indice: a rebuildable SQLite copy of the Memoria di Progetto of every Progetto, of the
-/// user's CLAUDE.md and of the Secondo cervello, searched by words with FTS5.
+/// user's CLAUDE.md, of the Secondo cervello and of the past conversations, searched by words with FTS5.
 ///
 /// It never holds the code of a Progetto. Deleting its file loses nothing: the next start rebuilds it.
 /// The Secondo cervello is the user's own, untrusted text: it is only read, never run, and leaves the Mac
@@ -51,6 +65,7 @@ actor SearchIndex {
                 CREATE TABLE documents(path TEXT PRIMARY KEY, source TEXT NOT NULL, size INTEGER NOT NULL,
                                        modified REAL NOT NULL);
                 CREATE VIRTUAL TABLE fragments USING fts5(text, path UNINDEXED, project UNINDEXED, source UNINDEXED,
+                                                          message UNINDEXED, author UNINDEXED, date UNINDEXED,
                                                           tokenize = 'unicode61 remove_diacritics 2');
                 CREATE TABLE state(key TEXT PRIMARY KEY, value) WITHOUT ROWID;
                 PRAGMA user_version = \(Self.layoutVersion);
@@ -70,7 +85,7 @@ actor SearchIndex {
         sqlite3_close(connection)
     }
 
-    private static let layoutVersion = 2
+    private static let layoutVersion = 3
     /// The real path of the `~/.claude` folder.
     private let root: String
     private let connection: OpaquePointer
@@ -89,7 +104,7 @@ actor SearchIndex {
         // Every word quoted, so nothing the user types is FTS5 syntax; a prefix match, so "notar" finds "notarizzazione".
         let match = words.map { "\"\($0)\"*" }.joined(separator: " OR ")
         let statement = try prepare("""
-            SELECT path, project, source, text FROM fragments WHERE fragments MATCH ?1
+            SELECT path, project, source, text, message, author, date FROM fragments WHERE fragments MATCH ?1
             \(project == nil ? "" : "AND project = ?3") \(source == nil ? "" : "AND source = ?4") ORDER BY rank LIMIT ?2
             """)
         defer { sqlite3_finalize(statement) }
@@ -99,9 +114,13 @@ actor SearchIndex {
         if let source { bind(source.rawValue, at: 4, in: statement) }
         var hits: [SearchHit] = []
         while sqlite3_step(statement) == SQLITE_ROW {
+            let message = column(4, of: statement).map { id in
+                ConversationMessage(id: id, isFromUser: column(5, of: statement) == "utente",
+                                    date: Date(timeIntervalSince1970: sqlite3_column_double(statement, 6)))
+            }
             hits.append(SearchHit(path: column(0, of: statement) ?? "", project: column(1, of: statement),
                                   source: column(2, of: statement).flatMap(SearchSource.init(rawValue:)) ?? .memory,
-                                  text: column(3, of: statement) ?? ""))
+                                  text: column(3, of: statement) ?? "", message: message))
         }
         return hits
     }
@@ -110,16 +129,23 @@ actor SearchIndex {
     ///
     /// When the Secondo cervello is searched but its folder cannot be reached, the answer says the notes are its last copy.
     func toolResult(for text: String, project: String?, source: SearchSource? = nil) -> String {
-        let notice = source != .memory && project == nil && !isSecondBrainReachable
+        let notice = (source == nil || source == .secondBrain) && project == nil && !isSecondBrainReachable
             ? "La cartella del Secondo cervello non è raggiungibile: le note sono quelle dell'ultima lettura.\n\n" : ""
         do {
             let hits = try hits(for: text, project: project, source: source)
             guard !hits.isEmpty else { return notice + "Nessun risultato nell'Indice." }
-            return notice + hits.map { "### \($0.path)\n\n\($0.text)" }.joined(separator: "\n\n---\n\n")
+            return notice + hits.map { "### \(Self.heading(of: $0))\n\n\($0.text)" }.joined(separator: "\n\n---\n\n")
         } catch {
             Logger.index.error("Search failed: \(error)")
             return "L'Indice non ha potuto cercare."
         }
+    }
+
+    /// The heading of `hit` in the answer to `cerca`: its file, or its conversation with who wrote it and when.
+    private static func heading(of hit: SearchHit) -> String {
+        guard let message = hit.message else { return hit.path }
+        let author = message.isFromUser ? "l'utente" : "Claude"
+        return "Conversazione \(hit.path), messaggio di \(author) del \(message.date.formatted(.iso8601))"
     }
 
     /// Whether the folder of the Secondo cervello can be read now; `true` without one.
@@ -194,6 +220,7 @@ actor SearchIndex {
             switch source {
             case .memory: rescan()
             case .secondBrain: rescanSecondBrain()
+            case .conversations: break
             }
             saveResumePoint(of: source, eventID: since, volume: volume)
         }
@@ -393,6 +420,60 @@ actor SearchIndex {
     private static func isFolder(_ path: String) -> Bool {
         var isDirectory: ObjCBool = false
         return FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory) && isDirectory.boolValue
+    }
+
+    // MARK: Conversations
+
+    /// When the conversation `id` last changed, as the Indice has it; `nil` if it is not in the Indice.
+    func modificationDate(ofConversation id: String) -> Date? {
+        guard let statement = try? prepare("SELECT modified FROM documents WHERE path = ?1 AND source = ?2") else {
+            return nil
+        }
+        defer { sqlite3_finalize(statement) }
+        bind(id, at: 1, in: statement)
+        bind(SearchSource.conversations.rawValue, at: 2, in: statement)
+        return sqlite3_step(statement) == SQLITE_ROW
+            ? Date(timeIntervalSince1970: sqlite3_column_double(statement, 0)) : nil
+    }
+
+    /// Replaces the conversation `id` in the Indice with `messages`, one fragment each.
+    ///
+    /// - Parameters:
+    ///   - folder: Where the conversation ran, which makes its Progetto; `nil` if unknown.
+    ///   - modified: When the conversation last changed, also the date of the messages that have none.
+    func store(_ messages: [CLIConversation.Message], ofConversation id: String, in folder: URL?, modified: Date) throws {
+        try transaction {
+            try forget(id)
+            let insert = try prepare("""
+                INSERT INTO fragments(text, path, project, source, message, author, date) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                """)
+            defer { sqlite3_finalize(insert) }
+            for (position, message) in messages.enumerated() {
+                sqlite3_reset(insert)
+                bind(message.text, at: 1, in: insert)
+                bind(id, at: 2, in: insert)
+                if let folder { bind(Self.projectName(ofFolder: folder.path), at: 3, in: insert) } else { sqlite3_bind_null(insert, 3) }
+                bind(SearchSource.conversations.rawValue, at: 4, in: insert)
+                bind(message.id ?? String(position), at: 5, in: insert)
+                bind(message.isFromUser ? "utente" : "agente", at: 6, in: insert)
+                sqlite3_bind_double(insert, 7, (message.date ?? modified).timeIntervalSince1970)
+                guard sqlite3_step(insert) == SQLITE_DONE else { throw lastError() }
+            }
+            let document = try prepare("INSERT INTO documents(path, source, size, modified) VALUES (?1, ?2, ?3, ?4)")
+            defer { sqlite3_finalize(document) }
+            bind(id, at: 1, in: document)
+            bind(SearchSource.conversations.rawValue, at: 2, in: document)
+            sqlite3_bind_int64(document, 3, Int64(messages.count))
+            sqlite3_bind_double(document, 4, modified.timeIntervalSince1970)
+            guard sqlite3_step(document) == SQLITE_DONE else { throw lastError() }
+        }
+    }
+
+    /// Removes the conversations `ids` from the Indice: a Sessione deleted in Bubo.
+    func forgetConversations(_ ids: [String]) throws {
+        try transaction {
+            for id in ids { try forget(id) }
+        }
     }
 
     // MARK: SQLite

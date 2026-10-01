@@ -215,11 +215,13 @@ final class AgentBridge {
         return conversations
     }
 
-    /// The text of the latest messages of `conversation` in the Cronologia CLI, oldest first.
-    func transcript(of conversation: String) async throws -> [CLIConversation.Message] {
+    /// The text of the latest messages of `conversation`, or of all of them when `isComplete`, oldest first.
+    ///
+    /// The bridge reads them with the SDK, from `~/.claude` or from Bubo's copy, never from the JSONL.
+    func transcript(of conversation: String, isComplete: Bool = false) async throws -> [CLIConversation.Message] {
         let id = UUID().uuidString
-        guard case let .transcript(_, messages) = try await request(.readTranscript(id: id, conversation: conversation),
-                                                                    id: id)
+        let command = BridgeCommand.readTranscript(id: id, conversation: conversation, isComplete: isComplete)
+        guard case let .transcript(_, messages) = try await request(command, id: id)
         else { throw AgentBridgeError.failed(message: "unexpected event") }
         return messages
     }

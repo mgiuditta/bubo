@@ -148,12 +148,12 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi: `Palette/` e `History
 - `System/Intents` (09): App Intent "Cerca nella cronologia", che apre la Palette.
 - Riuso: `Index/` e `Agent/SearchTool` (Indice), `Sessions/` (01), Attività (06), `Agent/AgentBridge` per `resume` e `forkSession`.
 
-Requisito sull'Indice: ogni frammento di conversazione porta `sessionId`, id del messaggio, autore (tu / agente) e data, e la ricerca restituisce da quale ramo della fusione arriva (parole, significato) con le posizioni FTS5 da evidenziare.
+Requisito sull'Indice: ogni frammento di conversazione porta `sessionId`, id del messaggio, autore (tu / agente) e data (`SessionStoreEntry.timestamp` se la conversazione è nella copia di Bubo, altrimenti il `lastModified` della conversazione: `SessionMessage` non ha data), e la ricerca restituisce da quale ramo della fusione arriva (parole, significato) con le posizioni FTS5 da evidenziare.
 
 ### Flusso
 
 1. **Conservazione**: fine di ogni scrittura della Conversazione dell'agente → `append` nello store. `CLIHistory` vede una conversazione nuova della CLI → `importSessionToStore` (se l'interruttore è acceso). `mirror_error` → segnale nella Sessione → a fine turno `importSessionToStore` ripara la copia.
-2. **Indicizzazione**: fine turno → l'Indice legge le conversazioni dallo store e dalle API dell'SDK, mai dal JSONL ([indice-semantico.md](indice-semantico.md)).
+2. **Indicizzazione**: fine turno → l'Indice legge le conversazioni dallo store e dalle API dell'SDK, mai dal JSONL ([indice-semantico.md](indice-semantico.md)). Le Sessioni di Bubo si leggono per id da `Session.conversations` con `getSessionMessages`, non da `listSessions`; la Cronologia CLI e i turni mancanti (Indice cancellato) si recuperano all'avvio e a ogni copia della Cronologia CLI.
 3. **Ricerca**: ⌘K (o App Intent, o campo del pannello Cronologia) → Palette sopra la finestra attiva → testo + gettoni → `ConversationSearch` → righe per conversazione con frammento e anteprima.
 4. **Apertura**: ↩ → finestra Cronologia → `ConversationReader` carica la conversazione → scorre sul messaggio trovato ed evidenziato.
 5. **Ripresa**: ⌘↩ → `forkSession({ upToMessageId })` → nuova Sessione in un worktree nuovo, ferma in attesa del prompt. ⌥↩ → `resume` della stessa Sessione, oppure fork intero per la Cronologia CLI; oltre 30 giorni `load` dallo store in un JSONL temporaneo.

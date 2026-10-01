@@ -4,23 +4,31 @@ import Foundation
 nonisolated struct CLIConversation: Decodable, Identifiable, Equatable, Sendable {
     /// One message of the conversation: only the text of who spoke.
     struct Message: Decodable, Equatable, Sendable {
+        /// The message's id in the conversation, if the bridge sent it.
+        let id: String?
         /// Whether the user wrote it; otherwise Claude did.
         let isFromUser: Bool
         let text: String
+        /// When it was written; known only for a conversation copied in Bubo's database.
+        let date: Date?
 
         private enum CodingKeys: String, CodingKey {
-            case role, text
+            case id, role, text, date
         }
 
-        init(isFromUser: Bool, text: String) {
+        init(id: String? = nil, isFromUser: Bool, text: String, date: Date? = nil) {
+            self.id = id
             self.isFromUser = isFromUser
             self.text = text
+            self.date = date
         }
 
         init(from decoder: any Decoder) throws {
             let container = try decoder.container(keyedBy: CodingKeys.self)
+            id = try container.decodeIfPresent(String.self, forKey: .id)
             isFromUser = try container.decode(String.self, forKey: .role) == "user"
             text = try container.decode(String.self, forKey: .text)
+            date = try container.decodeIfPresent(Double.self, forKey: .date).map { Date(timeIntervalSince1970: $0 / 1000) }
         }
     }
 

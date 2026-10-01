@@ -42,8 +42,8 @@ enum BridgeCommand: Equatable {
     case coolConfiguration
     /// Lists the Cronologia CLI, most recent first: the first page, or all of it when `isComplete`.
     case readHistory(id: String, isComplete: Bool)
-    /// Reads the messages of `conversation` in the Cronologia CLI.
-    case readTranscript(id: String, conversation: String)
+    /// Reads the latest messages of `conversation`, or all of them when `isComplete`, for the Indice.
+    case readTranscript(id: String, conversation: String, isComplete: Bool = false)
     /// Answers the Richiesta di permesso `request`: the call runs only when `allows`. `isLasting` says the user allowed
     /// it for the rest of the Sessione: a host outside the Sandbox then comes with its session rule
     /// `WebFetch(domain:)`.
@@ -98,8 +98,9 @@ enum BridgeCommand: Equatable {
             object = ["type": "cool"]
         case let .readHistory(id, isComplete):
             object = ["type": "history", "id": id, "all": isComplete]
-        case let .readTranscript(id, conversation):
+        case let .readTranscript(id, conversation, isComplete):
             object = ["type": "transcript", "id": id, "conversation": conversation]
+            if isComplete { object["all"] = true }
         case let .answerPermission(request, allows, isLasting):
             object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
             if allows && isLasting { object["scope"] = "session" }
