@@ -14,6 +14,8 @@ struct HunkHeaderRow: View {
     /// Whether the keyboard acts on the blocco.
     let isCurrent: Bool
     let isNoting: Bool
+    /// Whether the row has Accetta and Rifiuta: Focus has larger ones under the blocco.
+    var showsButtons = true
     @Binding var note: String
     let decide: (HunkDecision) -> Void
     let saveNote: () -> Void
@@ -40,8 +42,10 @@ struct HunkHeaderRow: View {
                 Text(state)
                     .font(Typography.mono(size: 10, weight: .medium))
                     .foregroundStyle(stateColor)
-                Button("Accetta") { decide(.accepted) }
-                Button("Rifiuta") { decide(.rejected(note: nil)) }
+                if showsButtons {
+                    Button("Accetta") { decide(.accepted) }
+                    Button("Rifiuta") { decide(.rejected(note: nil)) }
+                }
             }
             .buttonStyle(.bordered)
             .controlSize(.small)

@@ -48,7 +48,7 @@ struct ReviewFileList: View {
                 HStack(spacing: 2) {
                     ForEach(ids, id: \.self) { id in
                         Capsule()
-                            .fill(color(of: decisions[id]))
+                            .fill(Self.color(of: decisions[id]))
                             .frame(height: 3)
                     }
                 }
@@ -62,7 +62,8 @@ struct ReviewFileList: View {
         .accessibilityLabel(Text("\(file.path), \(decided) blocchi decisi su \(ids.count)"))
     }
 
-    private func color(of decision: HunkDecision?) -> Color {
+    /// The color of a blocco's bar: accepted, rejected, undecided.
+    static func color(of decision: HunkDecision?) -> Color {
         switch decision {
         case .accepted: Palette.success
         case .rejected: Palette.danger

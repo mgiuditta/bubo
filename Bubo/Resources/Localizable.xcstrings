@@ -20,6 +20,22 @@
         }
       }
     },
+    "%@ · blocco %lld di %lld nel file" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · blocco %2$lld di %3$lld nel file"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · block %2$lld of %3$lld in the file"
+          }
+        }
+      }
+    },
     "%@ è già usata da un'altra app. Scegline un'altra." : {
       "localizations" : {
         "en" : {
@@ -210,6 +226,16 @@
         }
       }
     },
+    "Affiancato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Side by side"
+          }
+        }
+      }
+    },
     "Aggiungila in Impostazioni › Account, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -380,6 +406,16 @@
         }
       }
     },
+    "Blocchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocks"
+          }
+        }
+      }
+    },
     "Blocco %lld di %lld, %@" : {
       "localizations" : {
         "it" : {
@@ -392,6 +428,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Block %1$lld of %2$lld, %3$@"
+          }
+        }
+      }
+    },
+    "Blocco %lld di %lld, %lld decisi" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %1$lld of %2$lld, %3$lld decided"
           }
         }
       }
@@ -746,6 +798,16 @@
         }
       }
     },
+    "Continuo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuous"
+          }
+        }
+      }
+    },
     "Controlla %@, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -1002,6 +1064,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Binary file"
+          }
+        }
+      }
+    },
+    "Focus" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Focus"
           }
         }
       }
@@ -1808,6 +1880,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't find the claude CLI."
+          }
+        }
+      }
+    },
+    "Nota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
           }
         }
       }
@@ -2694,6 +2776,16 @@
         }
       }
     },
+    "Vista" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        }
+      }
+    },
     "Vista delle Sessioni" : {
       "localizations" : {
         "en" : {
@@ -2946,12 +3038,12 @@
         }
       }
     },
-    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · ⌘↩ rimanda all'agente" : {
+    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ rimanda all'agente" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · ⌘↩ send back to agent"
+            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · f focus · s side by side · ⌘↩ send back to agent"
           }
         }
       }
