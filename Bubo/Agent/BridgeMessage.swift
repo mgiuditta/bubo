@@ -70,6 +70,8 @@ enum BridgeEvent: Equatable, Decodable {
     case text(id: String, text: String)
     /// The answer to `id` is complete.
     case done(id: String)
+    /// What the conversation `id` is doing, or its latest summary.
+    case progress(id: String, AgentProgress)
     /// The conversation `id`, or the bridge itself when `id` is `nil`, failed.
     case error(id: String?, message: String)
     /// The conversation `id` stopped at a subscription limit.
@@ -90,7 +92,7 @@ enum BridgeEvent: Equatable, Decodable {
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages
+        case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages
     }
 
     init(from decoder: any Decoder) throws {
@@ -105,6 +107,10 @@ enum BridgeEvent: Equatable, Decodable {
         case "text": self = .text(id: try container.decode(String.self, forKey: .id),
                                   text: try container.decode(String.self, forKey: .text))
         case "done": self = .done(id: try container.decode(String.self, forKey: .id))
+        case "state": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                       .state(try container.decode(AgentProgress.State.self, forKey: .state)))
+        case "summary": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                         .summary(try container.decode(String.self, forKey: .text)))
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
         case "limit": self = .limit(id: try container.decode(String.self, forKey: .id),

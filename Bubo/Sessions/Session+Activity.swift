@@ -1,0 +1,38 @@
+import Foundation
+
+/// The machine of the Attività: what `claude` reports moves a Sessione between Lavora, Attende te and Ferma;
+/// Errore comes from a failed turn.
+nonisolated extension Session {
+    /// Moves the Sessione to `activity`; the wait starts again only when the Attività changes.
+    mutating func enter(_ activity: Activity, at date: Date = .now) {
+        guard activity != self.activity || activitySince == nil else { return }
+        self.activity = activity
+        activitySince = date
+    }
+
+    /// Updates the Attività or the summary from what `claude` reports at `date`.
+    ///
+    /// Only `idle` stops the Sessione: `claude` sends it after the result and after the subagents in the
+    /// background end, so a Sessione never looks finished while they still work. It never hides an Errore.
+    mutating func apply(_ progress: AgentProgress, at date: Date = .now) {
+        switch progress {
+        case .state(.running): enter(.lavora, at: date)
+        case .state(.requiresAction): enter(.attende, at: date)
+        case .state(.idle): if activity != .errore { enter(.ferma, at: date) }
+        case let .summary(text): summary = text
+        }
+    }
+
+    /// `sessions` grouped by Attività in the Colonna's order, without empty groups: in Attende te the longest
+    /// wait first, in the others the order of `sessions`.
+    static func grouped(_ sessions: [Session]) -> [(activity: Activity, sessions: [Session])] {
+        Activity.allCases.compactMap { activity in
+            var members = sessions.filter { $0.activity == activity }
+            guard !members.isEmpty else { return nil }
+            if activity == .attende {
+                members.sort { ($0.activitySince ?? .distantPast) < ($1.activitySince ?? .distantPast) }
+            }
+            return (activity, members)
+        }
+    }
+}

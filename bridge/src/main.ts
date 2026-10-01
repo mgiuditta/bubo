@@ -6,6 +6,7 @@ import {
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
+import { progress, type Progress } from "./activity";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
@@ -26,6 +27,7 @@ type Event =
   | { type: "ready" }
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
+  | (Progress & { id: string })
   | { type: "error"; id?: string; message: string }
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
@@ -106,8 +108,11 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   // Perché il turno si è fermato: un limite rifiutato o un accesso non valido diventano eventi a sé.
   let limit: Limit | undefined;
   let failure: SDKAssistantMessageError | undefined;
+  let succeeded = false;
   try {
     for await (const message of conversation) {
+      const update = progress(message);
+      if (update) send({ ...update, id });
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
           && message.event.delta.type === "text_delta") {
         send({ type: "text", id, text: message.event.delta.text });
@@ -117,12 +122,14 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       } else if (message.type === "assistant" && message.error) {
         failure = message.error;
       } else if (message.type === "result") {
-        if (message.subtype === "success" && !message.is_error) send({ type: "done", id });
+        if (message.subtype === "success" && !message.is_error) succeeded = true;
         else if (limit) send({ type: "limit", id, ...limit });
         else if (failure === "authentication_failed") send({ type: "signInRequired", id });
         else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype });
       }
     }
+    // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
+    if (succeeded) send({ type: "done", id });
   } catch (error) {
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
   } finally {

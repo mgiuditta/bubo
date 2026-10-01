@@ -15,11 +15,15 @@ final class SessionStore {
 
     /// Creates a store kept in `file`, preparing copies with `worktrees` and talking to `claude` through `bridge`.
     ///
-    /// A Sessione that was in Lavora when Bubo quit is Ferma and waits for Riprendi: nothing resumes on its own.
-    /// One whose Progetto or worktree is gone is in Errore.
-    init(file: URL, worktrees: WorktreeManager, bridge: @escaping () async throws -> AgentBridge) {
+    /// A Sessione that was in Lavora or Attende te when Bubo quit is Ferma and waits for Riprendi: nothing resumes
+    /// on its own. One whose Progetto or worktree is gone is in Errore.
+    ///
+    /// - Parameter orb: The Orb whose Stato follows the Attività of the Sessioni; `nil` for none.
+    init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil,
+         bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
         self.worktrees = worktrees
+        self.orb = orb
         self.bridge = bridge
         do {
             sessions = try JSONDecoder().decode([Session].self, from: Data(contentsOf: file))
@@ -28,12 +32,12 @@ final class SessionStore {
             Logger.sessions.error("Sessioni unreadable: \(error)")
         }
         for index in sessions.indices {
-            if sessions[index].activity == .lavora {
-                sessions[index].activity = .ferma
+            if sessions[index].isRunning {
+                sessions[index].enter(.ferma)
                 sessions[index].isInterrupted = true
             }
             if let failure = Self.missingFolder(of: sessions[index]) {
-                sessions[index].activity = .errore
+                sessions[index].enter(.errore)
                 sessions[index].failure = failure
             }
         }
@@ -41,6 +45,7 @@ final class SessionStore {
 
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
+    @ObservationIgnored private let orb: OrbControls?
     @ObservationIgnored private let bridge: () async throws -> AgentBridge
     @ObservationIgnored private let ports = PortAllocator()
 
@@ -49,7 +54,7 @@ final class SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
         return SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                            bridge: bridge)
+                            orb: .shared, bridge: bridge)
     }
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
@@ -76,7 +81,7 @@ final class SessionStore {
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
                forkingFrom conversation: CLIConversation? = nil) throws {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
-        var session = Session(id: UUID(), title: title, project: project)
+        var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
         session.forkedFrom = conversation?.id
         if onCheckout {
@@ -88,6 +93,7 @@ final class SessionStore {
             sessions.append(session)
             save()
         }
+        followActivity()
         Task { await run(session.id, prompt: prompt, branch: branch) }
     }
 
@@ -105,7 +111,8 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }), session.isInterrupted, let prompt = session.prompt
         else { return }
         update(id) { session in
-            session.activity = .lavora
+            session.enter(.lavora)
+            session.summary = nil
             session.isInterrupted = false
         }
         Task { await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title)) }
@@ -113,8 +120,7 @@ final class SessionStore {
 
     /// Archives a Sessione: its worktree goes in the background, its branch stays, its ports are free again.
     func archive(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
-              session.activity != .lavora
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning
         else { return }
         update(id) { session in
             session.phase = .archiviata
@@ -133,9 +139,10 @@ final class SessionStore {
 
     /// Deletes a Sessione with its worktree and its branch, in the background.
     func delete(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.activity != .lavora else { return }
+        guard let session = sessions.first(where: { $0.id == id }), !session.isRunning else { return }
         sessions.removeAll { $0.id == id }
         save()
+        followActivity()
         guard let workspace = session.workspace else { return }
         Task { await worktrees.remove(workspace, of: session.project, deletingBranch: true) }
     }
@@ -171,13 +178,16 @@ final class SessionStore {
                     update(id) { $0.setupFailure = failure }
                 }
             }
-            for try await _ in try await bridge().ask(prompt, in: workspace.folder, environment: environment,
-                                                      forkingFrom: session.forkedFrom) {}
-            update(id) { $0.activity = .ferma }
+            let answer = try await bridge().ask(prompt, in: workspace.folder, environment: environment,
+                                                forkingFrom: session.forkedFrom) { [weak self] progress in
+                self?.update(id) { $0.apply(progress) }
+            }
+            for try await _ in answer {}
+            update(id) { $0.enter(.ferma) }
         } catch {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
             update(id) { session in
-                session.activity = .errore
+                session.enter(.errore)
                 session.failure = switch error {
                 case let WorktreeError.git(message): message.trimmingCharacters(in: .whitespacesAndNewlines)
                 case let AgentBridgeError.failed(message): message
@@ -195,6 +205,13 @@ final class SessionStore {
         guard let index = sessions.firstIndex(where: { $0.id == id }) else { return }
         change(&sessions[index])
         save()
+        followActivity()
+    }
+
+    /// Gives the Orb the Stato of the Sessioni's Attività.
+    private func followActivity() {
+        let state = OrbState(following: sessions)
+        if orb?.state != state { orb?.state = state }
     }
 
     private func save() {
@@ -216,6 +233,22 @@ nonisolated enum SessionError: LocalizedError, Equatable {
         switch self {
         case let .checkoutTaken(title):
             String(localized: "«\(title)» lavora già sul checkout di questo Progetto. Archiviala, o lavora in una copia isolata.")
+        }
+    }
+}
+
+extension OrbState {
+    /// The Stato for these Sessioni: Ascolto while an open one is in Attende te, since it waits for the user;
+    /// Lavora while one works; Riposo otherwise.
+    // ponytail: the HUD has no Sessione in front of the user yet; then the Stato follows that one alone.
+    init(following sessions: [Session]) {
+        let open = sessions.filter { $0.phase == .aperta }
+        if open.contains(where: { $0.activity == .attende }) {
+            self = .listening
+        } else if open.contains(where: { $0.activity == .lavora }) {
+            self = .working
+        } else {
+            self = .idle
         }
     }
 }
