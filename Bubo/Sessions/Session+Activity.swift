@@ -24,7 +24,7 @@ nonisolated extension Session {
             guard let summary else { return }
             edits.append(EditNote(file: file, why: summary, lines: lines))
             if edits.count > Self.editNoteLimit { edits.removeFirst(edits.count - Self.editNoteLimit) }
-        case .ranCommand, .sandboxBlock: break
+        case .read, .ranCommand, .sandboxBlock: break
         case let .memory(event):
             memoryLines.append(MemoryLine(event: event, date: date))
             if memoryLines.count > Self.memoryLineLimit { memoryLines.removeFirst(memoryLines.count - Self.memoryLineLimit) }

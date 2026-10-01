@@ -185,7 +185,7 @@ enum BridgeEvent: Equatable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
-             rules, conversation, before, after, mode, memories
+             rules, conversation, before, after, mode, memories, files
     }
 
     init(from decoder: any Decoder) throws {
@@ -207,6 +207,8 @@ enum BridgeEvent: Equatable, Decodable {
         case "edit": self = .progress(id: try container.decode(String.self, forKey: .id),
                                       .edit(file: try container.decode(String.self, forKey: .file),
                                             lines: try container.decode([String].self, forKey: .lines)))
+        case "read": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                      .read(files: try container.decode([String].self, forKey: .files)))
         case "ran": self = .progress(id: try container.decode(String.self, forKey: .id), .ranCommand)
         case "sandboxBlock": self = .progress(id: try container.decode(String.self, forKey: .id),
                                               .sandboxBlock(try SandboxBlock(from: decoder)))

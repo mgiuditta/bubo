@@ -21,6 +21,13 @@ struct GalaxyView: View {
             await model.load()
             await model.watch()
         }
+        .task {
+            // The comets follow the Sessioni as they change: a new one, an Attività, a Fusa or Archiviata.
+            let project = model.project
+            for await sessions in Observations({ [store] in GalaxySession.sessions(of: project, in: store.sessions()) }) {
+                model.update(sessions: sessions)
+            }
+        }
     }
 
     private var map: some View {

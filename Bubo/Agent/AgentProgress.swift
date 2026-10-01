@@ -17,6 +17,8 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case summary(String)
     /// A write the agent asked for in `file`, an absolute path: the lines it writes, trimmed, unique, at most 100.
     case edit(file: String, lines: [String])
+    /// Files the agent read, absolute paths: one for `Read`, those `Grep` or `Glob` found, at most 100.
+    case read(files: [String])
     /// A Bash command of the agent ended, or went to the background: it may have started or stopped a server.
     case ranCommand
     /// The Sandbox stopped the Bash command that just ended from doing this.

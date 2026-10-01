@@ -7,7 +7,7 @@ import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { createInterface } from "node:readline";
 import { z } from "zod";
-import { edits, progress, type Edit, type Progress } from "./activity";
+import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
@@ -55,6 +55,7 @@ type Event =
   | (Edit & { id: string })
   | (Remembered & { id: string })
   | (Recalled & { id: string })
+  | (Read & { id: string })
   | { type: "error"; id?: string; message: string }
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
@@ -247,6 +248,18 @@ function memoryHooks(id: string): Record<"PreToolUse" | "PostToolUse" | "PostToo
   };
 }
 
+// I file trovati da Grep e Glob, letture tenui della Galassia: l'SDK li dà solo nella risposta dello strumento.
+function searchedFiles(id: string): HookCallbackMatcher {
+  return {
+    matcher: "Grep|Glob",
+    hooks: [async (input) => {
+      const read = input.hook_event_name === "PostToolUse" ? searched(input) : undefined;
+      if (read) send({ ...read, id });
+      return {};
+    }],
+  };
+}
+
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
@@ -300,9 +313,10 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
       // Le scritture in memoria, solo nelle Sessioni: nelle Domande la memoria automatica è spenta.
+      // Grep e Glob riusciti danno i file letti alla Galassia (spec 11).
       hooks: {
         PreToolUse: [{ hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
-        PostToolUse: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUse ?? [])],
+        PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
       },
     },
@@ -332,6 +346,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       for (const edit of edits(message)) send({ ...edit, id });
       const recall = recalled(message);
       if (recall) send({ ...recall, id });
+      for (const read of reads(message)) send({ ...read, id });
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
           && message.event.delta.type === "text_delta") {
         send({ type: "text", id, text: message.event.delta.text });

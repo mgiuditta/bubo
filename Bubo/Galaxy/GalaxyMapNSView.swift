@@ -5,8 +5,8 @@ import os
 /// The Galassia's map: drag or scroll to move, pinch or the mouse wheel to zoom, click a star to select it or a folder
 /// to zoom into it.
 ///
-/// It draws only on a change and stops drawing while its window is covered or minimized; only a camera flight draws
-/// every frame, until it lands. VoiceOver reaches every action through the list next to it.
+/// It draws only on a change and stops drawing while its window is covered or minimized; only a camera flight or a
+/// comet moving to a file its Sessione just touched draws every frame, until it lands. VoiceOver reaches every action through the list next to it.
 final class GalaxyMapNSView: MTKView {
     private let model: GalaxyModel
     private var renderer: GalaxyRenderer?
@@ -29,7 +29,7 @@ final class GalaxyMapNSView: MTKView {
         }
         renderer?.onDraw = { [weak self] in self?.didDraw() }
         model.onRedraw = { [weak self] in self?.requestDraw() }
-        model.onFlight = { [weak self] in self?.startContinuousDrawing() }
+        model.onAnimation = { [weak self] in self?.startContinuousDrawing() }
         setAccessibilityElement(false)
     }
 
@@ -38,7 +38,7 @@ final class GalaxyMapNSView: MTKView {
         fatalError("init(coder:) is not supported")
     }
 
-    /// Whether the map is drawing every frame, during a flight.
+    /// Whether the map is drawing every frame, during a flight or a comet's move.
     var isDrawingContinuously: Bool { !isPaused }
 
     private var isVisible: Bool {
@@ -69,7 +69,7 @@ final class GalaxyMapNSView: MTKView {
     }
 
     private func didDraw() {
-        if isDrawingContinuously, !model.isFlying { stopContinuousDrawing() }
+        if isDrawingContinuously, !model.isAnimating { stopContinuousDrawing() }
     }
 
     override func viewDidMoveToWindow() {
@@ -85,14 +85,14 @@ final class GalaxyMapNSView: MTKView {
 
     private func occlusionChanged() {
         if isVisible {
-            if model.isFlying {
+            if model.isAnimating {
                 startContinuousDrawing()
             } else if needsDrawWhenVisible {
                 needsDisplay = true
             }
             needsDrawWhenVisible = false
         } else if isDrawingContinuously {
-            // A covered window draws nothing; the flight lands on the next frame shown.
+            // A covered window draws nothing; the flight and the comets land on the next frame shown.
             stopContinuousDrawing()
             needsDrawWhenVisible = true
         }

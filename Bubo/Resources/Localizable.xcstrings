@@ -162,6 +162,86 @@
         }
       }
     },
+    "%lld file modificati" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file changed"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files changed"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file modificato"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file modificati"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld letture" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld read"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld reads"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld lettura"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld letture"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld ricordi" : {
       "localizations" : {
         "en" : {
@@ -3838,6 +3918,26 @@
         }
       }
     },
+    "Modificato da %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changed by %@"
+          }
+        }
+      }
+    },
+    "Modificato da più Sessioni: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changed by more than one Session: %@"
+          }
+        }
+      }
+    },
     "Modifica…" : {
       "localizations" : {
         "en" : {
@@ -3884,6 +3984,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show and hide Bubo"
+          }
+        }
+      }
+    },
+    "Mostra i file di questa Sessione e segue la sua cometa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows this Session’s files and follows its comet"
           }
         }
       }
@@ -4144,6 +4254,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No files in this Project"
+          }
+        }
+      }
+    },
+    "Nessun file modificato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No files changed"
           }
         }
       }
@@ -6342,6 +6462,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All"
+          }
+        }
+      }
+    },
+    "Tutte le Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Sessions"
           }
         }
       }

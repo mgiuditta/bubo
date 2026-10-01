@@ -51,6 +51,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The Galassia windows, one per Progetto.
     private(set) lazy var galaxies = GalaxyStore { [weak self] in
         self?.sessions?.projects ?? []
+    } sessions: { [weak self] in
+        self?.sessions?.sessions ?? []
     } viewer: { [weak self] in
         self?.sessions?.viewer
     }
@@ -103,6 +105,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         _ = hotKeys
         // Before any turn can start, so the first token reaches it.
         _ = onboarding
+        sessions?.onFileActivity = { [weak self] id, progress in self?.galaxies.record(progress, by: id) }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
             Task { await self?.questions.readQuotaIfNeeded() }
