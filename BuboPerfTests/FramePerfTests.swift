@@ -14,7 +14,9 @@ nonisolated final class FramePerfTests: XCTestCase {
 
     @MainActor func testOrbGPUTime() throws {
         try XCTSkipIf(MTLCreateSystemDefaultDevice() == nil, "Nessun Metal: tempo GPU dell'Orb non misurato.")
-        let (app, log) = launchShowingPanel()
+        // `scripts/perf.sh` reads the Orb's frames from the Metal HUD's log too, so it asks for that log.
+        let logsMetalHUD = ProcessInfo.processInfo.environment["BUBO_METAL_HUD"] == "1"
+        let (app, log) = launchShowingPanel(environment: logsMetalHUD ? Self.metalHUDLogging : [:])
         defer { app.terminate() }
         // The Orb morphs at 60 fps from the launch: wait for the frames, and a margin.
         Thread.sleep(forTimeInterval: Double(PerfBudgets.orbFrames) / 60 + 2)
@@ -22,7 +24,8 @@ nonisolated final class FramePerfTests: XCTestCase {
         let gpuTimes = try FrameLog(contentsOf: log).gpuTimes.suffix(PerfBudgets.orbFrames)
         XCTAssertEqual(gpuTimes.count, PerfBudgets.orbFrames, "Fotogrammi dell'Orb nel log")
         let p95 = Measurement(value: try XCTUnwrap(gpuTimes.percentile95()), unit: UnitDuration.seconds)
-        check(p95.converted(to: .milliseconds), against: PerfBudgets.orbGPUTime, named: "Tempo GPU dell'Orb, p95")
+        check(p95.converted(to: .milliseconds), against: PerfBudgets.orbGPUTime, named: "Tempo GPU dell'Orb, p95",
+              reportedAs: .orbGPUTime)
     }
 
     @MainActor func testCoveredPanelDrawsNoFrames() throws {
@@ -48,6 +51,7 @@ nonisolated final class FramePerfTests: XCTestCase {
         let before = try FrameLog(contentsOf: log).frameCount
         RunLoop.current.run(until: .now + PerfBudgets.coveredDuration)
         let drawn = try FrameLog(contentsOf: log).frameCount - before
+        record(Double(drawn), reportedAs: .framesWhileCovered, from: "Fotogrammi dell'Orb a Panel coperto per 10 s")
 
         XCTAssertEqual(drawn, PerfBudgets.framesWhileCovered, "Fotogrammi dell'Orb a Panel coperto per 10 s")
     }
@@ -70,7 +74,7 @@ nonisolated final class FramePerfTests: XCTestCase {
             $0.hasPrefix("com.apple.dt.XCTMetric_Hitch") && $0.hasSuffix(".time.ratio") && !$0.contains("normalized")
         }.last)
         check(Measurement(value: ratio.value, unit: UnitDuration.milliseconds), against: PerfBudgets.hitchTimeRatio,
-              named: "Rapporto di hitch dell'HUD, ms al secondo (XCTest: \(ratio.unitSymbol))")
+              named: "Rapporto di hitch dell'HUD, ms al secondo (XCTest: \(ratio.unitSymbol))", reportedAs: .hitchTimeRatio)
     }
 
     /// Opens a real Sessione on the last Progetto, so it runs only with `TEST_RUNNER_BUBO_LIVE=1`.
@@ -105,18 +109,24 @@ nonisolated final class FramePerfTests: XCTestCase {
         for duration in durations {
             let seconds = Measurement(value: duration.value, unit: UnitDuration.seconds)
             check(seconds.converted(to: .milliseconds), against: PerfBudgets.mainThreadInterval,
-                  named: "Apertura Sessione sul main thread")
+                  named: "Apertura Sessione sul main thread", reportedAs: .mainThreadInterval)
         }
     }
 
     /// The identifier of the HUD window, as SwiftUI names it after the scene id.
     private static let hudWindow = "hud"
 
+    /// The environment that has Metal write a `metal-HUD:` line per second to the system log.
+    private static let metalHUDLogging = ["MTL_HUD_ENABLED": "1", "MTL_HUD_LOG_ENABLED": "1"]
+
     /// Launches Bubo writing its Orb frames to a new log, and closes the HUD so the Panel shows.
-    @MainActor private func launchShowingPanel() -> (app: XCUIApplication, log: URL) {
+    ///
+    /// - Parameter environment: Variables added to Bubo's environment.
+    @MainActor private func launchShowingPanel(environment: [String: String] = [:]) -> (app: XCUIApplication, log: URL) {
         let log = URL.temporaryDirectory.appending(path: "orb-frames-\(UUID().uuidString).log")
         let app = XCUIApplication()
         app.launchArguments = ["-showsPanel", "YES", "-orbFrameLog", log.path]
+        app.launchEnvironment.merge(environment) { _, new in new }
         app.launch()
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
         app.typeKey("w", modifierFlags: .command)

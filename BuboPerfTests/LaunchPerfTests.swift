@@ -27,7 +27,8 @@ nonisolated final class LaunchPerfTests: XCTestCase {
         let seconds = Array(RecordedMeasurements.values(for: Self.launchIdentifier).suffix(PerfBudgets.launchIterations))
         XCTAssertEqual(seconds.count, PerfBudgets.launchIterations)
         let p95 = Measurement(value: try XCTUnwrap(seconds.percentile95()), unit: UnitDuration.seconds)
-        check(p95.converted(to: .milliseconds), against: PerfBudgets.warmLaunch, named: "Avvio caldo, p95")
+        check(p95.converted(to: .milliseconds), against: PerfBudgets.warmLaunch, named: "Avvio caldo, p95",
+              reportedAs: .warmLaunch)
     }
 
     @MainActor func testMemoryAtRest() throws {
@@ -44,7 +45,8 @@ nonisolated final class LaunchPerfTests: XCTestCase {
         // XCTest's "kB" are 1024 bytes.
         let kibibytes = try XCTUnwrap(RecordedMeasurements.values(for: Self.memoryIdentifier).last)
         let memory = Measurement(value: kibibytes, unit: UnitInformationStorage.kibibytes)
-        check(memory.converted(to: .mebibytes), against: PerfBudgets.idleMemory, named: "Memoria a riposo")
+        check(memory.converted(to: .mebibytes), against: PerfBudgets.idleMemory, named: "Memoria a riposo",
+              reportedAs: .idleMemory)
     }
 
     @MainActor func testNoClaudeAfterLaunch() throws {
@@ -58,6 +60,7 @@ nonisolated final class LaunchPerfTests: XCTestCase {
                 .max { ($0.launchDate ?? .distantPast) < ($1.launchDate ?? .distantPast) }
         )
         let claudes = try ProcessTree().descendantNames(of: bubo.processIdentifier).filter { $0 == "claude" }
+        record(Double(claudes.count), reportedAs: .claudeAfterLaunch, from: "Processi claude sotto Bubo dopo l'avvio")
         XCTAssertEqual(claudes.count, PerfBudgets.claudeProcessesAfterLaunch, "Processi claude sotto Bubo dopo l'avvio")
     }
 }
