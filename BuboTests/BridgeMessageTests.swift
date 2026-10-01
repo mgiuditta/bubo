@@ -4,9 +4,10 @@ import Testing
 
 struct BridgeMessageTests {
     @Test func askCarriesTheVersionAndEndsTheLine() throws {
-        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x")).line()
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: ["user"]).line()
         #expect(String(decoding: line, as: UTF8.self)
-            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","type":"ask","v":1}"# + "\n")
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":["user"],"type":"ask","v":1}"# + "\n")
     }
 
     @Test func cancelNamesTheConversation() throws {

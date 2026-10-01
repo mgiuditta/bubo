@@ -19,19 +19,23 @@ enum AgentBridgeError: Error, Equatable {
 /// conversation until it exits; the next request starts a new one.
 final class AgentBridge {
     /// Creates a bridge that runs `executable` with `environment`.
-    init(executable: URL, arguments: [String] = [], environment: [String: String]) {
+    init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate()) {
         self.executable = executable
         self.arguments = arguments
         self.environment = environment
+        self.trustGate = trustGate
     }
 
     private let executable: URL
     private let arguments: [String]
     private let environment: [String: String]
+    private let trustGate: TrustGate
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
+    ///
+    /// `claude` loads the settings of `directory` only if it is trusted (`TrustGate`), never by the SDK's default.
     ///
     /// Cancelling the iteration interrupts the conversation.
     func ask(_ prompt: String, in directory: URL) -> AsyncThrowingStream<String, any Error> {
@@ -44,7 +48,9 @@ final class AgentBridge {
         do {
             let process = try runningProcess()
             answers[id] = continuation
-            try process.input.write(contentsOf: BridgeCommand.ask(id: id, prompt: prompt, directory: directory).line())
+            let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
+                                            settingSources: trustGate.settingSources(for: directory))
+            try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
         } catch {
