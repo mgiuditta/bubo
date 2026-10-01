@@ -228,7 +228,8 @@ struct MorphDirectorTests {
     // MARK: - Frame
 
     @Test func aVarianteWithoutAFormaDrawsTheBlob() {
-        #expect(Self.still(on: Self.busta).forma == .blob)
+        let drago = Variante(nome: "drago", forma: "drago", categoria: .creativo, descrizione: "", parole: [])
+        #expect(Self.still(on: drago).forma == .blob)
         #expect(Self.still(on: Self.lente).forma == .lente)
         #expect(Self.still(on: nil).morph == 0)
     }

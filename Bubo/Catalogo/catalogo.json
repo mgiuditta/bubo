@@ -6,6 +6,83 @@
       "categoria": "ricerca",
       "descrizione": "Quando Bubo cerca qualcosa: sul web, nei file, tra le note.",
       "parole": ["cerca", "ricerca", "trova", "lente", "esplora", "indaga"]
+    },
+    {
+      "nome": "nuvola",
+      "forma": "nuvola",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla del tempo che fa o che farà: previsioni, pioggia, temperature.",
+      "parole": ["meteo", "nuvola", "previsioni", "pioggia", "sole", "temperatura"]
+    },
+    {
+      "nome": "cuore",
+      "forma": "cuore",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di salute e benessere: allenamento, sonno, battito, cura di sé.",
+      "parole": ["salute", "cuore", "benessere", "battito", "allenamento", "sonno"]
+    },
+    {
+      "nome": "busta",
+      "forma": "busta",
+      "categoria": "mail",
+      "descrizione": "Quando Bubo legge, scrive o riordina la posta.",
+      "parole": ["mail", "email", "posta", "busta", "messaggio", "inbox"]
+    },
+    {
+      "nome": "clessidra",
+      "forma": "clessidra",
+      "categoria": "tempo",
+      "descrizione": "Quando conta il tempo: scadenze, promemoria, timer, attese.",
+      "parole": ["tempo", "timer", "scadenza", "promemoria", "attesa", "clessidra"]
+    },
+    {
+      "nome": "parentesi",
+      "forma": "parentesi",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo legge, scrive o corregge codice.",
+      "parole": ["codice", "programma", "bug", "funzione", "script", "parentesi"]
+    },
+    {
+      "nome": "nota",
+      "forma": "nota",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica: brani, playlist, ascolto.",
+      "parole": ["musica", "brano", "canzone", "playlist", "ascolta", "nota"]
+    },
+    {
+      "nome": "pennello",
+      "forma": "pennello",
+      "categoria": "creativo",
+      "descrizione": "Quando Bubo crea qualcosa: disegni, immagini, testi, idee.",
+      "parole": ["crea", "disegna", "immagine", "idea", "pennello", "scrivi"]
+    },
+    {
+      "nome": "moneta",
+      "forma": "moneta",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di soldi: spese, conti, budget, costi.",
+      "parole": ["soldi", "spesa", "conto", "budget", "costo", "moneta"]
+    },
+    {
+      "nome": "aereo",
+      "forma": "aereo",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di viaggi: voli, itinerari, prenotazioni.",
+      "parole": ["viaggio", "volo", "aereo", "itinerario", "prenotazione", "vacanza"]
+    },
+    {
+      "nome": "fumetto",
+      "forma": "fumetto",
+      "categoria": "chat",
+      "descrizione": "Quando Bubo conversa o risponde a una chat.",
+      "parole": ["chat", "conversa", "parla", "rispondi", "dialogo", "fumetto"]
+    },
+    {
+      "nome": "robot",
+      "forma": "robot",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo lavora da agente: avvia sessioni, usa strumenti, delega compiti.",
+      "parole": ["agente", "robot", "automatizza", "sessione", "strumenti", "delega"]
     }
   ]
 }
