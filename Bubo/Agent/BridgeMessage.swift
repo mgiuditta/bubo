@@ -5,7 +5,7 @@ import Foundation
 /// Every line carries `v`; both sides refuse a version they do not speak.
 enum BridgeProtocol {
     /// The version both sides speak.
-    static let version = 1
+    static let version = 2
 }
 
 /// A command Bubo writes to the bridge, one JSON object per line.
@@ -14,6 +14,8 @@ enum BridgeCommand: Equatable {
     case ask(id: String, prompt: String, directory: URL)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
+    /// Answers the search `id` with the `cerca` tool's result.
+    case found(id: String, text: String)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -23,6 +25,8 @@ enum BridgeCommand: Equatable {
             fields = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path]
         case let .cancel(id):
             fields = ["type": "cancel", "id": id]
+        case let .found(id, text):
+            fields = ["type": "found", "id": id, "text": text]
         }
         var object: [String: Any] = fields
         object["v"] = BridgeProtocol.version
@@ -42,11 +46,13 @@ enum BridgeEvent: Equatable, Decodable {
     case done(id: String)
     /// The conversation `id`, or the bridge itself when `id` is `nil`, failed.
     case error(id: String?, message: String)
+    /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
+    case search(id: String, query: String, project: String?)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, message
+        case v, type, id, text, message, query, project
     }
 
     init(from decoder: any Decoder) throws {
@@ -63,6 +69,9 @@ enum BridgeEvent: Equatable, Decodable {
         case "done": self = .done(id: try container.decode(String.self, forKey: .id))
         case "error": self = .error(id: try container.decodeIfPresent(String.self, forKey: .id),
                                     message: try container.decode(String.self, forKey: .message))
+        case "search": self = .search(id: try container.decode(String.self, forKey: .id),
+                                      query: try container.decode(String.self, forKey: .query),
+                                      project: try container.decodeIfPresent(String.self, forKey: .project))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }
