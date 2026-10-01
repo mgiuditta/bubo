@@ -63,12 +63,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// What starts once the HUD is interactive: the only place for work after launch.
     private(set) lazy var launch = makeLaunchSequence()
     /// The Palette, opened with ⌘K: the past conversations, searched in the Indice.
-    private(set) lazy var palette = PaletteWindow { [weak self] in
+    private(set) lazy var palette: PaletteWindow = PaletteWindow { [weak self] in
         ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
                            history: self?.sessions?.lastHistory ?? [])
-    } open: { [hud] result in
-        hud.read(CLIConversation(id: result.conversation, title: result.title, folder: result.project, branch: nil,
-                                 lastModified: result.date))
+    } open: { [weak self] result in
+        self?.history.show(result, searching: self?.palette.searchedText ?? "")
+    }
+    /// The Cronologia window: the past conversations, read only on the message found.
+    private(set) lazy var history: HistoryWindow = HistoryWindow { [weak self] in
+        ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
+                           history: self?.sessions?.lastHistory ?? [])
+    } read: { [sessions] conversation in
+        guard let sessions else { throw CocoaError(.fileReadUnknown) }
+        return try await sessions.transcript(ofConversation: conversation)
     }
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }

@@ -26,6 +26,9 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
         model.close = close
     }
 
+    /// The words searched in the box, without the gettoni.
+    var searchedText: String { model.query.search.text }
+
     /// Whether the Palette is on screen.
     var isShown: Bool { panel.isVisible }
 

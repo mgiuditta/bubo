@@ -209,6 +209,12 @@ final class SessionStore {
         try await bridge().transcript(of: conversation.id)
     }
 
+    /// Every message of the agent's conversation `id`, oldest first, from `~/.claude` or from Bubo's copy; empty when
+    /// neither has it any more.
+    func transcript(ofConversation id: String) async throws -> [CLIConversation.Message] {
+        try await bridge().transcript(of: id, isComplete: true)
+    }
+
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     ///
     /// - Parameters:

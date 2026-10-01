@@ -700,6 +700,22 @@ actor SearchIndex {
         return hits
     }
 
+    /// Returns every message of the conversation `id` the Indice holds, in order; empty if it has none.
+    func messages(ofConversation id: String) throws -> [SearchHit] {
+        let statement = try prepare("""
+            SELECT path, project, source, text, message, author, date FROM fragments WHERE path = ?1 AND source = ?2
+            ORDER BY rowid
+            """)
+        defer { sqlite3_finalize(statement) }
+        bind(id, at: 1, in: statement)
+        bind(SearchSource.conversations.rawValue, at: 2, in: statement)
+        var hits: [SearchHit] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            hits.append(hit(at: statement))
+        }
+        return hits
+    }
+
     /// Removes the conversations `ids` from the Indice: a Sessione deleted in Bubo.
     func forgetConversations(_ ids: [String]) throws {
         try transaction {

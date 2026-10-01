@@ -156,6 +156,22 @@
         }
       }
     },
+    "%lld di %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld di %2$lld"
+          }
+        }
+      }
+    },
     "%lld file" : {
       "localizations" : {
         "en" : {
@@ -1596,6 +1612,16 @@
         }
       }
     },
+    "Cerca nelle conversazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search conversations"
+          }
+        }
+      }
+    },
     "Cerca nelle conversazioni o filtra: @progetto, 7g, cli" : {
       "localizations" : {
         "en" : {
@@ -2176,6 +2202,16 @@
         }
       }
     },
+    "Conversazione non più disponibile: non si può riprendere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversation no longer available: it can't be resumed."
+          }
+        }
+      }
+    },
     "Conversazione senza titolo" : {
       "localizations" : {
         "en" : {
@@ -2212,6 +2248,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy and Open Terminal"
+          }
+        }
+      }
+    },
+    "Copia il comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy the command"
           }
         }
       }
@@ -2276,6 +2322,16 @@
         }
       }
     },
+    "Cronologia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        }
+      }
+    },
     "Cronologia CLI" : {
       "localizations" : {
         "en" : {
@@ -2322,6 +2378,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To start"
+          }
+        }
+      }
+    },
+    "Data" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Date"
           }
         }
       }
@@ -2606,6 +2672,16 @@
         }
       }
     },
+    "Filtri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filters"
+          }
+        }
+      }
+    },
     "Filtro: %@" : {
       "localizations" : {
         "en" : {
@@ -2708,6 +2784,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Merge…"
+          }
+        }
+      }
+    },
+    "Fonte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source"
           }
         }
       }
@@ -5464,6 +5550,26 @@
         }
       }
     },
+    "Per riprenderla dal Terminale:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To resume it from Terminal:"
+          }
+        }
+      }
+    },
+    "Più vecchia di 30 giorni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Older than 30 days"
+          }
+        }
+      }
+    },
     "Plugin" : {
       "localizations" : {
         "en" : {
@@ -5600,6 +5706,32 @@
         }
       }
     },
+    "Punto %lld di %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match %1$lld of %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Punto %1$lld di %2$lld"
+          }
+        }
+      }
+    },
+    "Punto successivo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next match"
+          }
+        }
+      }
+    },
     "Quando Claude deve usarlo" : {
       "localizations" : {
         "en" : {
@@ -5686,6 +5818,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reinstall Bubo, then try again."
+          }
+        }
+      }
+    },
+    "Restano solo i frammenti salvati nell'Indice." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only the fragments saved in the Index remain."
           }
         }
       }
@@ -6316,6 +6458,16 @@
         }
       }
     },
+    "Scegli una conversazione per leggerla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a conversation to read it."
+          }
+        }
+      }
+    },
     "Scollega Linear" : {
       "localizations" : {
         "en" : {
@@ -6588,6 +6740,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resets at %@."
+          }
+        }
+      }
+    },
+    "Si riprende dalla copia di Bubo, ma le modifiche ai file non si possono riavvolgere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It resumes from Bubo's copy, but file changes can't be rewound."
           }
         }
       }
@@ -6922,6 +7084,16 @@
         }
       }
     },
+    "Trovato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found"
+          }
+        }
+      }
+    },
     "Tu" : {
       "localizations" : {
         "en" : {
@@ -6948,6 +7120,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Sessions"
+          }
+        }
+      }
+    },
+    "Tutti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         }
       }
@@ -7264,6 +7446,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "VS Code, Cursor, Zed and Xcode open the file at the right line; other apps open it at the top."
+          }
+        }
+      }
+    },
+    "Vai al punto successivo (⌘G)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to the next match (⌘G)"
           }
         }
       }
