@@ -24,6 +24,8 @@ final class TerminalStore {
     @ObservationIgnored var shell = (executable: PTYSession.loginShell, arguments: ["-l"])
     /// Called when a scheda's output hints that a server started or stopped.
     @ObservationIgnored var onServerHint: () -> Void = {}
+    /// Called with the file and line of a path ⌘-clicked in a scheda, and the Sessione's folder, the editor's window.
+    @ObservationIgnored var onOpenFile: (SourceLocation, URL) -> Void = { _, _ in }
     /// The panel's own window, once it has been detached.
     @ObservationIgnored private var detachedWindow: TerminalWindow?
 
@@ -93,6 +95,8 @@ final class TerminalStore {
             let tab = try TerminalTab(folder: folder, environment: environment, shell: shell.executable,
                                       arguments: shell.arguments) { [weak self] in
                 self?.onServerHint()
+            } onOpenFile: { [weak self] location in
+                self?.onOpenFile(location, session.terminalFolder ?? folder)
             } onExit: { [weak self] tab in
                 self?.remove(tab, of: session.id)
             }

@@ -112,6 +112,10 @@ _Avoid_: run, job
 La vista web, dentro Bubo, di un server locale avviato da una **Sessione**; ogni Sessione ha la sua, con i suoi cookie. La vedono e la usano sia l'utente sia l'agente.
 _Avoid_: browser, preview
 
+**Visore**:
+La finestra che mostra un file in sola lettura, con sintassi e numeri di riga, aperta alla riga giusta da un percorso ⌘-clic nel terminale; da lì "Apri in…" porta il file all'editor dell'utente.
+_Avoid_: editor, viewer, anteprima del file
+
 **Galassia**:
 La mappa del **Progetto** in cui ogni cartella è un ammasso a posizione fissa e ogni file una stella; mostra dove lavorano le **Sessioni** e accanto tiene sempre la lista dei file toccati.
 _Avoid_: grafo del repo, città, albero
