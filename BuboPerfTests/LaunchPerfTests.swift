@@ -10,6 +10,8 @@ import XCTest
 nonisolated final class LaunchPerfTests: XCTestCase {
     private static let launchIdentifier =
         "com.apple.dt.XCTMetric_ApplicationLaunch-ApplicationFirstFramePresentationResponsive.duration"
+    /// Iterations of the warm launch that may come without a launch metric.
+    private static let missingLaunchMetricsAllowed = 2
     private static let memoryIdentifier = "com.apple.dt.XCTMetric_Memory-com.mgiuditta.bubo.physical_absolute"
 
     override func setUp() {
@@ -19,20 +21,29 @@ nonisolated final class LaunchPerfTests: XCTestCase {
     @MainActor func testWarmLaunch() throws {
         let options = XCTMeasureOptions()
         options.iterationCount = PerfBudgets.launchIterations
-        measure(metrics: [RecordingMetric(XCTApplicationLaunchMetric(waitUntilResponsive: true))], options: options) {
-            XCUIApplication().launch()
+        // On a GitHub VM an iteration now and then delivers no launch metric, and XCTest fails the test
+        // for it: the iterations that have one still make the p95, as long as few are missing.
+        let missingMetric = XCTExpectedFailure.Options()
+        missingMetric.isStrict = false
+        missingMetric.issueMatcher = { $0.compactDescription.contains("unexpected number of metrics") }
+        XCTExpectFailure("Iterazione senza metrica di avvio", options: missingMetric) {
+            // A new instance at each iteration, as XCTest's own example does.
+            measure(metrics: [RecordingMetric(XCTApplicationLaunchMetric(waitUntilResponsive: true))], options: options) {
+                XCUIApplication.bubo().launch()
+            }
         }
-        XCUIApplication().terminate()
+        XCUIApplication.bubo().terminate()
 
         let seconds = Array(RecordedMeasurements.values(for: Self.launchIdentifier).suffix(PerfBudgets.launchIterations))
-        XCTAssertEqual(seconds.count, PerfBudgets.launchIterations)
+        XCTAssertGreaterThanOrEqual(seconds.count, PerfBudgets.launchIterations - Self.missingLaunchMetricsAllowed,
+                                    "Troppe iterazioni senza metrica di avvio")
         let p95 = Measurement(value: try XCTUnwrap(seconds.percentile95()), unit: UnitDuration.seconds)
         check(p95.converted(to: .milliseconds), against: PerfBudgets.warmLaunch, named: "Avvio caldo, p95",
               reportedAs: .warmLaunch)
     }
 
     @MainActor func testMemoryAtRest() throws {
-        let app = XCUIApplication()
+        let app = XCUIApplication.bubo()
         let options = XCTMeasureOptions()
         options.iterationCount = 1
         measure(metrics: [RecordingMetric(XCTMemoryMetric(application: app))], options: options) {
@@ -50,7 +61,7 @@ nonisolated final class LaunchPerfTests: XCTestCase {
     }
 
     @MainActor func testNoClaudeAfterLaunch() throws {
-        let app = XCUIApplication()
+        let app = XCUIApplication.bubo()
         app.launch()
         defer { app.terminate() }
         Thread.sleep(forTimeInterval: PerfBudgets.settleAfterLaunch)

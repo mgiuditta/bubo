@@ -6,17 +6,20 @@
 #   scripts/perf.sh            test di prestazione, memoria a riposo, tempo GPU dell'Orb
 #   scripts/perf.sh --freddo   misura prima l'avvio freddo: va lanciato subito dopo un riavvio del Mac
 #   scripts/perf.sh --live     apre anche una Sessione vera (claude e rete) per l'intervallo sul main thread
+#   scripts/perf.sh --ci       per .github/workflows/perf.yml: esce con 1 solo oltre 2× un budget o con un invariante
+#                              rotto, e scrive gli avvisi di GitHub Actions
 #
 # La build non è firmata (CODE_SIGNING_ALLOWED=NO): basta un Mac con Xcode, senza profili né certificati.
 set -euo pipefail
 cd "${0:A:h}/.."
 
-cold=0 live=0
+cold=0 live=0 ci=0
 for option in "$@"; do
   case $option in
     --freddo) cold=1 ;;
     --live) live=1 ;;
-    *) print -u2 "uso: scripts/perf.sh [--freddo] [--live]"; exit 64 ;;
+    --ci) ci=1 ;;
+    *) print -u2 "uso: scripts/perf.sh [--freddo] [--live] [--ci]"; exit 64 ;;
   esac
 done
 
@@ -83,7 +86,14 @@ reading galassia-ferma "La Galassia non c'è ancora (#119)"
 (( live )) || reading intervallo-main-thread "Solo con --live: apre una Sessione vera"
 
 verdict=0
-"$out/perf-report" report "$readings" "$out" || verdict=$?
+gate=()
+(( ci )) && gate=(--ci)
+"$out/perf-report" report "$readings" "$out" "${gate[@]}" || verdict=$?
 print "\nperf: report in $out/report.md, test $tests"
+if [[ $tests != ok ]] && (( ci )); then
+  failed=$(xcrun xcresulttool get test-results tests --path "$out/BuboPerf.xcresult" \
+    | jq -r '[.. | objects | select(.nodeType? == "Test Case" and .result? == "Failed") | .name] | unique | join(", ")') || true
+  print "::error title=Prestazioni::Test falliti: ${failed:-vedi BuboPerf.xcresult nell'artefatto prestazioni}"
+fi
 [[ $tests == ok ]] || exit 1
 exit $verdict
