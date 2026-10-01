@@ -243,7 +243,7 @@ struct SessionRow: View {
             launchServers = session.terminalFolder.map(LaunchConfig.read(in:)) ?? []
         }
         .sheet(isPresented: $isShowingConfiguration) {
-            ConfigPanel(project: session.project, read: store.configuration(of:))
+            ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:))
         }
         .sheet(isPresented: $isReviewing) {
             ReviewSheet(sessionID: session.id, store: store)
@@ -283,6 +283,12 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            if !isArchived {
+                SandboxIndicator(state: SandboxState(isEnabled: store.sandbox.isEnabled(in: session.project),
+                                                     currentTurn: store.sandboxedTurns[session.id])) {
+                    isShowingConfiguration = true
+                }
+            }
             if !isOnBoard {
                 SessionCostTotal(total: store.ledger.total(of: session.id),
                                  lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
@@ -333,6 +339,12 @@ struct SessionRow: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(4)
                     .textSelection(.enabled)
+            }
+            if session.unstartedPrompt != nil && session.activity == .errore && !isArchived {
+                Button("Riprova") { store.retry(session.id) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .padding(.top, Spacing.xxSmall)
             }
             if session.isInterrupted && session.activity == .ferma && session.prompt != nil {
                 Button("Riprendi") { store.resume(session.id) }

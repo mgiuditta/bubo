@@ -10,6 +10,8 @@ final class SessionStore {
     private(set) var permissions = RequestCenter()
     /// Until when each merge made by Fondi can be undone, by Sessione.
     private(set) var undoDeadlines: [UUID: Date] = [:]
+    /// Whether the turn in progress of each Sessione runs in the Sandbox, from when its `claude` is asked.
+    private(set) var sandboxedTurns: [UUID: Bool] = [:]
 
     /// How long Annulla merge is offered after Fondi.
     static let undoWindow = Duration.seconds(10)
@@ -30,10 +32,12 @@ final class SessionStore {
     ///   - alerts: The notifications and the Dock badge of the Sessioni in Attende te; `nil` for none.
     ///   - ledger: Where each turn's tokens and figure are recorded.
     ///   - drafts: The Bozze that Avvia turns into Sessioni.
+    ///   - sandbox: Whether each Progetto runs its Sessioni's commands in the Sandbox.
     init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil, alerts: WaitingAlerts? = nil,
-         ledger: CostLedger = CostLedger(), drafts: DraftStore = DraftStore(),
+         ledger: CostLedger = CostLedger(), drafts: DraftStore = DraftStore(), sandbox: SandboxStore = SandboxStore(),
          bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
+        self.sandbox = sandbox
         self.worktrees = worktrees
         self.ledger = ledger
         self.drafts = drafts
@@ -74,6 +78,8 @@ final class SessionStore {
     @ObservationIgnored let ledger: CostLedger
     /// The Bozze, waiting for Avvia.
     @ObservationIgnored let drafts: DraftStore
+    /// Whether each Progetto runs its Sessioni's commands in the Sandbox; a change counts from the next turn.
+    @ObservationIgnored let sandbox: SandboxStore
     /// The terminals of the Sessioni, closed at Archivia, Fondi and Cancella.
     @ObservationIgnored let terminals = TerminalStore()
     /// The servers the Sessioni started, from their terminals or their agent.
@@ -195,6 +201,22 @@ final class SessionStore {
         update(id) { session in
             session.enter(.lavora)
             session.summary = nil
+            session.isInterrupted = false
+        }
+        Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+    }
+
+    /// Riprova on a Sessione whose turn did not start because its Sandbox could not: the same turn again, with the
+    /// Sandbox as the Progetto has it now. Nothing for any other Sessione.
+    func retry(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+              session.activity == .errore, let prompt = session.unstartedPrompt
+        else { return }
+        update(id) { session in
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.unstartedPrompt = nil
             session.isInterrupted = false
         }
         Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
@@ -407,6 +429,7 @@ final class SessionStore {
             session.resolution = nil
             session.enter(.errore)
             session.failure = failure
+            session.unstartedPrompt = nil
             session.isInterrupted = false
         }
     }
@@ -535,16 +558,20 @@ final class SessionStore {
             }
             let agent = try await bridge()
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
+            let isSandboxed = sandbox.isEnabled(in: session.project)
             turns[id] = agent
+            sandboxedTurns[id] = isSandboxed
             defer {
                 turns[id] = nil
+                sandboxedTurns[id] = nil
                 permissions.clear(id)
             }
             // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
             let conversation = UUID().uuidString.lowercased()
             update(id) { $0.conversations.append(conversation) }
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
-                                   forkingFrom: session.forkedFrom, keeping: conversation) { [weak self] progress in
+                                   forkingFrom: session.forkedFrom, keeping: conversation,
+                                   isSandboxed: isSandboxed) { [weak self] progress in
                 if progress == .ranCommand {
                     self?.servers.notice()
                 } else {
@@ -562,12 +589,19 @@ final class SessionStore {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
             update(id) { session in
                 session.enter(.errore)
+                if case AgentBridgeError.sandboxUnavailable = error {
+                    session.unstartedPrompt = prompt
+                } else {
+                    session.unstartedPrompt = nil
+                }
                 session.failure = switch error {
                 case let WorktreeError.git(message): message.trimmingCharacters(in: .whitespacesAndNewlines)
                 case let AgentBridgeError.failed(message): message
                 // ponytail: the three choices at the limit are in the Domanda; the Sessione says only why it stopped.
                 case AgentBridgeError.limitReached: String(localized: "Hai raggiunto il limite dell'abbonamento.")
                 case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
+                case let AgentBridgeError.sandboxUnavailable(reason):
+                    String(localized: "Sandbox non disponibile: \(reason). La Sessione non è partita.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }

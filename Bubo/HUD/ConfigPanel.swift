@@ -9,6 +9,8 @@ import SwiftUI
 struct ConfigPanel: View {
     /// The Progetto's folder.
     let project: URL
+    /// Whether the Progetto runs its Sessioni's commands in the Sandbox.
+    let sandbox: SandboxStore
     /// Reads the configuration `claude` loads in a folder.
     let read: (URL) async throws -> ClaudeConfiguration
     @Environment(\.dismiss) private var dismiss
@@ -19,7 +21,7 @@ struct ConfigPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             if let configuration {
-                ConfigurationForm(project: project, configuration: configuration)
+                ConfigurationForm(project: project, configuration: configuration, sandbox: sandbox)
             } else if failed {
                 ErrorNotice("Non riesco a leggere la configurazione di Claude",
                             remedy: "Controlla che la CLI claude funzioni nel Terminale, poi riprova.",
@@ -58,6 +60,7 @@ struct ConfigPanel: View {
 private struct ConfigurationForm: View {
     let project: URL
     let configuration: ClaudeConfiguration
+    let sandbox: SandboxStore
 
     var body: some View {
         Form {
@@ -73,6 +76,8 @@ private struct ConfigurationForm: View {
             } header: {
                 Text("Configurazione di Claude")
             }
+
+            ProjectSandboxSection(project: project, store: sandbox)
 
             ProjectRulesSection(project: project)
 
@@ -193,7 +198,7 @@ private struct MCPServerRow: View {
 }
 
 #Preview {
-    ConfigPanel(project: URL(filePath: "/Users/u/Sviluppo/bubo")) { _ in
+    ConfigPanel(project: URL(filePath: "/Users/u/Sviluppo/bubo"), sandbox: SandboxStore()) { _ in
         ClaudeConfiguration(
             skills: ["swiftui-pro", "code-review"],
             plugins: [.init(name: "figma", version: "1.2.0")],

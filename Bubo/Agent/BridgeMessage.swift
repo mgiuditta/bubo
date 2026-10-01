@@ -17,9 +17,11 @@ enum BridgeCommand: Equatable {
     /// without it, the model the user chose in `claude` answers. `environment` adds to the one `claude` gets.
     /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork.
     /// `keeping` is the id of the agent's conversation, given by Bubo, to copy in Bubo's database (ADR 0006);
-    /// without it nothing of the conversation is written.
+    /// without it nothing of the conversation is written. `sandbox` runs the commands of `claude` in the Sandbox;
+    /// without it they run as the user's.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
-             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil)
+             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
+             sandbox: SandboxPolicy? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -45,13 +47,15 @@ enum BridgeCommand: Equatable {
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
+                      sandbox):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
             if !environment.isEmpty { object["env"] = environment }
             object["resume"] = resuming
             object["keep"] = keeping
+            object["sandbox"] = sandbox?.jsonObject
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -97,6 +101,8 @@ enum BridgeEvent: Equatable, Decodable {
     case limit(id: String, reached: Quota.Limit)
     /// The conversation `id` stopped because the login of `claude` is no longer valid.
     case signInRequired(id: String)
+    /// The conversation `id` did not start: its Sandbox could not, for `reason`, as `claude` wrote it.
+    case sandboxUnavailable(id: String, reason: String)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
     case search(id: String, query: String, project: String?)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
@@ -122,7 +128,7 @@ enum BridgeEvent: Equatable, Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages,
-             request, file, lines, count
+             request, file, lines, count, reason
     }
 
     init(from decoder: any Decoder) throws {
@@ -152,6 +158,8 @@ enum BridgeEvent: Equatable, Decodable {
                                                         resetsAt: try container.decodeIfPresent(Double.self, forKey: .resetsAt)
                                                             .map(Date.init(timeIntervalSince1970:))))
         case "signInRequired": self = .signInRequired(id: try container.decode(String.self, forKey: .id))
+        case "sandboxUnavailable": self = .sandboxUnavailable(id: try container.decode(String.self, forKey: .id),
+                                                              reason: try container.decode(String.self, forKey: .reason))
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
                                       project: try container.decodeIfPresent(String.self, forKey: .project))
