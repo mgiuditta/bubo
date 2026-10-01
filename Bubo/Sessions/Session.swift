@@ -18,14 +18,17 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     }
 
     /// Where a Sessione is in its life.
-    // ponytail: In revisione and Fusa come with the merge (#83).
+    ///
+    /// Fusa lasts as long as the merge can be undone; then the Sessione is Archiviata.
+    // ponytail: In revisione comes when the revisione has a Fase of its own.
     enum Phase: String, Codable, Sendable {
-        case aperta, archiviata
+        case aperta, fusa, archiviata
 
         /// The Fase's name in the HUD.
         var title: LocalizedStringResource {
             switch self {
             case .aperta: LocalizedStringResource("fase.aperta", defaultValue: "Aperta")
+            case .fusa: LocalizedStringResource("fase.fusa", defaultValue: "Fusa")
             case .archiviata: LocalizedStringResource("fase.archiviata", defaultValue: "Archiviata")
             }
         }

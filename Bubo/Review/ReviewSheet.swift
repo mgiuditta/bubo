@@ -6,6 +6,8 @@ import SwiftUI
 /// on the right. `j`/`k` move between blocchi, `a` accepts, `x` rejects, `c` rejects with a note to the agent,
 /// `⇧A` accepts the rest of the file; after a decision the cursor goes to the next undecided blocco.
 /// `f` shows one blocco at a time, `s` before and after side by side; the same key goes back to the continuous diff.
+/// `⌘↩` sends the rejected blocchi back to the agent or, with every blocco accepted, Fondi; conflicts are shown
+/// before, and `⌘Z` undoes the merge for `SessionStore.undoWindow`.
 ///
 /// The diff follows the files through FSEvents while the sheet is open, and runs git only then.
 struct ReviewSheet: View {
@@ -22,14 +24,33 @@ struct ReviewSheet: View {
     @State private var noting: String?
     @State private var note = ""
     @State private var mode = ReviewMode.continuous
+    /// What Fondi would do now; `nil` until worked out, or without a branch of the Sessione's own.
+    @State private var preview: MergePreview?
+    @State private var message = ""
+    @State private var strategy = MergeStrategy.squash
+    @State private var isMerging = false
+    /// Why the last Fondi or Annulla merge failed.
+    @State private var mergeFailure: String?
     @FocusState private var isFocused: Bool
+    @FocusState private var isEditingMessage: Bool
 
     private var session: Session? { store.sessions.first { $0.id == sessionID } }
     private var decisions: [String: HunkDecision] { session?.decisions ?? [:] }
+    private var undoDeadline: Date? { store.undoDeadlines[sessionID] }
+
+    /// Whether Fondi can merge now: every blocco accepted, no obstacle, the agent still.
+    private var canMerge: Bool {
+        review.canMerge(with: decisions) && preview != nil && preview?.obstacle == nil && session?.isRunning == false
+            && session?.phase == .aperta && !isMerging
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
             header
+            if session?.workspace?.branch != nil {
+                MergeBar(preview: preview, canMerge: review.canMerge(with: decisions), undoDeadline: undoDeadline,
+                         failure: mergeFailure, message: $message, isEditingMessage: $isEditingMessage, undo: undo)
+            }
             if failed {
                 ErrorNotice("Non riesco a leggere le modifiche della Sessione",
                             remedy: "Controlla che la copia della Sessione esista ancora, poi riprova.",
@@ -47,7 +68,7 @@ struct ReviewSheet: View {
                 focus
             } else {
                 HStack(spacing: Spacing.small) {
-                    ReviewFileList(review: review, decisions: decisions,
+                    ReviewFileList(review: review, decisions: decisions, conflicts: Set(preview?.conflicts ?? []),
                                    currentFile: cursor.flatMap(review.fileIndex(of:))) { cursor = $0 }
                         .frame(width: 240)
                     diff
@@ -60,7 +81,17 @@ struct ReviewSheet: View {
         .focused($isFocused)
         .focusEffectDisabled()
         .onKeyPress(characters: CharacterSet(charactersIn: "jkaxcAfs"), phases: .down, action: handle)
-        .onAppear { isFocused = true }
+        .onAppear {
+            isFocused = true
+            if let project = session?.project { strategy = .preferred(for: project) }
+        }
+        .onChange(of: session?.phase) { _, phase in
+            // Annulla merge is over: the Sessione is archived, its worktree is going.
+            if phase == .archiviata && mergeFailure == nil { dismiss() }
+        }
+        .onChange(of: review.canMerge(with: decisions), initial: true) { _, canMerge in
+            if canMerge && message.isEmpty, let session { message = review.mergeMessage(for: session) }
+        }
         .task(id: attempt) { await follow() }
     }
 
@@ -86,16 +117,33 @@ struct ReviewSheet: View {
                     .font(Typography.mono(size: 11, weight: .medium))
                     .foregroundStyle(Palette.textSecondary)
                     .monospacedDigit()
-                Button("Rimanda all'agente", action: sendBack)
-                    .buttonStyle(.borderedProminent)
-                    .keyboardShortcut(.return, modifiers: .command)
-                    .disabled(!review.canSendBack(with: decisions) || session?.isRunning != false)
-                    .help("I blocchi rifiutati tornano all'agente con le note, come nuovo turno della Sessione")
+                if review.canSendBack(with: decisions) || session?.workspace?.branch == nil {
+                    Button("Rimanda all'agente", action: sendBack)
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.return, modifiers: .command)
+                        .disabled(!review.canSendBack(with: decisions) || session?.isRunning != false)
+                        .help("I blocchi rifiutati tornano all'agente con le note, come nuovo turno della Sessione")
+                } else {
+                    Picker("Merge", selection: $strategy) {
+                        ForEach(MergeStrategy.allCases, id: \.self) { Text($0.title) }
+                    }
+                    .labelsHidden()
+                    .fixedSize()
+                    .onChange(of: strategy) {
+                        if let project = session?.project { strategy.makePreferred(for: project) }
+                    }
+                    .help("Come il Progetto fonde le Sessioni: squash in un commit, o merge commit")
+                    Button("Fondi", action: merge)
+                        .buttonStyle(.borderedProminent)
+                        .keyboardShortcut(.return, modifiers: .command)
+                        .disabled(!canMerge)
+                        .help("Fonde le modifiche accettate nel branch del checkout con un commit locale, senza push")
+                }
                 Button("Chiudi") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                     .disabled(noting != nil)
             }
-            Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ rimanda all'agente")
+            Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente")
                 .font(Typography.mono(size: 10.5))
                 .foregroundStyle(Palette.textFaint)
         }
@@ -215,7 +263,8 @@ struct ReviewSheet: View {
     }
 
     private func handle(_ press: KeyPress) -> KeyPress.Result {
-        guard noting == nil, let current = cursor ?? review.hunkIDs.first else { return .ignored }
+        guard noting == nil, !isEditingMessage, session?.phase == .aperta, let current = cursor ?? review.hunkIDs.first
+        else { return .ignored }
         switch press.characters {
         case "j": cursor = review.hunk(movingBy: 1, from: current)
         case "k": cursor = review.hunk(movingBy: -1, from: current)
@@ -270,6 +319,58 @@ struct ReviewSheet: View {
         dismiss()
     }
 
+    /// Fondi, with the message as the user left it.
+    private func merge() {
+        let text = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        let commitMessage = text.isEmpty ? session.map(review.mergeMessage(for:)) ?? "" : text
+        isMerging = true
+        mergeFailure = nil
+        isEditingMessage = false
+        isFocused = true
+        Task {
+            defer { isMerging = false }
+            do {
+                try await store.merge(sessionID, message: commitMessage, strategy: strategy)
+            } catch {
+                Logger.sessions.error("Fondi failed: \(String(describing: error), privacy: .private)")
+                mergeFailure = Self.explanation(of: error)
+                await refreshPreview()
+            }
+        }
+    }
+
+    private func undo() {
+        Task {
+            do {
+                try await store.undoMerge(sessionID)
+                await refreshPreview()
+            } catch {
+                mergeFailure = Self.explanation(of: error)
+            }
+        }
+    }
+
+    /// What to tell the user about `error` from Fondi or Annulla merge.
+    private static func explanation(of error: any Error) -> String {
+        switch error {
+        case let error as MergeError: error.localizedDescription
+        case let WorktreeError.git(message):
+            String(localized: "git si è fermato: \(message.trimmingCharacters(in: .whitespacesAndNewlines))")
+        default: error.localizedDescription
+        }
+    }
+
+    /// Works out again what Fondi would do now.
+    private func refreshPreview() async {
+        do {
+            preview = try await store.mergePreview(of: sessionID)
+        } catch is CancellationError {
+        } catch {
+            preview = nil
+            mergeFailure = Self.explanation(of: error)
+        }
+    }
+
     /// Reads the changes, then again after every write in the Sessione's folder, until the sheet closes.
     private func follow() async {
         guard let folder = session?.workspace?.folder else { return }
@@ -286,6 +387,7 @@ struct ReviewSheet: View {
         do {
             review = Review(files: try await store.changes(of: sessionID))
             failed = false
+            if session?.phase == .aperta { await refreshPreview() }
             if cursor.flatMap(review.row(of:)) == nil {
                 cursor = review.hunkIDs.first { decisions[$0] == nil } ?? review.hunkIDs.first
             }
