@@ -88,6 +88,8 @@ targets:
     platform: macOS
     sources:
       - path: BuboTests
+      # The frame log reader of the performance tests, checked against what the app writes.
+      - path: BuboPerfTests/FrameLog.swift
     dependencies:
       - target: Bubo
     settings:

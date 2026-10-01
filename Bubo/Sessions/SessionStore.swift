@@ -46,8 +46,10 @@ final class SessionStore {
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     func start(_ prompt: String, title: String, branch: String, in project: URL) {
         let session = Session(id: UUID(), title: title, project: project)
-        sessions.append(session)
-        save()
+        Signposts.signposter.withIntervalSignpost("Apertura Sessione") {
+            sessions.append(session)
+            save()
+        }
         Task { await run(session.id, prompt: prompt, branch: branch) }
     }
 
