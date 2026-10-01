@@ -302,14 +302,22 @@ struct SessionRow: View {
                 .accessibilityLabel(Text("\(lineCounts.added) righe aggiunte, \(lineCounts.removed) tolte"))
             }
             if !isArchived, let server = store.servers.servers[session.id]?.first {
+                let isDrivenByAgent = store.previews.pages[session.id]?.isDrivenByAgent == true
                 // The Anteprima opens only from here or with ⌘⇧P, never on its own.
                 Button(action: openPreview) {
-                    Text(verbatim: "localhost:\(String(server.port))")
-                        .font(Typography.mono(size: 11))
-                        .foregroundStyle(Palette.textPrimary)
+                    if isDrivenByAgent {
+                        Text("L'agente usa l'anteprima")
+                            .font(Typography.body(size: 11))
+                            .foregroundStyle(Palette.textPrimary)
+                    } else {
+                        Text(verbatim: "localhost:\(String(server.port))")
+                            .font(Typography.mono(size: 11))
+                            .foregroundStyle(Palette.textPrimary)
+                    }
                 }
                 .buttonStyle(.borderless)
                 .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
+                .accessibilityValue(isDrivenByAgent ? Text("L'agente usa l'anteprima") : Text(verbatim: ""))
                 .help("Apre l'anteprima del server")
             } else if !isArchived, session.terminalFolder != nil, let server = launchServers.first {
                 if launchServers.count == 1 {

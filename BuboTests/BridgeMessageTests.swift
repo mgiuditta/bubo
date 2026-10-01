@@ -31,6 +31,52 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","env":{"PORT":"40000"},"id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
     }
 
+    @Test func askWithAServerOffersTheAnteprima() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], offersPreview: true).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","preview":true,"prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
+    }
+
+    @Test func offerPreviewNamesTheConversation() throws {
+        let line = try BridgeCommand.offerPreview(id: "a1", isOffered: false).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"available":false,"id":"a1","type":"previewServer","v":3}"# + "\n")
+    }
+
+    @Test func answerPreviewCarriesTextImageOrFailure() throws {
+        let text = try BridgeCommand.answerPreview(call: "c1", .text("ok")).line()
+        #expect(String(decoding: text, as: UTF8.self) == #"{"call":"c1","text":"ok","type":"previewResult","v":3}"# + "\n")
+        let image = try BridgeCommand.answerPreview(call: "c1", .image(Data([0xFF, 0xD8]))).line()
+        #expect(String(decoding: image, as: UTF8.self) == #"{"call":"c1","image":"/9g=","type":"previewResult","v":3}"# + "\n")
+        let failure = try BridgeCommand.answerPreview(call: "c1", .failure("no")).line()
+        #expect(String(decoding: failure, as: UTF8.self) == #"{"call":"c1","error":"no","type":"previewResult","v":3}"# + "\n")
+    }
+
+    @Test(arguments: [
+        (#""tool":"screenshot""#, PreviewAction.screenshot),
+        (#""tool":"dom","selector":"main""#, .dom(selector: "main")),
+        (#""tool":"console""#, .console(filter: nil)),
+        (#""tool":"rete","filter":"api""#, .network(filter: "api")),
+        (#""tool":"naviga","url":"/login""#, .navigate(to: "/login")),
+        (##""tool":"clicca","selector":"#invia""##, .click(selector: "#invia")),
+        (##""tool":"compila","selector":"#email","text":"a@b.it""##, .fill(selector: "#email", text: "a@b.it")),
+        (#""tool":"scorri","y":-200"#, .scroll(selector: nil, offset: -200)),
+        (#""tool":"esegui_js","code":"return 1""#, .runJavaScript(code: "return 1")),
+    ])
+    func previewCallsDecodeToTheirAction(fields: String, action: PreviewAction) throws {
+        let line = #"{"v":3,"type":"previewCall","id":"a1","call":"c1","# + fields + "}"
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8))
+            == .previewCall(id: "a1", call: "c1", action))
+    }
+
+    @Test func aPreviewCallBuboDoesNotKnowHasNoAction() throws {
+        let line = #"{"v":3,"type":"previewCall","id":"a1","call":"c1","tool":"cancella"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .previewCall(id: "a1", call: "c1", nil))
+        let missing = #"{"v":3,"type":"previewCall","id":"a1","call":"c1","tool":"clicca"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(missing.utf8)) == .previewCall(id: "a1", call: "c1", nil))
+    }
+
     @Test func cancelNamesTheConversation() throws {
         let line = try BridgeCommand.cancel(id: "a1").line()
         #expect(String(decoding: line, as: UTF8.self) == #"{"id":"a1","type":"cancel","v":3}"# + "\n")

@@ -18,10 +18,11 @@ enum BridgeCommand: Equatable {
     /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork.
     /// `keeping` is the id of the agent's conversation, given by Bubo, to copy in Bubo's database (ADR 0006);
     /// without it nothing of the conversation is written. `sandbox` runs the commands of `claude` in the Sandbox;
-    /// without it they run as the user's.
+    /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
+    /// Sessione already has a server.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
-             sandbox: SandboxPolicy? = nil)
+             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -42,13 +43,17 @@ enum BridgeCommand: Equatable {
     case forget(conversations: [String])
     /// Deletes the copies of the Cronologia CLI.
     case forgetHistory(id: String)
+    /// Adds the Anteprima's tools to the conversation `id` in progress, or removes them, as its server comes or goes.
+    case offerPreview(id: String, isOffered: Bool)
+    /// Answers the call `call` to a tool of the Anteprima.
+    case answerPreview(call: String, PreviewReply)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox):
+                      sandbox, offersPreview):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -56,6 +61,7 @@ enum BridgeCommand: Equatable {
             object["resume"] = resuming
             object["keep"] = keeping
             object["sandbox"] = sandbox?.jsonObject
+            if offersPreview { object["preview"] = true }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -77,6 +83,15 @@ enum BridgeCommand: Equatable {
             object = ["type": "forget", "conversations": conversations]
         case let .forgetHistory(id):
             object = ["type": "forgetHistory", "id": id]
+        case let .offerPreview(id, isOffered):
+            object = ["type": "previewServer", "id": id, "available": isOffered]
+        case let .answerPreview(call, reply):
+            object = ["type": "previewResult", "call": call]
+            switch reply {
+            case let .text(text): object["text"] = text
+            case let .image(jpeg): object["image"] = jpeg.base64EncodedString()
+            case let .failure(message): object["error"] = message
+            }
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -105,6 +120,9 @@ enum BridgeEvent: Equatable, Decodable {
     case sandboxUnavailable(id: String, reason: String)
     /// `claude` called `cerca`: search the Indice for `query`, only in the memory of `project` when given.
     case search(id: String, query: String, project: String?)
+    /// The conversation `id` called a tool of the Anteprima: do `action`, `nil` for a tool Bubo does not know, and
+    /// answer `call`.
+    case previewCall(id: String, call: String, PreviewAction?)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
     case quota(Quota)
     /// The configuration `claude` loads, asked by `inspect` `id`.
@@ -128,7 +146,7 @@ enum BridgeEvent: Equatable, Decodable {
 
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, fiveHour, sevenDay, window, resetsAt, conversations, messages,
-             request, file, lines, count, reason
+             request, file, lines, count, reason, call, tool, selector, url, filter, code, y
     }
 
     init(from decoder: any Decoder) throws {
@@ -163,6 +181,16 @@ enum BridgeEvent: Equatable, Decodable {
         case "search": self = .search(id: try container.decode(String.self, forKey: .id),
                                       query: try container.decode(String.self, forKey: .query),
                                       project: try container.decodeIfPresent(String.self, forKey: .project))
+        case "previewCall":
+            self = .previewCall(id: try container.decode(String.self, forKey: .id),
+                                call: try container.decode(String.self, forKey: .call),
+                                PreviewAction(tool: try container.decode(String.self, forKey: .tool),
+                                              selector: try container.decodeIfPresent(String.self, forKey: .selector),
+                                              text: try container.decodeIfPresent(String.self, forKey: .text),
+                                              url: try container.decodeIfPresent(String.self, forKey: .url),
+                                              filter: try container.decodeIfPresent(String.self, forKey: .filter),
+                                              code: try container.decodeIfPresent(String.self, forKey: .code),
+                                              y: try container.decodeIfPresent(Double.self, forKey: .y)))
         case "quota": self = .quota(Quota(fiveHour: try container.decodeIfPresent(Quota.Window.self, forKey: .fiveHour),
                                           sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
         case "config": self = .configuration(id: try container.decode(String.self, forKey: .id),

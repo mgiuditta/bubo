@@ -25,4 +25,12 @@ extension SessionStore {
             showPreview(of: session)
         }
     }
+
+    /// Does what the agent of the Sessione `id` asks of its Anteprima, opening the page if the user never did.
+    func drivePreview(_ action: PreviewAction, in id: UUID) async -> PreviewReply {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+              let sockets = servers.servers[id], !sockets.isEmpty
+        else { return .failure("La Sessione non ha un server in ascolto: l'Anteprima non è disponibile.") }
+        return await PreviewDriver(preview: previews.page(of: session, servers: sockets)).perform(action)
+    }
 }

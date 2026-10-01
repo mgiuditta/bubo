@@ -2208,6 +2208,16 @@
         }
       }
     },
+    "L'agente usa l'anteprima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent is using the preview"
+          }
+        }
+      }
+    },
     "L'issue %@ ha già una Sessione: «%@»." : {
       "localizations" : {
         "en" : {

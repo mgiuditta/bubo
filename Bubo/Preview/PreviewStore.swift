@@ -30,20 +30,28 @@ final class PreviewStore {
     /// does nothing without a server.
     func show(_ session: Session, servers: [ListeningSocket]) {
         guard !servers.isEmpty else { return }
-        let launchConfigs = session.workspace.map { LaunchConfig.read(in: $0.folder) } ?? []
-        let policy = PreviewPolicy(ports: servers.map(\.port), launchConfigs: launchConfigs)
-        if let preview = pages[session.id] {
-            preview.policy = policy
-        } else {
-            let preview = PreviewPage(sessionID: session.id, policy: policy)
-            preview.serverPIDs = Self.pids(of: servers)
-            if let url = policy.startURL { preview.load(url) }
-            pages[session.id] = preview
-        }
+        page(of: session, servers: servers)
         sessionID = session.id
         title = session.title
         isShown = true
         updateWindow()
+    }
+
+    /// The Anteprima of `session`, served by `servers`, opened at its first server when it has none yet; the panel
+    /// stays as it is. The agent's tools use it this way, with the panel closed too.
+    @discardableResult
+    func page(of session: Session, servers: [ListeningSocket]) -> PreviewPage {
+        let launchConfigs = session.workspace.map { LaunchConfig.read(in: $0.folder) } ?? []
+        let policy = PreviewPolicy(ports: servers.map(\.port), launchConfigs: launchConfigs)
+        if let preview = pages[session.id] {
+            preview.policy = policy
+            return preview
+        }
+        let preview = PreviewPage(sessionID: session.id, policy: policy)
+        preview.serverPIDs = Self.pids(of: servers)
+        if let url = policy.startURL { preview.load(url) }
+        pages[session.id] = preview
+        return preview
     }
 
     /// Hides the panel; the Anteprime stay open.
