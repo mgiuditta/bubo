@@ -21,10 +21,10 @@ struct AgentBridgeTests {
 
     @Test func theAnswerStreamsUntilDone() async throws {
         let bridge = Self.bridge(Self.answering(#"""
-            echo '{"v":2,"type":"ready"}'
-            echo "{\"v\":2,\"type\":\"text\",\"id\":\"$id\",\"text\":\"cia\"}"
-            echo "{\"v\":2,\"type\":\"text\",\"id\":\"$id\",\"text\":\"o\"}"
-            echo "{\"v\":2,\"type\":\"done\",\"id\":\"$id\"}"
+            echo '{"v":3,"type":"ready"}'
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"cia\"}"
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"o\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
             read _
             """#))
         let answer = try await Self.collect(bridge.ask("Rispondi: ciao", in: URL(filePath: "/tmp")))
@@ -34,11 +34,11 @@ struct AgentBridgeTests {
     @Test func aSearchIsAnsweredOnTheBridgesInput() async throws {
         // The answer to the search comes back as the conversation's text, so the test can read it.
         let bridge = Self.bridge(Self.answering(#"""
-            echo '{"v":2,"type":"search","id":"s1","query":"notarizzazione","project":"/p"}'
+            echo '{"v":3,"type":"search","id":"s1","query":"notarizzazione","project":"/p"}'
             read found
             text=$(echo "$found" | sed 's/.*"text":"\([^"]*\)".*/\1/')
-            echo "{\"v\":2,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$text\"}"
-            echo "{\"v\":2,\"type\":\"done\",\"id\":\"$id\"}"
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$text\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
             read _
             """#))
         let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
@@ -48,7 +48,7 @@ struct AgentBridgeTests {
     @Test func aSilentBridgeDoesNotStallAnother() async throws {
         let silent = Self.bridge("sleep 30")
         let pending = silent.ask("x", in: URL(filePath: "/tmp"))
-        let talking = Self.bridge(Self.answering(#"echo "{\"v\":2,\"type\":\"done\",\"id\":\"$id\"}"; read _"#))
+        let talking = Self.bridge(Self.answering(#"echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"; read _"#))
         let clock = ContinuousClock()
         let elapsed = try await clock.measure {
             _ = try await Self.collect(talking.ask("x", in: URL(filePath: "/tmp")))
@@ -59,7 +59,7 @@ struct AgentBridgeTests {
 
     @Test func aFailedConversationThrowsItsMessage() async {
         let bridge = Self.bridge(Self.answering(#"""
-            echo "{\"v\":2,\"type\":\"error\",\"id\":\"$id\",\"message\":\"limite raggiunto\"}"
+            echo "{\"v\":3,\"type\":\"error\",\"id\":\"$id\",\"message\":\"limite raggiunto\"}"
             read _
             """#))
         await #expect(throws: AgentBridgeError.failed(message: "limite raggiunto")) {
@@ -75,10 +75,24 @@ struct AgentBridgeTests {
     }
 
     @Test func anotherProtocolVersionFailsThePendingAnswer() async {
-        let bridge = Self.bridge(#"read _; echo '{"v":3,"type":"ready"}'; read _"#)
-        await #expect(throws: AgentBridgeError.unsupportedVersion(3)) {
+        let bridge = Self.bridge(#"read _; echo '{"v":4,"type":"ready"}'; read _"#)
+        await #expect(throws: AgentBridgeError.unsupportedVersion(4)) {
             try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
         }
+    }
+
+    @Test func theQuotaIsReadWithoutADomanda() async throws {
+        let (reports, reported) = AsyncStream.makeStream(of: Quota.self)
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", #"""
+            read command
+            echo "$command" | grep -q '"type":"quota"' \
+                && echo '{"v":3,"type":"quota","fiveHour":{"used":0.19,"resetsAt":1790852400}}'
+            read _
+            """#], environment: ["PATH": "/usr/bin:/bin"], quota: { reported.yield($0) }) { _, _ in "" }
+        try bridge.readQuota()
+        var iterator = reports.makeAsyncIterator()
+        let quota = await iterator.next()
+        #expect(quota == Quota(fiveHour: Quota.Window(used: 0.19, resetsAt: Date(timeIntervalSince1970: 1_790_852_400))))
     }
 
     @Test func aMissingExecutableFailsToSpawn() async {

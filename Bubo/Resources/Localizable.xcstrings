@@ -14,6 +14,16 @@
         }
       }
     },
+    "5 ore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 hours"
+          }
+        }
+      }
+    },
     "API key" : {
       "localizations" : {
         "en" : {
@@ -864,6 +874,16 @@
         }
       }
     },
+    "Quota %@: %@ usata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ quota: %2$@ used"
+          }
+        }
+      }
+    },
     "Registra una nuova scorciatoia. Esc annulla." : {
       "localizations" : {
         "en" : {
@@ -1004,6 +1024,16 @@
         }
       }
     },
+    "Settimana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week"
+          }
+        }
+      }
+    },
     "Stato" : {
       "localizations" : {
         "en" : {
@@ -1140,6 +1170,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "fps"
+          }
+        }
+      }
+    },
+    "si azzera %@ alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "resets %1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "si azzera alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "resets at %@"
           }
         }
       }

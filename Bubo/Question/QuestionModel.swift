@@ -12,6 +12,8 @@ final class QuestionModel {
     private(set) var isAnswering = false
     /// Why the last Domanda got no answer, if it failed.
     private(set) var failure: QuestionFailure?
+    /// The Quota last reported by `claude` through the bridge this model owns; empty until it reports one.
+    private(set) var quota = Quota()
 
     /// Creates a model that finds `claude` with `cli` and answers its `cerca` tool with `index`.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil) {
@@ -24,6 +26,7 @@ final class QuestionModel {
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
     @ObservationIgnored private var answering: Task<Void, Never>?
+    @ObservationIgnored private var quotaReadAt: Date?
 
     /// Asks the typed prompt, replacing any answer in progress.
     func ask() {
@@ -42,6 +45,17 @@ final class QuestionModel {
     /// Stops the answer in progress, keeping what arrived.
     func stop() {
         answering?.cancel()
+    }
+
+    /// Reads the Quota without a Domanda, at most once a minute; with no answer it stays hidden.
+    func refreshQuota() async {
+        if let quotaReadAt, quotaReadAt.timeIntervalSinceNow > -60 { return }
+        quotaReadAt = .now
+        do {
+            try await readyBridge().readQuota()
+        } catch {
+            Logger.agent.notice("Quota not read: \(String(describing: error), privacy: .public)")
+        }
     }
 
     private func start(_ text: String) {
@@ -82,8 +96,14 @@ final class QuestionModel {
     private func readyBridge() async throws -> AgentBridge {
         if let bridge { return bridge }
         guard let claude = await cli.executableURL() else { throw QuestionFailure.claudeMissing }
+        // The HUD's Quota read and a Domanda can both get here across the await: keep one bridge.
+        if let bridge { return bridge }
         let bridge = AgentBridge(executable: Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
-                                 environment: ChildEnvironment.make(claude: claude)) { [index] query, project in
+                                 environment: ChildEnvironment.make(claude: claude),
+                                 quota: { [weak self] reported in
+                                     guard let self else { return }
+                                     quota = quota.merging(reported)
+                                 }) { [index] query, project in
             await index?.toolResult(for: query, project: project) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
