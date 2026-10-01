@@ -1,6 +1,6 @@
 {
   "versione": 1,
-  "revisione": "proposta dall'agente, da rivedere (#85)",
+  "revisione": "provvisoria: rivista da Claude, da rivedere dall'utente (#367)",
   "tipi": [
     "sessione.pianifica",
     "sessione.correzione-piccola",
@@ -395,7 +395,7 @@
       "lingua": "it",
       "testo": "Crea da zero il comando CLI sync con opzioni, configurazione, documentazione e test.",
       "tipo": "sessione.modifica-ampia",
-      "categoria": "agente",
+      "categoria": "codice",
       "variante": null
     },
     {
@@ -531,8 +531,8 @@
       "lingua": "it",
       "testo": "Trova dove si impostano le variabili d'ambiente per i test.",
       "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
+      "categoria": "ricerca",
+      "variante": "lente"
     },
     {
       "id": "r066",
@@ -563,8 +563,8 @@
       "lingua": "it",
       "testo": "Cerca tutti i TODO lasciati nel modulo sync e raggruppali per file.",
       "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
+      "categoria": "ricerca",
+      "variante": "lente"
     },
     {
       "id": "r070",
@@ -579,8 +579,8 @@
       "lingua": "en",
       "testo": "Where do we validate email addresses? Just point me to the code.",
       "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
+      "categoria": "ricerca",
+      "variante": "lente"
     },
     {
       "id": "r072",
@@ -619,8 +619,8 @@
       "lingua": "en",
       "testo": "Find every place where we read from UserDefaults.",
       "tipo": "sessione.esplora",
-      "categoria": "codice",
-      "variante": null
+      "categoria": "ricerca",
+      "variante": "lente"
     },
     {
       "id": "r077",
@@ -723,7 +723,7 @@
       "lingua": "it",
       "testo": "Controlla che il workflow di release appena modificato non esponga segreti.",
       "tipo": "sessione.revisione",
-      "categoria": "agente",
+      "categoria": "codice",
       "variante": null
     },
     {
@@ -921,7 +921,7 @@
     {
       "id": "r114",
       "lingua": "en",
-      "testo": "How much water is a litre in cups?",
+      "testo": "What's a normal resting heart rate for an adult?",
       "tipo": "domanda.fatto-breve",
       "categoria": "salute",
       "variante": null
@@ -1235,7 +1235,10 @@
       "testo": "Riscrivi questo paragrafo in tono più formale.",
       "tipo": "domanda.scrittura",
       "categoria": "chat",
-      "variante": null
+      "variante": null,
+      "allegati": [
+        "presentazione.txt"
+      ]
     },
     {
       "id": "r146",
@@ -1342,14 +1345,17 @@
       "testo": "Turn these notes into a clear announcement for the office.",
       "tipo": "domanda.scrittura",
       "categoria": "chat",
-      "variante": null
+      "variante": null,
+      "allegati": [
+        "notes.md"
+      ]
     },
     {
       "id": "r159",
       "lingua": "en",
       "testo": "Write an out-of-office message for the week of 10 November.",
       "tipo": "domanda.scrittura",
-      "categoria": "tempo",
+      "categoria": "mail",
       "variante": null
     },
     {
@@ -1371,7 +1377,7 @@
     {
       "id": "r162",
       "lingua": "it",
-      "testo": "Tre amici dicono tutti una bugia e una verità; chi ha preso la torta? Risolvi l'enigma.",
+      "testo": "Anna dice che la torta l'ha presa Bruno, Bruno dice di no, Carlo dice che non è stato lui. Solo uno dice il vero: chi ha preso la torta?",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
       "variante": null
@@ -1382,7 +1388,10 @@
       "testo": "Qual è la complessità di questo algoritmo e si può fare meglio?",
       "tipo": "domanda.ragionamento",
       "categoria": "codice",
-      "variante": null
+      "variante": null,
+      "allegati": [
+        "ordina.py"
+      ]
     },
     {
       "id": "r164",
@@ -1467,7 +1476,7 @@
     {
       "id": "r174",
       "lingua": "en",
-      "testo": "If a meeting is at 9am in San Francisco, what's the fairest slot for Rome and Tokyo?",
+      "testo": "Our team is split between San Francisco, Rome and Tokyo. Which weekly meeting time is fairest to all three?",
       "tipo": "domanda.ragionamento",
       "categoria": "tempo",
       "variante": null
@@ -1478,7 +1487,10 @@
       "testo": "Why does this recursive function overflow, and how would you fix it conceptually?",
       "tipo": "domanda.ragionamento",
       "categoria": "codice",
-      "variante": null
+      "variante": null,
+      "allegati": [
+        "fibonacci.js"
+      ]
     },
     {
       "id": "r176",
@@ -1515,7 +1527,7 @@
     {
       "id": "r180",
       "lingua": "en",
-      "testo": "What are the strongest arguments for and against remote-first companies?",
+      "testo": "Should a self-driving car protect its passengers before pedestrians? Lay out both sides.",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
       "variante": null
@@ -1533,8 +1545,8 @@
       "lingua": "it",
       "testo": "Trova un ristorante vegano aperto stasera vicino a Porta Venezia.",
       "tipo": "domanda.ricerca-web",
-      "categoria": "viaggi",
-      "variante": null
+      "categoria": "ricerca",
+      "variante": "lente"
     },
     {
       "id": "r183",
