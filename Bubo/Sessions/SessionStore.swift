@@ -127,6 +127,40 @@ final class SessionStore {
         Task { await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title)) }
     }
 
+    /// The changes of the Sessione `id` to review, since its branch started; none while it has no copy yet.
+    ///
+    /// - Throws: `WorktreeError` when git fails, also outside a repo.
+    func changes(of id: UUID) async throws -> [ChangedFile] {
+        guard let workspace = sessions.first(where: { $0.id == id })?.workspace else { return [] }
+        return try await Signposts.measure(.reviewDiff) { try await worktrees.changes(in: workspace) }
+    }
+
+    /// Records `decision` on the blocchi `hunks` of the Sessione `id`; `nil` makes them undecided again.
+    func decide(_ decision: HunkDecision?, on hunks: [String], in id: UUID) {
+        update(id) { session in
+            for hunk in hunks { session.decisions[hunk] = decision }
+        }
+    }
+
+    /// Sends `feedback` on the rejected blocchi to the agent, as a new turn of the Sessione `id` in its copy.
+    ///
+    /// The accepted blocchi among `current` stay approved; the other decisions go, since the agent changes
+    /// those blocchi. Nothing while the Sessione works or is archived.
+    func sendBack(_ feedback: String, to id: UUID, keepingAcceptedAmong current: [String]) {
+        guard let session = sessions.first(where: { $0.id == id }), !session.isRunning, session.phase == .aperta,
+              session.workspace != nil
+        else { return }
+        let current = Set(current)
+        update(id) { session in
+            session.decisions = session.decisions.filter { current.contains($0.key) && $0.value == .accepted }
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.isInterrupted = false
+        }
+        Task { await run(id, prompt: feedback, branch: Session.proposedBranch(for: session.title)) }
+    }
+
     /// Archives a Sessione: its worktree goes in the background, its branch stays, its ports are free again.
     func archive(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning

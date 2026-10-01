@@ -30,6 +30,76 @@
         }
       }
     },
+    "%@, %lld blocchi decisi su %lld" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld blocchi decisi su %3$lld"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld of %3$lld blocks decided"
+          }
+        }
+      }
+    },
+    "%@, blocco %@:" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, blocco %2$@:"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, block %2$@:"
+          }
+        }
+      }
+    },
+    "%lld file" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld/%lld blocchi" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld blocchi"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld blocks"
+          }
+        }
+      }
+    },
     "5 ore" : {
       "localizations" : {
         "en" : {
@@ -110,6 +180,26 @@
         }
       }
     },
+    "Accetta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept"
+          }
+        }
+      }
+    },
+    "Accettato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accepted"
+          }
+        }
+      }
+    },
     "Account" : {
       "localizations" : {
         "en" : {
@@ -126,6 +216,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add one in Settings › Account, then try again."
+          }
+        }
+      }
+    },
+    "Aggiunta: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added: %@"
           }
         }
       }
@@ -276,6 +376,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Blob"
+          }
+        }
+      }
+    },
+    "Blocco %lld di %lld, %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block %1$lld of %2$lld, %3$@"
           }
         }
       }
@@ -650,6 +766,16 @@
         }
       }
     },
+    "Controlla che la copia della Sessione esista ancora, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the Session's copy still exists, then try again."
+          }
+        }
+      }
+    },
     "Controlla ~/.claude.json, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -696,6 +822,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CLI History"
+          }
+        }
+      }
+    },
+    "Da decidere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undecided"
           }
         }
       }
@@ -860,6 +996,16 @@
         }
       }
     },
+    "File binario" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Binary file"
+          }
+        }
+      }
+    },
     "Fornitore" : {
       "localizations" : {
         "en" : {
@@ -990,12 +1136,32 @@
         }
       }
     },
+    "Ho rivisto le tue modifiche e ho rifiutato i blocchi qui sotto. Sono ancora nei file: rifalli seguendo le note, o toglili se non servono. Gli altri blocchi sono approvati: non toccarli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I reviewed your changes and rejected the blocks below. They are still in the files: redo them following the notes, or remove them if they aren't needed. The other blocks are approved: leave them as they are."
+          }
+        }
+      }
+    },
     "Hook" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hooks"
+          }
+        }
+      }
+    },
+    "I blocchi rifiutati tornano all'agente con le note, come nuovo turno della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected blocks go back to the agent with your notes, as a new turn of the Session"
           }
         }
       }
@@ -1280,6 +1446,16 @@
         }
       }
     },
+    "Leggo le modifiche…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the changes…"
+          }
+        }
+      }
+    },
     "Lettura" : {
       "localizations" : {
         "en" : {
@@ -1466,12 +1642,32 @@
         }
       }
     },
+    "Nessuna modifica da rivedere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No changes to review."
+          }
+        }
+      }
+    },
     "Nessuna regola: Claude chiede ogni volta." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No rules: Claude asks every time."
+          }
+        }
+      }
+    },
+    "Nessuna riga da mostrare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No lines to show"
           }
         }
       }
@@ -1556,6 +1752,16 @@
         }
       }
     },
+    "Non riesco a leggere le modifiche della Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the Session's changes"
+          }
+        }
+      }
+    },
     "Non riesco a registrare %@." : {
       "localizations" : {
         "en" : {
@@ -1602,6 +1808,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't find the claude CLI."
+          }
+        }
+      }
+    },
+    "Nota per l'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note for the agent"
+          }
+        }
+      }
+    },
+    "Nota per l'agente, Invio per salvare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note for the agent, Return to save"
+          }
+        }
+      }
+    },
+    "Nota: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note: %@"
           }
         }
       }
@@ -1852,6 +2088,16 @@
         }
       }
     },
+    "Revisione · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review · %@"
+          }
+        }
+      }
+    },
     "Revoca" : {
       "localizations" : {
         "en" : {
@@ -1892,6 +2138,46 @@
         }
       }
     },
+    "Rifiuta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reject"
+          }
+        }
+      }
+    },
+    "Rifiutato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected"
+          }
+        }
+      }
+    },
+    "Rimanda all'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send back to agent"
+          }
+        }
+      }
+    },
+    "Rimossa: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed: %@"
+          }
+        }
+      }
+    },
     "Rimuovi" : {
       "localizations" : {
         "en" : {
@@ -1908,6 +2194,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove…"
+          }
+        }
+      }
+    },
+    "Rinominato da %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Renamed from %@"
           }
         }
       }
@@ -1998,6 +2294,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude's answer"
+          }
+        }
+      }
+    },
+    "Rivedi le modifiche…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review Changes…"
           }
         }
       }
@@ -2640,6 +2946,16 @@
         }
       }
     },
+    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · ⌘↩ rimanda all'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · ⌘↩ send back to agent"
+          }
+        }
+      }
+    },
     "si azzera %@ alle %@" : {
       "localizations" : {
         "en" : {
@@ -2686,6 +3002,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "↩ Just this time · esc No"
+          }
+        }
+      }
+    },
+    "↳ all'agente: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↳ to the agent: %@"
           }
         }
       }

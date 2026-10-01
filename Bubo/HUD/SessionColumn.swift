@@ -182,7 +182,8 @@ private struct CLIConversationRow: View {
 }
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
-/// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Archivia, Cancella… and the configuration
+/// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
+/// and the configuration
 /// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
     let session: Session
@@ -191,8 +192,12 @@ struct SessionRow: View {
     @State private var lostChanges: [String] = []
     @State private var isConfirmingDeletion = false
     @State private var isShowingConfiguration = false
+    @State private var isReviewing = false
 
     private var isArchived: Bool { session.phase == .archiviata }
+
+    /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
+    private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -210,6 +215,9 @@ struct SessionRow: View {
         }
         .sheet(isPresented: $isShowingConfiguration) {
             ConfigPanel(project: session.project, read: store.configuration(of:))
+        }
+        .sheet(isPresented: $isReviewing) {
+            ReviewSheet(sessionID: session.id, store: store)
         }
         .confirmationDialog("Vuoi cancellare la Sessione «\(session.title)»?", isPresented: $isConfirmingDeletion) {
             Button("Cancella", role: .destructive) { store.delete(session.id) }
@@ -271,6 +279,7 @@ struct SessionRow: View {
         .opacity(isArchived ? 0.6 : 1)
         .accessibilityElement(children: .combine)
         .contextMenu {
+            if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !isArchived {
                 Button("Archivia") { store.archive(session.id) }
@@ -280,6 +289,7 @@ struct SessionRow: View {
                 .disabled(session.isRunning)
         }
         .accessibilityActions {
+            if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             if !session.isRunning {
                 if !isArchived { Button("Archivia") { store.archive(session.id) } }

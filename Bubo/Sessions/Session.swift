@@ -58,6 +58,10 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isOnCheckout = false
     /// The Cronologia CLI conversation the Sessione continues as a fork: `claude` resumes it, never in place.
     var forkedFrom: String?
+    /// The writes the agent asked for, with why, the latest last: the perché of the blocchi in the revisione.
+    var edits: [EditNote] = []
+    /// What the user decided in the revisione, by blocco id.
+    var decisions: [String: HunkDecision] = [:]
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
@@ -89,7 +93,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 }
 
 nonisolated extension Session {
-    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout, its fork and its summary were kept.
+    /// Decodes a Sessione, also one saved before its Fase, its prompt, its checkout, its fork, its summary and its
+    /// revisione were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -107,5 +112,7 @@ nonisolated extension Session {
         isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false
         forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
+        edits = try container.decodeIfPresent([EditNote].self, forKey: .edits) ?? []
+        decisions = try container.decodeIfPresent([String: HunkDecision].self, forKey: .decisions) ?? [:]
     }
 }

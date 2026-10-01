@@ -14,6 +14,9 @@ nonisolated struct Workspace: Codable, Equatable, Sendable {
     var folder: URL
     /// The Sessione's branch; `nil` outside git.
     var branch: String?
+    /// The commit the branch started from, which the revisione compares with; `nil` from a repo without commits,
+    /// on the checkout, or in Sessioni saved before it was kept.
+    var base: String?
 }
 
 /// Makes the isolated copy of a Progetto for a new Sessione: `git worktree add` on a new branch from the
@@ -60,9 +63,10 @@ nonisolated struct WorktreeManager: Sendable {
         let (name, folder) = try await availableBranch(branch, of: checkout)
         try FileManager.default.createDirectory(at: folder.deletingLastPathComponent(), withIntermediateDirectories: true)
 
-        let hasCommits = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: checkout).exitCode == 0
-        try await git(hasCommits ? ["worktree", "add", "-b", name, folder.path, "HEAD"]
-                                 : ["worktree", "add", "--orphan", "-b", name, folder.path], in: checkout)
+        let head = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: checkout)
+        let base = head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : nil
+        try await git(base.map { ["worktree", "add", "-b", name, folder.path, $0] }
+                      ?? ["worktree", "add", "--orphan", "-b", name, folder.path], in: checkout)
         if FileManager.default.fileExists(atPath: folder.appending(path: ".gitmodules").path) {
             // A submodule that cannot be fetched (offline) leaves its folder empty, not the Sessione without a copy.
             do {
@@ -74,8 +78,38 @@ nonisolated struct WorktreeManager: Sendable {
         for path in try await clonablePaths(in: checkout) {
             Self.clone(checkout.appending(path: path), to: folder.appending(path: path))
         }
-        return Workspace(folder: folder, branch: name)
+        return Workspace(folder: folder, branch: name, base: base)
     }
+
+    /// The changes in the folder of `workspace` since its base, or since `HEAD` without one: commits, edits and
+    /// new files, as `git diff` shows them.
+    ///
+    /// New files are found through a copy of the index: neither the index of the Sessione nor that of the
+    /// Progetto's checkout is ever written.
+    ///
+    /// - Throws: `WorktreeError` when git fails, also outside a repo.
+    @concurrent func changes(in workspace: Workspace) async throws -> [ChangedFile] {
+        let folder = workspace.folder
+        let index = try await git(["rev-parse", "--path-format=absolute", "--git-path", "index"], in: folder)
+            .trimmingCharacters(in: .newlines)
+        let copy = FileManager.default.temporaryDirectory.appending(path: "bubo-review-\(UUID().uuidString).index")
+        defer { try? FileManager.default.removeItem(at: copy) }
+        if FileManager.default.fileExists(atPath: index) { try FileManager.default.copyItem(atPath: index, toPath: copy.path) }
+        let base: String
+        if let saved = workspace.base {
+            base = saved
+        } else {
+            let head = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: folder)
+            base = head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : Self.emptyTree
+        }
+        try await git(["add", "--intent-to-add", "--all"], in: folder, index: copy)
+        let diff = try await git(["-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M", base],
+                                 in: folder, index: copy)
+        return ChangedFile.files(in: diff)
+    }
+
+    /// The tree without files, to compare a repo without commits with.
+    private static let emptyTree = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 
     /// Runs the Progetto's setup script in the worktree of `workspace`, if it has one, with `environment` on top
     /// of the user's login shell, disclaimed (ADR 0005).
@@ -236,15 +270,18 @@ nonisolated struct WorktreeManager: Sendable {
         if copyfile(from, to, nil, flags) != 0 { Logger.sessions.error("Copy failed, errno \(errno)") }
     }
 
+    /// Runs git in `folder`, on the index file `index` instead of the folder's own when given.
     @discardableResult
-    private func git(_ arguments: [String], in folder: URL) async throws -> String {
-        let output = try await run(arguments, in: folder)
+    private func git(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> String {
+        let output = try await run(arguments, in: folder, index: index)
         guard output.exitCode == 0 else { throw WorktreeError.git(output.standardError) }
         return output.standardOutput
     }
 
-    private func run(_ arguments: [String], in folder: URL) async throws -> ProcessOutput {
-        try await runner.run(Self.git, ["-C", folder.path] + arguments)
+    private func run(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> ProcessOutput {
+        guard let index else { return try await runner.run(Self.git, ["-C", folder.path] + arguments) }
+        return try await runner.run(URL(filePath: "/usr/bin/env"),
+                                    ["GIT_INDEX_FILE=\(index.path)", Self.git.path, "-C", folder.path] + arguments)
     }
 }
 

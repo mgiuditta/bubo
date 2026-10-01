@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { progress } from "./activity";
+import { edits, progress } from "./activity";
 
 // Sequenze registrate con Claude Code 2.1.286 e SDK 0.3.286 il 01/10/2026, CLAUDE_CONFIG_DIR vuoto,
 // CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS=1, API key non valida: costo 0. Solo i campi che contano.
@@ -62,4 +62,21 @@ test("permesso in attesa e subagent: requires_action, e i messaggi del subagent 
 test("il riassunto è una riga di al più 200 caratteri", () => {
   const summary = progress(assistant("x".repeat(300)) as SDKMessage);
   expect(summary).toEqual({ type: "summary", text: "x".repeat(199) + "…" });
+});
+
+// Dai tipi dell'SDK (FileEditInput, FileWriteInput): Edit e Write diventano scritture con le righe nuove.
+test("Edit e Write diventano scritture; gli altri strumenti no", () => {
+  const message = {
+    type: "assistant", parent_tool_use_id: null, message: { content: [
+      { type: "text", text: "Rinomino la funzione." },
+      { type: "tool_use", id: "t1", name: "Edit", input: { file_path: "/w/a.swift", old_string: "f()", new_string: "  g()\n\n  g()\n}" } },
+      { type: "tool_use", id: "t2", name: "Write", input: { file_path: "/w/b.md", content: "# Titolo\n" } },
+      { type: "tool_use", id: "t3", name: "Bash", input: { command: "ls" } },
+    ] },
+  };
+  expect(edits(message as unknown as SDKMessage)).toEqual([
+    { type: "edit", file: "/w/a.swift", lines: ["g()", "}"] },
+    { type: "edit", file: "/w/b.md", lines: ["# Titolo"] },
+  ]);
+  expect(edits(state("running") as SDKMessage)).toEqual([]);
 });

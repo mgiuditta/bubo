@@ -6,7 +6,7 @@ import {
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
-import { progress, type Progress } from "./activity";
+import { edits, progress, type Edit, type Progress } from "./activity";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
@@ -30,6 +30,7 @@ type Event =
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
   | (Progress & { id: string })
+  | (Edit & { id: string })
   | { type: "error"; id?: string; message: string }
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
@@ -149,6 +150,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     for await (const message of conversation) {
       const update = progress(message);
       if (update) send({ ...update, id });
+      for (const edit of edits(message)) send({ ...edit, id });
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
           && message.event.delta.type === "text_delta") {
         send({ type: "text", id, text: message.event.delta.text });

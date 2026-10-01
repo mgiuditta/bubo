@@ -52,6 +52,8 @@ enum Signpost {
     case cliHistory
     /// Interval: from choosing another Vista delle Sessioni to the HUD laid out with it.
     case vistaSwitch
+    /// Interval: reading a Sessione's changes from git for the revisione.
+    case reviewDiff
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -60,6 +62,7 @@ enum Signpost {
         case .claudeDetection: "Rilevamento claude"
         case .cliHistory: "Cronologia CLI"
         case .vistaSwitch: "Cambio vista"
+        case .reviewDiff: "Diff della revisione"
         }
     }
 }

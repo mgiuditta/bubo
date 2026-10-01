@@ -20,6 +20,10 @@ nonisolated extension Session {
         case .state(.requiresAction): enter(.attende, at: date)
         case .state(.idle): if activity != .errore { enter(.ferma, at: date) }
         case let .summary(text): summary = text
+        case let .edit(file, lines):
+            guard let summary else { return }
+            edits.append(EditNote(file: file, why: summary, lines: lines))
+            if edits.count > Self.editNoteLimit { edits.removeFirst(edits.count - Self.editNoteLimit) }
         }
     }
 
