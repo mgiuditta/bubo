@@ -28,21 +28,21 @@ struct MemoryLineTests {
     // MARK: Lines from the bridge
 
     @Test func aWriteInTheMemoryBecomesRicordatoWithTheFileBeforeAndAfter() throws {
-        let event = try Self.decode(#"{"v":3,"type":"remembered","id":"a1","file":"/m/MEMORY.md","before":"- a\n","after":"- a\n- b\n"}"#)
+        let event = try Self.decode(#"{"v":4,"type":"remembered","id":"a1","file":"/m/MEMORY.md","before":"- a\n","after":"- a\n- b\n"}"#)
         #expect(event == .progress(id: "a1", .memory(.remembered(
             MemoryWrite(file: "/m/MEMORY.md", previous: "- a\n", written: "- a\n- b\n")))))
     }
 
     @Test func aNewFileHasNoBeforeAndATooLargeOneNeither() throws {
-        #expect(try Self.decode(#"{"v":3,"type":"remembered","id":"a1","file":"/m/a.md","after":"x"}"#)
+        #expect(try Self.decode(#"{"v":4,"type":"remembered","id":"a1","file":"/m/a.md","after":"x"}"#)
             == .progress(id: "a1", .memory(.remembered(MemoryWrite(file: "/m/a.md", previous: nil, written: "x")))))
-        #expect(try Self.decode(#"{"v":3,"type":"remembered","id":"a1","file":"/m/a.md"}"#)
+        #expect(try Self.decode(#"{"v":4,"type":"remembered","id":"a1","file":"/m/a.md"}"#)
             == .progress(id: "a1", .memory(.remembered(MemoryWrite(file: "/m/a.md", previous: nil, written: nil)))))
     }
 
     @Test func aMemoryRecallBecomesRichiamato() throws {
         let event = try Self.decode(#"""
-            {"v":3,"type":"recalled","id":"a1","mode":"select","memories":[{"path":"/m/a.md","scope":"personal"},{"path":"https://org/x","scope":"organization","content":"testo"}]}
+            {"v":4,"type":"recalled","id":"a1","mode":"select","memories":[{"path":"/m/a.md","scope":"personal"},{"path":"https://org/x","scope":"organization","content":"testo"}]}
             """#)
         #expect(event == .progress(id: "a1", .memory(.recalled(MemoryRecall(isSynthesis: false, memories: [
             .init(path: "/m/a.md", scope: "personal", content: nil),
@@ -51,15 +51,15 @@ struct MemoryLineTests {
     }
 
     @Test func aSearchCarriesTheConversationThatCalledIt() throws {
-        #expect(try Self.decode(#"{"v":3,"type":"search","id":"s1","query":"ci","conversation":"a1"}"#)
+        #expect(try Self.decode(#"{"v":4,"type":"search","id":"s1","query":"ci","conversation":"a1"}"#)
             == .search(id: "s1", query: "ci", project: nil, conversation: "a1"))
     }
 
     @Test func aSearchOfASessioneReachesItsProgressWithWhatItFound() async throws {
         let bridge = AgentBridgeTests.bridge(AgentBridgeTests.answering(#"""
-            echo "{\"v\":3,\"type\":\"search\",\"id\":\"s1\",\"query\":\"notarizzazione\",\"conversation\":\"$id\"}"
+            echo "{\"v\":4,\"type\":\"search\",\"id\":\"s1\",\"query\":\"notarizzazione\",\"conversation\":\"$id\"}"
             read found
-            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
             read _
             """#))
         var received: [AgentProgress] = []
