@@ -31,6 +31,27 @@ struct CatalogoTests {
         #expect(catalogo.varianti(in: .ricerca).contains(lente))
     }
 
+    // MARK: - The rosa for the tag ⟦orb:nome⟧
+
+    @Test func theRosaOfTheBundledCatalogoNamesEveryVarianteToday() throws {
+        let catalogo = try Self.bundled.get()
+        #expect(Set(catalogo.rosa()) == Set(catalogo.varianti))
+    }
+
+    @Test func theRosaKeepsTheFirstOfEachCategoriaThenTheCategoriaAskedFor() throws {
+        let catalogo = try Catalogo(json: Self.json([
+            Self.entry(nome: "lente", forma: "lente"),
+            Self.entry(nome: "binocolo", forma: "binocolo"),
+            Self.entry(nome: "radar", forma: "radar"),
+            Self.entry(nome: "parentesi", forma: "parentesi", categoria: "codice"),
+            Self.entry(nome: "terminale", forma: "terminale", categoria: "codice"),
+        ].joined(separator: ",")))
+
+        #expect(catalogo.rosa(around: .codice, limit: 3).map(\.nome) == ["parentesi", "lente", "terminale"])
+        #expect(catalogo.rosa(limit: 3).map(\.nome) == ["parentesi", "lente", "binocolo"])
+        #expect(catalogo.rosa(around: .ricerca).count == 5)
+    }
+
     @Test func theFirstBlockHasOneVariantePerCategoria() throws {
         let catalogo = try Self.bundled.get()
         for categoria in Categoria.allCases {

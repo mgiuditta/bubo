@@ -2,6 +2,12 @@ import Foundation
 
 /// The one list of Varianti, read from `catalogo.json`; whatever chooses or draws a Variante reads it.
 nonisolated struct Catalogo: Sendable {
+    /// The Catalogo in the app bundle, read once; `nil` if it is missing or broken, which `CatalogoTests` rules out.
+    static let bundled = try? Catalogo(bundle: .main)
+
+    /// How many names the agent gets for its tag `⟦orb:nome⟧`: the list goes into every prompt, so it stays short.
+    static let rosaLimit = 24
+
     /// Every Variante, in file order.
     let varianti: [Variante]
 
@@ -50,6 +56,15 @@ nonisolated struct Catalogo: Sendable {
     /// The Varianti of `categoria`, in file order.
     func varianti(in categoria: Categoria) -> [Variante] {
         varianti.filter { $0.categoria == categoria }
+    }
+
+    /// The Varianti the agent may choose from while it works: the first of each Categoria, which the bridge's fallback
+    /// from tools uses, then those of `categoria`, then the others in file order, at most `limit`.
+    func rosa(around categoria: Categoria? = nil, limit: Int = rosaLimit) -> [Variante] {
+        let firsts = Categoria.allCases.compactMap { categoria in varianti.first { $0.categoria == categoria } }
+        let near = categoria.map(varianti(in:)) ?? []
+        var chosen = Set<Variante>()
+        return Array((firsts + near + varianti).filter { chosen.insert($0).inserted }.prefix(limit))
     }
 
     /// The names of the Forme the Varianti need; each must have its SDF in `Orb.metal`.

@@ -1,4 +1,5 @@
 import { isAbsolute, resolve } from "node:path";
+import { withoutOrbTags } from "./orb";
 import type { PostToolUseHookInput, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
 
 // Ciò da cui Bubo ricava l'Attività di una Sessione: lo stato della conversazione e il riassunto di una riga.
@@ -29,7 +30,7 @@ export function progress(message: SDKMessage): Progress | undefined {
   }
   // Solo il filo principale: i subagent hanno `parent_tool_use_id`; un errore dell'API non è un riassunto.
   if (message.type === "assistant" && !message.error && message.parent_tool_use_id === null) {
-    const text = message.message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n");
+    const text = withoutOrbTags(message.message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n"));
     const line = text.split("\n").map((line) => line.replace(/^[#>*\-\s]+/, "").trim()).find((line) => line.length > 0);
     if (line) return { type: "summary", text: line.length > summaryLength ? line.slice(0, summaryLength - 1) + "…" : line };
   }

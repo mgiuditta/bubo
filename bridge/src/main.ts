@@ -15,6 +15,7 @@ import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
+import { orbInstruction, rosaOf, TurnVariante } from "./orb";
 import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
 import { AnswerWitness, catalogOf, effortOf, type AnsweredBy, type CatalogEntry } from "./router";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
@@ -31,7 +32,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -53,6 +54,7 @@ type Event =
   | { type: "ready" }
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
+  | { type: "variante"; id: string; nome: string }
   | { type: "ran"; id: string }
   | (Progress & { id: string })
   | (Edit & { id: string })
@@ -282,11 +284,13 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
 // `remembers` dà lo strumento `ricorda`: solo alle Domande.
 // `permissionMode` è `auto` nella Modalità autonoma, `default` nelle altre Sessioni; senza, decide `claude`.
+// `rosa` sono i nomi delle Varianti che l'agente può dare all'Orb con `⟦orb:nome⟧` (ADR 0002): vanno in coda al prompt
+// di sistema, che senza resta quello vuoto dell'SDK. Il tag non arriva mai a Bubo come testo, diventa `variante`.
 // Il cancello (`gate.ts`) passa prima di ogni strumento: con la Sandbox accesa o in Modalità autonoma.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
-                   permissionMode?: PermissionMode, effort?: EffortLevel) {
+                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = []) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const stopped = new AbortController();
@@ -319,6 +323,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       forkSession: resume !== undefined,
       sandbox,
       permissionMode,
+      ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
       ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
       canUseTool: askBubo(id, sandbox !== undefined),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
@@ -345,6 +350,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   let usage: UsageReader | undefined;
   // La versione di un `claude` troppo vecchio, vuota se non si sa.
   let outdated: string | undefined;
+  const orb = new TurnVariante(new Set(rosa));
+  const sendText = (text: string) => { if (text) send({ type: "text", id, text }); };
   try {
     for await (const message of conversation) {
       if (message.type === "system" && message.subtype === "init") {
@@ -378,12 +385,19 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       for (const read of reads(message)) send({ ...read, id });
       if (message.type === "stream_event" && message.event.type === "content_block_delta"
           && message.event.delta.type === "text_delta") {
-        send({ type: "text", id, text: message.event.delta.text });
+        const { text, variante } = orb.text(message.event.delta.text);
+        if (variante) send({ type: "variante", id, nome: variante });
+        sendText(text);
+      } else if (message.type === "stream_event" && message.event.type === "content_block_stop") {
+        sendText(orb.flush());
       } else if (message.type === "rate_limit_event") {
         sendQuota(quotaFromRateLimit(message.rate_limit_info));
         limit = limitFromRateLimit(message.rate_limit_info) ?? limit;
       } else if (message.type === "assistant" && message.error) {
         failure = message.error;
+      } else if (message.type === "assistant" && message.parent_tool_use_id === null) {
+        const variante = orb.tools(message.message.content.flatMap((block) => (block.type === "tool_use" ? [block] : [])));
+        if (variante) send({ type: "variante", id, nome: variante });
       } else if (message.type === "result") {
         if (message.subtype === "success" && !message.is_error) succeeded = true;
         else if (limit) send({ type: "limit", id, ...limit });
@@ -392,6 +406,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
                     ...turnFailure(failure, retry) });
       }
     }
+    sendText(orb.flush());
     const answeredBy = witness.answeredBy();
     if (answeredBy) send({ type: "answeredBy", id, ...answeredBy });
     if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
@@ -643,7 +658,7 @@ lines.on("line", (line) => {
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true, mode, effortOf(command.effort));
+               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb));
       break;
     }
     case "config": {

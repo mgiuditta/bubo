@@ -1,5 +1,6 @@
 // La Cronologia CLI, letta solo con le funzioni dell'SDK: nessun parsing del JSONL, nessuna scrittura in ~/.claude.
 import type { SDKSessionInfo, SessionMessage, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
+import { withoutOrbTags } from "./orb";
 
 export type Conversation = { id: string; title: string; cwd?: string; branch?: string; lastModified: number };
 // `id` è l'uuid del messaggio; `date`, in millisecondi, c'è solo se la conversazione è nella copia di Bubo.
@@ -20,10 +21,12 @@ export function messages(session: SessionMessage[], dates = new Map<string, numb
   return session.flatMap((entry) => {
     if (entry.type === "system" || entry.parent_tool_use_id) return [];
     const content = (entry.message as { content?: unknown } | null)?.content;
-    const text = typeof content === "string" ? content
+    const written = typeof content === "string" ? content
       : Array.isArray(content)
         ? content.filter((block) => block?.type === "text" && typeof block.text === "string").map((block) => block.text).join("\n")
         : "";
+    // Il tag dell'Orb è per Bubo, non per chi rilegge.
+    const text = entry.type === "assistant" ? withoutOrbTags(written) : written;
     if (!text.trim() || text.startsWith("<command-name>") || text.startsWith("<local-command")) return [];
     const date = dates.get(entry.uuid);
     return [{ id: entry.uuid, role: entry.type, text, ...(date === undefined ? {} : { date }) }];

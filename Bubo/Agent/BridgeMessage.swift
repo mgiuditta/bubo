@@ -23,10 +23,12 @@ enum BridgeCommand: Equatable {
     /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
     /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda. `permissionMode` is how `claude` approves the
     /// calls; without it, `claude` picks the mode itself. `effort` is the router's effort; without it, the model's default.
+    /// `rosa` names the Varianti the agent may give the Orb with `⟦orb:nome⟧`; without it, the agent gets no
+    /// instruction and the Orb follows only its tools.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
              sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
-             remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil)
+             remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [])
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -68,7 +70,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview, teamRules, remembers, permissionMode, effort):
+                      sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -83,6 +85,7 @@ enum BridgeCommand: Equatable {
             if remembers { object["remember"] = true }
             object["permissionMode"] = permissionMode?.rawValue
             object["effort"] = effort?.rawValue
+            if !rosa.isEmpty { object["orb"] = rosa }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -199,7 +202,7 @@ enum BridgeEvent: Equatable, Decodable {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
              rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities, model,
-             effort, models
+             effort, models, nome
     }
 
     init(from decoder: any Decoder) throws {
@@ -223,6 +226,8 @@ enum BridgeEvent: Equatable, Decodable {
                                             lines: try container.decode([String].self, forKey: .lines)))
         case "read": self = .progress(id: try container.decode(String.self, forKey: .id),
                                       .read(files: try container.decode([String].self, forKey: .files)))
+        case "variante": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                          .variante(try container.decode(String.self, forKey: .nome)))
         case "ran": self = .progress(id: try container.decode(String.self, forKey: .id), .ranCommand)
         case "sandboxBlock": self = .progress(id: try container.decode(String.self, forKey: .id),
                                               .sandboxBlock(try SandboxBlock(from: decoder)))

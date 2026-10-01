@@ -57,6 +57,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","env":{"PORT":"40000"},"id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func askWithARosaCarriesItsNames() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], rosa: ["lente", "parentesi"]).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","orb":["lente","parentesi"],"prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
+    }
+
     @Test func askWithAServerOffersTheAnteprima() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
                                          settingSources: [], offersPreview: true).line()
@@ -235,6 +242,7 @@ struct BridgeMessageTests {
         (#"{"v":4,"type":"done","id":"a1"}"#, .done(id: "a1")),
         (#"{"v":4,"type":"state","id":"a1","state":"requires_action"}"#, .progress(id: "a1", .state(.requiresAction))),
         (#"{"v":4,"type":"summary","id":"a1","text":"Leggo i file"}"#, .progress(id: "a1", .summary("Leggo i file"))),
+        (#"{"v":4,"type":"variante","id":"a1","nome":"lente"}"#, .progress(id: "a1", .variante("lente"))),
         (#"{"v":4,"type":"edit","id":"a1","file":"/w/a.swift","lines":["g()"]}"#,
          .progress(id: "a1", .edit(file: "/w/a.swift", lines: ["g()"]))),
         (#"{"v":4,"type":"read","id":"a1","files":["/w/a.swift","/w/b.swift"]}"#,
