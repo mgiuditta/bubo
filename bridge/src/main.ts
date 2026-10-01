@@ -9,7 +9,7 @@ import { z } from "zod";
 import { progress, type Progress } from "./activity";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
-import { deniedOwnCard, deniedWithoutBubo, isAllowed, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 
@@ -55,6 +55,8 @@ function askBubo(id: string): CanUseTool {
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
     if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
     const request = randomUUID();
+    const shown = permissionRequest(request, toolName, input, options);
+    if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
     let reached = true;
     const allowed = await new Promise<boolean>((resolve) => {
       permissions.set(request, resolve);
@@ -63,7 +65,7 @@ function askBubo(id: string): CanUseTool {
         if (permissions.delete(request)) send({ type: "permissionWithdrawn", id, request });
       }, { once: true });
       try {
-        send({ ...permissionRequest(request, toolName, input, options), id });
+        send({ ...shown, id });
       } catch {
         reached = false;
         resolve(false);

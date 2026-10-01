@@ -93,4 +93,9 @@ struct RequestCenterTests {
         center.forget(session)
         #expect(center.receive(Self.bash("4", "npm test"), in: session, risk: Risk(level: .modifica)) == .queued)
     }
+
+    @Test func theCardShowsEveryCharacterThatWillRun() {
+        #expect(PermissionRequestView.shown("rm a\rb\u{202E}c\ntouch d")
+            == "rm a\\u{D}b\\u{202E}c\ntouch d")
+    }
 }

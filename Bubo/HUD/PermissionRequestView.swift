@@ -33,13 +33,17 @@ struct PermissionRequestView: View {
                 .font(Typography.body(size: 12, weight: .semibold))
                 .lineLimit(3)
             if let subject = request.command ?? request.path ?? request.url {
-                Text(verbatim: subject)
-                    .font(Typography.mono(size: 11))
-                    .lineLimit(6)
-                    .textSelection(.enabled)
-                    .padding(Spacing.xxSmall)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Palette.ink.opacity(0.6), in: .rect(cornerRadius: CornerRadius.small))
+                // Tutto quello che verrà eseguito, invisibili e controlli scritti per esteso: niente righe tagliate.
+                ScrollView {
+                    Text(verbatim: Self.shown(subject))
+                        .font(Typography.mono(size: 11))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 120)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(Spacing.xxSmall)
+                .background(Palette.ink.opacity(0.6), in: .rect(cornerRadius: CornerRadius.small))
             }
             if let detail = request.detail {
                 Text(verbatim: detail)
@@ -88,6 +92,13 @@ struct PermissionRequestView: View {
         }
         .buttonStyle(.bordered)
         .controlSize(.small)
+    }
+
+    /// `subject` line by line, each with every control and invisible character escaped as in the trust dialog.
+    static func shown(_ subject: String) -> String {
+        subject.split(separator: "\n", omittingEmptySubsequences: false)
+            .map { RepoActivations.escaped(String($0)) }
+            .joined(separator: "\n")
     }
 }
 

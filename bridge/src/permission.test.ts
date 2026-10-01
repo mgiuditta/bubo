@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { clean, deniedByUser, isAllowed, needsItsOwnCard, permissionRequest, permissionResult } from "./permission";
+import { clean, deniedByUser, isAllowed, needsItsOwnCard, permissionRequest, permissionResult, isTooLong, subjectLength } from "./permission";
 
 const options = (extra: object = {}) =>
   ({ signal: new AbortController().signal, toolUseID: "toolu_1", requestId: "r1", ...extra }) as Parameters<typeof permissionRequest>[3];
@@ -40,4 +40,13 @@ test("le domande all'utente non diventano una Richiesta", () => {
   expect(needsItsOwnCard("AskUserQuestion", options())).toBe(true);
   expect(needsItsOwnCard("mcp__x__y", options({ requiresUserInteraction: true }))).toBe(true);
   expect(needsItsOwnCard("Bash", options())).toBe(false);
+});
+
+test("comando, percorso e URL arrivano interi; troppo lunghi si negano", () => {
+  const options = { signal: new AbortController().signal, toolUseID: "t" } as unknown as Parameters<typeof permissionRequest>[3];
+  const long = "x".repeat(5000);
+  expect(permissionRequest("r", "Bash", { command: long }, options).command).toBe(long);
+  expect(permissionRequest("r", "Bash", { command: "a\rb‮c" }, options).command).toBe("a\rb‮c");
+  expect(isTooLong(permissionRequest("r", "Bash", { command: "x".repeat(subjectLength + 1) }, options))).toBe(true);
+  expect(isTooLong(permissionRequest("r", "Bash", { command: long }, options))).toBe(false);
 });

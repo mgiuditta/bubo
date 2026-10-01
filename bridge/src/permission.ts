@@ -29,15 +29,28 @@ export function clean(value: unknown): string | undefined {
   return text.length > textLength ? text.slice(0, textLength - 1) + "…" : text;
 }
 
+// Comando, percorso e URL vanno a Bubo interi e senza ritocchi: approvato, gira esattamente questo input,
+// quindi l'utente deve poterlo vedere tutto. Bubo lo mostra con l'escape; oltre `subjectLength` si nega.
+export const subjectLength = 100_000;
+
+function raw(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+// Un soggetto troppo lungo per essere letto prima di approvarlo.
+export function isTooLong(request: PermissionRequest): boolean {
+  return [request.command, request.path, request.url].some((text) => (text?.length ?? 0) > subjectLength);
+}
+
 export function permissionRequest(request: string, toolName: string, input: Record<string, unknown>,
                                   options: Options): PermissionRequest {
   return {
     type: "permission",
     request,
     tool: clean(toolName) ?? "",
-    command: clean(input.command),
-    path: clean(input.file_path ?? input.notebook_path ?? input.path),
-    url: clean(input.url),
+    command: raw(input.command),
+    path: raw(input.file_path ?? input.notebook_path ?? input.path),
+    url: raw(input.url),
     title: clean(options.title),
     description: clean(options.description),
     blockedPath: clean(options.blockedPath),
