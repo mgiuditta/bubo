@@ -14,6 +14,16 @@
         }
       }
     },
+    "%@ diventa:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ becomes:"
+          }
+        }
+      }
+    },
     "%@ non è JSON valido e Bubo non lo tocca. Correggilo o spostalo, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -164,6 +174,22 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld righe aggiunte, %2$lld tolte"
+          }
+        }
+      }
+    },
+    "%lld righe su %lld · %@ su %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld righe su %2$lld · %3$@ su %4$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld of %2$lld lines · %3$@ of %4$@"
           }
         }
       }
@@ -1194,6 +1220,16 @@
         }
       }
     },
+    "CLAUDE.md caricati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loaded CLAUDE.md files"
+          }
+        }
+      }
+    },
     "CLAUDE.md · %lld" : {
       "localizations" : {
         "en" : {
@@ -1210,6 +1246,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Change Folder…"
+          }
+        }
+      }
+    },
+    "Cambiato fuori da Bubo · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changed outside Bubo · %@"
           }
         }
       }
@@ -1354,6 +1400,16 @@
         }
       }
     },
+    "Chiedo a Claude quali CLAUDE.md carica…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asking Claude which CLAUDE.md files it loads…"
+          }
+        }
+      }
+    },
     "Chiedo a Claude…" : {
       "localizations" : {
         "en" : {
@@ -1470,6 +1526,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude reads your notes only when it searches them: nothing enters the conversation on its own. Obsidian can stay closed."
+          }
+        }
+      }
+    },
+    "Claude non ha ancora salvato ricordi in questo Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude hasn’t saved any memories in this Project yet."
           }
         }
       }
@@ -2154,6 +2220,16 @@
         }
       }
     },
+    "Feedback" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback"
+          }
+        }
+      }
+    },
     "Ferma" : {
       "localizations" : {
         "en" : {
@@ -2796,6 +2872,26 @@
         }
       }
     },
+    "Il file %@ viene cancellato:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file %@ will be deleted:"
+          }
+        }
+      }
+    },
+    "Il file è cambiato su disco mentre lo modificavi. Chiudi e riaprilo per vedere la versione nuova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file changed on disk while you were editing it. Close it and open it again to see the new version."
+          }
+        }
+      }
+    },
     "Il file è troppo grande per il visore." : {
       "localizations" : {
         "en" : {
@@ -3076,6 +3172,22 @@
         }
       }
     },
+    "L'indice è quasi pieno. Oltre %lld righe o %@ Claude non carica il resto: accorcialo o chiedi a Claude di riordinarlo." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "L'indice è quasi pieno. Oltre %1$lld righe o %2$@ Claude non carica il resto: accorcialo o chiedi a Claude di riordinarlo."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The index is almost full. Past %1$lld lines or %2$@, Claude doesn’t load the rest: shorten it or ask Claude to tidy it up."
+          }
+        }
+      }
+    },
     "L'issue %@ ha già una Sessione: «%@»." : {
       "localizations" : {
         "en" : {
@@ -3178,6 +3290,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Session's isolated copy is no longer at %@. Delete the Session to remove it from the list."
+          }
+        }
+      }
+    },
+    "La memoria è cambiata su disco. Chiudi e riapri il ricordo per vedere la versione nuova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The memory changed on disk. Close it and open it again to see the new version."
           }
         }
       }
@@ -3390,6 +3512,16 @@
         }
       }
     },
+    "Leggo la memoria del Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the Project’s memory…"
+          }
+        }
+      }
+    },
     "Leggo le Regole di Claude Code…" : {
       "localizations" : {
         "en" : {
@@ -3516,6 +3648,36 @@
         }
       }
     },
+    "Memoria automatica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auto memory"
+          }
+        }
+      }
+    },
+    "Memoria del Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project Memory"
+          }
+        }
+      }
+    },
+    "Memoria del Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project Memory…"
+          }
+        }
+      }
+    },
     "Memoria di picco" : {
       "localizations" : {
         "en" : {
@@ -3596,12 +3758,32 @@
         }
       }
     },
+    "Modifica l'indice…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Index…"
+          }
+        }
+      }
+    },
     "Modifica reversibile" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reversible change"
+          }
+        }
+      }
+    },
+    "Modifica…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit…"
           }
         }
       }
@@ -3916,6 +4098,16 @@
         }
       }
     },
+    "Nessun indice: Claude lo crea quando salva il primo ricordo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No index: Claude creates it when it saves the first memory."
+          }
+        }
+      }
+    },
     "Nessun messaggio nella console" : {
       "localizations" : {
         "en" : {
@@ -4166,6 +4358,16 @@
         }
       }
     },
+    "Non riesco a cancellare il file. Controlla di poter scrivere nella cartella, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t delete the file. Check that you can write to the folder, then try again."
+          }
+        }
+      }
+    },
     "Non riesco a cancellare le copie delle conversazioni della riga di comando." : {
       "localizations" : {
         "en" : {
@@ -4276,6 +4478,16 @@
         }
       }
     },
+    "Non riesco a salvare il file. Controlla di poter scrivere nella cartella, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t save the file. Check that you can write to the folder, then try again."
+          }
+        }
+      }
+    },
     "Non riesco a salvare la fiducia" : {
       "localizations" : {
         "en" : {
@@ -4302,6 +4514,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't save the choice"
+          }
+        }
+      }
+    },
+    "Non riesco a sapere quali CLAUDE.md carica Claude. Controlla che la CLI claude funzioni nel Terminale, poi riapri il pannello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t find out which CLAUDE.md files Claude loads. Check that the claude CLI works in Terminal, then open the panel again."
           }
         }
       }
@@ -4502,6 +4724,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New Agent…"
+          }
+        }
+      }
+    },
+    "Occupazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage"
           }
         }
       }
@@ -4952,12 +5184,32 @@
         }
       }
     },
+    "Ricordi · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Memories · %lld"
+          }
+        }
+      }
+    },
     "Riduci movimento" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reduce motion"
+          }
+        }
+      }
+    },
+    "Riferimento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reference"
           }
         }
       }
@@ -6024,6 +6276,36 @@
         }
       }
     },
+    "Una Sessione del Progetto sta lavorando: potrai cancellare quando si ferma." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session of this Project is working: you can delete when it stops."
+          }
+        }
+      }
+    },
+    "Una Sessione del Progetto sta lavorando: potrai modificare i ricordi quando si ferma." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session of this Project is working: you can edit memories when it stops."
+          }
+        }
+      }
+    },
+    "Una Sessione del Progetto sta lavorando: potrai salvare quando si ferma." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A Session of this Project is working: you can save when it stops."
+          }
+        }
+      }
+    },
     "Una Sessione parte sempre in Lavora: la colonna segue quello che fa." : {
       "localizations" : {
         "en" : {
@@ -6286,6 +6568,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Archive the session “%@”?"
+          }
+        }
+      }
+    },
+    "Vuoi cancellare il ricordo «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the memory “%@”?"
           }
         }
       }

@@ -206,6 +206,7 @@ struct SessionRow: View {
     @State private var lostChanges: [String] = []
     @State private var isConfirmingDeletion = false
     @State private var isShowingConfiguration = false
+    @State private var isShowingMemory = false
     @State private var isReviewing = false
     /// What stops in the terminal at Archivia, while its confirmation is shown.
     @State private var archiveNotice = ""
@@ -262,6 +263,11 @@ struct SessionRow: View {
         .sheet(isPresented: $isShowingConfiguration) {
             ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:),
                         readSandboxRules: store.sandboxRules(of:))
+        }
+        .sheet(isPresented: $isShowingMemory) {
+            MemoryPanel(project: session.project,
+                        isInTurn: store.sessions.contains { $0.project == session.project && $0.isRunning },
+                        read: store.configuration(of:))
         }
         .sheet(isPresented: $isReviewing) {
             ReviewSheet(sessionID: session.id, store: store)
@@ -391,6 +397,7 @@ struct SessionRow: View {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
+            Button("Memoria del Progetto…") { isShowingMemory = true }
             if !isArchived {
                 Button("Archivia", action: archive)
                     .disabled(session.isRunning)
@@ -402,6 +409,7 @@ struct SessionRow: View {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
+            Button("Memoria del Progetto…") { isShowingMemory = true }
             if !session.isRunning {
                 if !isArchived { Button("Archivia", action: archive) }
                 Button("Cancella…", action: confirmDeletion)

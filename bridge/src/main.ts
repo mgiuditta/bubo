@@ -12,6 +12,7 @@ import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
+import { withAutoMemory } from "./memory";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { sandboxRules, type SandboxRule } from "./sandboxRules";
@@ -139,11 +140,10 @@ function sendQuota(quota: Quota) {
   if (quota.fiveHour || quota.sevenDay) send({ type: "quota", ...quota });
 }
 
-// Swift ha già costruito l'ambiente da zero: il ponte lo passa a `claude` così com'è,
-// meno le proprie variabili, e con la memoria automatica spenta nelle Domande.
+// Swift ha già costruito l'ambiente da zero: il ponte lo passa a `claude` così com'è, meno le proprie variabili.
 // CLAUDE_CODE_SANDBOXED farebbe passare per fidata qualunque cartella (#266): mai al figlio.
 const { BUBO_CLAUDE_PATH: claudePath, BUBO_CONVERSATIONS: conversationsPath, CLAUDE_CODE_SANDBOXED: _sandboxed, ...inherited } = process.env;
-const childEnv = { ...inherited, CLAUDE_CODE_DISABLE_AUTO_MEMORY: "1" };
+const childEnv = { ...inherited };
 
 // La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
 const store = (() => {
@@ -226,6 +226,7 @@ function ranBash(id: string, isSandboxed: boolean): HookCallbackMatcher {
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
 // e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
+// `keep` dice anche che il turno è di una Sessione: solo lì la memoria automatica è accesa.
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
@@ -255,7 +256,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       cwd,
       projectConfigRoot,
       model,
-      env: { ...childEnv, ...env },
+      env: { ...withAutoMemory(childEnv, keep !== undefined), ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
       mcpServers: turnServers(buboTools(remembers), preview ? previewTools(id, previewCalls) : undefined),
@@ -391,7 +392,7 @@ async function keepHistory(id: string) {
 async function quota() {
   const conversation = query({
     prompt: (async function* () { await new Promise(() => {}); })(),
-    options: { env: childEnv, pathToClaudeCodeExecutable: claudePath, settingSources: [], persistSession: false },
+    options: { env: withAutoMemory(childEnv, false), pathToClaudeCodeExecutable: claudePath, settingSources: [], persistSession: false },
   });
   try {
     sendQuota(await readQuota(conversation));
@@ -404,7 +405,8 @@ async function quota() {
 
 // La configurazione che `claude` carica in `cwd`, con le stesse fonti di una Sessione lì.
 // `/context` è un comando locale: `claude` manda `init` e risponde da sé, senza turni del modello,
-// quindi costo 0. Niente server `bubo`: i conteggi restano quelli della CLI.
+// quindi costo 0. Niente server `bubo`: i conteggi restano quelli della CLI. Memoria automatica accesa come in una
+// Sessione: `memoryFiles` comprende il `MEMORY.md` del Progetto.
 // Con un `claude` di riserva per le stesse fonti (`warm`) `init` arriva senza l'avvio della CLI (#311);
 // se la riserva non c'è o rifiuta la cartella, si parte a freddo come prima.
 async function inspect(id: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
@@ -420,7 +422,7 @@ async function inspect(id: string, cwd: string, sources: SettingSource[], projec
 function inspectOptions(sources: SettingSource[], projectConfigRoot: string | undefined, loaded: Instructions[]): Options {
   return {
     projectConfigRoot,
-    env: childEnv,
+    env: withAutoMemory(childEnv, true),
     pathToClaudeCodeExecutable: claudePath,
     settingSources: sources,
     persistSession: false,
