@@ -4870,6 +4870,16 @@
         }
       }
     },
+    "Nessuna conversazione trovata. Prova altre parole o togli un filtro." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No conversations found. Try other words or remove a filter."
+          }
+        }
+      }
+    },
     "Nessuna conversazione, per ora." : {
       "localizations" : {
         "en" : {
