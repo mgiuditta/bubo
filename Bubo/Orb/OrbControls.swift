@@ -7,14 +7,19 @@ final class OrbControls {
     /// The one set of controls: the Panel and, in phase 3, the HUD show the same Orb.
     static let shared = OrbControls()
 
-    /// The Stato the Orb eases toward.
+    /// The Stato of the Sessioni, or the one chosen by hand in the debug windows.
     var state: OrbState = .idle
+    /// The Stato of the Domanda under way, which wins over `state` while it lasts; `nil` when no Domanda is under way.
+    var questionState: OrbState?
     /// The Variante whose Forma the Orb takes; `nil` for the Blob.
     var variante: Variante?
     /// The provider whose Tinta the Orb takes; `nil` for one outside the list.
     var provider: Provider? = .anthropic
     /// The Panel's latest frame measurements; updated only in Debug builds.
     var frameReading: FrameMeter.Reading?
+
+    /// The Stato the Orb eases toward: the Domanda's while one is under way, otherwise the Sessioni's.
+    var displayedState: OrbState { questionState ?? state }
 
     /// The wait before the Orb goes back from the Orbite to the Blob.
     @ObservationIgnored private var orbiteReturn: Task<Void, Never>?

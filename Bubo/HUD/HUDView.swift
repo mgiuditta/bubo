@@ -109,9 +109,12 @@ struct HUDView: View {
                 SessionBoard(store: sessions)
                     .padding(.bottom, Spacing.small)
             } else {
-                OrbPlaceholder()
+                HUDOrb()
                     .frame(maxWidth: 520, maxHeight: 520)
                     .padding(Spacing.large)
+                    .overlay(alignment: .bottom) {
+                        if let forecast = questions.intake.forecast { OrbCaption(forecast: forecast) }
+                    }
             }
             if hud.vista == .striscia, let sessions = visibleSessions {
                 SessionStrip(store: sessions)

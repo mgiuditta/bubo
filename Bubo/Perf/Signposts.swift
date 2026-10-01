@@ -63,6 +63,8 @@ enum Signpost {
     case galaxyFirstImage
     /// The first token of the first Sessione's answer: the onboarding is over.
     case onboardingFirstToken
+    /// Interval: from sending a Richiesta to the classifier's decision, when the Morph towards its Variante starts.
+    case intakeDecision
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -76,6 +78,7 @@ enum Signpost {
         case .mergePreview: "Conflitti previsti"
         case .galaxyFirstImage: "Prima immagine della Galassia"
         case .onboardingFirstToken: "Primo token onboarding"
+        case .intakeDecision: "Decisione della Richiesta"
         }
     }
 }

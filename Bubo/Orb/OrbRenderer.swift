@@ -56,7 +56,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
         let reducesMotion = Motion.isReduced
-        animation.state = controls.state
+        animation.state = controls.displayedState
         animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
         animation.advance(by: now - lastFrameTime)
@@ -72,7 +72,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
             }
             director.request(controls.variante, at: now)
         }
-        director.enter(controls.state, at: now)
+        director.enter(controls.displayedState, at: now)
         director.reducesMotion = reducesMotion
         director.advance(to: now)
         if requestedVariante != nil, director.destination == nil {

@@ -31,7 +31,8 @@ struct QuestionModelTests {
 
     static func model(_ keychain: Keychain) -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
-        return QuestionModel(cli: cli, bridgeExecutable: URL(filePath: "/bin/sh"), bridgeArguments: ["-c", bridge]) {
+        return QuestionModel(cli: cli, orb: OrbControls(), bridgeExecutable: URL(filePath: "/bin/sh"),
+                             bridgeArguments: ["-c", bridge]) {
             keychain.reads += 1
             return keychain.key
         }

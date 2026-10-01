@@ -21,18 +21,21 @@ final class QuestionModel {
     private(set) var usesAPIKey = false
     /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
     private(set) var savedNote: URL?
+    /// The road every Domanda takes to `claude`, moving the Orb on the way.
+    let intake: IntakePipeline
 
     /// Creates a model that finds `claude` with `cli`, answers its `cerca` tool with `index` and its `ricorda` tool
     /// with `secondBrain`.
     ///
     /// - Parameters:
-    ///   - orb: The Orb that plays the Orbite when the prompt asks for it.
+    ///   - orb: The Orb that thinks, morphs and works with each Domanda, and plays the Orbite when the prompt asks for it.
+    ///   - intake: The pipeline the Domande go through; one driving `orb` when `nil`.
     ///   - bridgeExecutable: The agent bridge; tests pass a stand-in.
     ///   - bridgeArguments: The arguments of `bridgeExecutable`.
     ///   - defaults: Where the last Quota is kept between launches.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
-         orb: OrbControls = .shared,
+         orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [], defaults: UserDefaults = .standard,
          apiKey: (() async throws -> String?)? = nil) {
@@ -42,6 +45,7 @@ final class QuestionModel {
         self.index = index
         self.secondBrain = secondBrain
         self.orb = orb
+        self.intake = intake ?? IntakePipeline(orb: orb)
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -184,12 +188,16 @@ final class QuestionModel {
         var waitingForFirstToken: OSSignpostIntervalState? =
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
+        // Domande go to `claude` until the router chooses among providers (feature 10): Anthropic's Tinta.
+        let submission = await intake.submit(Richiesta(text: text), to: .anthropic)
+        defer { intake.finish(submission) }
         do {
             let bridge = try await readyBridge()
             for try await chunk in bridge.ask(text, in: try Self.directory(), model: model, remembers: true) {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
                     waitingForFirstToken = nil
+                    intake.beginWorking(on: submission)
                 }
                 answer += chunk
             }

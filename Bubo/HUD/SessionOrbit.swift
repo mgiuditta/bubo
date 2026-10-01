@@ -19,7 +19,7 @@ struct SessionOrbit: View {
     var body: some View {
         let sessions = sessions
         VStack(spacing: Spacing.small) {
-            OrbPlaceholder()
+            HUDOrb()
                 .overlay { QuotaArcs(quota: quota) }
                 .overlay {
                     GeometryReader { proxy in
