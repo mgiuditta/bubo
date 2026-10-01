@@ -18,12 +18,15 @@ final class SessionStore {
     /// A Sessione that was in Lavora or Attende te when Bubo quit is Ferma and waits for Riprendi: nothing resumes
     /// on its own. One whose Progetto or worktree is gone is in Errore.
     ///
-    /// - Parameter orb: The Orb whose Stato follows the Attività of the Sessioni; `nil` for none.
-    init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil,
+    /// - Parameters:
+    ///   - orb: The Orb whose Stato follows the Attività of the Sessioni; `nil` for none.
+    ///   - alerts: The notifications and the Dock badge of the Sessioni in Attende te; `nil` for none.
+    init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil, alerts: WaitingAlerts? = nil,
          bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
         self.worktrees = worktrees
         self.orb = orb
+        self.alerts = alerts
         self.bridge = bridge
         do {
             sessions = try JSONDecoder().decode([Session].self, from: Data(contentsOf: file))
@@ -46,15 +49,17 @@ final class SessionStore {
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
+    @ObservationIgnored private let alerts: WaitingAlerts?
     @ObservationIgnored private let bridge: () async throws -> AgentBridge
     @ObservationIgnored private let ports = PortAllocator()
 
     /// The store in Bubo's Application Support folder.
-    static func makeDefault(bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
+    static func makeDefault(alerts: WaitingAlerts,
+                            bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
         return SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                            orb: .shared, bridge: bridge)
+                            orb: .shared, alerts: alerts, bridge: bridge)
     }
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
@@ -208,10 +213,11 @@ final class SessionStore {
         followActivity()
     }
 
-    /// Gives the Orb the Stato of the Sessioni's Attività.
+    /// Gives the Orb the Stato of the Sessioni's Attività, and tells the user which ones wait.
     private func followActivity() {
         let state = OrbState(following: sessions)
         if orb?.state != state { orb?.state = state }
+        alerts?.follow(sessions)
     }
 
     private func save() {
