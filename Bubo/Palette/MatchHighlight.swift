@@ -43,7 +43,8 @@ nonisolated enum MatchHighlight {
             + (end < line.endIndex ? "…" : "")
     }
 
-    private static func fold(_ text: String) -> String {
+    /// `text` without case and accents, as the Indice compares words.
+    static func fold(_ text: String) -> String {
         text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
     }
 }

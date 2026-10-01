@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The Palette: one box, the gettoni of its filters, the conversations grouped by age on the left and the preview of the
-/// chosen one on the right; ↑↓ choose, ↩ opens, esc closes.
+/// The Palette: one box, the gettoni of its filters, the commands, the conversations grouped by age and the notes of the
+/// Secondo cervello on the left, and the preview of the chosen one on the right; ↑↓ choose, ↩ opens or runs, esc closes.
 struct PaletteView: View {
     @Bindable var model: PaletteModel
     @FocusState private var isFieldFocused: Bool
@@ -14,7 +14,7 @@ struct PaletteView: View {
                 results
                     .frame(width: 440)
                 Divider().overlay(Palette.line)
-                PalettePreview(result: model.selected, messages: model.preview, words: model.searchedWords)
+                preview
             }
             Divider().overlay(Palette.line)
             footer
@@ -27,7 +27,7 @@ struct PaletteView: View {
         .onAppear { isFieldFocused = true }
         .onExitCommand { model.close() }
         .task(id: model.query) { await model.refresh() }
-        .task(id: model.selected) { await model.loadPreview() }
+        .task(id: model.selectedConversation) { await model.loadPreview() }
     }
 
     private var field: some View {
@@ -39,7 +39,7 @@ struct PaletteView: View {
                 PaletteFilterChip(filter: filter) { model.query.remove(filter) }
             }
             TextField("Cerca", text: $model.query.text,
-                      prompt: Text("Cerca nelle conversazioni o filtra: @progetto, 7g, cli"))
+                      prompt: Text("Cerca comandi, conversazioni e note. Filtra con @progetto, 7g, cli"))
                 .textFieldStyle(.plain)
                 .font(Typography.body(size: 16))
                 .focused($isFieldFocused)
@@ -66,24 +66,23 @@ struct PaletteView: View {
         ScrollViewReader { proxy in
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: Spacing.xxSmall) {
-                    ForEach(model.groups) { group in
-                        Text(group.age.title)
+                    ForEach(model.sections) { section in
+                        Text(section.title)
                             .font(Typography.mono(size: 10, weight: .medium))
                             .textCase(.uppercase)
                             .foregroundStyle(Palette.textSecondary)
                             .padding(.horizontal, Spacing.small)
                             .padding(.top, Spacing.xSmall)
                             .accessibilityAddTraits(.isHeader)
-                        ForEach(group.results) { result in
-                            PaletteResultRow(result: result, words: model.searchedWords,
-                                             isSelected: result.id == model.selected?.id)
-                                .id(result.id)
-                                .onTapGesture(count: 2) { model.open(result) }
-                                .onTapGesture { model.selection = result.id }
-                                .accessibilityAction { model.open(result) }
+                        ForEach(section.items) { item in
+                            row(for: item, isSelected: item.id == model.selected?.id)
+                                .id(item.id)
+                                .onTapGesture(count: 2) { model.activate(item) }
+                                .onTapGesture { model.selection = item.id }
+                                .accessibilityAction { model.activate(item) }
                         }
                     }
-                    if model.groups.isEmpty {
+                    if model.sections.isEmpty {
                         emptyState
                     }
                 }
@@ -96,6 +95,34 @@ struct PaletteView: View {
         }
     }
 
+    @ViewBuilder
+    private func row(for item: PaletteItem, isSelected: Bool) -> some View {
+        switch item {
+        case .command(let command):
+            PaletteCommandRow(command: command, words: model.searchedWords, isSelected: isSelected)
+        case .conversation(let result):
+            PaletteResultRow(result: result, words: model.searchedWords, isSelected: isSelected)
+        case .note(let note):
+            PaletteNoteRow(note: note, words: model.searchedWords, isSelected: isSelected)
+        }
+    }
+
+    @ViewBuilder
+    private var preview: some View {
+        switch model.selected {
+        case .note(let note):
+            PalettePreview(title: note.title, messages: [note.best], found: note.best, words: model.searchedWords)
+        case .command(let command):
+            PalettePreview(title: command.title, messages: [], found: nil, words: [],
+                           detail: command.shortcut.map { String(localized: "Scorciatoia: \($0)") })
+        case .conversation(let result):
+            PalettePreview(title: result.title, messages: model.preview, found: result.best, words: model.searchedWords,
+                           detail: result.best == nil ? String(localized: "Scrivi per cercare nei messaggi.") : nil)
+        case nil:
+            PalettePreview(title: nil, messages: [], found: nil, words: [])
+        }
+    }
+
     private var emptyState: some View {
         Group {
             if model.hasFailed {
@@ -103,7 +130,7 @@ struct PaletteView: View {
             } else if model.query.isEmpty {
                 Text("Nessuna conversazione, per ora.")
             } else {
-                Text("Nessuna conversazione trovata. Prova altre parole o togli un filtro.")
+                Text("Nessun risultato. Prova altre parole o togli un filtro.")
             }
         }
         .font(Typography.body(size: 13))
@@ -114,7 +141,7 @@ struct PaletteView: View {
     private var footer: some View {
         HStack(spacing: Spacing.medium) {
             Text("↑↓ scegli")
-            Text("↩ apri")
+            Text("↩ apri o esegui")
             Text("esc chiudi")
             Spacer()
             // Until the embedding model exists (#112) the Indice matches words only, and the Palette says so.

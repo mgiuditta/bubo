@@ -103,7 +103,7 @@ Fonti: [#131](https://github.com/mgiuditta/bubo/issues/131) (varianti B + C del 
 ### Filtri (deciso)
 
 - **Progetto**, **data** (7 / 30 / 90 giorni / sempre), **fonte** (Sessioni / Cronologia CLI); nella Palette, con gli altri gruppi, anche **tipo** (Comandi, Conversazioni, Secondo cervello).
-- Nella Palette si scrivono nella casella (`@progetto`, `7g`, `cli`) e diventano gettoni. Nella finestra Cronologia sono una colonna a sinistra con i conteggi.
+- Nella Palette si scrivono nella casella (`@progetto`, `7g`, `cli`; il tipo con `comandi`, `conversazioni`, `cervello` o `note`) e diventano gettoni. Un filtro sulle conversazioni (Progetto, data, fonte) lascia solo le conversazioni. Nella finestra Cronologia sono una colonna a sinistra con i conteggi.
 - Default: tutti i Progetti, sempre.
 - Branch e PR: non in v1.
 

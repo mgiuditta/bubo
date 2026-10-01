@@ -24,6 +24,19 @@ nonisolated struct ConversationResult: Identifiable, Equatable, Sendable {
     var otherMatches = 0
 }
 
+/// One row of the Palette's Secondo cervello group: a note, with the section that answers the search best.
+nonisolated struct NoteResult: Identifiable, Equatable, Sendable {
+    /// The note's file.
+    var id: String { best.path }
+    /// The section that answers the search best.
+    var best: SearchHit
+    /// How many other sections of the note answer the search.
+    var otherMatches = 0
+
+    /// The note's name: its file name without `.md`.
+    var title: String { URL(filePath: best.path).deletingPathExtension().lastPathComponent }
+}
+
 /// How old the conversations of a group of the Palette are.
 nonisolated enum ConversationAge: CaseIterable, Sendable {
     case lastWeek
@@ -61,6 +74,8 @@ nonisolated struct ConversationSearch: Sendable {
     static let fragmentLimit = 300
     /// How many conversations a search or the recent ones show at most.
     static let resultLimit = 50
+    /// How many notes of the Secondo cervello a search shows at most.
+    static let noteLimit = 20
 
     /// The Indice; `nil` when its database cannot be opened, and only the recent conversations are shown.
     let index: SearchIndex?
@@ -76,6 +91,30 @@ nonisolated struct ConversationSearch: Sendable {
         guard let index else { return [] }
         let hits = try await index.hits(for: text, source: .conversations, limit: Self.fragmentLimit)
         return groups(of: hits, filters: filters, at: now)
+    }
+
+    /// The notes of the Secondo cervello that answer the words of `query`, best first, one row per note; none when no
+    /// word is written. The same search as `cerca` with fonte Secondo cervello.
+    func notes(for query: PaletteQuery) async throws -> [NoteResult] {
+        let text = query.search.text
+        guard !text.isEmpty, let index else { return [] }
+        let hits = try await index.hits(for: text, source: .secondBrain, limit: Self.fragmentLimit)
+        return Self.notes(of: hits)
+    }
+
+    /// `hits`, best first, as one result per note, in the order of their best section.
+    static func notes(of hits: [SearchHit]) -> [NoteResult] {
+        var notes: [NoteResult] = []
+        var positions: [String: Int] = [:]
+        for hit in hits {
+            if let position = positions[hit.path] {
+                notes[position].otherMatches += 1
+            } else {
+                positions[hit.path] = notes.count
+                notes.append(NoteResult(best: hit))
+            }
+        }
+        return Array(notes.prefix(Self.noteLimit))
     }
 
     /// `hits`, best first, as one result per conversation, grouped by age and kept in order within each group.
@@ -150,6 +189,8 @@ nonisolated struct ConversationSearch: Sendable {
             case .project(let name):
                 [result.project?.lastPathComponent, result.project == nil ? projectName : nil]
                     .contains { $0?.localizedStandardContains(name) == true }
+            case .kind:
+                true
             }
         }
     }
