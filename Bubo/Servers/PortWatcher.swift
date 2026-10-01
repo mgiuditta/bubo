@@ -44,10 +44,11 @@ final class PortWatcher {
             guard let next = Self.schedule.lazy.map({ lastEvent + $0 }).first(where: { $0 > scanned }) else { break }
             do { try await Task.sleep(until: max(next, scanned + Self.minimumGap)) } catch { return }
             let sockets = await Self.scan(with: scan)
+            // A newer event started another burst while this scan ran: its sockets may predate the event.
+            if Task.isCancelled { return }
             lastScan = .now
             scanCount += 1
             update(with: sockets)
-            if Task.isCancelled { return }
         }
         burst = nil
     }
