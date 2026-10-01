@@ -90,6 +90,11 @@ targets:
       - path: BuboTests
       # The frame log reader of the performance tests, checked against what the app writes.
       - path: BuboPerfTests/FrameLog.swift
+      # The budgets and the report of scripts/perf.sh.
+      - path: BuboPerfTests/PerfBudgets.swift
+      - path: BuboPerfTests/PerfMeasurement.swift
+      - path: scripts/perf/BudgetReport.swift
+      - path: scripts/perf/MetalHUDLog.swift
     dependencies:
       - target: Bubo
     settings:
