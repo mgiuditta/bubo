@@ -4,6 +4,16 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ a listino, incluso nell'abbonamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ at list price, included in your subscription"
+          }
+        }
+      }
+    },
     "%@ · %lld" : {
       "localizations" : {
         "en" : {
@@ -2938,6 +2948,26 @@
         }
       }
     },
+    "Spesa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend %@"
+          }
+        }
+      }
+    },
+    "Spesa %@ · ultimo turno %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend %1$@ · last turn %2$@"
+          }
+        }
+      }
+    },
     "Squash" : {
       "localizations" : {
         "en" : {
@@ -2954,6 +2984,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "State"
+          }
+        }
+      }
+    },
+    "Stima a listino di Claude Code, calcolata sul Mac: non è una fattura." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code's list-price estimate, calculated on this Mac: not a bill."
           }
         }
       }
@@ -3198,6 +3238,16 @@
         }
       }
     },
+    "almeno %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "at least %@"
+          }
+        }
+      }
+    },
     "apiKeyHelper" : {
       "localizations" : {
         "en" : {
@@ -3272,6 +3322,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Lavora"
+          }
+        }
+      }
+    },
+    "circa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about %@"
           }
         }
       }
@@ -3427,6 +3487,16 @@
         }
       }
     },
+    "meno di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "under %@"
+          }
+        }
+      }
+    },
     "si azzera %@ alle %@" : {
       "localizations" : {
         "en" : {
@@ -3463,6 +3533,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "«almeno»: un turno si è interrotto, ne conto i token ma non tutta la cifra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“At least”: a turn stopped early, so its tokens count but not its full cost."
+          }
+        }
+      }
+    },
+    "«circa»: un modello senza prezzo noto è contato al prezzo del modello predefinito." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“About”: a model without a known price is counted at the default model's price."
           }
         }
       }

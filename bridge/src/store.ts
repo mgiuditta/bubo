@@ -51,6 +51,13 @@ export class ConversationStore implements SessionStore {
     return rows.length ? rows.map((row) => JSON.parse(row.entry)) : null;
   }
 
+  // La conversazione principale di `session`, in qualunque Progetto, senza i subagent.
+  entries(session: string): SessionStoreEntry[] {
+    return this.db.query<{ entry: string }, [string]>(
+      "SELECT entry FROM entries WHERE session = ? AND subpath = '' ORDER BY seq").all(session)
+      .map((row) => JSON.parse(row.entry));
+  }
+
   async listSessions(projectKey: string) {
     return this.db.query<{ sessionId: string; mtime: number }, [string]>(
       "SELECT session AS sessionId, MAX(mtime) AS mtime FROM entries WHERE project = ? AND subpath = '' GROUP BY session")

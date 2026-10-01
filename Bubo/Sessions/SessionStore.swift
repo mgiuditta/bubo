@@ -28,10 +28,12 @@ final class SessionStore {
     /// - Parameters:
     ///   - orb: The Orb whose Stato follows the Attività of the Sessioni; `nil` for none.
     ///   - alerts: The notifications and the Dock badge of the Sessioni in Attende te; `nil` for none.
+    ///   - ledger: Where each turn's tokens and figure are recorded.
     init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil, alerts: WaitingAlerts? = nil,
-         bridge: @escaping () async throws -> AgentBridge) {
+         ledger: CostLedger = CostLedger(), bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
         self.worktrees = worktrees
+        self.ledger = ledger
         self.orb = orb
         self.alerts = alerts
         self.bridge = bridge
@@ -59,6 +61,8 @@ final class SessionStore {
         }
     }
 
+    /// The tokens and the figure of every turn of the Sessioni.
+    @ObservationIgnored let ledger: CostLedger
     @ObservationIgnored private let file: URL
     @ObservationIgnored private let worktrees: WorktreeManager
     @ObservationIgnored private let orb: OrbControls?
@@ -78,7 +82,7 @@ final class SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
         return SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                            orb: .shared, alerts: alerts, bridge: bridge)
+                            orb: .shared, alerts: alerts, ledger: try .makeDefault(), bridge: bridge)
     }
 
     /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
@@ -451,6 +455,8 @@ final class SessionStore {
                 self?.update(id) { $0.apply(progress) }
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
+            } usage: { [ledger] usage in
+                ledger.record(usage, turn: conversation, session: id, project: session.project)
             }
             for try await _ in answer {}
             update(id) { $0.enter(.ferma) }
