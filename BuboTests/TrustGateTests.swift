@@ -104,6 +104,16 @@ struct TrustGateTests {
         #expect(TrustGate.root(of: try folder("main/Sources")) == main.path)
     }
 
+    @Test func onlyAWorktreeHasAMainCheckoutToReadSettingsFrom() throws {
+        let main = try folder("main")
+        let worktree = try folder("worktrees/w")
+        try makeWorktree(of: main, at: worktree)
+        #expect(TrustGate.mainCheckout(ofWorktree: worktree) == main.path)
+        #expect(TrustGate.mainCheckout(ofWorktree: try folder("worktrees/w/Sources")) == main.path)
+        #expect(TrustGate.mainCheckout(ofWorktree: try folder("main/Sources")) == nil)
+        #expect(TrustGate.mainCheckout(ofWorktree: try folder("notes")) == nil)
+    }
+
     @Test func aWorktreeOfATrustedProjectIsTrusted() throws {
         let main = try folder("main")
         let worktree = try folder("worktrees/w")

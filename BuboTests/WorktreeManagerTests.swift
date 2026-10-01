@@ -67,6 +67,7 @@ struct WorktreeManagerTests {
         #expect(workspace.branch == "bubo/prova")
         #expect(workspace.folder.path.hasPrefix(manager.root.path))
         #expect(try git("branch", "--show-current", in: workspace.folder) == "bubo/prova\n")
+        #expect(TrustGate.mainCheckout(ofWorktree: workspace.folder) == repo.path)
         #expect(exists("README.md", in: workspace.folder))
         #expect(exists("node_modules/left-pad/index.js", in: workspace.folder))
         #expect(exists(".env", in: workspace.folder))

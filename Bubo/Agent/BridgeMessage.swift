@@ -11,7 +11,10 @@ enum BridgeProtocol {
 /// A command Bubo writes to the bridge, one JSON object per line.
 enum BridgeCommand: Equatable {
     /// Starts a conversation with `claude` in `directory`, answering `prompt`, loading only `settingSources`.
-    case ask(id: String, prompt: String, directory: URL, settingSources: [String])
+    ///
+    /// When `directory` is a worktree, `projectConfigRoot` is its main checkout, where `claude` reads the
+    /// Progetto's settings, `.mcp.json` and `.claude/`.
+    case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the search `id` with the `cerca` tool's result.
@@ -23,8 +26,9 @@ enum BridgeCommand: Equatable {
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
+            object["projectConfigRoot"] = projectConfigRoot?.path
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):

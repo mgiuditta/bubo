@@ -44,7 +44,8 @@ final class AgentBridge {
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///
-    /// `claude` loads the settings of `directory` only if it is trusted (`TrustGate`), never by the SDK's default.
+    /// `claude` loads the settings of `directory` only if it is trusted (`TrustGate`), never by the SDK's default;
+    /// in a worktree it reads them from the main checkout.
     ///
     /// Cancelling the iteration interrupts the conversation.
     func ask(_ prompt: String, in directory: URL) -> AsyncThrowingStream<String, any Error> {
@@ -57,8 +58,11 @@ final class AgentBridge {
         do {
             let process = try runningProcess()
             answers[id] = continuation
+            // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
-                                            settingSources: trustGate.settingSources(for: directory))
+                                            settingSources: trustGate.settingSources(for: directory),
+                                            projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
+                                                .map { URL(filePath: $0, directoryHint: .isDirectory) })
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

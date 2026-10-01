@@ -56,6 +56,14 @@ nonisolated struct TrustGate: Sendable {
         return repository(containing: path)?.mainCheckout ?? path
     }
 
+    /// The main checkout that `folder` is a worktree of, as a real path in NFC; `nil` outside a worktree.
+    static func mainCheckout(ofWorktree folder: URL) -> String? {
+        guard let repository = repository(containing: realPath(folder.path)),
+              repository.top != repository.mainCheckout
+        else { return nil }
+        return repository.mainCheckout
+    }
+
     private func setTrust(_ isAccepted: Bool, for folder: URL) throws {
         let key = Self.root(of: folder)
         // The CLI rewrites the whole file on its own saves: read again and retry if it undid ours.
