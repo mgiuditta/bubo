@@ -54,8 +54,11 @@ final class AgentBridge {
     ///
     /// Cancelling the iteration interrupts the conversation.
     ///
-    /// - Parameter model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
-    func ask(_ prompt: String, in directory: URL, model: String? = nil) -> AsyncThrowingStream<String, any Error> {
+    /// - Parameters:
+    ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
+    ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
+    func ask(_ prompt: String, in directory: URL, model: String? = nil,
+             environment: [String: String] = [:]) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -70,7 +73,7 @@ final class AgentBridge {
                                             settingSources: trustGate.settingSources(for: directory),
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
-                                            model: model)
+                                            model: model, environment: environment)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

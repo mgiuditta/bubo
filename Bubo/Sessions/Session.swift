@@ -26,6 +26,18 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var activity = Activity.lavora
     /// Why the Sessione is in Errore, as git or `claude` wrote it.
     var failure: String?
+    /// The Sessione's own ports, for its dev servers; `nil` when none was free.
+    var ports: Range<Int>?
+    /// Why the Progetto's setup script did not complete; the Sessione works anyway.
+    var setupFailure: String?
+
+    /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
+    /// `BUBO_PORTS` all of them as `first-last`.
+    var portEnvironment: [String: String] {
+        guard let ports, let last = ports.last else { return [:] }
+        let first = String(ports.lowerBound)
+        return ["PORT": first, "BUBO_PORT": first, "BUBO_PORTS": "\(first)-\(last)"]
+    }
 
     /// A title for a Sessione that starts with `prompt`: its first six words.
     static func proposedTitle(for prompt: String) -> String {

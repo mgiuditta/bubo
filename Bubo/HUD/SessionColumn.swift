@@ -49,6 +49,13 @@ private struct SessionRow: View {
                     .lineLimit(3)
                     .textSelection(.enabled)
             }
+            if let setupFailure = session.setupFailure {
+                Text(verbatim: setupFailure)
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(4)
+                    .textSelection(.enabled)
+            }
         }
         .padding(Spacing.xSmall)
         .accessibilityElement(children: .combine)
@@ -58,7 +65,8 @@ private struct SessionRow: View {
 #Preview {
     SessionColumn(sessions: [
         Session(id: UUID(), title: "Correggi il login", project: URL(filePath: "/Users/u/bubo"),
-                workspace: Workspace(folder: URL(filePath: "/tmp/w"), branch: "bubo/correggi-il-login")),
+                workspace: Workspace(folder: URL(filePath: "/tmp/w"), branch: "bubo/correggi-il-login"),
+                setupFailure: "Lo script di setup è uscito con codice 1.\nnpm error code ENOENT"),
         Session(id: UUID(), title: "Aggiorna le dipendenze", project: URL(filePath: "/Users/u/bubo"), activity: .errore,
                 failure: "fatal: a branch named 'bubo/x' already exists"),
     ])

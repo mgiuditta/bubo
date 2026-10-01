@@ -874,6 +874,26 @@
         }
       }
     },
+    "Lo script di setup non è finito in tempo ed è stato fermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The setup script didn't finish in time and was stopped."
+          }
+        }
+      }
+    },
+    "Lo script di setup è uscito con codice %d." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The setup script exited with code %d."
+          }
+        }
+      }
+    },
     "Manca la CLI claude." : {
       "localizations" : {
         "en" : {
@@ -1260,6 +1280,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shortcuts"
+          }
+        }
+      }
+    },
+    "Script di setup non eseguito: il Progetto non è fidato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup script not run: the project isn't trusted."
           }
         }
       }
