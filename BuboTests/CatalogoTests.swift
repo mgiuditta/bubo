@@ -31,6 +31,13 @@ struct CatalogoTests {
         #expect(catalogo.varianti(in: .ricerca).contains(lente))
     }
 
+    @Test func theFirstBlockHasOneVariantePerCategoria() throws {
+        let catalogo = try Self.bundled.get()
+        for categoria in Categoria.allCases {
+            #expect(catalogo.varianti(in: categoria).count == 1, "\(categoria)")
+        }
+    }
+
     @Test func bundledNamesAreUniqueKebabCaseASCII() throws {
         let names = try Self.bundled.get().varianti.map(\.nome)
         #expect(Set(names).count == names.count)

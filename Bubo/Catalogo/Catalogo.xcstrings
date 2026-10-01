@@ -1,6 +1,96 @@
 {
   "sourceLanguage" : "it",
   "strings" : {
+    "aereo" : {
+      "comment" : "Etichetta della Variante aereo (Categoria Viaggi): un aereo visto dall'alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Airplane"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aereo"
+          }
+        }
+      }
+    },
+    "busta" : {
+      "comment" : "Etichetta della Variante busta (Categoria Mail): una busta chiusa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envelope"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busta"
+          }
+        }
+      }
+    },
+    "clessidra" : {
+      "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hourglass"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clessidra"
+          }
+        }
+      }
+    },
+    "cuore" : {
+      "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heart"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuore"
+          }
+        }
+      }
+    },
+    "fumetto" : {
+      "comment" : "Etichetta della Variante fumetto (Categoria Chat): un fumetto di dialogo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speech Bubble"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fumetto"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -15,6 +105,114 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lente"
+          }
+        }
+      }
+    },
+    "moneta" : {
+      "comment" : "Etichetta della Variante moneta (Categoria Finanza): una moneta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moneta"
+          }
+        }
+      }
+    },
+    "nota" : {
+      "comment" : "Etichetta della Variante nota (Categoria Musica): due note musicali.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Note"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota"
+          }
+        }
+      }
+    },
+    "nuvola" : {
+      "comment" : "Etichetta della Variante nuvola (Categoria Meteo): una nuvola.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cloud"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuvola"
+          }
+        }
+      }
+    },
+    "parentesi" : {
+      "comment" : "Etichetta della Variante parentesi (Categoria Codice): una coppia di parentesi graffe.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Braces"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parentesi"
+          }
+        }
+      }
+    },
+    "pennello" : {
+      "comment" : "Etichetta della Variante pennello (Categoria Creativo): un pennello.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paintbrush"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pennello"
+          }
+        }
+      }
+    },
+    "robot" : {
+      "comment" : "Etichetta della Variante robot (Categoria Agente): la testa di un robot.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Robot"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Robot"
           }
         }
       }
