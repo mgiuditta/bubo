@@ -53,6 +53,9 @@ struct BuboApp: App {
                 }
                 .keyboardShortcut("p", modifiers: [.command, .shift])
                 .disabled(appDelegate.sessions?.previews.isShown != true && appDelegate.sessions?.previewSession == nil)
+                // ⌥⌘G, not ⇧⌘G: that is Trova precedente in the HIG (preflight #119).
+                Button("Mostra la Galassia") { appDelegate.showGalaxy() }
+                    .keyboardShortcut("g", modifiers: [.option, .command])
                 Divider()
             }
         }

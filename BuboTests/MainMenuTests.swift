@@ -62,6 +62,12 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == nil)
     }
 
+    @Test func theGalassiaHasItsShortcut() throws {
+        let mainMenu = try #require(NSApp.mainMenu)
+        let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Mostra la Galassia") })
+        #expect(Self.shortcut(of: item) == "⌥⌘G")
+    }
+
     @Test func aRepeatedShortcutIsFound() {
         let menu = NSMenu()
         menu.addItem(withTitle: "Uno", action: nil, keyEquivalent: "k")
