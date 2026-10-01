@@ -21,12 +21,14 @@ enum BridgeCommand: Equatable {
     /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
     /// Sessione already has a server. `teamRules` are the Progetto's Risorse di squadra in force,
     /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
+    /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
-             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules())
+             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
+             remembers: Bool = false)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
-    /// Answers the search `id` with the `cerca` tool's result.
+    /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
     case found(id: String, text: String)
     /// Reads the Quota without a Domanda; the bridge answers with `quota` only if it has one.
     case readQuota
@@ -54,7 +56,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview, teamRules):
+                      sandbox, offersPreview, teamRules, remembers):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -66,6 +68,7 @@ enum BridgeCommand: Equatable {
             if teamRules != TeamRules() {
                 object["rules"] = ["allow": teamRules.allow, "deny": teamRules.deny, "ask": teamRules.ask]
             }
+            if remembers { object["remember"] = true }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -128,6 +131,8 @@ enum BridgeEvent: Equatable, Decodable {
     /// The conversation `id` called a tool of the Anteprima: do `action`, `nil` for a tool Bubo does not know, and
     /// answer `call`.
     case previewCall(id: String, call: String, PreviewAction?)
+    /// `claude` called `ricorda`: save `text` as a note titled `title` in the Secondo cervello.
+    case remember(id: String, title: String, text: String)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
     case quota(Quota)
     /// The configuration `claude` loads, asked by `inspect` `id`.
@@ -150,8 +155,8 @@ enum BridgeEvent: Equatable, Decodable {
     case unsupportedVersion(Int)
 
     private enum CodingKeys: String, CodingKey {
-        case v, type, id, text, state, message, query, project, source, fiveHour, sevenDay, window, resetsAt, conversations,
-             messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y
+        case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
+             conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y
     }
 
     init(from decoder: any Decoder) throws {
@@ -199,6 +204,9 @@ enum BridgeEvent: Equatable, Decodable {
                                               filter: try container.decodeIfPresent(String.self, forKey: .filter),
                                               code: try container.decodeIfPresent(String.self, forKey: .code),
                                               y: try container.decodeIfPresent(Double.self, forKey: .y)))
+        case "remember": self = .remember(id: try container.decode(String.self, forKey: .id),
+                                          title: try container.decode(String.self, forKey: .title),
+                                          text: try container.decode(String.self, forKey: .text))
         case "quota": self = .quota(Quota(fiveHour: try container.decodeIfPresent(Quota.Window.self, forKey: .fiveHour),
                                           sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
         case "config": self = .configuration(id: try container.decode(String.self, forKey: .id),

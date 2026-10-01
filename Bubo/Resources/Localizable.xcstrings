@@ -562,6 +562,16 @@
         }
       }
     },
+    "Apri la nota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open note"
+          }
+        }
+      }
+    },
     "Apri nel browser" : {
       "localizations" : {
         "en" : {
@@ -4192,6 +4202,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permission request"
+          }
+        }
+      }
+    },
+    "Ricordato in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remembered in %@"
           }
         }
       }

@@ -120,6 +120,16 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","keep":"k-1","prompt":"Ciao","settingSources":[],"type":"ask","v":3}"# + "\n")
     }
 
+    @Test func onlyAnAskThatRemembersCarriesRemember() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         remembers: true).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","remember":true,"settingSources":[],"type":"ask","v":3}"# + "\n")
+        let plain = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [])
+            .line()
+        #expect(!String(decoding: plain, as: UTF8.self).contains("remember"))
+    }
+
     @Test func theCopiesAreKeptAndForgottenByCommand() throws {
         #expect(String(decoding: try BridgeCommand.keepHistory(id: "k1").line(), as: UTF8.self)
             == #"{"id":"k1","type":"keep","v":3}"# + "\n")
@@ -192,6 +202,8 @@ struct BridgeMessageTests {
         (#"{"v":3,"type":"search","id":"s1","query":"ci","source":"secondo-cervello"}"#,
          .search(id: "s1", query: "ci", project: nil, source: .secondBrain)),
         (#"{"v":3,"type":"search","id":"s1","query":"ci","source":"altrove"}"#, .search(id: "s1", query: "ci", project: nil)),
+        (#"{"v":3,"type":"remember","id":"r1","title":"Ombrello","text":"portarlo"}"#,
+         .remember(id: "r1", title: "Ombrello", text: "portarlo")),
         (#"{"v":3,"type":"quota","fiveHour":{"used":0.19,"resetsAt":1790852400.5},"sevenDay":{"used":0.02,"resetsAt":1791428400}}"#,
          .quota(Quota(fiveHour: Quota.Window(used: 0.19, resetsAt: Date(timeIntervalSince1970: 1_790_852_400.5)),
                       sevenDay: Quota.Window(used: 0.02, resetsAt: Date(timeIntervalSince1970: 1_791_428_400))))),

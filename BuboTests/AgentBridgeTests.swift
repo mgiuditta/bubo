@@ -7,7 +7,8 @@ struct AgentBridgeTests {
     /// A bridge played by `/bin/sh`: `script` reads commands from standard input and writes events.
     static func bridge(_ script: String) -> AgentBridge {
         AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
-                    environment: ["PATH": "/usr/bin:/bin"]) { query, project, source in
+                    environment: ["PATH": "/usr/bin:/bin"],
+                    remember: { text, title in "salvata \(title): \(text)" }) { query, project, source in
             "\(query) in \(project ?? "tutto")\(source.map { " (\($0.rawValue))" } ?? "")"
         }
     }
@@ -62,6 +63,23 @@ struct AgentBridgeTests {
             action == .click(selector: "#invia") ? .text("cliccato") : .failure("altro")
         }))
         #expect(answer == "cliccato")
+    }
+
+    @Test func aDomandaGetsRicordaAndItsCallIsAnsweredOnTheBridgesInput() async throws {
+        // The bridge exits unless the command asks for `ricorda`; the tool's result comes back as the text.
+        let bridge = Self.bridge(#"""
+            read line
+            case "$line" in *'"remember":true'*) ;; *) exit 3 ;; esac
+            id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+            echo '{"v":3,"type":"remember","id":"r1","title":"Ombrello","text":"portarlo"}'
+            read found
+            text=$(echo "$found" | sed 's/.*"text":"\([^"]*\)".*/\1/')
+            echo "{\"v\":3,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$text\"}"
+            echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#)
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), remembers: true))
+        #expect(answer == "salvata Ombrello: portarlo")
     }
 
     @Test func theProgressArrivesBeforeTheAnswerEndsAndNotAfter() async throws {

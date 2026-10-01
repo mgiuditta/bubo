@@ -5,6 +5,7 @@ import SwiftUI
 struct QuestionView: View {
     @Bindable var model: QuestionModel
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openURL) private var openURL
     @Environment(HUDPresenter.self) private var hud
 
     var body: some View {
@@ -63,6 +64,17 @@ struct QuestionView: View {
                 .defaultScrollAnchor(.bottom)
                 .accessibilityLabel("Risposta di Claude")
                 .accessibilityIdentifier("question.answer")
+            }
+
+            if let savedNote = model.savedNote {
+                HStack(spacing: Spacing.small) {
+                    Label("Ricordato in \(savedNote.deletingPathExtension().lastPathComponent)",
+                          systemImage: "bookmark")
+                        .font(Typography.body(size: 13))
+                        .foregroundStyle(Palette.textSecondary)
+                    Button("Apri la nota") { openURL(savedNote) }
+                        .accessibilityIdentifier("question.openNote")
+                }
             }
         }
     }

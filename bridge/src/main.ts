@@ -16,12 +16,13 @@ import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { settingSources } from "./settingSources";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { ConversationStore } from "./store";
+import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 3;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -48,6 +49,7 @@ type Event =
   | { type: "sandboxUnavailable"; id: string; reason: string }
   | { type: "search"; id: string; query: string; project?: string }
   | (PreviewCall & { id: string })
+  | { type: "remember"; id: string; title: string; text: string }
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
@@ -116,33 +118,51 @@ const store = (() => {
 })();
 
 const running = new Map<string, Query>();
-const searches = new Map<string, (text: string) => void>();
+// Le chiamate a `cerca` e `ricorda` in attesa del risultato di Bubo, che arriva con `found`.
+const toolCalls = new Map<string, (text: string) => void>();
+
+// Manda `event` a Bubo e aspetta il testo con cui risponde.
+function askBuboFor(event: (id: string) => Event): Promise<string> {
+  const id = randomUUID();
+  return new Promise<string>((resolve) => {
+    toolCalls.set(id, resolve);
+    send(event(id));
+  });
+}
 
 // `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
+// `ricorda`, solo con `remembers`, fa scrivere a Bubo una nota in `Bubo/Note/` del Secondo cervello.
 // Un server per conversazione: un'istanza MCP si collega a un solo trasporto.
-function buboTools() {
-  return createSdkMcpServer({
-    name: "bubo",
-    tools: [tool(
-      "cerca",
-      "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente e il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian). Le note non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file.",
-      {
-        testo: z.string().describe("Le parole da cercare"),
-        progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
-        fonte: z.enum(["memoria", "secondo-cervello"]).optional()
-          .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md) o \"secondo-cervello\" (le note dell'utente); senza, ovunque"),
-      },
-      async ({ testo, progetto, fonte }) => {
-        const id = randomUUID();
-        const text = await new Promise<string>((resolve) => {
-          searches.set(id, resolve);
-          send({ type: "search", id, query: testo, project: progetto, source: fonte });
-        });
-        return { content: [{ type: "text", text }] };
-      },
-      { annotations: { readOnlyHint: true } },
-    )],
-  });
+function buboTools(remembers: boolean) {
+  const search = tool(
+    "cerca",
+    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente e il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian). Le note non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file.",
+    {
+      testo: z.string().describe("Le parole da cercare"),
+      progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
+      fonte: z.enum(["memoria", "secondo-cervello"]).optional()
+        .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md) o \"secondo-cervello\" (le note dell'utente); senza, ovunque"),
+    },
+    async ({ testo, progetto, fonte }) => {
+      const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte }));
+      return { content: [{ type: "text", text }] };
+    },
+    { annotations: { readOnlyHint: true } },
+  );
+  const remember = tool(
+    "ricorda",
+    "Salva una nota nuova nel Secondo cervello dell'utente, la sua cartella di note Markdown, in Bubo/Note. Usalo solo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\"). Non modifica né sostituisce note esistenti. Restituisce il percorso della nota, o perché non è stata salvata.",
+    {
+      titolo: z.string().describe("Un titolo breve, che diventa il nome del file"),
+      testo: z.string().describe("Cosa ricordare, in Markdown, comprensibile anche letto da solo tra mesi"),
+    },
+    async ({ titolo, testo }) => {
+      const text = await askBuboFor((id) => ({ type: "remember", id, title: titolo, text: testo }));
+      return { content: [{ type: "text", text }] };
+    },
+    { annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+  );
+  return createSdkMcpServer({ name: "bubo", tools: remembers ? [search, remember] : [search] });
 }
 
 // Le chiamate agli strumenti dell'Anteprima, in attesa di `PreviewDriver`.
@@ -163,9 +183,10 @@ function ranBash(id: string): HookCallbackMatcher {
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
+// `remembers` dà lo strumento `ricorda`: solo alle Domande.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
-                   sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined)) {
+                   sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const conversation = query({
@@ -177,8 +198,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       env: { ...childEnv, ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
-      mcpServers: turnServers(buboTools(), preview ? previewTools(id, previewCalls) : undefined),
-      ...teamRuleOptions(rules, ["mcp__bubo__cerca", ...allowedPreviewTools]),
+      mcpServers: turnServers(buboTools(remembers), preview ? previewTools(id, previewCalls) : undefined),
+      ...teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]),
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
@@ -408,7 +429,8 @@ lines.on("line", (line) => {
       const resume = typeof command.resume === "string" ? command.resume : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
-               sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules));
+               sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
+               command.remember === true);
       break;
     }
     case "config": {
@@ -431,7 +453,7 @@ lines.on("line", (line) => {
       send({ type: "forgot", id: command.id });
       break;
     case "cancel": void running.get(command.id)?.interrupt(); break;
-    case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
+    case "found": toolCalls.get(command.id)?.(command.text); toolCalls.delete(command.id); break;
     case "quota": void quota(); break;
     case "previewServer": {
       // Il server della Sessione è comparso o sparito a turno in corso.
