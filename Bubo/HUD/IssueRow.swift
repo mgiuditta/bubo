@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// An open issue in ⌘I: number, title, labels, when it changed, and the Sessione it already has on the Progetto.
+/// An open issue in ⌘I: number, title, labels, when it changed, and the Bozza or Sessione it already has on the
+/// Progetto.
 struct IssueRow: View {
     let issue: GitHubIssue
     let match: IssueLink.Match
@@ -19,8 +20,8 @@ struct IssueRow: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
             }
-            if let session = matchedSession {
-                Text(matchNote(for: session))
+            if let matchNote {
+                Text(matchNote)
                     .font(Typography.body(size: 12))
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
@@ -36,15 +37,15 @@ struct IssueRow: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var matchedSession: Session? {
+    private var matchNote: LocalizedStringResource? {
         switch match {
-        case .none: nil
-        case let .open(session), let .closed(session): session
+        // Statements, not a switch expression: the String Catalog takes only the first branch of one.
+        case .none: return nil
+        case .draft: return LocalizedStringResource("Già in una Bozza: ↩ la apre")
+        case .open: return LocalizedStringResource("Già in una Sessione: ↩ la apre")
+        case let .closed(session):
+            if session.phase == .fusa { return LocalizedStringResource("Ha una Sessione fusa") }
+            return LocalizedStringResource("Ha una Sessione archiviata")
         }
-    }
-
-    private func matchNote(for session: Session) -> LocalizedStringResource {
-        if case .open = match { return "Già in una Sessione: ↩ la apre" }
-        return session.phase == .fusa ? "Ha una Sessione fusa" : "Ha una Sessione archiviata"
     }
 }

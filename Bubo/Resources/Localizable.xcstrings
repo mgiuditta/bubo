@@ -454,6 +454,16 @@
         }
       }
     },
+    "Apri la Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Draft"
+          }
+        }
+      }
+    },
     "Apri la Sessione" : {
       "localizations" : {
         "en" : {
@@ -692,6 +702,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Draft"
+          }
+        }
+      }
+    },
+    "Bozze" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drafts"
           }
         }
       }
@@ -1668,6 +1688,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub CLI isn't signed in to %@. Sign in with “gh auth login” in Terminal, then try again. A token set only in GH_TOKEN in your shell profile doesn't reach Bubo."
+          }
+        }
+      }
+    },
+    "Già in una Bozza: ↩ la apre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already in a Draft: ↩ opens it"
           }
         }
       }
@@ -2996,6 +3026,16 @@
         }
       }
     },
+    "Ogni fonte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every source"
+          }
+        }
+      }
+    },
     "Ogni pagina di %@." : {
       "localizations" : {
         "en" : {
@@ -3564,6 +3604,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save Draft"
+          }
+        }
+      }
+    },
+    "Salva come Bozza" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save as Draft"
+          }
+        }
+      }
+    },
+    "Salva l'issue in Da iniziare senza avviarla (⌥↩)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saves the issue in To start without starting it (⌥↩)"
           }
         }
       }

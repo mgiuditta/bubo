@@ -53,8 +53,13 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front on the Board, where the Bozze are, with the new Bozza sheet (⌥⌘N).
     func createDraft() {
-        switchVista(to: .board)
         isCreatingDraft = true
+        showDrafts()
+    }
+
+    /// Brings the HUD to the front on the Board, where the Bozze are.
+    func showDrafts() {
+        switchVista(to: .board)
         show()
     }
 

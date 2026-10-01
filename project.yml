@@ -44,6 +44,18 @@ targets:
         buildPhase: resources
     dependencies:
       - package: SwiftTerm
+    # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
+    info:
+      path: Bubo/Info.plist
+      properties:
+        # XcodeGen scriverebbe 1.0 e 1: si tengono le versioni dei build setting.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.mgiuditta.bubo
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes:
+              - bubo
     entitlements:
       path: Bubo/Bubo.entitlements
       properties:

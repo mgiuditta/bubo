@@ -60,6 +60,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
     }
 
+    /// `bubo://draft` links, also with Bubo closed: each valid one becomes a Bozza, or leads to the one its issue already
+    /// has; then the HUD shows the Board. A link never starts a Sessione: anyone can write one.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard let sessions else { return }
+        for url in urls {
+            guard let link = DraftLink(url) else {
+                Logger.sessions.error("Link not valid: \(url.absoluteString, privacy: .private)")
+                continue
+            }
+            sessions.receive(link)
+        }
+        hud.showDrafts()
+    }
+
     /// ⌃`: shows or hides the terminal of the current Sessione, in the HUD unless it was detached.
     func toggleTerminal() {
         guard let sessions else { return }

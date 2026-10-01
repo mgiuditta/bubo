@@ -1,7 +1,7 @@
 import Foundation
 
-/// A Bozza: a job to start on a Progetto, whose title and text become the prompt of its Sessione at Avvia.
-// ponytail: only Bozze written by hand; the source and the external id come with the Bozze from issues (#134).
+/// A Bozza: a job to start on a Progetto, whose title and text become the prompt of its Sessione at Avvia. A Bozza from
+/// an issue has only its title: the issue is read at Avvia.
 nonisolated struct Draft: Codable, Identifiable, Equatable, Sendable {
     let id: UUID
     /// The Progetto's folder.
@@ -10,13 +10,16 @@ nonisolated struct Draft: Codable, Identifiable, Equatable, Sendable {
     /// What to do, besides the title; may be empty.
     var text: String
     var createdAt: Date
+    /// The issue the Bozza comes from, with ⌥↩ in ⌘I or a `bubo://` link; `nil` for one written by hand.
+    var issue: IssueLink?
 
-    /// Creates a Bozza on `project`, written now.
-    init(title: String, text: String, project: URL, createdAt: Date = .now) {
+    /// Creates a Bozza on `project`, written now, from `issue` if any.
+    init(title: String, text: String, project: URL, issue: IssueLink? = nil, createdAt: Date = .now) {
         id = UUID()
         self.title = title
         self.text = text
         self.project = project
+        self.issue = issue
         self.createdAt = createdAt
     }
 
