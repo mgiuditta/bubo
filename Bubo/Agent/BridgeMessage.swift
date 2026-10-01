@@ -23,6 +23,8 @@ enum BridgeCommand: Equatable {
     case found(id: String, text: String)
     /// Reads the Quota without a Domanda; the bridge answers with `quota` only if it has one.
     case readQuota
+    /// Reads the configuration `claude` loads in `directory` with `settingSources`, without a turn of the model.
+    case inspect(id: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -39,6 +41,9 @@ enum BridgeCommand: Equatable {
             object = ["type": "found", "id": id, "text": text]
         case .readQuota:
             object = ["type": "quota"]
+        case let .inspect(id, directory, settingSources, projectConfigRoot):
+            object = ["type": "config", "id": id, "cwd": directory.path, "settingSources": settingSources]
+            object["projectConfigRoot"] = projectConfigRoot?.path
         }
         object["v"] = BridgeProtocol.version
         var data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys, .withoutEscapingSlashes])
@@ -65,6 +70,8 @@ enum BridgeEvent: Equatable, Decodable {
     case search(id: String, query: String, project: String?)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
     case quota(Quota)
+    /// The configuration `claude` loads, asked by `inspect` `id`.
+    case configuration(id: String, ClaudeConfiguration)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
@@ -96,6 +103,8 @@ enum BridgeEvent: Equatable, Decodable {
                                       project: try container.decodeIfPresent(String.self, forKey: .project))
         case "quota": self = .quota(Quota(fiveHour: try container.decodeIfPresent(Quota.Window.self, forKey: .fiveHour),
                                           sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
+        case "config": self = .configuration(id: try container.decode(String.self, forKey: .id),
+                                             try ClaudeConfiguration(from: decoder))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }

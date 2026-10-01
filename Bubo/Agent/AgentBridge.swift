@@ -45,6 +45,7 @@ final class AgentBridge {
     private let search: (String, String?) async -> String
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
+    private var inspections: [String: CheckedContinuation<ClaudeConfiguration, any Error>] = [:]
     private var isClosing = false
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
@@ -84,6 +85,32 @@ final class AgentBridge {
         return answer
     }
 
+    /// The configuration `claude` loads in `directory`: CLAUDE.md, skills, plugins and MCP servers, as it reports them.
+    ///
+    /// Same settings as `ask(_:in:model:environment:)`: the Progetto's own only if trusted, from the main checkout
+    /// in a worktree. `claude` runs a local command, so no turn of the model and no Quota spent.
+    func configuration(of directory: URL) async throws -> ClaudeConfiguration {
+        let id = UUID().uuidString
+        let settingSources = trustGate.settingSources(for: directory)
+        let command = BridgeCommand.inspect(id: id, directory: directory, settingSources: settingSources,
+                                            projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
+                                                .map { URL(filePath: $0, directoryHint: .isDirectory) })
+        var configuration = try await withCheckedThrowingContinuation { continuation in
+            do {
+                let process = try runningProcess()
+                inspections[id] = continuation
+                try process.input.write(contentsOf: command.line())
+            } catch let ProcessSpawnerError.failed(code) {
+                continuation.resume(throwing: AgentBridgeError.spawnFailed(errno: code))
+            } catch {
+                inspections[id] = nil
+                continuation.resume(throwing: error)
+            }
+        }
+        configuration.loadsProject = settingSources.contains("project")
+        return configuration
+    }
+
     /// Asks for the Quota without a Domanda; it reaches `quota` only if `claude` can tell it.
     func readQuota() throws {
         try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
@@ -96,7 +123,7 @@ final class AgentBridge {
     }
 
     private func closeIfIdle() {
-        guard isClosing, answers.isEmpty else { return }
+        guard isClosing, answers.isEmpty, inspections.isEmpty else { return }
         // Closing the input ends the bridge, and its `claude` with it.
         try? process?.input.close()
     }
@@ -141,6 +168,7 @@ final class AgentBridge {
             answers.removeValue(forKey: id)?.finish()
         case let .error(id?, message):
             answers.removeValue(forKey: id)?.finish(throwing: AgentBridgeError.failed(message: message))
+            inspections.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
         case let .error(nil, message):
             finishAll(throwing: .failed(message: message))
         case let .limit(id, limit):
@@ -154,6 +182,8 @@ final class AgentBridge {
             }
         case let .quota(reported):
             quota(reported)
+        case let .configuration(id, configuration):
+            inspections.removeValue(forKey: id)?.resume(returning: configuration)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
         }
@@ -164,5 +194,8 @@ final class AgentBridge {
         let pending = answers
         answers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
+        let waiting = inspections
+        inspections = [:]
+        waiting.values.forEach { $0.resume(throwing: error) }
     }
 }

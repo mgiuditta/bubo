@@ -84,6 +84,16 @@
         }
       }
     },
+    "Accesso richiesto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in required"
+          }
+        }
+      }
+    },
     "Account" : {
       "localizations" : {
         "en" : {
@@ -264,6 +274,16 @@
         }
       }
     },
+    "CLAUDE.md · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "CLAUDE.md · %lld"
+          }
+        }
+      }
+    },
     "Cambia…" : {
       "localizations" : {
         "en" : {
@@ -340,6 +360,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Asking Claude…"
+          }
+        }
+      }
+    },
+    "Chiudi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
           }
         }
       }
@@ -444,6 +474,36 @@
         }
       }
     },
+    "Configurazione di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Configuration"
+          }
+        }
+      }
+    },
+    "Configurazione di Claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Configuration…"
+          }
+        }
+      }
+    },
+    "Connesso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
     "Continua da qui, lavorando nel Progetto." : {
       "localizations" : {
         "en" : {
@@ -460,6 +520,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continues the Question"
+          }
+        }
+      }
+    },
+    "Controlla che la CLI claude funzioni nel Terminale, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the claude CLI works in Terminal, then try again."
           }
         }
       }
@@ -524,12 +594,32 @@
         }
       }
     },
+    "Disattivato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        }
+      }
+    },
     "Domande e Sessioni si pagano a consumo con la tua API key finché non chiudi Bubo." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Questions and sessions are billed per use to your API key until you quit Bubo."
+          }
+        }
+      }
+    },
+    "Errore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
           }
         }
       }
@@ -684,6 +774,16 @@
         }
       }
     },
+    "Gestito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Managed"
+          }
+        }
+      }
+    },
     "Hai raggiunto il limite dell'abbonamento" : {
       "localizations" : {
         "en" : {
@@ -834,6 +934,16 @@
         }
       }
     },
+    "In connessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting"
+          }
+        }
+      }
+    },
     "Installa la CLI claude, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -964,6 +1074,16 @@
         }
       }
     },
+    "Leggo la configurazione di Claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading Claude's configuration…"
+          }
+        }
+      }
+    },
     "Lo script di setup non è finito in tempo ed è stato fermato." : {
       "localizations" : {
         "en" : {
@@ -980,6 +1100,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The setup script exited with code %d."
+          }
+        }
+      }
+    },
+    "Locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local"
           }
         }
       }
@@ -1054,12 +1184,52 @@
         }
       }
     },
+    "Nessun CLAUDE.md caricato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No CLAUDE.md loaded."
+          }
+        }
+      }
+    },
+    "Nessun plugin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No plugins."
+          }
+        }
+      }
+    },
+    "Nessun server MCP." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No MCP servers."
+          }
+        }
+      }
+    },
     "Nessuna API key salvata" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No API key saved"
+          }
+        }
+      }
+    },
+    "Non funziona" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not working"
           }
         }
       }
@@ -1080,6 +1250,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't change the Open at Login setting: %@"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere la configurazione di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read Claude's configuration"
           }
         }
       }
@@ -1194,6 +1374,26 @@
         }
       }
     },
+    "Per accedere, apri claude nel Terminale, scrivi /mcp e scegli %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To sign in, open claude in Terminal, type /mcp and choose %@."
+          }
+        }
+      }
+    },
+    "Plugin · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugins · %lld"
+          }
+        }
+      }
+    },
     "Premi la combinazione…" : {
       "localizations" : {
         "en" : {
@@ -1206,16 +1406,16 @@
     },
     "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@\n\n%3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
           }
         }
       }
@@ -1226,6 +1426,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project"
+          }
+        }
+      }
+    },
+    "Progetto non fidato: Claude carica solo la tua configurazione, non quella del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untrusted Project: Claude loads only your own configuration, not the Project's."
           }
         }
       }
@@ -1460,6 +1670,16 @@
         }
       }
     },
+    "Server MCP · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MCP Servers · %lld"
+          }
+        }
+      }
+    },
     "Sessioni" : {
       "localizations" : {
         "en" : {
@@ -1502,6 +1722,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resets at %@."
+          }
+        }
+      }
+    },
+    "Skill · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skills · %lld"
           }
         }
       }
@@ -1592,6 +1822,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use an API Key…"
+          }
+        }
+      }
+    },
+    "Utente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "User"
           }
         }
       }

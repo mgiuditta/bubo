@@ -52,6 +52,11 @@ final class SessionStore {
                             bridge: bridge)
     }
 
+    /// The configuration `claude` loads in `project`, read through the Sessioni's bridge without spending Quota.
+    func configuration(of project: URL) async throws -> ClaudeConfiguration {
+        try await bridge().configuration(of: project)
+    }
+
     /// Starts a Sessione titled `title` on `project`: prepares its copy on `branch`, then asks `claude` `prompt` there.
     ///
     /// - Parameter onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.

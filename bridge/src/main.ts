@@ -1,11 +1,12 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, query, tool, type Query, type SDKAssistantMessageError, type SettingSource,
+  createSdkMcpServer, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
 import { z } from "zod";
+import { configuration, type Configuration, type Instructions } from "./config";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 
@@ -15,7 +16,8 @@ type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
-  | { v: number; type: "quota" };
+  | { v: number; type: "quota" }
+  | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -25,7 +27,8 @@ type Event =
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
   | { type: "search"; id: string; query: string; project?: string }
-  | ({ type: "quota" } & Quota);
+  | ({ type: "quota" } & Quota)
+  | ({ type: "config"; id: string } & Configuration);
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -134,6 +137,46 @@ async function quota() {
   }
 }
 
+// La configurazione che `claude` carica in `cwd`, con le stesse fonti di una Sessione lì.
+// `/context` è un comando locale: `claude` manda `init` e risponde da sé, senza turni del modello,
+// quindi costo 0. Niente server `bubo`: i conteggi restano quelli della CLI.
+async function inspect(id: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
+  const loaded: Instructions[] = [];
+  const conversation = query({
+    prompt: "/context",
+    options: {
+      cwd,
+      projectConfigRoot,
+      env: childEnv,
+      pathToClaudeCodeExecutable: claudePath,
+      settingSources: sources,
+      persistSession: false,
+      hooks: {
+        InstructionsLoaded: [{ hooks: [async (input: HookInput) => {
+          if (input.hook_event_name === "InstructionsLoaded") loaded.push({ path: input.file_path, type: input.memory_type });
+          return {};
+        }] }],
+      },
+    },
+  });
+  try {
+    for await (const message of conversation) {
+      if (message.type === "system" && message.subtype === "init") {
+        // L'hook scatta solo quando un turno costruisce il prompt: i CLAUDE.md vengono anche da getContextUsage.
+        const [servers, usage] = await Promise.all([conversation.mcpServerStatus(), conversation.getContextUsage()]);
+        const memory = usage.memoryFiles.map(({ path, type }) => ({ path, type }));
+        send({ type: "config", id, ...configuration(message, servers, [...memory, ...loaded]) });
+        return;
+      }
+    }
+    send({ type: "error", id, message: "claude non ha mandato init" });
+  } catch (error) {
+    send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+  } finally {
+    conversation.close();
+  }
+}
+
 if (!claudePath) {
   send({ type: "error", message: "BUBO_CLAUDE_PATH mancante" });
   process.exit(1);
@@ -160,6 +203,12 @@ lines.on("line", (line) => {
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env);
+      break;
+    }
+    case "config": {
+      const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
+        ? command.projectConfigRoot : undefined;
+      void inspect(command.id, command.cwd, settingSources(command.settingSources), root);
       break;
     }
     case "cancel": void running.get(command.id)?.interrupt(); break;

@@ -46,6 +46,30 @@ struct BridgeMessageTests {
         #expect(String(decoding: line, as: UTF8.self) == #"{"type":"quota","v":3}"# + "\n")
     }
 
+    @Test func inspectCarriesTheFolderAndItsSources() throws {
+        let line = try BridgeCommand.inspect(id: "c1", directory: URL(filePath: "/tmp/w"), settingSources: ["user"],
+                                             projectConfigRoot: URL(filePath: "/tmp/repo/")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/w","id":"c1","projectConfigRoot":"/tmp/repo","settingSources":["user"],"type":"config","v":3}"# + "\n")
+    }
+
+    @Test func theConfigurationDecodes() throws {
+        let line = #"""
+            {"v":3,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0"},{"name":"locale"}],
+             "pluginErrors":[{"plugin":"rotto@mercato","message":"manca base"}],
+             "mcpServers":[{"name":"db","status":"failed","source":"project","error":"Connection closed"},{"name":"linear","status":"needs-auth"}],
+             "instructions":[{"path":"/r/CLAUDE.md","type":"Project"}]}
+            """#
+        let expected = ClaudeConfiguration(
+            skills: ["prova"],
+            plugins: [.init(name: "figma", version: "1.2.0"), .init(name: "locale", version: nil)],
+            pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base")],
+            mcpServers: [.init(name: "db", status: "failed", source: "project", error: "Connection closed"),
+                         .init(name: "linear", status: "needs-auth", source: nil, error: nil)],
+            instructions: [.init(path: "/r/CLAUDE.md", type: "Project")])
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .configuration(id: "c1", expected))
+    }
+
     @Test(arguments: [
         (#"{"v":3,"type":"ready"}"#, BridgeEvent.ready),
         (#"{"v":3,"type":"text","id":"a1","text":"ci"}"#, .text(id: "a1", text: "ci")),

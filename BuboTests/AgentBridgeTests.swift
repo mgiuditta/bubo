@@ -106,6 +106,35 @@ struct AgentBridgeTests {
         #expect(quota == Quota(fiveHour: Quota.Window(used: 0.19, resetsAt: Date(timeIntervalSince1970: 1_790_852_400))))
     }
 
+    @Test func theConfigurationIsReadWithTheFoldersSources() async throws {
+        // Echoes the sources it was asked with as the only skill, so the test can read them.
+        let bridge = Self.bridge(Self.answering(#"""
+            sources=$(echo "$line" | grep -q '"type":"config"' && echo "$line" | sed 's/.*"settingSources":\(\[[^]]*\]\).*/\1/')
+            echo "{\"v\":3,\"type\":\"config\",\"id\":\"$id\",\"skills\":$sources,\"plugins\":[],\"pluginErrors\":[],\"mcpServers\":[],\"instructions\":[]}"
+            read _
+            """#))
+        let configuration = try await bridge.configuration(of: URL(filePath: "/nonexistent/progetto"))
+        #expect(configuration.skills == ["user"])
+        #expect(!configuration.loadsProject)
+    }
+
+    @Test func aFailedInspectionThrowsItsMessage() async {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":3,\"type\":\"error\",\"id\":\"$id\",\"message\":\"claude non ha mandato init\"}"
+            read _
+            """#))
+        await #expect(throws: AgentBridgeError.failed(message: "claude non ha mandato init")) {
+            try await bridge.configuration(of: URL(filePath: "/tmp"))
+        }
+    }
+
+    @Test func aBridgeThatExitsFailsThePendingInspection() async {
+        let bridge = Self.bridge("read _; exit 3")
+        await #expect(throws: AgentBridgeError.bridgeExited(status: 3)) {
+            try await bridge.configuration(of: URL(filePath: "/tmp"))
+        }
+    }
+
     @Test func aMissingExecutableFailsToSpawn() async {
         let bridge = AgentBridge(executable: URL(filePath: "/nonexistent/bubo-agent"), environment: [:]) { _, _ in "" }
         await #expect(throws: AgentBridgeError.spawnFailed(errno: ENOENT)) {
