@@ -111,9 +111,9 @@ struct SessionBoard: View {
         }
     }
 
-    /// Starts `draft`; one from an issue reads it first with `gh`, and stays with the reason when it cannot.
+    /// Starts `draft`; one from a GitHub issue reads it first with `gh`, and stays with the reason when it cannot.
     private func launch(_ draft: Draft) {
-        guard draft.issue != nil else { return store.start(draft) }
+        guard draft.issue?.source == .github else { return store.start(draft) }
         guard starting.insert(draft.id).inserted else { return }
         failures[draft.id] = nil
         Task {

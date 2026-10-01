@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Login item, Dock icon, Panel, conversations, Secondo cervello and editor.
+/// Login item, Dock icon, Panel, conversations, Secondo cervello, editor and Linear.
 struct GeneralSettingsView: View {
     @Environment(OrbPanelController.self) private var panel
     @AppStorage(DockIcon.defaultsKey) private var showsDockIcon = true
@@ -26,6 +26,7 @@ struct GeneralSettingsView: View {
             ConversationSettingsSection()
             SecondBrainSettingsSection()
             EditorSettingsSection()
+            LinearSettingsSection()
         }
         .formStyle(.grouped)
     }

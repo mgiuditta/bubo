@@ -107,6 +107,21 @@ targets:
           - $(SRCROOT)/Bubo/Terminal/TerminalLauncher.c
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-terminal
+      - name: Script di Linear
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          opener="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/bubo-linear"
+          mkdir -p "${opener:h}"
+          flags=()
+          for arch in ${=ARCHS}; do flags+=(-arch $arch); done
+          xcrun clang -O2 -Wall -Werror $flags -mmacosx-version-min="$MACOSX_DEPLOYMENT_TARGET" \
+            "$SRCROOT/Bubo/Integrations/LinearOpener.c" -o "$opener"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$opener"
+        inputFiles:
+          - $(SRCROOT)/Bubo/Integrations/LinearOpener.c
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-linear
       - name: Archivio Metal 4 delle Forme
         shell: /bin/zsh
         script: |

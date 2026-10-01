@@ -45,15 +45,15 @@ final class DraftStore {
 }
 
 extension SessionStore {
-    /// Avvia: starts `draft` as a Sessione in Aperta · Lavora, in a worktree on `bubo/<slug>` of its title, and
-    /// removes it. Nothing when its Progetto is not reachable: the Bozza stays.
+    /// Avvia: starts `draft` as a Sessione in Aperta · Lavora, in a worktree on its branch or `bubo/<slug>` of its
+    /// title, with its issue, and removes it. Nothing when its Progetto is not reachable: the Bozza stays.
     ///
     /// The trust dialog, when the Progetto is not trusted, comes before: like for ⌘N, it is the view's.
     func start(_ draft: Draft) {
         guard draft.unreachableReason == nil else { return }
         do {
-            try start(draft.prompt, title: draft.title, branch: Session.proposedBranch(for: draft.title),
-                      in: draft.project)
+            try start(draft.prompt, title: draft.title, branch: draft.branch ?? Session.proposedBranch(for: draft.title),
+                      in: draft.project, issue: draft.issue)
             drafts.remove(draft.id)
         } catch {
             // Only the checkout can be taken, and a Bozza never starts there.
