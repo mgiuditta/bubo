@@ -128,7 +128,8 @@ struct SandboxTests {
         try store.start("Scrivi i test", title: "Prova", branch: "", in: project, onCheckout: true)
         try await SessionTests.wait { store.sessions.first?.activity == .errore }
         let failed = try #require(store.sessions.first)
-        #expect(failed.failure == String(localized: "Sandbox non disponibile: profilo rifiutato. La Sessione non è partita."))
+        let reason = "profilo rifiutato"
+        #expect(failed.failure == String(localized: "Sandbox non disponibile: \(reason). La Sessione non è partita."))
         #expect(failed.unstartedPrompt == "Scrivi i test")
         #expect(try String(contentsOf: log, encoding: .utf8).contains(#""failIfUnavailable":true"#))
 
