@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Glifo della barra dei menu (proposta provvisoria, issue #228): la stessa sagoma dell'icona, monocroma, in un
+     quadrato di 18 pt. È un'immagine modello: il sistema la tinge per barre chiare e scure. Occhi e becco forati. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 18" width="18" height="18">
+  <path fill="#000" fill-rule="evenodd" d="M3.26 7.35 Q2.2 4.4 2.2 1.3 Q3.4 4.2 5.75 4.77 L9 6.3 L12.25 4.77 Q14.6 4.2 15.8 1.3 Q15.8 4.4 14.74 7.35 A6.5 6.5 0 1 1 3.26 7.35 Z M6 8 a2 2 0 1 0 0 4 a2 2 0 1 0 0 -4 Z M12 8 a2 2 0 1 0 0 4 a2 2 0 1 0 0 -4 Z M8 12.4 L10 12.4 L9 14.6 Z"/>
+</svg>
