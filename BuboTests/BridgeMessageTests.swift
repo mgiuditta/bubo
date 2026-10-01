@@ -135,6 +135,7 @@ struct BridgeMessageTests {
         (#"{"v":3,"type":"summary","id":"a1","text":"Leggo i file"}"#, .progress(id: "a1", .summary("Leggo i file"))),
         (#"{"v":3,"type":"edit","id":"a1","file":"/w/a.swift","lines":["g()"]}"#,
          .progress(id: "a1", .edit(file: "/w/a.swift", lines: ["g()"]))),
+        (#"{"v":3,"type":"ran","id":"a1"}"#, .progress(id: "a1", .ranCommand)),
         (#"{"v":3,"type":"error","id":"a1","message":"no"}"#, .error(id: "a1", message: "no")),
         (#"{"v":3,"type":"error","message":"no"}"#, .error(id: nil, message: "no")),
         (#"{"v":3,"type":"search","id":"s1","query":"ci","project":"/p"}"#, .search(id: "s1", query: "ci", project: "/p")),

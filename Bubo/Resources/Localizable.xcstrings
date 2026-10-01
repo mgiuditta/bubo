@@ -458,6 +458,16 @@
         }
       }
     },
+    "Avvia server" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start server"
+          }
+        }
+      }
+    },
     "Avvia ↩" : {
       "localizations" : {
         "en" : {
@@ -3170,6 +3180,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "MCP Servers · %lld"
+          }
+        }
+      }
+    },
+    "Server in ascolto su localhost:%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server listening on localhost:%@"
           }
         }
       }

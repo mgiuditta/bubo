@@ -210,6 +210,8 @@ struct SessionRow: View {
     /// What stops in the terminal at Archivia, while its confirmation is shown.
     @State private var archiveNotice = ""
     @State private var isConfirmingArchive = false
+    /// The servers of the Sessione's `.claude/launch.json`, for Avvia server.
+    @State private var launchServers: [LaunchConfig] = []
 
     private var isArchived: Bool { session.phase != .aperta }
 
@@ -235,6 +237,10 @@ struct SessionRow: View {
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }
+        }
+        // Read again each time the Sessione changes Attività: the agent may have written the file.
+        .task(id: session.terminalFolder == nil ? nil : session.activitySince) {
+            launchServers = session.terminalFolder.map(LaunchConfig.read(in:)) ?? []
         }
         .sheet(isPresented: $isShowingConfiguration) {
             ConfigPanel(project: session.project, read: store.configuration(of:))
@@ -288,6 +294,27 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("\(lineCounts.added) righe aggiunte, \(lineCounts.removed) tolte"))
+            }
+            if !isArchived, let server = store.servers.servers[session.id]?.first {
+                // ponytail: a clic opens the Anteprima once it exists (#149).
+                Text(verbatim: "localhost:\(String(server.port))")
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textPrimary)
+                    .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
+            } else if !isArchived, session.terminalFolder != nil, let server = launchServers.first {
+                if launchServers.count == 1 {
+                    Button("Avvia server") { launch(server) }
+                        .controlSize(.small)
+                        .help(Text(verbatim: server.commandLine ?? ""))
+                } else {
+                    Menu("Avvia server") {
+                        ForEach(launchServers, id: \.name) { server in
+                            Button(server.name) { launch(server) }
+                        }
+                    }
+                    .fixedSize()
+                    .controlSize(.small)
+                }
             }
             if let failure = session.failure, !isArchived {
                 Text(verbatim: failure)
@@ -348,6 +375,12 @@ struct SessionRow: View {
         } else {
             store.archive(session.id)
         }
+    }
+
+    /// Avvia server: the command of `server` in a new scheda of the Sessione's terminal.
+    private func launch(_ server: LaunchConfig) {
+        store.terminals.launch(server, in: session)
+        if !store.terminals.isDetached { hud.show() }
     }
 
     private func openTerminal() {

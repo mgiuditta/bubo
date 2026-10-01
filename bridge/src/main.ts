@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -34,6 +34,7 @@ type Event =
   | { type: "ready" }
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
+  | { type: "ran"; id: string }
   | (Progress & { id: string })
   | (Edit & { id: string })
   | { type: "error"; id?: string; message: string }
@@ -135,6 +136,11 @@ function buboTools() {
   });
 }
 
+// L'hook che dice a Bubo della fine di un Bash della conversazione `id`.
+function ranBash(id: string): HookCallbackMatcher {
+  return { matcher: "Bash", hooks: [async () => { send({ type: "ran", id }); return {}; }] };
+}
+
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
@@ -162,6 +168,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       forkSession: resume !== undefined,
       ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
       canUseTool: askBubo(id),
+      // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
+      // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
+      hooks: { PostToolUse: [ranBash(id)], PostToolUseFailure: [ranBash(id)] },
     },
   });
   running.set(id, conversation);
