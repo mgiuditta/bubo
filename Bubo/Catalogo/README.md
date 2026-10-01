@@ -1,6 +1,6 @@
 # Aggiungere un blocco di Varianti
 
-Il Catalogo cresce a blocchi: poche Varianti per volta, ciascuna con la sua Forma scritta a mano (ADR 0002). Per ogni Variante del blocco:
+Il Catalogo cresce a blocchi: poche Varianti per volta, ciascuna con la sua Forma scritta a mano (ADR 0002). Le prossime vengono da `docs/catalogo-elenco.json` (vedi sotto): si prende il blocco successivo, 24 voci. Per ogni Variante del blocco:
 
 1. **SDF.** In `Bubo/Orb/Orb.metal` scrivi `static float <forma>(float3 p)` (o `(float3 p, float t)` se ha un moto proprio, che gira sul tempo dello shader e Riduci movimento rallenta) nella sezione Forme e aggiungi `case N: return <forma>(q);` (`<forma>(q, t)`) allo `switch` di `forma()`, con `N` nuovo. L'SDF deve essere quasi esatto fuori dal solido (gradiente vicino a 1): l'alone legge la distanza minima del raggio e una sottostima si vede come striature. Unioni di primitive esatte, scale uniformi, niente intersezioni, sottrazioni, raccordi morbidi né deformazioni non isometriche.
 2. **Forma.** In `Bubo/Orb/Forma.swift` aggiungi il caso con lo stesso nome e `functionConstant` uguale a `N`. L'archivio Metal 4 della Release legge i `case` da solo (`scripts/metal-archive.sh`).
@@ -8,3 +8,15 @@ Il Catalogo cresce a blocchi: poche Varianti per volta, ciascuna con la sua Form
 4. **Etichetta.** In `Catalogo.xcstrings` aggiungi la chiave `nome` con il nome mostrato in italiano e in inglese.
 5. **Test verde.** `scripts/check.sh`: `CatalogoTests` verifica le regole della voce, che ogni `forma` abbia il suo SDF e il suo `case` e che ogni Variante abbia l'etichetta. `FormaTests` legge l'SDF sulla GPU (`BuboTests/FormaProbe.metal`) su una griglia e in più istanti: niente NaN, nessuna sovrastima, gradiente vicino a 1 fuori dal solido, e il passo indietro lungo il gradiente atterra sulla superficie. Aggiungi in `samples(of:)` qualche punto dentro e fuori che la silhouette deve rispettare.
 6. **Galleria.** Build Debug, menu di Bubo › Debug Orb… › Galleria. Filtra per la Categoria del blocco e controlla ogni Variante: la silhouette si legge a 64 pt in monocromo; nella vista grande l'alone è pulito, senza striature, e il Morph dal Blob e verso il Blob è fluido.
+
+## L'elenco delle Varianti previste
+
+`docs/catalogo-elenco.json` contiene l'elenco completo e **provvisorio** delle Varianti: 480 voci in 20 blocchi da 24, proposte da Claude in #377 e da rivedere dall'utente in #393. Non è `catalogo.json`: non entra nel bundle e contiene anche le Varianti che non hanno ancora la Forma. In `catalogo.json` una voce entra solo quando ha il suo SDF; da lì prende `parole` ed etichetta.
+
+Per ogni voce: `nome`, `categoria`, `gruppo` (solo per Codice, Salute e Chat), `descrizione` (quando sceglierla, scritta per il modello che sceglie), `silhouette` (l'idea della Forma a 64 pt in monocromo), `moto` (se ne ha uno) ed `esempi` (una richiesta in italiano e una in inglese, per misurare il router in #381).
+
+- **Due passaggi.** Il modello on-device sceglie prima la Categoria, poi la Variante dentro la sua rosa. Codice, Salute e Chat superano le 40 voci e sono divise in gruppi, che nel primo passaggio sono scelte a sé (18 in tutto). Ogni rosa ha al più 40 voci e 3.000 caratteri di `nome: descrizione`, circa 1.000 token: entra in un passaggio con margine.
+- **Distribuzione.** Codice ha la quota più grande (91) e il primo posto nei blocchi, ma non la metà delle voci come nel set di 200 richieste, che è per metà fatto di Sessioni per costruzione: duecento Forme di codice sarebbero sorelle. Chat è seconda (87) perché è la Categoria generica, dove cade ogni argomento fuori dalle altre undici, e oggi raccoglie quasi tutte le richieste senza Variante.
+- **Ordine dei blocchi.** Il primo blocco sono le 12 Varianti già disegnate più 12 voci scelte per il router: gli strumenti dell'agente (terminale, modifica, test, git, web) e i casi oggi senza Variante. Poi ogni Categoria avanza in proporzione alla radice quadrata della sua frequenza nel set.
+- **Regole.** Niente sorelle quasi uguali (una sola Forma per idea), niente marchi o IP. `CatalogoElencoTests` controlla conteggi, blocchi, gruppi, rose, esempi e che ogni voce di `catalogo.json` compaia qui con la stessa Categoria e descrizione.
+
