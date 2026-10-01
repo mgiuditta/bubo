@@ -154,6 +154,7 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 | Ponte | **≤ 50 MB** | `footprint` | 25 | perf.sh |
 | Totale con 10 Sessioni, configurazione vuota | **≤ 1,6 GB** (i `claude` ~1,35 GB) | `footprint` deduplicato su Bubo, ponte e `claude` | 25 | perf.sh |
 | 10 Sessioni sospese | **≤ 200 MB** in totale (Bubo + ponte, 0 `claude`) | `footprint` | 25 | perf.sh |
+| Riserva del pannello della configurazione | **230–260 MB**, un solo `claude`; mai nei primi 10 s dopo l'HUD interattivo, chiusa con la pressione di memoria ([#311](https://github.com/mgiuditta/bubo/issues/311)) | `footprint` | 25, 04 | perf.sh |
 | Sessione pesante | avviso oltre **2 GB** per `claude`, letto ogni **30 s** | `ProcessFootprintMonitor` | 25 | feature |
 | Orb | **60 fps**, tempo GPU **p95 ≤ 4 ms** | `gpuStartTime`/`gpuEndTime`, log del Metal HUD | 25, fase 1–2 | 2× |
 | Orb nascosto o coperto | **0 fotogrammi** | contatore dei fotogrammi | 25 | invariante |
@@ -183,8 +184,8 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#187](https://github.com/mgiuditta/bubo/issues/187).
 
 - Prima dell'HUD interattivo solo ciò che serve a disegnarlo: finestra, Orb, design token, impostazioni lette.
-- **Dopo** l'HUD interattivo, in background e in quest'ordine: ponte `bun`, rilevamento di `claude` (onboarding, 26), osservatori FSEvents, iscrizione a MetricKit.
-- **Nessun `claude`** finché non si apre una Sessione. Nessun Indice caricato all'avvio: si carica alla prima ricerca (regola dell'Indice).
+- **Dopo** l'HUD interattivo, in background e in quest'ordine: ponte `bun`, rilevamento di `claude` (onboarding, 26), osservatori FSEvents, iscrizione a MetricKit, attesa della riserva del pannello della configurazione.
+- **Nessun `claude`** finché non si apre una Sessione. Unica eccezione, per decisione dell'utente su [#311](https://github.com/mgiuditta/bubo/issues/311): la **riserva** del pannello della configurazione, un `claude` avviato con `prewarm()` **10 s dopo** l'HUD interattivo, solo se esiste un Progetto (mai durante l'onboarding), chiuso con la pressione di memoria. Nessun Indice caricato all'avvio: si carica alla prima ricerca (regola dell'Indice).
 - Il signpost `HUD interattivo` è un evento nel sottosistema di Bubo, categoria `pointsOfInterest`. MetricKit riceve lo stesso punto come fine dell'avvio esteso (`extendLaunchMeasurement`/`finishExtendedLaunchMeasurement`).
 
 ### Memoria e processi (deciso)
@@ -263,7 +264,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 ### Flusso
 
-1. **Avvio**: lancio → HUD e Orb → primo fotogramma → main thread libero → evento `HUD interattivo` → `LaunchSequence`: ponte, rilevamento di `claude`, FSEvents, MetricKit. Nessun `claude`.
+1. **Avvio**: lancio → HUD e Orb → primo fotogramma → main thread libero → evento `HUD interattivo` → `LaunchSequence`: ponte, rilevamento di `claude`, FSEvents, MetricKit. Nessun `claude`; la riserva del pannello della configurazione parte 10 s dopo, se esiste un Progetto.
 2. **Apertura Sessione**: intervallo `Apertura Sessione` → ponte avvia `claude` → `initialize` → `Sessione pronta`.
 3. **Inattività**: 10 minuti senza turno, Richieste o comandi in background → `SessionSuspender` chiude il `claude`. La Sessione resta Ferma.
 4. **Messaggio a Sessione sospesa**: il messaggio va in coda → `resume` → `Ripresa Sessione` → invio. L'Orb passa a Pensiero all'invio, come sempre.

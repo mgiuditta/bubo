@@ -8,6 +8,7 @@ struct LaunchSequenceTests {
     final class Steps {
         var names: [String] = []
         var metricsSubscriptions = 0
+        var spareStarts = 0
         /// Resumed when the Indice's step runs, which happens in a task of its own.
         var indexStarted: CheckedContinuation<Void, Never>?
     }
@@ -24,6 +25,8 @@ struct LaunchSequenceTests {
             steps.indexStarted?.resume()
         } subscribeToMetrics: {
             steps.metricsSubscriptions += 1
+        } startConfigurationSpare: {
+            steps.spareStarts += 1
         } keepCLIHistoryFresh: {
         }
     }
@@ -63,6 +66,17 @@ struct LaunchSequenceTests {
 
         #expect(steps.metricsSubscriptions == 1)
         #expect(steps.names.starts(with: ["ponte", "claude"]))
+    }
+
+    // Spec 25: the configuration panel's spare waits for the launch, then its own delay.
+    @Test func theConfigurationSpareStartsWithTheSequence() async {
+        let steps = Steps()
+        let sequence = Self.sequence(steps, isOnboarding: false)
+
+        await sequence.run()
+        await sequence.run()
+
+        #expect(steps.spareStarts == 1)
     }
 
     // Later appearances of the HUD are not launches.

@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, query, tool, type HookInput, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type Options, prewarm, query, tool, type HookInput, type Query, type SandboxSettings, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -14,8 +14,9 @@ import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServ
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { settingSources } from "./settingSources";
-import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
+import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore } from "./store";
+import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
@@ -27,6 +28,8 @@ type Command =
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
   | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
+  | { v: number; type: "warm"; settingSources?: unknown; projectConfigRoot?: unknown }
+  | { v: number; type: "cool" }
   | { v: number; type: "history"; id: string; all?: unknown }
   | { v: number; type: "transcript"; id: string; conversation: string }
   | { v: number; type: "keep"; id: string }
@@ -339,44 +342,85 @@ async function quota() {
 // La configurazione che `claude` carica in `cwd`, con le stesse fonti di una Sessione lì.
 // `/context` è un comando locale: `claude` manda `init` e risponde da sé, senza turni del modello,
 // quindi costo 0. Niente server `bubo`: i conteggi restano quelli della CLI.
+// Con un `claude` di riserva per le stesse fonti (`warm`) `init` arriva senza l'avvio della CLI (#311);
+// se la riserva non c'è o rifiuta la cartella, si parte a freddo come prima.
 async function inspect(id: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
-  const loaded: Instructions[] = [];
-  const conversation = query({
-    prompt: "/context",
-    options: {
-      cwd,
-      projectConfigRoot,
-      env: childEnv,
-      pathToClaudeCodeExecutable: claudePath,
-      settingSources: sources,
-      persistSession: false,
-      hooks: {
-        InstructionsLoaded: [{ hooks: [async (input: HookInput) => {
-          if (input.hook_event_name === "InstructionsLoaded") loaded.push({ path: input.file_path, type: input.memory_type });
-          return {};
-        }] }],
-      },
-    },
-  });
   try {
-    for await (const message of conversation) {
-      if (message.type === "system" && message.subtype === "init") {
-        // L'hook scatta solo quando un turno costruisce il prompt: i CLAUDE.md vengono anche da getContextUsage.
-        // Anche gli agenti si leggono qui: `supportedAgents()` vuole una query inizializzata, e questa non costa.
-        const [servers, usage, agents] = await Promise.all([
-          conversation.mcpServerStatus(), conversation.getContextUsage(), conversation.supportedAgents(),
-        ]);
-        const memory = usage.memoryFiles.map(({ path, type }) => ({ path, type }));
-        send({ type: "config", id, ...configuration(message, servers, [...memory, ...loaded], agents) });
-        return;
-      }
-    }
-    send({ type: "error", id, message: "claude non ha mandato init" });
+    const found = await fromSpare(cwd, { sources, projectConfigRoot }) ?? await fromCold(cwd, sources, projectConfigRoot);
+    send(found ? { type: "config", id, ...found } : { type: "error", id, message: "claude non ha mandato init" });
   } catch (error) {
     send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
+  }
+}
+
+// Le opzioni che `inspect` fissa all'avvio di `claude`; i CLAUDE.md caricati finiscono in `loaded`.
+function inspectOptions(sources: SettingSource[], projectConfigRoot: string | undefined, loaded: Instructions[]): Options {
+  return {
+    projectConfigRoot,
+    env: childEnv,
+    pathToClaudeCodeExecutable: claudePath,
+    settingSources: sources,
+    persistSession: false,
+    hooks: {
+      InstructionsLoaded: [{ hooks: [async (input: HookInput) => {
+        if (input.hook_event_name === "InstructionsLoaded") loaded.push({ path: input.file_path, type: input.memory_type });
+        return {};
+      }] }],
+    },
+  };
+}
+
+// Il `claude` di riserva del pannello: al massimo uno, avviato e chiuso solo su richiesta di Bubo.
+type ConfigSpare = { spare: SpareProcess; loaded: Instructions[]; close(): void };
+const spares = new SpareSlot<ConfigSpare>(async ({ sources, projectConfigRoot }) => {
+  const loaded: Instructions[] = [];
+  const spare = await prewarm({ options: inspectOptions(sources, projectConfigRoot, loaded) });
+  return { spare, loaded, close: () => spare.close() };
+});
+
+async function fromSpare(cwd: string, key: SpareKey) {
+  const warm = await spares.take(key);
+  if (!warm) return undefined;
+  try {
+    const conversation = warm.spare.claim({ prompt: "/context", options: { cwd } });
+    warm.spare.claimed.catch(() => {});
+    return await readConfiguration(conversation, warm.loaded, warm.spare.claimed);
+  } catch (error) {
+    // Cartella rifiutata (impostazioni del Progetto, cartella mancante) o riserva morta: si riparte a freddo.
+    console.error("Claude di riserva non usato:", error instanceof Error ? error.message : error);
+    return undefined;
+  } finally {
+    warm.close();
+  }
+}
+
+async function fromCold(cwd: string, sources: SettingSource[], projectConfigRoot?: string) {
+  const loaded: Instructions[] = [];
+  const conversation = query({ prompt: "/context", options: { cwd, ...inspectOptions(sources, projectConfigRoot, loaded) } });
+  try {
+    return await readConfiguration(conversation, loaded);
   } finally {
     conversation.close();
   }
+}
+
+// La configurazione da `init`, solo dopo che la riserva ha accettato la cartella (`claimed`): prima, `init`
+// descriverebbe la cartella di parcheggio. `undefined` se `claude` finisce senza `init`.
+async function readConfiguration(conversation: Query, loaded: Instructions[], claimed?: Promise<unknown>) {
+  for await (const message of conversation) {
+    if (message.type === "system" && message.subtype === "init") {
+      await claimed;
+      // L'hook scatta solo quando un turno costruisce il prompt: i CLAUDE.md vengono anche da getContextUsage.
+      // `summary`: senza le chiamate di conteggio dei token di `full`, bastano percorsi e tipi.
+      // Anche gli agenti si leggono qui: `supportedAgents()` vuole una query inizializzata, e questa non costa.
+      const [servers, usage, agents] = await Promise.all([
+        conversation.mcpServerStatus(), conversation.getContextUsage({ detail: "summary" }), conversation.supportedAgents(),
+      ]);
+      const memory = usage.memoryFiles.map(({ path, type }) => ({ path, type }));
+      return configuration(message, servers, [...memory, ...loaded], agents);
+    }
+  }
+  return undefined;
 }
 
 // La Cronologia CLI come `/resume` della CLI: solo le conversazioni interattive, le più recenti prima.
@@ -439,6 +483,13 @@ lines.on("line", (line) => {
       void inspect(command.id, command.cwd, settingSources(command.settingSources), root);
       break;
     }
+    case "warm": {
+      const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")
+        ? command.projectConfigRoot : undefined;
+      spares.warm({ sources: settingSources(command.settingSources), projectConfigRoot: root });
+      break;
+    }
+    case "cool": spares.cool(); break;
     case "history": void history(command.id, command.all === true); break;
     case "transcript": void transcript(command.id, command.conversation); break;
     case "keep": void keepHistory(command.id); break;

@@ -83,6 +83,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await searchIndex?.keepFresh()
         } subscribeToMetrics: {
             MetricsCollector.shared.subscribe()
+        } startConfigurationSpare: { [weak self] in
+            self?.sessions?.configurationSpare.startAfterLaunch()
         } keepCLIHistoryFresh: { [weak self] in
             await self?.sessions?.keepCLIHistoryFresh()
         }

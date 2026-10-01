@@ -149,17 +149,37 @@ final class AgentBridge {
     ///
     /// Same settings as `ask(_:in:model:environment:forkingFrom:)`: the Progetto's own only if trusted, from the main checkout
     /// in a worktree. `claude` runs a local command, so no turn of the model and no Quota spent.
+    /// A `claude` kept ready by ``warmConfiguration(for:)`` for the same settings answers in place of a new one.
     func configuration(of directory: URL) async throws -> ClaudeConfiguration {
         let id = UUID().uuidString
         let settingSources = trustGate.settingSources(for: directory)
         let command = BridgeCommand.inspect(id: id, directory: directory, settingSources: settingSources,
-                                            projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
-                                                .map { URL(filePath: $0, directoryHint: .isDirectory) })
+                                            projectConfigRoot: Self.projectConfigRoot(of: directory))
         guard case var .configuration(_, configuration) = try await request(command, id: id) else {
             throw AgentBridgeError.failed(message: "unexpected event")
         }
         configuration.loadsProject = settingSources.contains("project")
         return configuration
+    }
+
+    /// Has the bridge keep one `claude` ready with the settings of `directory`, so that the next
+    /// ``configuration(of:)`` with the same settings skips the start of the CLI (#311).
+    ///
+    /// `claude` only starts, with no turn of the model; it serves one ``configuration(of:)`` and then is gone.
+    func warmConfiguration(for directory: URL) throws {
+        let command = BridgeCommand.warmConfiguration(settingSources: trustGate.settingSources(for: directory),
+                                                      projectConfigRoot: Self.projectConfigRoot(of: directory))
+        try runningProcess().input.write(contentsOf: command.line())
+    }
+
+    /// Closes the `claude` kept ready by ``warmConfiguration(for:)``; with no bridge running, there is none.
+    func coolConfiguration() throws {
+        try process?.input.write(contentsOf: BridgeCommand.coolConfiguration.line())
+    }
+
+    /// Where `claude` reads the Progetto's settings for `directory`: the main checkout when it is a worktree.
+    private static func projectConfigRoot(of directory: URL) -> URL? {
+        TrustGate.mainCheckout(ofWorktree: directory).map { URL(filePath: $0, directoryHint: .isDirectory) }
     }
 
     /// The Cronologia CLI, most recent first, as the SDK lists it: only what the user ran in a terminal.
