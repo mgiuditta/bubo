@@ -164,6 +164,16 @@
         }
       }
     },
+    "Branch" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch"
+          }
+        }
+      }
+    },
     "Bubo" : {
       "localizations" : {
         "en" : {
@@ -200,6 +210,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo uses the claude CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Cambia…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change…"
           }
         }
       }
@@ -270,6 +290,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code not found"
+          }
+        }
+      }
+    },
+    "Claude Code non trovato: installa la CLI claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code not found: install the claude CLI."
           }
         }
       }
@@ -350,6 +380,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checking your account…"
+          }
+        }
+      }
+    },
+    "Cosa deve fare Claude?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "Crea" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create"
           }
         }
       }
@@ -560,6 +610,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The connection to Claude stopped"
+          }
+        }
+      }
+    },
+    "Il collegamento con Claude si è interrotto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection to Claude was lost."
           }
         }
       }
@@ -804,6 +864,16 @@
         }
       }
     },
+    "Nuova Sessione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session…"
+          }
+        }
+      }
+    },
     "Orb" : {
       "localizations" : {
         "en" : {
@@ -870,6 +940,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Press the key combination…"
+          }
+        }
+      }
+    },
+    "Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project"
           }
         }
       }
@@ -984,6 +1064,16 @@
         }
       }
     },
+    "Scegli cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Folder…"
+          }
+        }
+      }
+    },
     "Scorciatoie" : {
       "localizations" : {
         "en" : {
@@ -1024,6 +1114,16 @@
         }
       }
     },
+    "Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        }
+      }
+    },
     "Settimana" : {
       "localizations" : {
         "en" : {
@@ -1060,6 +1160,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Do you trust this folder?"
+          }
+        }
+      }
+    },
+    "Titolo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Title"
           }
         }
       }
@@ -1140,6 +1250,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "apiKeyHelper"
+          }
+        }
+      }
+    },
+    "attivita.errore" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Errore"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        }
+      }
+    },
+    "attivita.ferma" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ferma"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopped"
+          }
+        }
+      }
+    },
+    "attivita.lavora" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lavora"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working"
           }
         }
       }

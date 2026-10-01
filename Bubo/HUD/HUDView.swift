@@ -6,8 +6,33 @@ struct HUDView: View {
     @Environment(\.openWindow) private var openWindow
     /// The Domanda under the Orb.
     let questions: QuestionModel
+    /// The Sessioni of the Colonna; `nil` when they cannot be kept.
+    let sessions: SessionStore?
 
     var body: some View {
+        @Bindable var hud = hud
+        HStack(alignment: .top, spacing: Spacing.large) {
+            if let sessions, !sessions.sessions.isEmpty {
+                SessionColumn(sessions: sessions.sessions)
+                    .padding(.vertical, Spacing.medium)
+            }
+            main
+        }
+        .padding(.horizontal, Spacing.large)
+        .frame(minWidth: 720, minHeight: 560)
+        .background { HUDBackground() }
+        .foregroundStyle(Palette.textPrimary)
+        .sheet(isPresented: $hud.isCreatingSession) {
+            if let sessions { NewSessionSheet(store: sessions) }
+        }
+        .onAppear { hud.openWindow = openWindow }
+        // Runs after the first appearance, once the main thread is free again.
+        .task { Signposts.markHUDInteractive() }
+        // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
+        .task { await questions.refreshQuota() }
+    }
+
+    private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
@@ -21,20 +46,11 @@ struct HUDView: View {
                 .frame(maxWidth: 560)
             Spacer(minLength: Spacing.large)
         }
-        .padding(.horizontal, Spacing.large)
         .padding(.vertical, Spacing.medium)
-        .frame(minWidth: 720, minHeight: 560)
-        .background { HUDBackground() }
-        .foregroundStyle(Palette.textPrimary)
-        .onAppear { hud.openWindow = openWindow }
-        // Runs after the first appearance, once the main thread is free again.
-        .task { Signposts.markHUDInteractive() }
-        // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
-        .task { await questions.refreshQuota() }
     }
 }
 
 #Preview {
-    HUDView(questions: QuestionModel())
+    HUDView(questions: QuestionModel(), sessions: nil)
         .environment(HUDPresenter())
 }
