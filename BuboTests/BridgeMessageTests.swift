@@ -176,7 +176,7 @@ struct BridgeMessageTests {
             CLIConversation.Message(isFromUser: true, text: "Ciao"), CLIConversation.Message(isFromUser: false, text: "Eccomi"),
         ]))
         let dated = #"""
-            {"v":3,"type":"transcript","id":"t1","messages":[{"id":"m1","role":"user","text":"Ciao","date":1790846145117}]}
+            {"v":4,"type":"transcript","id":"t1","messages":[{"id":"m1","role":"user","text":"Ciao","date":1790846145117}]}
             """#
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(dated.utf8)) == .transcript(id: "t1", [
             CLIConversation.Message(id: "m1", isFromUser: true, text: "Ciao", date: Date(timeIntervalSince1970: 1_790_846_145.117)),

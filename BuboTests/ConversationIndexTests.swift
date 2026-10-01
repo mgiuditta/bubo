@@ -70,7 +70,7 @@ struct ConversationIndexTests {
             id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
             conversation=$(echo "$line" | sed -n 's/.*"conversation":"\([^"]*\)".*/\1/p')
             echo "$line" | grep -q '"all":true' || continue
-            echo "{\"v\":3,\"type\":\"transcript\",\"id\":\"$id\",\"messages\":[{\"id\":\"m1\",\"role\":\"user\",\"text\":\"In $conversation il gatto si chiama Briciola\"}]}"
+            echo "{\"v\":4,\"type\":\"transcript\",\"id\":\"$id\",\"messages\":[{\"id\":\"m1\",\"role\":\"user\",\"text\":\"In $conversation il gatto si chiama Briciola\"}]}"
         done
         """#
 
