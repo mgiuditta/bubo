@@ -65,11 +65,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
     }
 
-    /// `bubo://draft` links, also with Bubo closed: each valid one becomes a Bozza, or leads to the one its issue already
-    /// has; then the HUD shows the Board. A link never starts a Sessione: anyone can write one.
+    /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
+    /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. A link never starts a
+    /// Sessione: anyone can write one.
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let sessions else { return }
         for url in urls {
+            if let link = LinearLink(url) {
+                receive(link, in: sessions)
+                continue
+            }
             guard let link = DraftLink(url) else {
                 Logger.sessions.error("Link not valid: \(url.absoluteString, privacy: .private)")
                 continue
@@ -77,6 +82,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             sessions.receive(link)
         }
         hud.showDrafts()
+    }
+
+    /// A Linear issue: a Bozza on the Progetto of the folder chosen in Linear, else on the one chosen before for its
+    /// team; else Bubo asks for the folder and remembers it for the team. Annulla makes no Bozza.
+    private func receive(_ link: LinearLink, in sessions: SessionStore) {
+        if let project = sessions.project(for: link) {
+            sessions.receive(link, in: project)
+            return
+        }
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.directoryURL = link.workDirectory
+        panel.message = String(localized: "In quale Progetto lavori sulle issue \(link.team) di Linear? Bubo lo ricorderà.")
+        panel.prompt = String(localized: "Usa questo Progetto")
+        NSApp.activate()
+        guard panel.runModal() == .OK, let project = panel.url else { return }
+        sessions.remember(project, forTeamOf: link)
+        sessions.receive(link, in: project)
     }
 
     /// ⌃`: shows or hides the terminal of the current Sessione, in the HUD unless it was detached.

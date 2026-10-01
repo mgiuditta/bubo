@@ -58,7 +58,8 @@ grep -rn --include='*.swift' '\bProgressView\b' Bubo | grep -v '^Bubo/Design/Loa
     while IFS= read -r line; do fail "ProgressView fuori da LoadingLabel: $line"; done
 
 # 5. Nessuna durata o curva di animazione scritta a mano fuori dai token di Design/Motion.
-pattern='\.(easeIn|easeOut|easeInOut|linear|spring|interpolatingSpring|bouncy|snappy|smooth|timingCurve)\b|\b(duration|response|dampingFraction|bounce|blendDuration|delay)[[:space:]]*[:=][[:space:]]*[0-9.]'
+# .linear solo come curva ((.linear), .linear, value:, .linear(duration:)): è anche la fonte Linear delle issue.
+pattern='\.(easeIn|easeOut|easeInOut|spring|interpolatingSpring|bouncy|snappy|smooth|timingCurve)\b|\.linear([[:space:]]*\)|[[:space:]]*,[[:space:]]*value:|\(duration)|\b(duration|response|dampingFraction|bounce|blendDuration|delay)[[:space:]]*[:=][[:space:]]*[0-9.]'
 grep -rnE --include='*.swift' $pattern Bubo | grep -v '^Bubo/Design/' |
     while IFS= read -r line; do fail "animazione fuori da Design/Motion: $line"; done
 

@@ -91,6 +91,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
         if let issue, issue.source == .github, let number = Int(issue.id) {
             return IssueLink.branch(forIssue: number, titled: title)
         }
+        // From Linear the branch keeps the identifier, which links the PR to the issue.
+        if let issue, issue.source == .linear { return Self.proposedBranch(for: "\(issue.id) \(title)") }
         return Self.proposedBranch(for: title)
     }
 

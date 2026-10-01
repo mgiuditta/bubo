@@ -165,7 +165,7 @@ struct DraftLinkTests {
     }
 
     @Test func theBoardFiltersBySource() {
-        #expect(BoardSource.allCases == [.manual, .issue(.github)])
+        #expect(BoardSource.allCases == [.manual, .issue(.github), .issue(.linear)])
         #expect(BoardSource.manual.contains(nil))
         #expect(!BoardSource.manual.contains(.github(42)))
         #expect(BoardSource.issue(.github).contains(.github(42)))
