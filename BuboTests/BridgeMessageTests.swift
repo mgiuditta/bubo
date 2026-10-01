@@ -158,18 +158,21 @@ struct BridgeMessageTests {
 
     @Test func theConfigurationDecodes() throws {
         let line = #"""
-            {"v":3,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0"},{"name":"locale"}],
+            {"v":3,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0","path":"/p/figma"},{"name":"locale"}],
              "pluginErrors":[{"plugin":"rotto@mercato","message":"manca base"}],
              "mcpServers":[{"name":"db","status":"failed","source":"project","error":"Connection closed"},{"name":"linear","status":"needs-auth"}],
-             "instructions":[{"path":"/r/CLAUDE.md","type":"Project"}]}
+             "instructions":[{"path":"/r/CLAUDE.md","type":"Project"}],
+             "agents":[{"name":"Explore","description":"Cerca","model":"haiku"},{"name":"revisore","description":"Rivede"}]}
             """#
         let expected = ClaudeConfiguration(
             skills: ["prova"],
-            plugins: [.init(name: "figma", version: "1.2.0"), .init(name: "locale", version: nil)],
+            plugins: [.init(name: "figma", version: "1.2.0", path: "/p/figma"), .init(name: "locale", version: nil)],
             pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base")],
             mcpServers: [.init(name: "db", status: "failed", source: "project", error: "Connection closed"),
                          .init(name: "linear", status: "needs-auth", source: nil, error: nil)],
-            instructions: [.init(path: "/r/CLAUDE.md", type: "Project")])
+            instructions: [.init(path: "/r/CLAUDE.md", type: "Project")],
+            agents: [.init(name: "Explore", description: "Cerca", model: "haiku"),
+                     .init(name: "revisore", description: "Rivede", model: nil)])
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .configuration(id: "c1", expected))
     }
 

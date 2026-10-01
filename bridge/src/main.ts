@@ -337,9 +337,12 @@ async function inspect(id: string, cwd: string, sources: SettingSource[], projec
     for await (const message of conversation) {
       if (message.type === "system" && message.subtype === "init") {
         // L'hook scatta solo quando un turno costruisce il prompt: i CLAUDE.md vengono anche da getContextUsage.
-        const [servers, usage] = await Promise.all([conversation.mcpServerStatus(), conversation.getContextUsage()]);
+        // Anche gli agenti si leggono qui: `supportedAgents()` vuole una query inizializzata, e questa non costa.
+        const [servers, usage, agents] = await Promise.all([
+          conversation.mcpServerStatus(), conversation.getContextUsage(), conversation.supportedAgents(),
+        ]);
         const memory = usage.memoryFiles.map(({ path, type }) => ({ path, type }));
-        send({ type: "config", id, ...configuration(message, servers, [...memory, ...loaded]) });
+        send({ type: "config", id, ...configuration(message, servers, [...memory, ...loaded], agents) });
         return;
       }
     }

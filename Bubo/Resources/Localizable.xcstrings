@@ -278,6 +278,16 @@
         }
       }
     },
+    "Agenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agents"
+          }
+        }
+      }
+    },
     "Aggiungila in Impostazioni › Account, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -344,6 +354,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preview · %@"
+          }
+        }
+      }
+    },
+    "Apre %@ in %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Apre %1$@ in %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens %1$@ in %2$@"
           }
         }
       }
@@ -802,6 +828,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo always stays in the menu bar."
+          }
+        }
+      }
+    },
+    "Bubo scrive solo nome e descrizione, poi apre il file nel tuo editor: il resto lo scrivi tu." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo writes only the name and description, then opens the file in your editor: you write the rest."
           }
         }
       }
@@ -1276,6 +1312,16 @@
         }
       }
     },
+    "Coperto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Covered"
+          }
+        }
+      }
+    },
     "Cosa deve fare Claude?" : {
       "localizations" : {
         "en" : {
@@ -1292,6 +1338,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Create"
+          }
+        }
+      }
+    },
+    "Crea e apri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create and Open"
+          }
+        }
+      }
+    },
+    "Crea il primo con Nuovo agente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create the first one with New Agent."
           }
         }
       }
@@ -1356,6 +1422,16 @@
         }
       }
     },
+    "Descrizione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Description"
+          }
+        }
+      }
+    },
     "Desktop" : {
       "localizations" : {
         "en" : {
@@ -1392,6 +1468,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Questions and sessions are billed per use to your API key until you quit Bubo."
+          }
+        }
+      }
+    },
+    "Dove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where"
           }
         }
       }
@@ -2038,6 +2124,16 @@
         }
       }
     },
+    "Il file %@ c'è già." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file %@ already exists."
+          }
+        }
+      }
+    },
     "Il file è troppo grande per il visore." : {
       "localizations" : {
         "en" : {
@@ -2104,6 +2200,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connecting"
+          }
+        }
+      }
+    },
+    "Incorporati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in"
+          }
+        }
+      }
+    },
+    "Incorporato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in"
           }
         }
       }
@@ -2274,6 +2390,16 @@
         }
       }
     },
+    "La cartella %@ è nuova: le Sessioni al lavoro adesso la vedranno dal prossimo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The folder %@ is new: Sessions working now will see it from their next turn."
+          }
+        }
+      }
+    },
     "La chiave resta nel Portachiavi di questo Mac e non va su iCloud. Bubo non la usa mai da solo: si paga a consumo." : {
       "localizations" : {
         "en" : {
@@ -2360,12 +2486,38 @@
         }
       }
     },
+    "Le descrizioni degli agenti sono circa %@ token: oltre %@ claude avvisa all'avvio. Accorciale o togli gli agenti che non usi." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Le descrizioni degli agenti sono circa %1$@ token: oltre %2$@ claude avvisa all'avvio. Accorciale o togli gli agenti che non usi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agents' descriptions are about %1$@ tokens: above %2$@, claude warns at startup. Shorten them or remove the agents you don't use."
+          }
+        }
+      }
+    },
     "Leggi" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Read"
+          }
+        }
+      }
+    },
+    "Leggo gli agenti…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the agents…"
           }
         }
       }
@@ -2526,6 +2678,16 @@
         }
       }
     },
+    "Modello %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model %@"
+          }
+        }
+      }
+    },
     "Modifica" : {
       "localizations" : {
         "en" : {
@@ -2636,6 +2798,16 @@
         }
       }
     },
+    "Mostro gli agenti del Progetto, i tuoi e quelli dei plugin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I'll show the Project's agents, yours, and those of your plugins."
+          }
+        }
+      }
+    },
     "Nasconde il terminale; le shell restano aperte" : {
       "localizations" : {
         "en" : {
@@ -2702,6 +2874,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No CLAUDE.md loaded."
+          }
+        }
+      }
+    },
+    "Nessun agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Agents"
           }
         }
       }
@@ -2826,6 +3008,36 @@
         }
       }
     },
+    "Nome" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "Non caricato da claude: controlla il frontmatter del file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not loaded by claude: check the file's frontmatter."
+          }
+        }
+      }
+    },
+    "Non caricato: il Progetto non è fidato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not loaded: the Project isn't trusted."
+          }
+        }
+      }
+    },
     "Non funziona" : {
       "localizations" : {
         "en" : {
@@ -2882,6 +3094,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't delete the copies of the command-line conversations."
+          }
+        }
+      }
+    },
+    "Non riesco a chiedere a claude quali agenti carica: mostro solo i file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can't ask claude which agents it loads: showing only the files."
           }
         }
       }
@@ -3126,6 +3348,26 @@
         }
       }
     },
+    "Nuovo agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Agent"
+          }
+        }
+      }
+    },
+    "Nuovo agente…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Agent…"
+          }
+        }
+      }
+    },
     "Ogni chiamata allo strumento %@." : {
       "localizations" : {
         "en" : {
@@ -3256,6 +3498,26 @@
         }
       }
     },
+    "Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugins"
+          }
+        }
+      }
+    },
+    "Plugin %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plugin %@"
+          }
+        }
+      }
+    },
     "Plugin · %lld" : {
       "localizations" : {
         "en" : {
@@ -3322,12 +3584,32 @@
         }
       }
     },
+    "Progetto non fidato: claude non carica i suoi agenti." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Untrusted Project: claude doesn't load its agents."
+          }
+        }
+      }
+    },
     "Progetto, condivisa" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project, shared"
+          }
+        }
+      }
+    },
+    "Quando Claude deve usarlo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When Claude should use it"
           }
         }
       }
@@ -3818,6 +4100,16 @@
         }
       }
     },
+    "Scegli la cartella di un Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Project Folder"
+          }
+        }
+      }
+    },
     "Scegli la cartella di un Progetto con un remoto su GitHub." : {
       "localizations" : {
         "en" : {
@@ -3854,6 +4146,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setup script not run: the project isn't trusted."
+          }
+        }
+      }
+    },
+    "Scrivi un nome." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a name."
+          }
+        }
+      }
+    },
+    "Scrivi una descrizione: dice a Claude quando usare l'agente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter a description: it tells Claude when to use the agent."
           }
         }
       }
@@ -3914,6 +4226,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No isolated copy: changes go straight into the Project's folder."
+          }
+        }
+      }
+    },
+    "Senza regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No rule"
           }
         }
       }
@@ -4114,6 +4436,16 @@
         }
       }
     },
+    "Stesso nome nella stessa cartella: claude ne carica uno secondo l'ordine di lettura, senza una regola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same name in the same folder: claude loads one by the order it reads them, with no rule."
+          }
+        }
+      }
+    },
     "Stima a listino di Claude Code, calcolata sul Mac: non è una fattura." : {
       "localizations" : {
         "en" : {
@@ -4130,6 +4462,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Strip"
+          }
+        }
+      }
+    },
+    "Strumenti: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tools: %@"
           }
         }
       }
@@ -4244,12 +4586,32 @@
         }
       }
     },
+    "Tutti gli strumenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All tools"
+          }
+        }
+      }
+    },
     "Tutti i Progetti" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Projects"
+          }
+        }
+      }
+    },
+    "Un agente con questo nome c'è già: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An agent with this name already exists: %@"
           }
         }
       }
@@ -4296,6 +4658,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Use API Key…"
+          }
+        }
+      }
+    },
+    "Usa solo lettere minuscole, cifre e trattini, senza iniziare con un trattino." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use only lowercase letters, digits, and hyphens, not starting with a hyphen."
           }
         }
       }
@@ -4376,6 +4748,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This deletes the isolated copy and the branch %@. These changes will be lost:"
+          }
+        }
+      }
+    },
+    "Vince" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wins"
           }
         }
       }

@@ -56,6 +56,12 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == "⇧⌘P")
     }
 
+    @Test func agentiIsInTheWindowMenuWithoutAShortcut() throws {
+        let windowMenu = try #require(NSApp.windowsMenu)
+        let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Agenti") })
+        #expect(Self.shortcut(of: item) == nil)
+    }
+
     @Test func aRepeatedShortcutIsFound() {
         let menu = NSMenu()
         menu.addItem(withTitle: "Uno", action: nil, keyEquivalent: "k")
