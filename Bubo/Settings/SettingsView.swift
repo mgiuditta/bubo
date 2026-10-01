@@ -17,6 +17,9 @@ struct SettingsView: View {
             Tab("Scorciatoie", systemImage: "keyboard") {
                 ShortcutSettingsView()
             }
+            Tab("Diagnostica", systemImage: "stethoscope") {
+                DiagnosticsView()
+            }
         }
         .frame(width: 480)
         .scenePadding()

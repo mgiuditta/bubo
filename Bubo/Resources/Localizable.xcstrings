@@ -158,6 +158,22 @@
         }
       }
     },
+    "%lld, %@ in tutto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld, %2$@ in all"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld, %2$@ in tutto"
+          }
+        }
+      }
+    },
     "%lld/%lld blocchi" : {
       "localizations" : {
         "en" : {
@@ -686,6 +702,16 @@
         }
       }
     },
+    "Avvio medio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Average launch"
+          }
+        }
+      }
+    },
     "Avviso" : {
       "localizations" : {
         "en" : {
@@ -742,6 +768,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Blocks"
+          }
+        }
+      }
+    },
+    "Blocchi dell'app" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App hangs"
           }
         }
       }
@@ -1538,6 +1574,16 @@
         }
       }
     },
+    "Diagnostica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diagnostics"
+          }
+        }
+      }
+    },
     "Disattivato" : {
       "localizations" : {
         "en" : {
@@ -2140,6 +2186,16 @@
         }
       }
     },
+    "I report restano su questo Mac per 30 giorni: Bubo non li invia a nessuno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reports stay on this Mac for 30 days. Bubo never sends them anywhere."
+          }
+        }
+      }
+    },
     "Ignora" : {
       "localizations" : {
         "en" : {
@@ -2688,6 +2744,16 @@
         }
       }
     },
+    "Leggo i report…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading reports…"
+          }
+        }
+      }
+    },
     "Leggo l'issue…" : {
       "localizations" : {
         "en" : {
@@ -2800,6 +2866,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The claude CLI is missing."
+          }
+        }
+      }
+    },
+    "Memoria di picco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peak memory"
           }
         }
       }
@@ -2960,6 +3036,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Icon in Dock"
+          }
+        }
+      }
+    },
+    "Mostra nel Finder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in Finder"
           }
         }
       }
@@ -3144,6 +3230,16 @@
         }
       }
     },
+    "Nessun report ancora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No reports yet"
+          }
+        }
+      }
+    },
     "Nessun server MCP." : {
       "localizations" : {
         "en" : {
@@ -3214,6 +3310,16 @@
         }
       }
     },
+    "Nessuno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None"
+          }
+        }
+      }
+    },
     "No" : {
       "localizations" : {
         "en" : {
@@ -3270,6 +3376,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not working"
+          }
+        }
+      }
+    },
+    "Non misurata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not measured"
+          }
+        }
+      }
+    },
+    "Non misurati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not measured"
+          }
+        }
+      }
+    },
+    "Non misurato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not measured"
           }
         }
       }
@@ -4386,6 +4522,16 @@
         }
       }
     },
+    "Scatti nelle animazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Animation hitches"
+          }
+        }
+      }
+    },
     "Scegli cartella…" : {
       "localizations" : {
         "en" : {
@@ -4908,6 +5054,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last commit by %@"
+          }
+        }
+      }
+    },
+    "Ultimo giorno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest day"
+          }
+        }
+      }
+    },
+    "Ultimo giorno: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest day: %@"
           }
         }
       }
@@ -5463,6 +5629,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · f focus · s side by side · ⌘↩ merge or send back to agent"
+          }
+        }
+      }
+    },
+    "macOS li consegna al massimo una volta al giorno, e a volte per niente." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS delivers them at most once a day, and sometimes not at all."
           }
         }
       }

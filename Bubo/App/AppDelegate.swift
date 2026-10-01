@@ -38,6 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
     func applicationWillFinishLaunching(_ notification: Notification) {
+        // Before the first frame, or MetricKit refuses to extend the launch.
+        MetricsCollector.shared.extendLaunch()
         FontRegistry.registerBundledFonts()
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
         notifier.start()
