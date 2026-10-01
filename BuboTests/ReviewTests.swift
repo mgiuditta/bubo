@@ -172,9 +172,12 @@ struct ReviewTests {
         session.apply(.summary("Aggiungo un commento"))
         session.apply(.edit(file: "/w/Sources/Router.swift", lines: ["// fine"]))
         let review = Review(files: ChangedFile.files(in: Self.diff))
+        for id in review.hunkIDs { session.decisions[id] = .accepted }
 
         #expect(review.mergeMessage(for: session) == "Router più chiaro\n\n- Rinomino b\n- Aggiungo un commento")
         #expect(Review().mergeMessage(for: session) == "Router più chiaro")
+        for id in review.hunkIDs { session.decisions[id] = .rejected(note: nil) }
+        #expect(review.mergeMessage(for: session) == "Router più chiaro")
     }
 
     @Test func theFeedbackHasTheRejectedBlocchiWithTheirNotes() {

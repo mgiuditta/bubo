@@ -95,17 +95,18 @@ nonisolated struct WorktreeManager: Sendable {
         let copy = FileManager.default.temporaryDirectory.appending(path: "bubo-review-\(UUID().uuidString).index")
         defer { try? FileManager.default.removeItem(at: copy) }
         if FileManager.default.fileExists(atPath: index) { try FileManager.default.copyItem(atPath: index, toPath: copy.path) }
-        let base: String
-        if let saved = workspace.base {
-            base = saved
-        } else {
-            let head = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: folder)
-            base = head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : Self.emptyTree
-        }
+        let base = try await reviewBase(of: workspace)
         try await git(["add", "--intent-to-add", "--all"], in: folder, index: copy)
         let diff = try await git(["-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M", base],
                                  in: folder, index: copy)
         return ChangedFile.files(in: diff)
+    }
+
+    /// What the revisione of `workspace` compares with: its base, or `HEAD` without one, or the empty tree.
+    func reviewBase(of workspace: Workspace) async throws -> String {
+        if let saved = workspace.base { return saved }
+        let head = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: workspace.folder)
+        return head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : Self.emptyTree
     }
 
     /// The tree without files, to compare a repo without commits with.

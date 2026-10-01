@@ -53,6 +53,10 @@ final class SessionStore {
         }
         // A merge whose Annulla Bubo's quitting cut short stays made.
         for session in sessions where session.phase == .fusa { finishMerge(session.id) }
+        // Conflicts whose resolution Bubo's quitting cut short: the worktree goes back as it was.
+        for session in sessions where session.resolution != nil {
+            Task { await finishResolving(session.id, succeeded: false) }
+        }
     }
 
     @ObservationIgnored private let file: URL
@@ -189,9 +193,12 @@ final class SessionStore {
     /// `message`, then makes it Fusa. For `undoWindow` the merge can be undone; then the Sessione is Archiviata,
     /// its worktree and its branch go. Never pushes.
     ///
-    /// - Throws: `MergeError.notAllAccepted` unless every blocco in the Sessione's changes now is accepted;
-    ///   `MergeError` or `WorktreeError` when git cannot merge. Nothing changes then.
-    func merge(_ id: UUID, message: String, strategy: MergeStrategy) async throws {
+    /// - Parameter discardingRest: Whether to merge only the accepted blocchi, leaving out the others, which go
+    ///   with the Sessione.
+    /// - Throws: `MergeError.notAllAccepted` unless every blocco in the Sessione's changes now is accepted, or
+    ///   `MergeError.noneAccepted` when `discardingRest` and none is; `MergeError` or `WorktreeError` when git
+    ///   cannot merge. Nothing changes then.
+    func merge(_ id: UUID, message: String, strategy: MergeStrategy, discardingRest: Bool = false) async throws {
         guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning,
               let workspace = session.workspace, workspace.branch != nil, merging.insert(id).inserted
         else { return }
@@ -199,10 +206,14 @@ final class SessionStore {
         // The files may have changed since the revisione was read: only what the user accepted goes in.
         let hunks = try await worktrees.changes(in: workspace).flatMap(\.hunks)
         let decisions = sessions.first { $0.id == id }?.decisions ?? [:]
-        guard !hunks.isEmpty, hunks.allSatisfy({ decisions[$0.id] == .accepted }) else {
-            throw MergeError.notAllAccepted
+        let accepted = Set(hunks.map(\.id).filter { decisions[$0] == .accepted })
+        if discardingRest {
+            guard !accepted.isEmpty else { throw MergeError.noneAccepted }
+        } else {
+            guard !hunks.isEmpty, accepted.count == hunks.count else { throw MergeError.notAllAccepted }
         }
-        let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy)
+        let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy,
+                                              keepingOnly: discardingRest ? accepted : nil)
         Logger.sessions.notice("Sessione merged with \(strategy.rawValue, privacy: .public)")
         update(id) { $0.phase = .fusa }
         undoDeadlines[id] = .now + TimeInterval(Self.undoWindow.components.seconds)
@@ -212,6 +223,80 @@ final class SessionStore {
             self?.finishMerge(id)
         }
         merges[id] = (merge, finishing)
+    }
+
+    /// Brings the branch of the Progetto's checkout into the Sessione `id`, in its worktree, and asks the agent to
+    /// resolve the conflicts there, as a new turn of the Sessione. Once they are resolved, the revisione compares
+    /// with that branch: the resolution is new blocchi to review before Fondi. When the turn fails or leaves
+    /// conflict markers, the worktree goes back as it was. The Progetto's checkout is never touched.
+    ///
+    /// - Throws: `MergeError.detachedHead` when the checkout is not on a branch; `WorktreeError` when git fails.
+    ///   Nothing changes then.
+    func resolveConflicts(_ id: UUID) async throws {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning,
+              session.resolution == nil, let workspace = session.workspace, workspace.branch != nil,
+              merging.insert(id).inserted
+        else { return }
+        defer { merging.remove(id) }
+        let resolution = try await worktrees.bringIn(session.project, into: workspace)
+        update(id) { $0.resolution = resolution }
+        Logger.sessions.notice("Conflicts brought into the Sessione: \(resolution.conflicts.count)")
+        guard !resolution.conflicts.isEmpty else {
+            await finishResolving(id, succeeded: true)
+            return
+        }
+        update(id) { session in
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.isInterrupted = false
+        }
+        let prompt = String(localized: "Ho portato in questo branch le ultime modifiche di \(resolution.branch) e git ha lasciato conflitti in \(resolution.conflicts.formatted()). Risolvili nei file tenendo sia il tuo lavoro sia quello di \(resolution.branch), e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io.")
+        Task {
+            let succeeded = await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title))
+            await finishResolving(id, succeeded: succeeded)
+        }
+    }
+
+    /// Ends the conflict resolution of the Sessione `id`: with a commit in its worktree and the revisione based on
+    /// the branch brought in when the agent `succeeded` and left no markers; otherwise with the worktree as it was,
+    /// and the Sessione in Errore.
+    private func finishResolving(_ id: UUID, succeeded: Bool) async {
+        guard let session = sessions.first(where: { $0.id == id }), let resolution = session.resolution,
+              let workspace = session.workspace
+        else { return }
+        var failure = MergeError.unresolved(resolution.conflicts).localizedDescription
+        if succeeded {
+            do {
+                try await worktrees.conclude(resolution, in: workspace)
+                update(id) { session in
+                    session.resolution = nil
+                    session.workspace?.base = resolution.incoming
+                }
+                return
+            } catch let error as MergeError {
+                failure = error.localizedDescription
+            } catch {
+                Logger.sessions.error("Resolution not concluded: \(String(describing: error), privacy: .private)")
+            }
+        }
+        do {
+            try await worktrees.restore(resolution, in: workspace)
+        } catch {
+            Logger.sessions.error("Worktree not restored: \(String(describing: error), privacy: .private)")
+            let reason = if case let WorktreeError.git(message) = error {
+                message.trimmingCharacters(in: .whitespacesAndNewlines)
+            } else {
+                error.localizedDescription
+            }
+            failure = String(localized: "Non riesco a rimettere la copia della Sessione com'era dopo i conflitti: \(reason)")
+        }
+        update(id) { session in
+            session.resolution = nil
+            session.enter(.errore)
+            session.failure = failure
+            session.isInterrupted = false
+        }
     }
 
     /// Annulla merge: puts the Progetto's checkout back as it was before Fondi, and the Sessione back to Aperta.
@@ -292,8 +377,11 @@ final class SessionStore {
     }
 
     /// Prepares the Sessione's copy on `branch` if it has none yet, then asks `claude` `prompt` there.
-    private func run(_ id: UUID, prompt: String, branch: String) async {
-        guard let session = sessions.first(where: { $0.id == id }) else { return }
+    ///
+    /// - Returns: Whether the turn ended without errors.
+    @discardableResult
+    private func run(_ id: UUID, prompt: String, branch: String) async -> Bool {
+        guard let session = sessions.first(where: { $0.id == id }) else { return false }
         let environment = session.portEnvironment
         do {
             let workspace: Workspace
@@ -324,6 +412,7 @@ final class SessionStore {
             }
             for try await _ in answer {}
             update(id) { $0.enter(.ferma) }
+            return true
         } catch {
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
             update(id) { session in
@@ -338,6 +427,7 @@ final class SessionStore {
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
             }
+            return false
         }
     }
 

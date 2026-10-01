@@ -65,6 +65,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var edits: [EditNote] = []
     /// What the user decided in the revisione, by blocco id.
     var decisions: [String: HunkDecision] = [:]
+    /// The conflicts the agent is resolving in the worktree, with how to put it back; `nil` otherwise.
+    var resolution: ConflictResolution?
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
@@ -117,5 +119,6 @@ nonisolated extension Session {
         forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
         edits = try container.decodeIfPresent([EditNote].self, forKey: .edits) ?? []
         decisions = try container.decodeIfPresent([String: HunkDecision].self, forKey: .decisions) ?? [:]
+        resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)
     }
 }

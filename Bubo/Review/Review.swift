@@ -106,11 +106,11 @@ nonisolated struct Review: Sendable {
         !hunkIDs.isEmpty && hunkIDs.allSatisfy { decisions[$0] == .accepted }
     }
 
-    /// The commit message Fondi proposes for `session`: its title, then the perché of its blocchi, once each.
+    /// The commit message Fondi proposes for `session`: its title, then the perché of its accepted blocchi, once each.
     func mergeMessage(for session: Session) -> String {
         var reasons: [String] = []
         for file in files {
-            for hunk in file.hunks {
+            for hunk in file.hunks where session.decisions[hunk.id] == .accepted {
                 guard let reason = session.reason(for: hunk, inFileAt: file.path), !reasons.contains(reason)
                 else { continue }
                 reasons.append(reason)

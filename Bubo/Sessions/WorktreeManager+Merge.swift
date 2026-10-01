@@ -18,12 +18,14 @@ nonisolated extension WorktreeManager {
     /// Merges the work of `workspace`, also what is not committed yet, into the branch of the checkout of
     /// `project` as one commit with `message`.
     ///
+    /// - Parameter accepted: The blocchi to bring, by id: the others stay out, and the worktree keeps them;
+    ///   `nil` brings them all.
     /// - Returns: The merge, to undo it.
     /// - Throws: `MergeError` when the merge would conflict, would change files with unsaved changes, or has
     ///   nothing to bring; `WorktreeError` when git fails. The checkout is as it was then.
-    @concurrent func merge(_ workspace: Workspace, into project: URL, message: String,
-                           strategy: MergeStrategy) async throws -> Merge {
-        let plan = try await plan(workspace, into: project, message: message)
+    @concurrent func merge(_ workspace: Workspace, into project: URL, message: String, strategy: MergeStrategy,
+                           keepingOnly accepted: Set<String>? = nil) async throws -> Merge {
+        let plan = try await plan(workspace, into: project, message: message, keepingOnly: accepted)
         if let obstacle = MergePreview(branch: plan.branch, conflicts: plan.conflicts, dirtyFiles: plan.dirtyFiles,
                                        isEmpty: plan.changedFiles.isEmpty).obstacle {
             throw obstacle
@@ -68,13 +70,15 @@ nonisolated extension WorktreeManager {
     }
 
     /// What a merge needs, worked out without touching the checkout or the worktree.
-    private struct Plan {
+    struct Plan {
         /// The repo's top folder.
         var checkout: URL
         /// The full name of the checkout's branch.
         var branch: String
         /// The commit of the checkout's branch.
         var head: String
+        /// The commit of the Sessione's branch; `nil` before its first.
+        var tip: String?
         /// A commit with the Sessione's work, also what is not committed yet, on top of its branch.
         var work: String
         /// The tree of the merge.
@@ -86,7 +90,8 @@ nonisolated extension WorktreeManager {
         var dirtyFiles: [String]
     }
 
-    private func plan(_ workspace: Workspace, into project: URL, message: String) async throws -> Plan {
+    func plan(_ workspace: Workspace, into project: URL, message: String,
+                      keepingOnly accepted: Set<String>? = nil) async throws -> Plan {
         guard workspace.branch != nil else { throw MergeError.nothingToMerge }
         let checkout = URL(filePath: try await git(["rev-parse", "--show-toplevel"], in: project)
             .trimmingCharacters(in: .newlines), directoryHint: .isDirectory)
@@ -102,9 +107,11 @@ nonisolated extension WorktreeManager {
         defer { try? FileManager.default.removeItem(at: copy) }
         if FileManager.default.fileExists(atPath: index) { try FileManager.default.copyItem(atPath: index, toPath: copy.path) }
         try await git(["add", "--all"], in: folder, index: copy)
+        if let accepted { try await discard(blocchiOutside: accepted, of: workspace, in: copy) }
         let workTree = try await git(["write-tree"], in: folder, index: copy).trimmingCharacters(in: .newlines)
         let tip = try await run(["rev-parse", "--verify", "-q", "HEAD"], in: folder)
-        let parent = tip.exitCode == 0 ? ["-p", tip.standardOutput.trimmingCharacters(in: .newlines)] : []
+        let tipCommit = tip.exitCode == 0 ? tip.standardOutput.trimmingCharacters(in: .newlines) : nil
+        let parent = tipCommit.map { ["-p", $0] } ?? []
         let work = try await git(["commit-tree", workTree, "-m", message] + parent, in: folder)
             .trimmingCharacters(in: .newlines)
 
@@ -123,8 +130,41 @@ nonisolated extension WorktreeManager {
         let status = Self.fields(try await git(["--no-optional-locks", "status", "--porcelain=v1", "-z",
                                                 "--untracked-files=all"], in: checkout))
         let dirty = Set(Self.paths(inStatus: status))
-        return Plan(checkout: checkout, branch: branch, head: head, work: work, tree: tree, conflicts: conflicts,
+        return Plan(checkout: checkout, branch: branch, head: head, tip: tipCommit, work: work, tree: tree, conflicts: conflicts,
                     changedFiles: changedFiles, dirtyFiles: changedFiles.filter(dirty.contains))
+    }
+
+    /// Takes out of `index`, a copy of the worktree's index with every file in it, the blocchi of `workspace`
+    /// that are not in `accepted`: a file without any accepted goes back to the revisione's base, the others
+    /// lose those blocchi through `git apply --reverse`.
+    private func discard(blocchiOutside accepted: Set<String>, of workspace: Workspace, in index: URL) async throws {
+        let folder = workspace.folder
+        let base = try await reviewBase(of: workspace)
+        var patch = ""
+        for file in try await changes(in: workspace) {
+            let rejected = file.hunks.filter { !accepted.contains($0.id) }
+            if rejected.isEmpty { continue }
+            if rejected.count == file.hunks.count {
+                try await git(["reset", "-q", base, "--", file.path] + (file.oldPath.map { [$0] } ?? []),
+                              in: folder, index: index)
+                continue
+            }
+            patch += "diff --git a/\(file.path) b/\(file.path)\n--- a/\(file.path)\n+++ b/\(file.path)\n"
+            for hunk in rejected {
+                patch += hunk.header + "\n" + hunk.lines.map { line in
+                    switch line.kind {
+                    case .context: " " + line.text
+                    case .added: "+" + line.text
+                    case .removed: "-" + line.text
+                    }
+                }.joined(separator: "\n") + "\n"
+            }
+        }
+        guard !patch.isEmpty else { return }
+        let file = FileManager.default.temporaryDirectory.appending(path: "bubo-discard-\(UUID().uuidString).patch")
+        defer { try? FileManager.default.removeItem(at: file) }
+        try Data(patch.utf8).write(to: file)
+        try await git(["apply", "--cached", "--reverse", "--recount", file.path], in: folder, index: index)
     }
 
     /// The paths of `git status --porcelain -z`, split at NUL: both sides of a rename or a copy.
@@ -144,7 +184,7 @@ nonisolated extension WorktreeManager {
     }
 
     /// The non-empty fields of NUL-separated output.
-    private static func fields(_ output: String) -> [String] {
+    static func fields(_ output: String) -> [String] {
         output.split(separator: "\0").map(String.init).filter { !$0.trimmingCharacters(in: .newlines).isEmpty }
     }
 }

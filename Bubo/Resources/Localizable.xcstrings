@@ -272,6 +272,16 @@
         }
       }
     },
+    "Altre azioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More actions"
+          }
+        }
+      }
+    },
     "Annulla" : {
       "localizations" : {
         "en" : {
@@ -1134,12 +1144,22 @@
         }
       }
     },
-    "Fondere ora darebbe conflitti in %@. Chiedi all'agente di risolverli nella Sessione." : {
+    "Fondere ora darebbe conflitti in %@. L'agente può risolverli nella copia della Sessione; poi rivedi i blocchi nuovi." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Merging now would conflict in %@. Ask the agent to resolve them in the Session."
+            "value" : "Merging now would conflict in %@. The agent can resolve them in the Session's copy; then review the new blocks."
+          }
+        }
+      }
+    },
+    "Fondere solo i blocchi accettati?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge only the accepted blocks?"
           }
         }
       }
@@ -1150,6 +1170,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Merge"
+          }
+        }
+      }
+    },
+    "Fondi gli accettati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge accepted"
+          }
+        }
+      }
+    },
+    "Fondi gli accettati e scarta il resto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge Accepted and Discard the Rest…"
           }
         }
       }
@@ -1294,6 +1334,22 @@
         }
       }
     },
+    "Ho portato in questo branch le ultime modifiche di %@ e git ha lasciato conflitti in %@. Risolvili nei file tenendo sia il tuo lavoro sia quello di %@, e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I brought the latest changes of %1$@ into this branch and git left conflicts in %2$@. Resolve them in the files, keeping both your work and that of %3$@, and remove every <<<<<<<, ======= and >>>>>>> marker. Don't commit and don't abort the merge: I'll conclude it."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ho portato in questo branch le ultime modifiche di %1$@ e git ha lasciato conflitti in %2$@. Risolvili nei file tenendo sia il tuo lavoro sia quello di %3$@, e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io."
+          }
+        }
+      }
+    },
     "Ho rivisto le tue modifiche e ho rifiutato i blocchi qui sotto. Sono ancora nei file: rifalli seguendo le note, o toglili se non servono. Gli altri blocchi sono approvati: non toccarli." : {
       "localizations" : {
         "en" : {
@@ -1310,6 +1366,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hooks"
+          }
+        }
+      }
+    },
+    "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocks you haven't accepted stay out of the merge and go away with the Session. You can still undo the merge right after."
           }
         }
       }
@@ -1520,6 +1586,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your sign-in has expired."
+          }
+        }
+      }
+    },
+    "L'agente non ha risolto i conflitti in %@. Ho rimesso la copia della Sessione com'era." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent didn't resolve the conflicts in %@. The Session's copy is back as it was."
+          }
+        }
+      }
+    },
+    "L'agente risolve i conflitti con %@ nella copia della Sessione. Poi rivedi i blocchi nuovi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent is resolving the conflicts with %@ in the Session's copy. Then review the new blocks."
           }
         }
       }
@@ -1830,6 +1916,16 @@
         }
       }
     },
+    "Nessun blocco è accettato: non c'è niente da fondere." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No block is accepted: there's nothing to merge."
+          }
+        }
+      }
+    },
     "Nessun plugin." : {
       "localizations" : {
         "en" : {
@@ -1996,6 +2092,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't register %@."
+          }
+        }
+      }
+    },
+    "Non riesco a rimettere la copia della Sessione com'era dopo i conflitti: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't put the Session's copy back as it was after the conflicts: %@"
           }
         }
       }
@@ -2206,6 +2312,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plugins · %lld"
+          }
+        }
+      }
+    },
+    "Porta il branch del checkout nella copia della Sessione e chiede all'agente di risolvere i conflitti lì" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brings the checkout's branch into the Session's copy and asks the agent to resolve the conflicts there"
           }
         }
       }
@@ -2522,6 +2638,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try again: Bubo restarts it."
+          }
+        }
+      }
+    },
+    "Risolvi con l'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resolve with Agent"
           }
         }
       }
