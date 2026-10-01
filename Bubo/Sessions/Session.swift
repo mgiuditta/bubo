@@ -16,6 +16,20 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
         }
     }
 
+    /// Where a Sessione is in its life.
+    // ponytail: In revisione and Fusa come with the merge (#83).
+    enum Phase: String, Codable, Sendable {
+        case aperta, archiviata
+
+        /// The Fase's name in the HUD.
+        var title: LocalizedStringResource {
+            switch self {
+            case .aperta: LocalizedStringResource("fase.aperta", defaultValue: "Aperta")
+            case .archiviata: LocalizedStringResource("fase.archiviata", defaultValue: "Archiviata")
+            }
+        }
+    }
+
     let id: UUID
     /// The title, proposed from the first prompt.
     var title: String
@@ -30,6 +44,11 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var ports: Range<Int>?
     /// Why the Progetto's setup script did not complete; the Sessione works anyway.
     var setupFailure: String?
+    var phase = Phase.aperta
+    /// The prompt the Sessione started with; `nil` in Sessioni saved before it was kept.
+    var prompt: String?
+    /// Whether Bubo quit while the Sessione was in Lavora: it waits for Riprendi.
+    var isInterrupted = false
 
     /// The variables that hand the Sessione's ports to what runs in it: `PORT` and `BUBO_PORT` the first,
     /// `BUBO_PORTS` all of them as `first-last`.
@@ -54,5 +73,23 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
             slug += slug.isEmpty ? String(word) : "-\(word)"
         }
         return "bubo/\(slug.isEmpty ? "sessione" : slug)"
+    }
+}
+
+nonisolated extension Session {
+    /// Decodes a Sessione, also one saved before its Fase and its prompt were kept.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        title = try container.decode(String.self, forKey: .title)
+        project = try container.decode(URL.self, forKey: .project)
+        workspace = try container.decodeIfPresent(Workspace.self, forKey: .workspace)
+        activity = try container.decode(Activity.self, forKey: .activity)
+        failure = try container.decodeIfPresent(String.self, forKey: .failure)
+        ports = try container.decodeIfPresent(Range<Int>.self, forKey: .ports)
+        setupFailure = try container.decodeIfPresent(String.self, forKey: .setupFailure)
+        phase = try container.decodeIfPresent(Phase.self, forKey: .phase) ?? .aperta
+        prompt = try container.decodeIfPresent(String.self, forKey: .prompt)
+        isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
     }
 }

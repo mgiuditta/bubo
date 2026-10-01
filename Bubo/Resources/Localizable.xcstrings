@@ -144,6 +144,16 @@
         }
       }
     },
+    "Archivia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archive"
+          }
+        }
+      }
+    },
     "Ascolto" : {
       "localizations" : {
         "en" : {
@@ -260,6 +270,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Change…"
+          }
+        }
+      }
+    },
+    "Cancella" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
+    "Cancella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete…"
           }
         }
       }
@@ -714,6 +744,16 @@
         }
       }
     },
+    "Il Progetto non è più in %@. Riporta lì la cartella o cancella la Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project is no longer at %@. Move the folder back or delete the Session."
+          }
+        }
+      }
+    },
     "Il collegamento con Claude non è aggiornato" : {
       "localizations" : {
         "en" : {
@@ -844,6 +884,16 @@
         }
       }
     },
+    "La Sessione viene tolta dall'elenco. I file del Progetto non vengono toccati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session is removed from the list. The Project's files aren't touched."
+          }
+        }
+      }
+    },
     "La cancella dal Portachiavi di questo Mac." : {
       "localizations" : {
         "en" : {
@@ -860,6 +910,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The key stays in this Mac's keychain and never goes to iCloud. Bubo never uses it on its own, because it's billed per use."
+          }
+        }
+      }
+    },
+    "La copia isolata della Sessione non è più in %@. Cancella la Sessione per toglierla dall'elenco." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session's isolated copy is no longer at %@. Delete the Session to remove it from the list."
           }
         }
       }
@@ -1194,6 +1254,16 @@
         }
       }
     },
+    "Riprendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        }
+      }
+    },
     "Riprendi dopo il reset" : {
       "localizations" : {
         "en" : {
@@ -1480,12 +1550,42 @@
         }
       }
     },
+    "Verranno cancellati la copia isolata e il branch %@. Nessuna modifica andrà persa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes the isolated copy and the branch %@. No changes will be lost."
+          }
+        }
+      }
+    },
+    "Verranno cancellati la copia isolata e il branch %@. Queste modifiche andranno perse:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This deletes the isolated copy and the branch %@. These changes will be lost:"
+          }
+        }
+      }
+    },
     "Vista delle Sessioni" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sessions View"
+          }
+        }
+      }
+    },
+    "Vuoi cancellare la Sessione «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete the Session “%@”?"
           }
         }
       }
@@ -1637,6 +1737,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "claude stopped with code %d."
+          }
+        }
+      }
+    },
+    "fase.aperta" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Aperta"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        }
+      }
+    },
+    "fase.archiviata" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Archiviata"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archived"
           }
         }
       }
