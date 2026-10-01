@@ -1,8 +1,8 @@
 import os
 import SwiftUI
 
-/// ⌘I: the open GitHub issues of a Progetto, read with the user's `gh`; ↩ starts a Sessione on the selected one, or
-/// opens the one it already has (spec 16).
+/// ⌘I: the open GitHub issues of a Progetto, read with the user's `gh`; ↩ starts a Sessione on the selected one, ⌥↩
+/// saves it as a Bozza, and both open the Bozza or the Sessione it already has (spec 16).
 ///
 /// The issue's text reaches the agent as material written by others, never as an instruction. In a folder that is
 /// not trusted, the trust dialog comes first (#266).
@@ -81,7 +81,13 @@ struct IssuePicker: View {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button(selectedMatch.isOpen ? "Apri la Sessione" : "Avvia", action: go)
+                if !selectedMatch.isOpen {
+                    Button("Salva come Bozza", action: saveAsDraft)
+                        .keyboardShortcut(.return, modifiers: .option)
+                        .disabled(selection == nil || reading != nil)
+                        .help("Salva l'issue in Da iniziare senza avviarla (⌥↩)")
+                }
+                Button(goTitle, action: go)
                     .keyboardShortcut(.defaultAction)
                     .disabled(selection == nil || reading != nil)
             }
@@ -163,7 +169,17 @@ struct IssuePicker: View {
 
     private func match(of number: Int) -> IssueLink.Match {
         guard let project else { return .none }
-        return IssueLink.github(number).match(in: store.sessions, on: project)
+        return IssueLink.github(number).match(in: store.sessions, drafts: store.drafts.drafts, on: project)
+    }
+
+    /// ↩'s button: what it does with the selected issue.
+    private var goTitle: LocalizedStringKey {
+        // Statements, not a switch expression: the String Catalog takes only the first branch of one.
+        switch selectedMatch {
+        case .draft: return "Apri la Bozza"
+        case .open: return "Apri la Sessione"
+        case .none, .closed: return "Avvia"
+        }
     }
 
     private var selectedMatch: IssueLink.Match {
@@ -203,10 +219,13 @@ struct IssuePicker: View {
         }
     }
 
-    /// ↩: opens the Sessione the issue already has; asks about one Archiviata or Fusa; else starts a new one.
+    /// ↩: opens the Bozza or the Sessione the issue already has; asks about one Archiviata or Fusa; else starts a new one.
     private func go() {
         guard let selection, reading == nil else { return }
         switch match(of: selection) {
+        case .draft:
+            dismiss()
+            hud.showDrafts()
         case .open:
             dismiss()
             hud.show()
@@ -216,6 +235,15 @@ struct IssuePicker: View {
         case .none:
             read(reopening: nil)
         }
+    }
+
+    /// ⌥↩: saves the selected issue as a Bozza in Da iniziare, with only its title: the issue is read at Avvia. No
+    /// doppioni: with a Bozza already there, the Board shows it.
+    private func saveAsDraft() {
+        guard let project, let issue = issues.first(where: { $0.id == selection }), reading == nil else { return }
+        store.addDraft(Draft(title: issue.title, text: "", project: project, issue: .github(issue.number)))
+        dismiss()
+        hud.showDrafts()
     }
 
     /// Reads the selected issue with `gh issue view`, then starts its Sessione, or reopens `reopening`.
@@ -259,8 +287,11 @@ struct IssuePicker: View {
 }
 
 private extension IssueLink.Match {
-    /// Whether ↩ opens a Sessione instead of starting one.
+    /// Whether ↩ opens a Bozza or a Sessione instead of starting one.
     var isOpen: Bool {
-        if case .open = self { true } else { false }
+        switch self {
+        case .draft, .open: true
+        case .none, .closed: false
+        }
     }
 }

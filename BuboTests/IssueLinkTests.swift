@@ -50,6 +50,14 @@ struct IssueLinkTests {
         #expect(IssueLink.github(42).match(in: sessions, on: project) == .none)
     }
 
+    @Test func aBozzaOfTheIssueComesFirst() {
+        let draft = Draft(title: "Bozza", text: "", project: URL(filePath: "/tmp/progetto/"), issue: .github(42))
+        let byHand = Draft(title: "A mano", text: "", project: project)
+        let archived = session("Prima", issue: .github(42), phase: .archiviata)
+        #expect(IssueLink.github(42).match(in: [archived], drafts: [byHand, draft], on: project) == .draft(draft))
+        #expect(IssueLink.github(7).match(in: [archived], drafts: [byHand, draft], on: project) == .none)
+    }
+
     @Test func anOpenSessionIsOpenedAlsoWhenAnArchivedOneExists() {
         let archived = session("Prima", issue: .github(42), phase: .archiviata)
         let open = session("Seconda", issue: .github(42))

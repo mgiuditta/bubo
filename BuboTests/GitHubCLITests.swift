@@ -164,6 +164,55 @@ struct GitHubCLITests {
     }
 
     @MainActor
+    @Test func avviaOfABozzaFromAnIssueReadsItThenStartsItsSessione() async throws {
+        let project = folder.appending(path: "progetto", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
+        try Self.git(["init", "-q"], in: project)
+        try Self.git(["remote", "add", "origin", "git@github.com:o/r.git"], in: project)
+        let store = SessionStore(file: folder.appending(path: "Sessioni.json"),
+                                 worktrees: WorktreeManager(root: folder.appending(path: "Worktrees"))) {
+            throw CancellationError()
+        }
+        let draft = Draft(title: "#42", text: "", project: project, issue: .github(42))
+        #expect(store.addDraft(draft))
+        // Making the Bozza reads nothing: the issue is read at Avvia.
+        #expect(try calls().isEmpty)
+
+        try await store.start(draft, readingWith: cli)
+
+        let session = try #require(store.sessions.first)
+        #expect(session.title == "Login rotto")
+        #expect(session.issue == .github(42))
+        #expect(session.branchToPrepare == "bubo/42-login-rotto")
+        #expect(session.prompt?.contains("BEGIN ISSUE-") == true)
+        #expect(store.drafts.drafts.isEmpty)
+        #expect(try calls().map(\.arguments) == ["ARGS issue view 42 --repo github.com/o/r --json title,body,comments,labels,url"])
+        try expectEveryCallIsSafe()
+    }
+
+    @MainActor
+    @Test func aBozzaWhoseIssueCannotBeReadStays() async throws {
+        let project = folder.appending(path: "progetto", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: project, withIntermediateDirectories: true)
+        try Self.git(["init", "-q"], in: project)
+        try Self.git(["remote", "add", "origin", "git@github.com:o/r.git"], in: project)
+        try Data("4".utf8).write(to: folder.appending(path: "exit"))
+        let store = SessionStore(file: folder.appending(path: "Sessioni.json"),
+                                 worktrees: WorktreeManager(root: folder.appending(path: "Worktrees"))) {
+            throw CancellationError()
+        }
+        let draft = Draft(title: "#42", text: "", project: project, issue: .github(42))
+        store.addDraft(draft)
+
+        await #expect(throws: GitHubCLIError.notAuthenticated(host: "github.com")) {
+            try await store.start(draft, readingWith: cli)
+        }
+
+        #expect(store.sessions.isEmpty)
+        #expect(store.drafts.drafts == [draft])
+    }
+
+    @MainActor
     @Test func riprendiReopensTheArchivedSessionWithTheIssueReadAgain() async throws {
         let file = folder.appending(path: "Sessioni.json")
         var archived = Session(id: UUID(), title: "Login rotto", project: folder, activity: .ferma)

@@ -1,15 +1,24 @@
+import os
 import SwiftUI
 
 /// The Board Vista of the HUD: Da iniziare with the Bozze, then the Sessioni in five columns derived by
 /// `BoardColumn`, always shown in the same order, also when empty; Attende te first, the longest wait on top. The
 /// Sessioni's cards do not drag: the Fase changes only with an action. The only drag is a Bozza onto the Sessioni,
-/// which starts it like ↩ and Avvia. Chips filter by Progetto.
+/// which starts it like ↩ and Avvia. Chips filter by Progetto and, once an issue is there, by source.
 struct SessionBoard: View {
     let store: SessionStore
     var gate = TrustGate()
+    /// Reads the issue of a Bozza from GitHub at its Avvia.
+    var cli = GitHubCLI()
     @Environment(HUDPresenter.self) private var hud
     /// The Progetto whose Sessioni and Bozze are shown; `nil` for all of them.
     @State private var project: URL?
+    /// The source whose Sessioni and Bozze are shown; `nil` for every source.
+    @State private var source: BoardSource?
+    /// The Bozze from an issue being read before their Sessione starts.
+    @State private var starting: Set<Draft.ID> = []
+    /// Why the issue of a Bozza could not be read at Avvia, as `gh` or Bubo says it.
+    @State private var failures: [Draft.ID: String] = [:]
     /// Whether Fusa shows all its cards instead of the first two.
     @State private var isFusaUnfolded = false
     /// The Bozza waiting for the trust dialog of its Progetto before it starts.
@@ -23,13 +32,22 @@ struct SessionBoard: View {
     private static let fusaFold = 2
 
     private var columns: [(column: BoardColumn, sessions: [Session])] {
-        let shown = project.map { project in store.sessions.filter { $0.project == project } } ?? store.sessions
+        let shown = store.sessions.filter { session in
+            (project.map { session.project == $0 } ?? true) && (source?.contains(session.issue) ?? true)
+        }
         return BoardColumn.columns(of: shown, at: .now)
     }
 
     /// The Bozze shown in Da iniziare, oldest first.
     private var drafts: [Draft] {
-        project.map { project in store.drafts.drafts.filter { $0.project == project } } ?? store.drafts.drafts
+        store.drafts.drafts.filter { draft in
+            (project.map { draft.project == $0 } ?? true) && (source?.contains(draft.issue) ?? true)
+        }
+    }
+
+    /// Whether a Sessione or a Bozza comes from an issue: only then the Board filters by source.
+    private var hasIssues: Bool {
+        store.sessions.contains { $0.issue != nil } || store.drafts.drafts.contains { $0.issue != nil }
     }
 
     /// The Progetti of the Sessioni, then those with only Bozze.
@@ -44,6 +62,7 @@ struct SessionBoard: View {
         let projects = projects
         VStack(alignment: .leading, spacing: Spacing.small) {
             if projects.count > 1 { projectChips(projects) }
+            if hasIssues || source != nil { sourceChips }
             if let notice {
                 Text(notice)
                     .font(Typography.body(size: 12))
@@ -67,7 +86,7 @@ struct SessionBoard: View {
         .accessibilityLabel("Sessioni")
         .sheet(item: $trusting) { draft in
             TrustSheet(folder: draft.project, activations: RepoActivations(folder: draft.project),
-                       start: { _ in store.start(draft) }, gate: gate)
+                       start: { _ in launch(draft) }, gate: gate)
         }
         .task(id: notice == nil) {
             guard notice != nil else { return }
@@ -86,9 +105,25 @@ struct SessionBoard: View {
             AccessibilityNotification.Announcement(String(localized: notice)).post()
         }
         if gate.isTrusted(draft.project) {
-            store.start(draft)
+            launch(draft)
         } else {
             trusting = draft
+        }
+    }
+
+    /// Starts `draft`; one from an issue reads it first with `gh`, and stays with the reason when it cannot.
+    private func launch(_ draft: Draft) {
+        guard draft.issue != nil else { return store.start(draft) }
+        guard starting.insert(draft.id).inserted else { return }
+        failures[draft.id] = nil
+        Task {
+            defer { starting.remove(draft.id) }
+            do {
+                try await store.start(draft, readingWith: cli)
+            } catch {
+                Logger.sessions.error("Issue of a Bozza not read: \(String(describing: error), privacy: .private)")
+                failures[draft.id] = error.localizedDescription
+            }
         }
     }
 
@@ -103,8 +138,28 @@ struct SessionBoard: View {
     }
 
     private func chip(_ title: Text, for project: URL?) -> some View {
-        let isSelected = self.project == project
-        return Button { self.project = project } label: { title }
+        chip(title, isSelected: self.project == project) { self.project = project }
+    }
+
+    private var sourceChips: some View {
+        HStack(spacing: Spacing.xxSmall) {
+            chip(Text("Ogni fonte"), isSelected: source == nil) { source = nil }
+            ForEach(BoardSource.allCases, id: \.self) { source in
+                chip(title(of: source), isSelected: self.source == source) { self.source = source }
+            }
+        }
+        .controlSize(.small)
+    }
+
+    private func title(of source: BoardSource) -> Text {
+        switch source {
+        case .manual: Text("Bozze")
+        case let .issue(source): Text(verbatim: source.title)
+        }
+    }
+
+    private func chip(_ title: Text, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) { title }
             .buttonStyle(.bordered)
             .tint(isSelected ? Palette.accent : nil)
             .accessibilityAddTraits(isSelected ? .isSelected : [])
@@ -152,11 +207,12 @@ struct SessionBoard: View {
         .accessibilityElement(children: .contain)
     }
 
-    /// A Bozza: ↩ with the card focused, Avvia, or a drag onto the Sessioni starts it.
+    /// A Bozza, with its source: ↩ with the card focused, Avvia, or a drag onto the Sessioni starts it.
     private func draftCard(_ draft: Draft) -> some View {
-        let reason = draft.unreachableReason
+        let reason = draft.unreachableReason ?? failures[draft.id]
+        let isStarting = starting.contains(draft.id)
         return VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            Text("Bozza")
+            (draft.issue.map { Text(verbatim: "\($0.source.title) \($0.label)") } ?? Text("Bozza"))
                 .font(Typography.mono(size: 10))
                 .foregroundStyle(Palette.textFaint)
             Text(verbatim: draft.title)
@@ -172,10 +228,11 @@ struct SessionBoard: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(3)
             }
+            if isStarting { LoadingLabel("Leggo l'issue…") }
             Button("Avvia ↩") { start(draft) }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
-                .disabled(reason != nil)
+                .disabled(draft.unreachableReason != nil || isStarting)
                 // VoiceOver says the action, not the key.
                 .accessibilityLabel("Avvia")
                 .padding(.top, Spacing.xxSmall)
