@@ -143,13 +143,14 @@ await withTimeout(new Promise<void>((resolve, reject) => {
   createInterface({ input: bridge.stdout }).on("line", (line) => {
     const event = JSON.parse(line);
     if (event.type === "ready") {
-      bridge.stdin.write(JSON.stringify({ v: 1, type: "ask", id: "smoke", prompt: "Rispondi solo con la parola pronto.", cwd: directory }) + "\n");
+      // La versione del protocollo la dice il ponte stesso, in ogni evento.
+      bridge.stdin.write(JSON.stringify({ v: event.v, type: "ask", id: "smoke", prompt: "Rispondi solo con la parola pronto.", cwd: directory }) + "\n");
     } else if (event.type === "text") {
       text += event.text;
     } else if (event.type === "done") {
       bridge.stdin.end();
       text.trim() ? resolve() : reject(new Error("ponte: done senza testo"));
-    } else if (event.type === "error") {
+    } else if (event.type === "error" && (event.id === "smoke" || event.id === undefined && /versione/.test(event.message))) {
       bridge.kill();
       reject(new Error(`ponte: ${event.message}`));
     }
