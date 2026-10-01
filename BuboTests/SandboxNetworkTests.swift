@@ -166,7 +166,7 @@ struct SandboxNetworkTests {
             done
             """#
         return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
-                           environment: ["PATH": "/usr/bin:/bin", "HOME": "/Users/u"]) { _, _ in "" }
+                           environment: ["PATH": "/usr/bin:/bin", "HOME": "/Users/u"]) { _, _, _ in "" }
     }
 
     // Criteri di accettazione: "Sempre in questo Progetto" su un dominio → la Sessione successiva lo ha tra i domini
