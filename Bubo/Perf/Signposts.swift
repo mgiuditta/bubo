@@ -57,6 +57,8 @@ enum Signpost {
     case reviewDiff
     /// Interval: working out with `git merge-tree` what Fondi would do, before the click.
     case mergePreview
+    /// Interval: from opening a Galassia to its first image with stars.
+    case galaxyFirstImage
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -67,6 +69,7 @@ enum Signpost {
         case .vistaSwitch: "Cambio vista"
         case .reviewDiff: "Diff della revisione"
         case .mergePreview: "Conflitti previsti"
+        case .galaxyFirstImage: "Prima immagine della Galassia"
         }
     }
 }

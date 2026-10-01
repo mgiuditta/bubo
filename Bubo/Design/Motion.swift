@@ -13,6 +13,8 @@ enum Motion {
     static let emphasized = Animation.spring(duration: 0.25, bounce: 0.15)
     /// The press that approves a Richiesta di permesso of level 4–5, 1 s, filling at an even pace.
     static let hold = Animation.linear(duration: 1)
+    /// The camera's flight to a file or a folder of the Galassia, in seconds: the map moves, not the container.
+    static let galaxyFlight: Double = 0.65
     /// One turn of the outer HUD ring, in seconds.
     static let outerRingPeriod: Double = 60
     /// One turn of the inner HUD ring, in seconds; it turns the other way.

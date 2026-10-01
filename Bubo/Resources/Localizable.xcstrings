@@ -168,6 +168,46 @@
         }
       }
     },
+    "%lld risultati" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld result"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld results"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld risultato"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld risultati"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld, %@ in tutto" : {
       "localizations" : {
         "en" : {
@@ -482,6 +522,16 @@
         }
       }
     },
+    "Apre la Galassia di un altro Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens another Project's Galaxy"
+          }
+        }
+      }
+    },
     "Apre un'altra shell nella cartella della Sessione" : {
       "localizations" : {
         "en" : {
@@ -578,6 +628,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open note"
+          }
+        }
+      }
+    },
+    "Apri nel Visore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Viewer"
           }
         }
       }
@@ -1080,6 +1140,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search open issues"
+          }
+        }
+      }
+    },
+    "Cerca per nome o percorso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search by name or path"
           }
         }
       }
@@ -2020,6 +2090,16 @@
         }
       }
     },
+    "Galassia · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Galaxy · %@"
+          }
+        }
+      }
+    },
     "Galleria" : {
       "localizations" : {
         "en" : {
@@ -2870,6 +2950,16 @@
         }
       }
     },
+    "Leggo i file del Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the Project's files…"
+          }
+        }
+      }
+    },
     "Leggo i report…" : {
       "localizations" : {
         "en" : {
@@ -3196,12 +3286,42 @@
         }
       }
     },
+    "Mostra l'intera Galassia (⌘0)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the whole Galaxy (⌘0)"
+          }
+        }
+      }
+    },
+    "Mostra la Galassia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Galaxy"
+          }
+        }
+      }
+    },
     "Mostra nel Finder" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show in Finder"
+          }
+        }
+      }
+    },
+    "Mostra tutto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show All"
           }
         }
       }
@@ -3362,6 +3482,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No editor found. Install VS Code, Cursor, Zed or Xcode, or choose another app."
+          }
+        }
+      }
+    },
+    "Nessun file in questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No files in this Project"
           }
         }
       }

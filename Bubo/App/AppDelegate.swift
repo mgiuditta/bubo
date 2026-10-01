@@ -36,6 +36,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
     }
+    /// The Galassia windows, one per Progetto.
+    private(set) lazy var galaxies = GalaxyStore { [weak self] in
+        self?.sessions?.projects ?? []
+    } viewer: { [weak self] in
+        self?.sessions?.viewer
+    }
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
 
@@ -116,6 +122,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let sessions else { return }
         sessions.togglePreview()
         if sessions.previews.isShown && !sessions.previews.isDetached { hud.show() }
+    }
+
+    /// ⌥⌘G: shows the Galassia of the current Sessione's Progetto, else of the most recent one; with no Progetto,
+    /// asks for a folder.
+    func showGalaxy() {
+        if let project = sessions?.terminalSession?.project ?? sessions?.projects.first {
+            galaxies.show(project)
+        } else {
+            galaxies.chooseFolder()
+        }
     }
 
     /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.
