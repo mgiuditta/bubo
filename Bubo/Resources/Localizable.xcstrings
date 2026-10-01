@@ -22,16 +22,16 @@
     },
     "%@ · blocco %lld di %lld nel file" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ · blocco %2$lld di %3$lld nel file"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · block %2$lld of %3$lld in the file"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · blocco %2$lld di %3$lld nel file"
           }
         }
       }
@@ -48,32 +48,48 @@
     },
     "%@, %lld blocchi decisi su %lld" : {
       "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld of %3$lld blocks decided"
+          }
+        },
         "it" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, %2$lld blocchi decisi su %3$lld"
           }
-        },
+        }
+      }
+    },
+    "%@, %lld blocchi decisi su %lld, in conflitto" : {
+      "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@, %2$lld of %3$lld blocks decided"
+            "value" : "%1$@, %2$lld of %3$lld blocks decided, in conflict"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$lld blocchi decisi su %3$lld, in conflitto"
           }
         }
       }
     },
     "%@, blocco %@:" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@, blocco %2$@:"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@, block %2$@:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, blocco %2$@:"
           }
         }
       }
@@ -102,16 +118,16 @@
     },
     "%lld/%lld blocchi" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$lld/%2$lld blocchi"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$lld/%2$lld blocks"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$lld/%2$lld blocchi"
           }
         }
       }
@@ -262,6 +278,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Annulla merge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo Merge"
           }
         }
       }
@@ -418,32 +444,32 @@
     },
     "Blocco %lld di %lld, %@" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Blocco %1$lld di %2$lld, %3$@"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Block %1$lld of %2$lld, %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$@"
           }
         }
       }
     },
     "Blocco %lld di %lld, %lld decisi" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Block %1$lld of %2$lld, %3$lld decided"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
           }
         }
       }
@@ -618,6 +644,16 @@
         }
       }
     },
+    "Ci sono blocchi non ancora accettati. Rivedili, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some blocks aren't accepted yet. Review them, then merge."
+          }
+        }
+      }
+    },
     "Claude" : {
       "localizations" : {
         "en" : {
@@ -704,6 +740,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Column"
+          }
+        }
+      }
+    },
+    "Come il Progetto fonde le Sessioni: squash in un commit, o merge commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How the Project merges Sessions: squash into one commit, or a merge commit"
           }
         }
       }
@@ -1078,6 +1124,36 @@
         }
       }
     },
+    "Fonde le modifiche accettate nel branch del checkout con un commit locale, senza push" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merges the accepted changes into the checkout's branch with a local commit, without pushing"
+          }
+        }
+      }
+    },
+    "Fondere ora darebbe conflitti in %@. Chiedi all'agente di risolverli nella Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merging now would conflict in %@. Ask the agent to resolve them in the Session."
+          }
+        }
+      }
+    },
+    "Fondi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        }
+      }
+    },
     "Fornitore" : {
       "localizations" : {
         "en" : {
@@ -1094,6 +1170,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unlisted"
+          }
+        }
+      }
+    },
+    "Fusa in %@ con un commit locale, senza push." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merged into %@ with a local commit, not pushed."
           }
         }
       }
@@ -1254,6 +1340,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project is no longer at %@. Move the folder back or delete the Session."
+          }
+        }
+      }
+    },
+    "Il branch del checkout ha già tutte le modifiche della Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The checkout's branch already has all of the Session's changes."
+          }
+        }
+      }
+    },
+    "Il checkout del Progetto non è su un branch. Passa a un branch, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project's checkout isn't on a branch. Switch to a branch, then merge."
           }
         }
       }
@@ -1594,6 +1700,36 @@
         }
       }
     },
+    "Merge" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge"
+          }
+        }
+      }
+    },
+    "Merge commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merge commit"
+          }
+        }
+      }
+    },
+    "Messaggio del commit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commit message"
+          }
+        }
+      }
+    },
     "Misure del Panel" : {
       "localizations" : {
         "en" : {
@@ -1670,6 +1806,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Icon in Dock"
+          }
+        }
+      }
+    },
+    "Nel checkout del Progetto ci sono modifiche non salvate in %@, e il merge le cambierebbe. Fai un commit o mettile da parte, poi fondi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project's checkout has unsaved changes in %@, and the merge would change them. Commit them or set them aside, then merge."
           }
         }
       }
@@ -1770,6 +1916,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not Now"
+          }
+        }
+      }
+    },
+    "Non posso annullare il merge: nel frattempo il branch del checkout è cambiato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't undo the merge: the checkout's branch has changed since."
           }
         }
       }
@@ -2596,6 +2752,16 @@
         }
       }
     },
+    "Squash" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squash"
+          }
+        }
+      }
+    },
     "Stato" : {
       "localizations" : {
         "en" : {
@@ -3028,6 +3194,23 @@
         }
       }
     },
+    "fase.fusa" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merged"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fusa"
+          }
+        }
+      }
+    },
     "fps" : {
       "localizations" : {
         "en" : {
@@ -3038,12 +3221,22 @@
         }
       }
     },
-    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ rimanda all'agente" : {
+    "git si è fermato: %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · f focus · s side by side · ⌘↩ send back to agent"
+            "value" : "git stopped: %@"
+          }
+        }
+      }
+    },
+    "j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "j k block · a accept · x reject · c note to agent · ⇧A accept file · f focus · s side by side · ⌘↩ merge or send back to agent"
           }
         }
       }

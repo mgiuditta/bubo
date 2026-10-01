@@ -26,7 +26,7 @@ struct SessionColumn: View {
     private var groups: [(title: LocalizedStringResource, sessions: [Session])] {
         let open = Session.grouped(sessions.filter { $0.phase == .aperta })
             .map { (title: $0.activity.title, sessions: $0.sessions) }
-        let archived = sessions.filter { $0.phase == .archiviata }
+        let archived = sessions.filter { $0.phase != .aperta }
         return archived.isEmpty ? open : open + [(title: "Archiviate", sessions: archived)]
     }
 
@@ -194,7 +194,7 @@ struct SessionRow: View {
     @State private var isShowingConfiguration = false
     @State private var isReviewing = false
 
-    private var isArchived: Bool { session.phase == .archiviata }
+    private var isArchived: Bool { session.phase != .aperta }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }

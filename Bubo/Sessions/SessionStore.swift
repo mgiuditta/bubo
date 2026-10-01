@@ -8,6 +8,11 @@ final class SessionStore {
     private(set) var sessions: [Session] = []
     /// The Richieste di permesso waiting in the Sessioni, and the permissions given "Per questa Sessione".
     private(set) var permissions = RequestCenter()
+    /// Until when each merge made by Fondi can be undone, by Sessione.
+    private(set) var undoDeadlines: [UUID: Date] = [:]
+
+    /// How long Annulla merge is offered after Fondi.
+    static let undoWindow = Duration.seconds(10)
 
     /// The Progetti that have Sessioni, most recent first.
     var projects: [URL] {
@@ -46,6 +51,8 @@ final class SessionStore {
                 sessions[index].failure = failure
             }
         }
+        // A merge whose Annulla Bubo's quitting cut short stays made.
+        for session in sessions where session.phase == .fusa { finishMerge(session.id) }
     }
 
     @ObservationIgnored private let file: URL
@@ -56,6 +63,10 @@ final class SessionStore {
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
+    /// The merges that can still be undone, with the task that archives their Sessione when the time is up.
+    @ObservationIgnored private var merges: [UUID: (merge: Merge, finishing: Task<Void, Never>)] = [:]
+    /// The Sessioni that Fondi is merging now.
+    @ObservationIgnored private var merging: Set<UUID> = []
 
     /// The store in Bubo's Application Support folder.
     static func makeDefault(alerts: WaitingAlerts,
@@ -161,6 +172,80 @@ final class SessionStore {
         Task { await run(id, prompt: feedback, branch: Session.proposedBranch(for: session.title)) }
     }
 
+    /// What Fondi would do now with the Sessione `id`, without touching the Progetto's checkout; `nil` when the
+    /// Sessione has no branch of its own or is not open.
+    ///
+    /// - Throws: `MergeError.detachedHead` when the checkout is not on a branch; `WorktreeError` when git fails.
+    func mergePreview(of id: UUID) async throws -> MergePreview? {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+              let workspace = session.workspace, workspace.branch != nil
+        else { return nil }
+        return try await Signposts.measure(.mergePreview) {
+            try await worktrees.mergePreview(of: workspace, into: session.project)
+        }
+    }
+
+    /// Fondi: merges the work of the Sessione `id` into the branch of its Progetto's checkout as one commit with
+    /// `message`, then makes it Fusa. For `undoWindow` the merge can be undone; then the Sessione is Archiviata,
+    /// its worktree and its branch go. Never pushes.
+    ///
+    /// - Throws: `MergeError.notAllAccepted` unless every blocco in the Sessione's changes now is accepted;
+    ///   `MergeError` or `WorktreeError` when git cannot merge. Nothing changes then.
+    func merge(_ id: UUID, message: String, strategy: MergeStrategy) async throws {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning,
+              let workspace = session.workspace, workspace.branch != nil, merging.insert(id).inserted
+        else { return }
+        defer { merging.remove(id) }
+        // The files may have changed since the revisione was read: only what the user accepted goes in.
+        let hunks = try await worktrees.changes(in: workspace).flatMap(\.hunks)
+        let decisions = sessions.first { $0.id == id }?.decisions ?? [:]
+        guard !hunks.isEmpty, hunks.allSatisfy({ decisions[$0.id] == .accepted }) else {
+            throw MergeError.notAllAccepted
+        }
+        let merge = try await worktrees.merge(workspace, into: session.project, message: message, strategy: strategy)
+        Logger.sessions.notice("Sessione merged with \(strategy.rawValue, privacy: .public)")
+        update(id) { $0.phase = .fusa }
+        undoDeadlines[id] = .now + TimeInterval(Self.undoWindow.components.seconds)
+        let finishing = Task { [weak self] in
+            try? await Task.sleep(for: Self.undoWindow)
+            guard !Task.isCancelled else { return }
+            self?.finishMerge(id)
+        }
+        merges[id] = (merge, finishing)
+    }
+
+    /// Annulla merge: puts the Progetto's checkout back as it was before Fondi, and the Sessione back to Aperta.
+    ///
+    /// - Throws: `MergeError.moved` or `WorktreeError` when the checkout changed since; the merge then stays,
+    ///   and the Sessione is Archiviata.
+    func undoMerge(_ id: UUID) async throws {
+        guard let pending = merges.removeValue(forKey: id) else { return }
+        pending.finishing.cancel()
+        undoDeadlines[id] = nil
+        do {
+            try await worktrees.undo(pending.merge)
+        } catch {
+            Logger.sessions.error("Merge not undone: \(String(describing: error), privacy: .private)")
+            finishMerge(id)
+            throw error
+        }
+        update(id) { $0.phase = .aperta }
+    }
+
+    /// Archives the Fusa Sessione `id`: its worktree and its branch go in the background, its ports are free again.
+    private func finishMerge(_ id: UUID) {
+        merges.removeValue(forKey: id)?.finishing.cancel()
+        undoDeadlines[id] = nil
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .fusa else { return }
+        update(id) { session in
+            session.phase = .archiviata
+            session.ports = nil
+            session.isInterrupted = false
+        }
+        guard let workspace = session.workspace else { return }
+        Task { await worktrees.remove(workspace, of: session.project, deletingBranch: true) }
+    }
+
     /// Archives a Sessione: its worktree goes in the background, its branch stays, its ports are free again.
     func archive(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning
@@ -183,6 +268,8 @@ final class SessionStore {
     /// Deletes a Sessione with its worktree and its branch, in the background.
     func delete(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), !session.isRunning else { return }
+        merges.removeValue(forKey: id)?.finishing.cancel()
+        undoDeadlines[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
         save()

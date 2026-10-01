@@ -272,13 +272,14 @@ nonisolated struct WorktreeManager: Sendable {
 
     /// Runs git in `folder`, on the index file `index` instead of the folder's own when given.
     @discardableResult
-    private func git(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> String {
+    func git(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> String {
         let output = try await run(arguments, in: folder, index: index)
         guard output.exitCode == 0 else { throw WorktreeError.git(output.standardError) }
         return output.standardOutput
     }
 
-    private func run(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> ProcessOutput {
+    /// Runs git in `folder` like `git(_:in:index:)`, leaving the exit code to the caller.
+    func run(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> ProcessOutput {
         guard let index else { return try await runner.run(Self.git, ["-C", folder.path] + arguments) }
         return try await runner.run(URL(filePath: "/usr/bin/env"),
                                     ["GIT_INDEX_FILE=\(index.path)", Self.git.path, "-C", folder.path] + arguments)

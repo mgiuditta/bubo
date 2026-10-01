@@ -54,6 +54,8 @@ enum Signpost {
     case vistaSwitch
     /// Interval: reading a Sessione's changes from git for the revisione.
     case reviewDiff
+    /// Interval: working out with `git merge-tree` what Fondi would do, before the click.
+    case mergePreview
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -63,6 +65,7 @@ enum Signpost {
         case .cliHistory: "Cronologia CLI"
         case .vistaSwitch: "Cambio vista"
         case .reviewDiff: "Diff della revisione"
+        case .mergePreview: "Conflitti previsti"
         }
     }
 }

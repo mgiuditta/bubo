@@ -101,6 +101,24 @@ nonisolated struct Review: Sendable {
         decidedCount(in: decisions) == hunkIDs.count && hunkIDs.contains { decisions[$0] != .accepted }
     }
 
+    /// Whether every blocco is accepted: Fondi can merge them.
+    func canMerge(with decisions: [String: HunkDecision]) -> Bool {
+        !hunkIDs.isEmpty && hunkIDs.allSatisfy { decisions[$0] == .accepted }
+    }
+
+    /// The commit message Fondi proposes for `session`: its title, then the perché of its blocchi, once each.
+    func mergeMessage(for session: Session) -> String {
+        var reasons: [String] = []
+        for file in files {
+            for hunk in file.hunks {
+                guard let reason = session.reason(for: hunk, inFileAt: file.path), !reasons.contains(reason)
+                else { continue }
+                reasons.append(reason)
+            }
+        }
+        return ([session.title] + (reasons.isEmpty ? [] : [""] + reasons.map { "- \($0)" })).joined(separator: "\n")
+    }
+
     /// The new turn that sends the rejected blocchi back to the agent, each with its lines and its note.
     func feedback(for decisions: [String: HunkDecision]) -> String {
         var text = String(localized: "Ho rivisto le tue modifiche e ho rifiutato i blocchi qui sotto. Sono ancora nei file: rifalli seguendo le note, o toglili se non servono. Gli altri blocchi sono approvati: non toccarli.")

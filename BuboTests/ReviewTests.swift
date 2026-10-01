@@ -154,6 +154,29 @@ struct ReviewTests {
         #expect(!review.canSendBack(with: decisions))
     }
 
+    @Test func onlyEveryBloccoAcceptedCanBeMerged() {
+        let review = Review(files: ChangedFile.files(in: Self.diff))
+        var decisions = Dictionary(uniqueKeysWithValues: review.hunkIDs.map { ($0, HunkDecision.accepted) })
+        #expect(review.canMerge(with: decisions))
+        decisions[review.hunkIDs[0]] = .rejected(note: nil)
+        #expect(!review.canMerge(with: decisions))
+        decisions[review.hunkIDs[0]] = nil
+        #expect(!review.canMerge(with: decisions))
+        #expect(!Review().canMerge(with: [:]))
+    }
+
+    @Test func theMergeMessageIsTheTitleThenEachPerchéOnce() {
+        var session = Session(id: UUID(), title: "Router più chiaro", project: URL(filePath: "/p"))
+        session.apply(.summary("Rinomino b"))
+        session.apply(.edit(file: "/w/Sources/Router.swift", lines: ["let b = 3"]))
+        session.apply(.summary("Aggiungo un commento"))
+        session.apply(.edit(file: "/w/Sources/Router.swift", lines: ["// fine"]))
+        let review = Review(files: ChangedFile.files(in: Self.diff))
+
+        #expect(review.mergeMessage(for: session) == "Router più chiaro\n\n- Rinomino b\n- Aggiungo un commento")
+        #expect(Review().mergeMessage(for: session) == "Router più chiaro")
+    }
+
     @Test func theFeedbackHasTheRejectedBlocchiWithTheirNotes() {
         let review = Review(files: ChangedFile.files(in: Self.diff))
         let feedback = review.feedback(for: [review.hunkIDs[0]: .rejected(note: "Lascia 2"), review.hunkIDs[1]: .accepted])
