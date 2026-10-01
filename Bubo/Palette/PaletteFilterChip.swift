@@ -32,6 +32,9 @@ struct PaletteFilterChip: View {
         case .days(let days): Text("Ultimi \(days) giorni")
         case .source(.cli): Text("Cronologia CLI")
         case .source(.session): Text("Sessioni")
+        case .kind(.commands): Text("Comandi")
+        case .kind(.conversations): Text("Conversazioni")
+        case .kind(.secondBrain): Text("Secondo cervello")
         }
     }
 }

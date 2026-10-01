@@ -10,6 +10,9 @@ struct PaletteTests {
         ("30G", .days(30)),
         ("cli", .source(.cli)),
         ("sessioni", .source(.session)),
+        ("comandi", .kind(.commands)),
+        ("conversazioni", .kind(.conversations)),
+        ("Cervello", .kind(.secondBrain)),
     ])
     func aWordNamesAFilter(word: String, filter: PaletteFilter) {
         #expect(PaletteFilter(word) == filter)

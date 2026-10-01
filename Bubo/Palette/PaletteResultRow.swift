@@ -31,19 +31,8 @@ struct PaletteResultRow: View {
                     .layoutPriority(1)
             }
         }
-        .padding(.horizontal, Spacing.small)
-        .padding(.vertical, Spacing.xSmall)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isSelected ? Palette.surface : .clear, in: .rect(cornerRadius: CornerRadius.medium))
-        .overlay {
-            if isSelected {
-                RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(Palette.lineStrong)
-            }
-        }
-        .contentShape(.rect)
-        .accessibilityElement(children: .ignore)
+        .paletteRowStyle(isSelected: isSelected)
         .accessibilityLabel(Text(verbatim: spokenLabel))
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 
     private func author(of hit: SearchHit) -> some View {

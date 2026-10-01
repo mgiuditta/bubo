@@ -1,6 +1,14 @@
 import Foundation
 
-/// A filter written in the Palette's box, which becomes a gettone: `@progetto`, `7g`, `cli` or `sessioni`.
+/// A kind of result of the Palette, each in its own group.
+nonisolated enum PaletteKind: Hashable, Sendable {
+    case commands
+    case conversations
+    case secondBrain
+}
+
+/// A filter written in the Palette's box, which becomes a gettone: `@progetto`, `7g`, `cli`, `sessioni`, or a kind
+/// of result: `comandi`, `conversazioni`, `cervello` or `note`.
 nonisolated enum PaletteFilter: Hashable, Sendable {
     /// Only the conversations of the Progetti whose name contains this text.
     case project(String)
@@ -8,6 +16,8 @@ nonisolated enum PaletteFilter: Hashable, Sendable {
     case days(Int)
     /// Only the conversations from there.
     case source(ConversationSource)
+    /// Only the results of this kind.
+    case kind(PaletteKind)
 
     /// Reads the filter `word` names, or `nil` if it is a word to search.
     init?(_ word: some StringProtocol) {
@@ -20,15 +30,26 @@ nonisolated enum PaletteFilter: Hashable, Sendable {
             self = .source(.cli)
         } else if word == "sessioni" || word == "sessione" {
             self = .source(.session)
+        } else if word == "comandi" || word == "comando" {
+            self = .kind(.commands)
+        } else if word == "conversazioni" || word == "conversazione" {
+            self = .kind(.conversations)
+        } else if word == "cervello" || word == "note" || word == "nota" {
+            self = .kind(.secondBrain)
         } else {
             return nil
         }
     }
 
+    /// The kind this filter names; `nil` for a filter on the conversations.
+    var kind: PaletteKind? {
+        if case .kind(let kind) = self { kind } else { nil }
+    }
+
     /// Whether `other` filters on the same thing, so one replaces the other.
     func isSameKind(as other: PaletteFilter) -> Bool {
         switch (self, other) {
-        case (.project, .project), (.days, .days), (.source, .source): true
+        case (.project, .project), (.days, .days), (.source, .source), (.kind, .kind): true
         default: false
         }
     }
@@ -43,6 +64,14 @@ nonisolated struct PaletteQuery: Equatable, Sendable {
 
     /// Whether nothing is written and no gettone is set.
     var isEmpty: Bool { filters.isEmpty && text.allSatisfy(\.isWhitespace) }
+
+    /// Whether the results of `kind` are shown: a gettone of another kind hides them, and so does a filter on the
+    /// conversations for the commands and the Secondo cervello.
+    func shows(_ kind: PaletteKind) -> Bool {
+        let filters = search.filters
+        if let chosen = filters.lazy.compactMap(\.kind).first { return chosen == kind }
+        return kind == .conversations || filters.allSatisfy { $0.kind != nil }
+    }
 
     /// The words to search for and every filter, also one still being written at the end of the text.
     var search: (text: String, filters: [PaletteFilter]) {
