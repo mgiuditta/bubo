@@ -41,8 +41,16 @@ for file in $catalogs; do
     done
 done
 
-# 3. L'icona ha tutte e 10 le misure, ciascuna con i pixel giusti.
-# ponytail: il glifo modello della barra dei menu (1× e 2×) si controlla quando esiste (ticket 10, umano).
+# 3. L'icona ha tutte e 10 le misure, ciascuna con i pixel giusti; il glifo della barra dei menu è
+# un'immagine modello a 1× e 2× (18 e 36 px).
+glyph=Bubo/Resources/Assets.xcassets/MenuBarGlyph.imageset
+[[ $(jq -r '.properties["template-rendering-intent"]' $glyph/Contents.json) == template ]] \
+    || fail "$glyph non è un'immagine modello"
+for scale in 1 2; do
+    name=$(jq -r --arg s "${scale}x" '.images[] | select(.scale == $s) | .filename // empty' $glyph/Contents.json)
+    actual=$(sips -g pixelWidth $glyph/${name:-assente} 2>/dev/null | awk '/pixelWidth/ { print $2 }')
+    [[ $actual == $(( 18 * scale )) ]] || fail "$glyph a ${scale}× è ${actual:-assente} px, servono $(( 18 * scale ))"
+done
 icon=Bubo/Resources/Assets.xcassets/AppIcon.appiconset
 (( $(jq '[.images[] | select(.filename != null)] | length' $icon/Contents.json) == 10 )) \
     || fail "$icon non ha 10 immagini"
