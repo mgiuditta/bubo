@@ -149,7 +149,7 @@ struct ClaudeRemedyTests {
         let log = home.appending(path: "bridge.log")
         let bridge = ClaudeCompatibilityTests.agingBridge(log: log, oldTurns: 0)
         let defaults = try #require(UserDefaults(suiteName: "ClaudeRemedyTests-\(UUID().uuidString)"))
-        let flow = OnboardingFlow(hasSessions: true, defaults: defaults, detect: { await detect() }) { _, _ in }
+        let flow = OnboardingFlow(hasSessions: true, defaults: defaults, detect: { await detect() }) { _, _ in UUID() }
         let store = SessionStore(file: home.appending(path: "Sessioni.json"), worktrees: WorktreeManager(root: home)) {
             bridge
         }
