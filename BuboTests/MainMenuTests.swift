@@ -36,6 +36,12 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == "⌥⌘N")
     }
 
+    @Test func sessioneDaIssueHasItsShortcut() throws {
+        let mainMenu = try #require(NSApp.mainMenu)
+        let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Sessione da issue GitHub…") })
+        #expect(Self.shortcut(of: item) == "⌘I")
+    }
+
     @Test func theTerminalHasItsShortcut() throws {
         let mainMenu = try #require(NSApp.mainMenu)
         let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Mostra il terminale") })

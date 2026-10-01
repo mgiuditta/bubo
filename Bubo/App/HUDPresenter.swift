@@ -18,6 +18,9 @@ final class HUDPresenter {
     /// Whether the HUD shows the new Bozza sheet.
     var isCreatingDraft = false
 
+    /// Whether the HUD shows the sheet of the GitHub issues (⌘I).
+    var isPickingIssue = false
+
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
 
@@ -52,6 +55,12 @@ final class HUDPresenter {
     func createDraft() {
         switchVista(to: .board)
         isCreatingDraft = true
+        show()
+    }
+
+    /// Brings the HUD to the front with the sheet of the open GitHub issues of a Progetto (⌘I).
+    func pickIssue() {
+        isPickingIssue = true
         show()
     }
 

@@ -155,13 +155,15 @@ final class SessionStore {
     /// - Parameters:
     ///   - onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
     ///   - conversation: The Cronologia CLI conversation the Sessione continues, as a fork.
+    ///   - issue: The issue the Sessione starts from, with ⌘I.
     /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
-               forkingFrom conversation: CLIConversation? = nil) throws {
+               forkingFrom conversation: CLIConversation? = nil, issue: IssueLink? = nil) throws {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
         session.forkedFrom = conversation?.id
+        session.issue = issue
         if onCheckout {
             session.isOnCheckout = true
             session.workspace = Workspace(folder: project)
@@ -195,7 +197,34 @@ final class SessionStore {
             session.summary = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title)) }
+        Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+    }
+
+    /// Riprendi on an Archiviata Sessione: Aperta again, its copy prepared again on its branch, or on a new one when
+    /// Fondi deleted it, then a new turn with `prompt`. Nothing for any other Sessione, also while Fondi can be undone.
+    ///
+    /// - Throws: `SessionError.checkoutTaken` when the Sessione worked on the checkout and another open one works there.
+    func reopen(_ id: UUID, prompt: String) throws {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .archiviata else { return }
+        if session.isOnCheckout, let taken = checkoutSession(of: session.project) {
+            throw SessionError.checkoutTaken(by: taken.title)
+        }
+        let free = ports.ports(avoiding: sessions.compactMap(\.ports))
+        update(id) { session in
+            // Fondi deleted the branch: the blocchi decided then are gone with it.
+            if session.mergedAt != nil { session.decisions = [:] }
+            session.phase = .aperta
+            session.mergedAt = nil
+            session.ports = free
+            session.prompt = prompt
+            session.workspace = session.isOnCheckout ? session.workspace : nil
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.setupFailure = nil
+            session.isInterrupted = false
+        }
+        Task { await run(id, prompt: prompt, branch: session.branchToPrepare, reopening: session.workspace) }
     }
 
     /// The changes of the Sessione `id` to review, since its branch started; none while it has no copy yet.
@@ -238,7 +267,7 @@ final class SessionStore {
             session.failure = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: feedback, branch: Session.proposedBranch(for: session.title)) }
+        Task { await run(id, prompt: feedback, branch: session.branchToPrepare) }
     }
 
     /// What Fondi would do now with the Sessione `id`, without touching the Progetto's checkout; `nil` when the
@@ -336,7 +365,7 @@ final class SessionStore {
         }
         let prompt = String(localized: "Ho portato in questo branch le ultime modifiche di \(resolution.branch) e git ha lasciato conflitti in \(resolution.conflicts.formatted()). Risolvili nei file tenendo sia il tuo lavoro sia quello di \(resolution.branch), e togli tutti i marcatori <<<<<<<, ======= e >>>>>>>. Non fare commit e non annullare il merge: lo concludo io.")
         Task {
-            let succeeded = await run(id, prompt: prompt, branch: Session.proposedBranch(for: session.title))
+            let succeeded = await run(id, prompt: prompt, branch: session.branchToPrepare)
             await finishResolving(id, succeeded: succeeded)
         }
     }
@@ -480,9 +509,10 @@ final class SessionStore {
 
     /// Prepares the Sessione's copy on `branch` if it has none yet, then asks `claude` `prompt` there.
     ///
+    /// - Parameter reopening: The copy of the Archiviata Sessione that Riprendi prepares again, in place of a new one.
     /// - Returns: Whether the turn ended without errors.
     @discardableResult
-    private func run(_ id: UUID, prompt: String, branch: String) async -> Bool {
+    private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         let environment = session.portEnvironment
         do {
@@ -492,7 +522,11 @@ final class SessionStore {
             } else {
                 let preparing = Signposts.signposter.beginInterval("Sessione pronta",
                                                                    id: Signposts.signposter.makeSignpostID())
-                workspace = try await worktrees.prepare(session.project, branch: branch)
+                workspace = if let reopening {
+                    try await worktrees.reopen(reopening, of: session.project)
+                } else {
+                    try await worktrees.prepare(session.project, branch: branch)
+                }
                 Signposts.signposter.endInterval("Sessione pronta", preparing)
                 update(id) { $0.workspace = workspace }
                 if let failure = await worktrees.runSetup(in: workspace, environment: environment) {

@@ -62,6 +62,10 @@ struct HUDView: View {
                 if let readiness, isOnboarding { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota)
             }
+            // Here, not next to the other sheets: one sheet modifier per view.
+            .sheet(isPresented: Bindable(hud).isPickingIssue) {
+                if let sessions { IssuePicker(store: sessions) }
+            }
             Spacer(minLength: Spacing.large)
             if hud.vista == .orbita, let sessions = visibleSessions {
                 SessionOrbit(store: sessions, quota: questions.quota)

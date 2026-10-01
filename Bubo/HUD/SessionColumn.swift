@@ -191,7 +191,7 @@ private struct CLIConversationRow: View {
 }
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
-/// Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
+/// the issue (`#42`) · Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
 /// and the configuration
 /// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
@@ -276,7 +276,7 @@ struct SessionRow: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
             }
-            Text(verbatim: [session.project.lastPathComponent,
+            Text(verbatim: [session.issue?.label, session.project.lastPathComponent,
                             session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch,
                             String(localized: session.phase.title)]
                 .compactMap(\.self).joined(separator: " · "))
