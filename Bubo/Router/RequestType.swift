@@ -1,3 +1,5 @@
+import Foundation
+
 /// The Tipo di richiesta: the closed list the router sorts every request into, five per family.
 ///
 /// The raw value is how the labelled set of `BuboTests/Fixtures/richieste-etichettate.json` spells it.
@@ -31,4 +33,25 @@ nonisolated enum RequestType: String, CaseIterable, Codable, Sendable {
         case .shortFact: 0  // Apple FM, otherwise Haiku
         }
     }
+
+    /// The Tipo as the reason line names it.
+    var label: LocalizedStringResource {
+        switch self {
+        case .plan: LocalizedStringResource("Pianifica", comment: Self.comment)
+        case .smallFix: LocalizedStringResource("Correzione piccola", comment: Self.comment)
+        case .broadChange: LocalizedStringResource("Modifica ampia", comment: Self.comment)
+        case .explore: LocalizedStringResource("Esplora il codice", comment: Self.comment)
+        case .review: LocalizedStringResource("Revisione", comment: Self.comment)
+        case .shortFact: LocalizedStringResource("Fatto breve", comment: Self.comment)
+        case .summary: LocalizedStringResource("Riassunto", comment: Self.comment)
+        case .writing: LocalizedStringResource("Scrittura", comment: Self.comment)
+        case .reasoning: LocalizedStringResource("Ragionamento", comment: Self.comment)
+        case .webSearch: LocalizedStringResource("Ricerca sul web", comment: Self.comment)
+        }
+    }
+
+    private static let comment: StaticString = """
+        Tipo di richiesta, the kind of request the router sorts each request into; shown in the reason line under an \
+        answer, such as «Scrittura → Sonnet».
+        """
 }

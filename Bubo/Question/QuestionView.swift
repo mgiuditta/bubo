@@ -64,6 +64,10 @@ struct QuestionView: View {
                 .defaultScrollAnchor(.bottom)
                 .accessibilityLabel("Risposta di Claude")
                 .accessibilityIdentifier("question.answer")
+                // Under every answer, once it is complete or stopped: who answered it, why, and at what cost.
+                if !model.isAnswering, let routedAnswer = model.routedAnswer {
+                    RouterLine(answer: routedAnswer)
+                }
             }
 
             if let savedNote = model.savedNote {

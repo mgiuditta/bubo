@@ -22,11 +22,11 @@ enum BridgeCommand: Equatable {
     /// Sessione already has a server. `teamRules` are the Progetto's Risorse di squadra in force,
     /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
     /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda. `permissionMode` is how `claude` approves the
-    /// calls; without it, `claude` picks the mode itself.
+    /// calls; without it, `claude` picks the mode itself. `effort` is the router's effort; without it, the model's default.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
              sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
-             remembers: Bool = false, permissionMode: PermissionMode? = nil)
+             remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -68,7 +68,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview, teamRules, remembers, permissionMode):
+                      sandbox, offersPreview, teamRules, remembers, permissionMode, effort):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -82,6 +82,7 @@ enum BridgeCommand: Equatable {
             }
             if remembers { object["remember"] = true }
             object["permissionMode"] = permissionMode?.rawValue
+            object["effort"] = effort?.rawValue
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -185,6 +186,10 @@ enum BridgeEvent: Equatable, Decodable {
     case risk(id: String, PermissionRequest)
     /// The tokens and the figure of the conversation `id` so far; each one replaces the one before.
     case usage(id: String, TurnUsage)
+    /// The model that answered the conversation `id` and its effective effort, just before it ends.
+    case answeredBy(id: String, AnsweringModel)
+    /// The Claude models the account offers, read with the Quota.
+    case models(ModelCatalog)
     /// The Regole di permesso that widen the Sandbox, answering the request `id`.
     case sandboxRules(id: String, [SandboxWideningRule])
     /// A line in a protocol version Bubo does not speak.
@@ -193,7 +198,8 @@ enum BridgeEvent: Equatable, Decodable {
     private enum CodingKeys: String, CodingKey {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
-             rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities
+             rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities, model,
+             effort, models
     }
 
     init(from decoder: any Decoder) throws {
@@ -293,6 +299,13 @@ enum BridgeEvent: Equatable, Decodable {
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
                                                                 request: try container.decode(String.self, forKey: .request))
         case "usage": self = .usage(id: try container.decode(String.self, forKey: .id), try TurnUsage(from: decoder))
+        case "answeredBy":
+            self = .answeredBy(id: try container.decode(String.self, forKey: .id),
+                               AnsweringModel(model: try container.decode(String.self, forKey: .model),
+                                              // A level Bubo does not know yet shows no effort rather than a wrong one.
+                                              effort: try container.decodeIfPresent(String.self, forKey: .effort)
+                                                  .flatMap(Effort.init(rawValue:))))
+        case "models": self = .models(ModelCatalog(entries: try container.decode([ModelCatalog.Entry].self, forKey: .models)))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")
         }

@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type PermissionMode, type Query, type SandboxSettings, type SDKAPIRetryMessage, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
+  createSdkMcpServer, getSessionMessages, importSessionToStore, type CanUseTool, type HookCallbackMatcher, listSessions, type McpServerStatus, type Options, prewarm, query, tool, type HookInput, type EffortLevel, type PermissionMode, type Query, type SandboxSettings, type SDKAPIRetryMessage, type SDKAssistantMessageError, type SessionStoreEntry, type SettingSource, type SpareProcess,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
@@ -16,6 +16,7 @@ import { conversation, dates, firstPage, messages, transcriptLimit, type Convers
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
+import { AnswerWitness, catalogOf, effortOf, type AnsweredBy, type CatalogEntry } from "./router";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { sandboxRules, type SandboxRule } from "./sandboxRules";
@@ -30,7 +31,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -78,7 +79,9 @@ type Event =
   | (SandboxBlock & { type: "sandboxBlock"; id: string })
   | { type: "sandboxRules"; id: string; rules: SandboxRule[] }
   | (RiskQuestion & { type: "risk"; id: string; request: string })
-  | ({ type: "usage"; id: string } & TurnUsage);
+  | ({ type: "usage"; id: string } & TurnUsage)
+  | ({ type: "answeredBy"; id: string } & AnsweredBy)
+  | { type: "models"; models: CatalogEntry[] };
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -266,6 +269,8 @@ function searchedFiles(id: string): HookCallbackMatcher {
 
 // In un worktree `projectConfigRoot` è il checkout principale: impostazioni, `.mcp.json` e `.claude/` vengono da lì.
 // `model` è un alias di `claude` (`sonnet`, `opus`); senza, vale il modello scelto dall'utente.
+// `effort` è lo sforzo scelto dal router; senza, vale il default del modello. Prima di `done` il ponte dice chi ha
+// risposto (`answeredBy`): il modello e lo sforzo effettivo, che l'SDK può aver declassato in silenzio.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
 // `resume` è una conversazione della Cronologia CLI: si riprende sempre come fork, con un id nuovo.
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
@@ -281,7 +286,7 @@ function searchedFiles(id: string): HookCallbackMatcher {
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
-                   permissionMode?: PermissionMode) {
+                   permissionMode?: PermissionMode, effort?: EffortLevel) {
   const mirrored = keep !== undefined && store !== undefined;
   const restored = resume === undefined ? undefined : await restoredOf(resume);
   const stopped = new AbortController();
@@ -296,12 +301,14 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     },
   });
   const memory = keep === undefined ? undefined : memoryHooks(id);
+  const witness = new AnswerWitness();
   const conversation = query({
     prompt,
     options: {
       cwd,
       projectConfigRoot,
       model,
+      effort,
       env: { ...withAutoMemory(childEnv, keep !== undefined), ...env },
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
@@ -322,6 +329,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         PreToolUse: [{ hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
+        Stop: [witness.stopHook],
       },
     },
   });
@@ -354,6 +362,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         outdated = "";
         break;
       }
+      witness.read(message);
       const turn = usage?.read(message);
       if (turn) send({ type: "usage", id, ...turn });
       if (message.type === "system" && message.subtype === "api_retry") retry = message;
@@ -383,6 +392,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
                     ...turnFailure(failure, retry) });
       }
     }
+    const answeredBy = witness.answeredBy();
+    if (answeredBy) send({ type: "answeredBy", id, ...answeredBy });
     if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
     else if (succeeded) send({ type: "done", id });
@@ -459,15 +470,20 @@ async function keepHistory(id: string) {
 
 // La Quota senza Domanda: `claude` parte, risponde al metodo di uso e si chiude prima di ogni turno.
 // Nessuna impostazione caricata, quindi nessun hook o `.mcp.json` di nessuna cartella.
+// Dalla stessa conversazione anche il catalogo dei modelli per il router (`supportedModels()`), senza un secondo
+// `claude`. Senza fonti di impostazioni caricate, un `availableModels` dell'utente o del Progetto qui non restringe
+// l'elenco: lo sforzo effettivo di `answeredBy` resta la verità.
 async function quota() {
   const conversation = query({
     prompt: (async function* () { await new Promise(() => {}); })(),
     options: { env: withAutoMemory(childEnv, false), pathToClaudeCodeExecutable: claudePath, settingSources: [], persistSession: false },
   });
   try {
-    sendQuota(await readQuota(conversation));
-  } catch (error) {
-    console.error("Quota non letta:", error instanceof Error ? error.message : error);
+    const [read, models] = await Promise.allSettled([readQuota(conversation), conversation.supportedModels()]);
+    if (read.status === "fulfilled") sendQuota(read.value);
+    else console.error("Quota non letta:", read.reason instanceof Error ? read.reason.message : read.reason);
+    if (models.status === "fulfilled") send({ type: "models", models: catalogOf(models.value) });
+    else console.error("Catalogo dei modelli non letto:", models.reason instanceof Error ? models.reason.message : models.reason);
   } finally {
     conversation.close();
   }
@@ -627,7 +643,7 @@ lines.on("line", (line) => {
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true, mode);
+               command.remember === true, mode, effortOf(command.effort));
       break;
     }
     case "config": {

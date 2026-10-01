@@ -1,0 +1,48 @@
+import Foundation
+
+/// What the reason line under an answer says: who answered, why, and what it cost (spec 10, Interfaccia).
+nonisolated struct RoutedAnswer: Equatable, Sendable {
+    /// The estimated cost of the turn, in the unit that matters to the user.
+    enum Cost: Equatable, Sendable {
+        /// Claude with the subscription: the share of the 5-hour window the turn used, from 0 to 1.
+        case fiveHourShare(Double)
+        /// Claude with the subscription, when the window did not move or was not reported: the Valore a listino.
+        case listValue(Decimal)
+        /// Claude with the API key: the Spesa.
+        case spesa(Decimal)
+    }
+
+    let route: Route
+    /// The provider whose Tinta the line's dot takes; `nil` for the neutral Tinta.
+    let provider: Provider?
+    /// Who answered, once the bridge says; until then the line names the family the router asked for.
+    var answeringModel: AnsweringModel?
+    /// The tokens and figure of the turn, as the bridge last reported them.
+    var usage: TurnUsage?
+    /// The share of the 5-hour window used during the turn, when `claude` reported the window before and after it.
+    var fiveHourShare: Double?
+
+    init(route: Route, provider: Provider?) {
+        self.route = route
+        self.provider = provider
+    }
+
+    /// The cost the line shows; `nil` when nothing is known of it.
+    ///
+    /// With the subscription the window's share comes first: it is what the user runs out of. A share that did not
+    /// move (the window not reported, or under its precision) falls back to the Valore a listino.
+    var cost: Cost? {
+        if usage?.mode != .apiKey, let fiveHourShare, fiveHourShare > 0 { return .fiveHourShare(fiveHourShare) }
+        guard let usage, let figure = usage.cost else { return nil }
+        return usage.mode == .apiKey ? .spesa(figure) : .listValue(figure)
+    }
+
+    /// The share of the 5-hour window used between `before` and `after`; `nil` unless both are the same window and
+    /// it grew.
+    static func fiveHourShare(from before: Quota.Window?, to after: Quota.Window?) -> Double? {
+        guard let before, let after, abs(after.resetsAt.timeIntervalSince(before.resetsAt)) < 60,
+              after.used > before.used
+        else { return nil }
+        return after.used - before.used
+    }
+}

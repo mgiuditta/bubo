@@ -4,12 +4,34 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ a listino" : {
+      "comment" : "Cost of an answer at list price, included in the subscription.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ at list price"
+          }
+        }
+      }
+    },
     "%@ a listino, incluso nell'abbonamento" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ at list price, included in your subscription"
+          }
+        }
+      }
+    },
+    "%@ della finestra di 5 ore" : {
+      "comment" : "Cost of an answer as a share of the subscription's 5-hour window.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ of the 5-hour window"
           }
         }
       }
@@ -46,6 +68,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ isn't valid JSON, so Bubo won't touch it. Fix or move it, then try again."
+          }
+        }
+      }
+    },
+    "%@ o %@ → %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ o %2$@ → %3$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ or %2$@ → %3$@"
+          }
+        }
+      }
+    },
+    "%@ · %@" : {
+      "comment" : "Model and effort in the reason line, such as «Sonnet 5.5 · medio».",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@"
           }
         }
       }
@@ -88,6 +143,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is already used by another app. Choose a different one."
+          }
+        }
+      }
+    },
+    "%@ → %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@"
+          }
+        }
+      }
+    },
+    "%@ → modello predefinito, %@ non disponibile" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → modello predefinito, %2$@ non disponibile"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → default model, %2$@ unavailable"
           }
         }
       }
@@ -136,6 +223,23 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@, blocco %2$@:"
+          }
+        }
+      }
+    },
+    "%@, sforzo %@" : {
+      "comment" : "Model and effort in the reason line, as VoiceOver reads it: «Sonnet 5.5, sforzo medio».",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, sforzo %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@ effort"
           }
         }
       }
@@ -2514,6 +2618,16 @@
         }
       }
     },
+    "Correzione piccola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Small fix"
+          }
+        }
+      }
+    },
     "Cosa deve fare Claude?" : {
       "localizations" : {
         "en" : {
@@ -2844,12 +2958,32 @@
         }
       }
     },
+    "Esplora il codice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Explore code"
+          }
+        }
+      }
+    },
     "Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Optional, for when your subscription isn't enough. Bubo never uses it on its own."
+          }
+        }
+      }
+    },
+    "Fatto breve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick fact"
           }
         }
       }
@@ -4542,6 +4676,16 @@
         }
       }
     },
+    "Modifica ampia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Broad change"
+          }
+        }
+      }
+    },
     "Modifica l'indice…" : {
       "localizations" : {
         "en" : {
@@ -5853,6 +5997,16 @@
         }
       }
     },
+    "Pianifica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan"
+          }
+        }
+      }
+    },
     "Più vecchia di 30 giorni" : {
       "localizations" : {
         "en" : {
@@ -6085,6 +6239,26 @@
         }
       }
     },
+    "Quota di 5 ore usata durante la risposta, come la riporta Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5-hour Quota used during the answer, as reported by Claude."
+          }
+        }
+      }
+    },
+    "Ragionamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reasoning"
+          }
+        }
+      }
+    },
     "Registra una nuova scorciatoia. Esc annulla." : {
       "localizations" : {
         "en" : {
@@ -6195,6 +6369,16 @@
         }
       }
     },
+    "Revisione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review"
+          }
+        }
+      }
+    },
     "Revisione · %@" : {
       "localizations" : {
         "en" : {
@@ -6211,6 +6395,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Revoke"
+          }
+        }
+      }
+    },
+    "Riassunto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary"
           }
         }
       }
@@ -6255,6 +6449,16 @@
         }
       }
     },
+    "Ricerca sul web" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web search"
+          }
+        }
+      }
+    },
     "Richiamato" : {
       "localizations" : {
         "en" : {
@@ -6271,6 +6475,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permission request"
+          }
+        }
+      }
+    },
+    "Richiesta non classificata → modello predefinito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unclassified request → default model"
           }
         }
       }
@@ -6801,6 +7015,16 @@
         }
       }
     },
+    "Scelto da te" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chosen by you"
+          }
+        }
+      }
+    },
     "Scollega Linear" : {
       "localizations" : {
         "en" : {
@@ -6837,6 +7061,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Setup script not run: the project isn't trusted."
+          }
+        }
+      }
+    },
+    "Scrittura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writing"
           }
         }
       }
@@ -7167,6 +7401,17 @@
         }
       }
     },
+    "Spesa: %@" : {
+      "comment" : "Cost of an answer paid with the API key.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend: %@"
+          }
+        }
+      }
+    },
     "Spiegami com'è fatto questo Progetto" : {
       "localizations" : {
         "en" : {
@@ -7243,6 +7488,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code's list-price estimate, calculated on this Mac: not a bill."
+          }
+        }
+      }
+    },
+    "Stima calcolata sul Mac: non è una fattura." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated on your Mac: not an invoice."
           }
         }
       }
@@ -8061,6 +8316,16 @@
         }
       }
     },
+    "alto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "high"
+          }
+        }
+      }
+    },
     "apiKeyHelper" : {
       "localizations" : {
         "en" : {
@@ -8135,6 +8400,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Lavora"
+          }
+        }
+      }
+    },
+    "basso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "low"
           }
         }
       }
@@ -8340,12 +8615,53 @@
         }
       }
     },
+    "massimo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "max"
+          }
+        }
+      }
+    },
+    "medio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "medium"
+          }
+        }
+      }
+    },
+    "meno dello 0,1% della finestra di 5 ore" : {
+      "comment" : "Cost of an answer: under a thousandth of the subscription's 5-hour window.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "less than 0.1% of the 5-hour window"
+          }
+        }
+      }
+    },
     "meno di %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "under %@"
+          }
+        }
+      }
+    },
+    "molto alto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "very high"
           }
         }
       }
