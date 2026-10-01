@@ -15,6 +15,13 @@ enum Signposts {
         signposter.emitEvent(event.name)
     }
 
+    /// Runs `work` inside the interval `interval` and returns its result.
+    static func measure<T>(_ interval: Signpost, around work: () async -> T) async -> T {
+        let state = signposter.beginInterval(interval.name, id: signposter.makeSignpostID())
+        defer { signposter.endInterval(interval.name, state) }
+        return await work()
+    }
+
     /// Emits `HUD interattivo` the first time it is called, and never again.
     ///
     /// The end of launch: later HUD appearances are not launches.
@@ -29,11 +36,14 @@ enum Signposts {
 enum Signpost {
     /// The HUD has drawn and the main thread accepts input: launch is over.
     case hudInteractive
+    /// Interval: finding `claude` and reading its version and login, after `hudInteractive`.
+    case claudeDetection
 
     /// The name shown in Instruments.
     var name: StaticString {
         switch self {
         case .hudInteractive: "HUD interattivo"
+        case .claudeDetection: "Rilevamento claude"
         }
     }
 }
