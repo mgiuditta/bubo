@@ -1,10 +1,10 @@
 # Prestazioni (spec 25): i test di BuboPerf sul runner standard macos-26 (VM M1, 3 core).
 # Blocca la PR solo oltre 2× un budget o con un invariante rotto; il resto va nel report, allegato come artefatto.
 # I budget esatti si verificano sul Mac di riferimento con scripts/perf.sh.
+# Solo su main e a mano, non su ogni PR: il runner macOS costa 0,062 $/min su un repo privato.
 name: Prestazioni
 
 on:
-  pull_request:
   push:
     branches: [main]
   workflow_dispatch:
@@ -22,9 +22,9 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-      - uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      # Lo stesso Xcode del Mac di sviluppo (26.6, 17F113), predefinito sull'immagine macos-26.
+      - name: Xcode
+        run: sudo xcode-select --switch /Applications/Xcode_26.6.app && xcodebuild -version
       - uses: oven-sh/setup-bun@v2
       - name: Strumenti
         run: brew install xcodegen
@@ -35,7 +35,7 @@ jobs:
         run: cat .build/perf/*/report.md >> "$GITHUB_STEP_SUMMARY" 2>/dev/null || echo "Nessun report" >> "$GITHUB_STEP_SUMMARY"
       - name: Report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: prestazioni
           path: |

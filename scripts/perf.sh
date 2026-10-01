@@ -90,5 +90,10 @@ gate=()
 (( ci )) && gate=(--ci)
 "$out/perf-report" report "$readings" "$out" "${gate[@]}" || verdict=$?
 print "\nperf: report in $out/report.md, test $tests"
+if [[ $tests != ok ]] && (( ci )); then
+  failed=$(xcrun xcresulttool get test-results tests --path "$out/BuboPerf.xcresult" \
+    | jq -r '[.. | objects | select(.nodeType? == "Test Case" and .result? == "Failed") | .name] | unique | join(", ")') || true
+  print "::error title=Prestazioni::Test falliti: ${failed:-vedi BuboPerf.xcresult nell'artefatto prestazioni}"
+fi
 [[ $tests == ok ]] || exit 1
 exit $verdict
