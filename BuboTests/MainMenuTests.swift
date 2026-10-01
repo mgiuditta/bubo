@@ -63,6 +63,12 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == nil)
     }
 
+    @Test func cronologiaIsInTheWindowMenuWithoutAShortcut() throws {
+        let windowMenu = try #require(NSApp.windowsMenu)
+        let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Cronologia") })
+        #expect(Self.shortcut(of: item) == nil)
+    }
+
     @Test func theGalassiaHasItsShortcut() throws {
         let mainMenu = try #require(NSApp.mainMenu)
         let item = try #require(Self.items(in: mainMenu).first { $0.title == String(localized: "Mostra la Galassia") })
