@@ -47,8 +47,10 @@ nonisolated enum PerfBudgets {
     /// `claude` processes under Bubo after launch: an invariant.
     static let claudeProcessesAfterLaunch = 0
 
-    /// How long after launch the `claude` invariant is checked.
-    static let settleAfterLaunch: TimeInterval = 10
+    /// How long after launch the `claude` invariant is checked: before the configuration spare, the one allowed
+    /// `claude`, which starts `ConfigurationSpare.launchDelay` (10 s) after the HUD is interactive (spec 25, #311).
+    // ponytail: a fixed margin of 3 s before the spare; check the spare by name if launches get slower.
+    static let settleAfterLaunch: TimeInterval = 7
 
     /// The Orb's GPU time per frame, p95, over `orbFrames` Morph frames.
     static let orbGPUTime = Measurement(value: 4, unit: UnitDuration.milliseconds)
