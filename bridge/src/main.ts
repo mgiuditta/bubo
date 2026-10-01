@@ -1,7 +1,7 @@
 // Ponte agente di Bubo: JSON su righe, stdin → comandi, stdout → eventi.
 // Protocollo in Bubo/Agent/BridgeMessage.swift; stessa versione nei due lati.
 import {
-  createSdkMcpServer, getSessionMessages, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
+  createSdkMcpServer, getSessionMessages, type CanUseTool, listSessions, query, tool, type HookInput, type Query, type SDKAssistantMessageError, type SettingSource,
 } from "@anthropic-ai/claude-agent-sdk";
 import { randomUUID } from "node:crypto";
 import { createInterface } from "node:readline";
@@ -9,6 +9,7 @@ import { z } from "zod";
 import { progress, type Progress } from "./activity";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, firstPage, messages, type Conversation, type Message } from "./history";
+import { deniedOwnCard, deniedWithoutBubo, isAllowed, isTooLong, needsItsOwnCard, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
 import { limitFromRateLimit, quotaFromRateLimit, readQuota, type Limit, type Quota } from "./quota";
 import { settingSources } from "./settingSources";
 
@@ -21,7 +22,8 @@ type Command =
   | { v: number; type: "quota" }
   | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "history"; id: string; all?: unknown }
-  | { v: number; type: "transcript"; id: string; conversation: string };
+  | { v: number; type: "transcript"; id: string; conversation: string }
+  | { v: number; type: "permission"; request: string; behavior?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -35,10 +37,43 @@ type Event =
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
-  | { type: "transcript"; id: string; messages: Message[] };
+  | { type: "transcript"; id: string; messages: Message[] }
+  | (PermissionRequest & { id: string })
+  | { type: "permissionWithdrawn"; id: string; request: string };
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
+}
+
+// Le Richieste di permesso in attesa della risposta di Bubo: si risolvono una volta sola, con `true` solo per "allow".
+const permissions = new Map<string, (allowed: boolean) => void>();
+
+// `canUseTool` della conversazione `id`. Chiude sempre su "no": se Bubo non si raggiunge, se la CLI ritira la
+// Richiesta, se la risposta non è "allow". Se Bubo esce, stdin si chiude e il ponte esce senza approvare nulla.
+function askBubo(id: string): CanUseTool {
+  return async (toolName, input, options) => {
+    if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
+    if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
+    const request = randomUUID();
+    const shown = permissionRequest(request, toolName, input, options);
+    if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
+    let reached = true;
+    const allowed = await new Promise<boolean>((resolve) => {
+      permissions.set(request, resolve);
+      options.signal.addEventListener("abort", () => {
+        resolve(false);
+        if (permissions.delete(request)) send({ type: "permissionWithdrawn", id, request });
+      }, { once: true });
+      try {
+        send({ ...shown, id });
+      } catch {
+        reached = false;
+        resolve(false);
+      }
+    });
+    permissions.delete(request);
+    return permissionResult(allowed, input, reached ? undefined : deniedWithoutBubo);
+  };
 }
 
 // Una Quota senza finestre non si manda: Bubo tiene ciò che sa, o non mostra nulla.
@@ -102,6 +137,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       resume,
       forkSession: resume !== undefined,
       persistSession: false,
+      canUseTool: askBubo(id),
     },
   });
   running.set(id, conversation);
@@ -252,6 +288,7 @@ lines.on("line", (line) => {
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": searches.get(command.id)?.(command.text); searches.delete(command.id); break;
     case "quota": void quota(); break;
+    case "permission": permissions.get(command.request)?.(isAllowed(command.behavior)); permissions.delete(command.request); break;
   }
 });
 // stdin chiuso: Bubo è uscito o ha chiuso il ponte.

@@ -183,7 +183,7 @@ private struct CLIConversationRow: View {
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
 /// Progetto · branch · Fase; Riprendi after Bubo's quitting interrupted it, Archivia, Cancella… and the configuration
-/// of Claude in its Progetto in its menu.
+/// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
     let session: Session
     let store: SessionStore
@@ -195,6 +195,28 @@ struct SessionRow: View {
     private var isArchived: Bool { session.phase == .archiviata }
 
     var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            details
+            // Outside the combined element, so each answer stays a button of its own.
+            if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
+                PermissionRequestView(pending: pending, queued: queue.count - 1,
+                                      hasKeyboard: store.permissions.first?.id == pending.id) { answer in
+                    store.answer(pending.id, in: session.id, with: answer)
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+        }
+        .sheet(isPresented: $isShowingConfiguration) {
+            ConfigPanel(project: session.project, read: store.configuration(of:))
+        }
+        .confirmationDialog("Vuoi cancellare la Sessione «\(session.title)»?", isPresented: $isConfirmingDeletion) {
+            Button("Cancella", role: .destructive) { store.delete(session.id) }
+        } message: {
+            Text(deletionMessage)
+        }
+    }
+
+    private var details: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
                 Circle()
@@ -261,14 +283,6 @@ struct SessionRow: View {
                 if !isArchived { Button("Archivia") { store.archive(session.id) } }
                 Button("Cancella…", action: confirmDeletion)
             }
-        }
-        .sheet(isPresented: $isShowingConfiguration) {
-            ConfigPanel(project: session.project, read: store.configuration(of:))
-        }
-        .confirmationDialog("Vuoi cancellare la Sessione «\(session.title)»?", isPresented: $isConfirmingDeletion) {
-            Button("Cancella", role: .destructive) { store.delete(session.id) }
-        } message: {
-            Text(deletionMessage)
         }
     }
 

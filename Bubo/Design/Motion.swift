@@ -11,6 +11,8 @@ enum Motion {
     static let standard = Animation.easeInOut(duration: 0.2)
     /// Panels appearing and moving, 250 ms.
     static let emphasized = Animation.spring(duration: 0.25, bounce: 0.15)
+    /// The press that approves a Richiesta di permesso of level 4–5, 1 s, filling at an even pace.
+    static let hold = Animation.linear(duration: 1)
     /// One turn of the outer HUD ring, in seconds.
     static let outerRingPeriod: Double = 60
     /// One turn of the inner HUD ring, in seconds; it turns the other way.

@@ -17,6 +17,14 @@ enum AgentBridgeError: Error, Equatable {
     case signInRequired
 }
 
+/// What a conversation asks of the user while it waits.
+enum PermissionEvent: Equatable {
+    /// A Richiesta di permesso to answer.
+    case asked(PermissionRequest)
+    /// `claude` no longer waits for the Richiesta with this id.
+    case withdrawn(PermissionRequest.ID)
+}
+
 /// Talks to the agent bridge, a child process that drives `claude` through the Agent SDK.
 ///
 /// The bridge starts on the first request, disclaimed (ADR 0005), and serves every
@@ -47,6 +55,8 @@ final class AgentBridge {
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
     /// What receives the progress of each answer in `answers`.
     private var progressHandlers: [String: (AgentProgress) -> Void] = [:]
+    /// What receives the Richieste di permesso of each answer in `answers`; without one, they are refused.
+    private var permissionHandlers: [String: (PermissionEvent) -> Void] = [:]
     /// The requests waiting for their one event: configurations, Cronologia CLI, transcripts.
     private var requests: [String: CheckedContinuation<BridgeEvent, any Error>] = [:]
     private var isClosing = false
@@ -63,9 +73,12 @@ final class AgentBridge {
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
     ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
+    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:)`;
+    ///     `nil` refuses them all.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, environment: [String: String] = [:],
              forkingFrom conversation: String? = nil,
-             progress: @escaping (AgentProgress) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
+             progress: @escaping (AgentProgress) -> Void = { _ in },
+             permissions: ((PermissionEvent) -> Void)? = nil) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -76,6 +89,7 @@ final class AgentBridge {
             let process = try runningProcess()
             answers[id] = continuation
             progressHandlers[id] = progress
+            permissionHandlers[id] = permissions
             // Trust and settings both come from the main checkout when `directory` is a worktree.
             let command = BridgeCommand.ask(id: id, prompt: prompt, directory: directory,
                                             settingSources: trustGate.settingSources(for: directory),
@@ -142,6 +156,15 @@ final class AgentBridge {
                 requests[id] = nil
                 continuation.resume(throwing: error)
             }
+        }
+    }
+
+    /// Answers the Richiesta di permesso `request`. If the bridge is gone, so is the call waiting for it: nothing runs.
+    func answerPermission(_ request: PermissionRequest.ID, allows: Bool) {
+        do {
+            try process?.input.write(contentsOf: BridgeCommand.answerPermission(request: request, allows: allows).line())
+        } catch {
+            Logger.agent.error("Permission answer not sent: \(error)")
         }
     }
 
@@ -216,6 +239,14 @@ final class AgentBridge {
                 let text = await search(query, project)
                 try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: text).line())
             }
+        case let .permission(id, request):
+            if let handler = permissionHandlers[id] {
+                handler(.asked(request))
+            } else {
+                answerPermission(request.id, allows: false)
+            }
+        case let .permissionWithdrawn(id, request):
+            permissionHandlers[id]?(.withdrawn(request))
         case let .quota(reported):
             quota(reported)
         case let .configuration(id, _), let .history(id, _), let .transcript(id, _):
@@ -230,6 +261,7 @@ final class AgentBridge {
     @discardableResult
     private func removeAnswer(_ id: String) -> AsyncThrowingStream<String, any Error>.Continuation? {
         progressHandlers[id] = nil
+        permissionHandlers[id] = nil
         return answers.removeValue(forKey: id)
     }
 
@@ -237,6 +269,7 @@ final class AgentBridge {
         let pending = answers
         answers = [:]
         progressHandlers = [:]
+        permissionHandlers = [:]
         pending.values.forEach { $0.finish(throwing: error) }
         let waiting = requests
         requests = [:]
