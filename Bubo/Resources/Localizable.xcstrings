@@ -2848,6 +2848,16 @@
         }
       }
     },
+    "Dove salvo i riassunti delle Sessioni?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where should Bubo save Session summaries?"
+          }
+        }
+      }
+    },
     "Editor" : {
       "localizations" : {
         "en" : {
@@ -5586,6 +5596,16 @@
         }
       }
     },
+    "Non salvarli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't Save"
+          }
+        }
+      }
+    },
     "Non sei collegato." : {
       "localizations" : {
         "en" : {
@@ -6399,12 +6419,52 @@
         }
       }
     },
+    "Riassumi ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarize Now"
+          }
+        }
+      }
+    },
     "Riassunto" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Summary"
+          }
+        }
+      }
+    },
+    "Riassunto in coda: il Secondo cervello non è raggiungibile." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary queued. Your second brain can't be reached."
+          }
+        }
+      }
+    },
+    "Riassunto in coda: lo scrivo quando torna la rete." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary queued. Bubo will write it when you're back online."
+          }
+        }
+      }
+    },
+    "Riassunto salvato nel Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summary saved in your second brain"
           }
         }
       }
@@ -6975,6 +7035,16 @@
         }
       }
     },
+    "Scegli la cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Folder…"
+          }
+        }
+      }
+    },
     "Scegli un'altra app…" : {
       "localizations" : {
         "en" : {
@@ -7111,6 +7181,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enter a name."
+          }
+        }
+      }
+    },
+    "Scrivi un riassunto quando una Sessione è Fusa o Archiviata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write a summary when a Session is merged or archived"
           }
         }
       }
