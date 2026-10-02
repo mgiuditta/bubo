@@ -27,9 +27,52 @@ struct IntakePipelineTests {
         orb.provider = nil
     }
 
-    func pipeline(engine: (any ClassificationEngine)? = nil) -> IntakePipeline {
+    func pipeline(engine: (any ClassificationEngine)? = nil, onDevice: OnDeviceModel = .off) -> IntakePipeline {
         let rules = RuleClassifier(catalogo: catalogo)
-        return IntakePipeline(orb: orb) { RequestClassifier(engines: engine.map { [$0] } ?? [], rules: rules) }
+        return IntakePipeline(orb: orb, onDevice: onDevice) {
+            RequestClassifier(engines: engine.map { [$0] } ?? [], rules: rules)
+        }
+    }
+
+    /// An engine that always answers `type`.
+    nonisolated struct FixedEngine: ClassificationEngine {
+        let type: RequestType
+        var budget: Duration { .milliseconds(300) }
+
+        func classification(of input: ClassifierInput) async throws -> RequestClassification {
+            RequestClassification(type: type, categoria: .chat, variante: nil, engine: .foundationModels)
+        }
+    }
+
+    @Test func appleFMTakesTheNeutralTinta() async {
+        let intake = pipeline(engine: FixedEngine(type: .shortFact), onDevice: .fitting)
+        let submission = await intake.submit(Richiesta(text: "Qual è la capitale del Perù?"), to: .anthropic)
+        #expect(submission.route.destination == .onDevice)
+        #expect(orb.provider == nil)
+        #expect(intake.forecast?.provider == nil)
+
+        // Haiku answers instead: the Tinta follows it.
+        intake.answer(submission, movedTo: .anthropic)
+        #expect(orb.provider == .anthropic)
+        #expect(intake.forecast?.provider == .anthropic)
+    }
+
+    // The count runs alongside the classification, within its budget: one too slow means Haiku, not a wait.
+    @Test(.timeLimit(.minutes(1)))
+    func theMeasureDoesNotDelayTheDecision() async {
+        let slow = OnDeviceModel(isAvailable: { true }, tokenCount: { _ in
+            try await Task.sleep(for: .seconds(30))
+            return 10
+        })
+        let intake = pipeline(engine: FixedEngine(type: .summary), onDevice: slow)
+        let clock = ContinuousClock()
+        let start = clock.now
+        let submission = await intake.submit(
+            Richiesta(text: "Riassumi", attachments: [Allegato(name: "nota.txt", text: "Testo lungo")]), to: .anthropic)
+        #expect(clock.now - start < .seconds(2))
+        #expect(submission.route.family == .haiku)
+        #expect(submission.route.onDeviceFallback == .attachmentNotMeasurable)
+        #expect(orb.provider == .anthropic)
     }
 
     @Test func theOrbThinksWithTheTintaBeforeTheDecision() async throws {

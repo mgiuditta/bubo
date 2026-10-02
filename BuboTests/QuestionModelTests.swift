@@ -32,10 +32,10 @@ struct QuestionModelTests {
     static func model(_ keychain: Keychain) -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         return QuestionModel(cli: cli, orb: OrbControls(), bridgeExecutable: URL(filePath: "/bin/sh"),
-                             bridgeArguments: ["-c", bridge]) {
-            keychain.reads += 1
-            return keychain.key
-        }
+                             bridgeArguments: ["-c", bridge], apiKey: {
+                                 keychain.reads += 1
+                                 return keychain.key
+                             }, onDevice: .off)
     }
 
     static func ask(_ model: QuestionModel) async {
@@ -156,13 +156,81 @@ struct QuestionModelTests {
         done
         """#
 
-    static func routedModel(_ type: RequestType) throws -> QuestionModel {
+    /// - Parameters:
+    ///   - onDevice: Apple's model as the router measures with; off, so Fatto breve and Riassunto go to Haiku.
+    ///   - answerer: What answers on the Mac; one that fails when `nil`, so no test reaches the real model.
+    static func routedModel(_ type: RequestType, onDevice: OnDeviceModel = .off,
+                            answerer: (any OnDeviceAnswering)? = nil) throws -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         let orb = OrbControls()
         let rules = RuleClassifier(catalogo: try Catalogo(bundle: .main))
-        let intake = IntakePipeline(orb: orb) { RequestClassifier(engines: [FixedEngine(type: type)], rules: rules) }
+        let intake = IntakePipeline(orb: orb, onDevice: onDevice) {
+            RequestClassifier(engines: [FixedEngine(type: type)], rules: rules)
+        }
         return QuestionModel(cli: cli, orb: orb, intake: intake, bridgeExecutable: URL(filePath: "/bin/sh"),
-                             bridgeArguments: ["-c", routedBridge], defaults: UserDefaults(suiteName: UUID().uuidString)!)
+                             bridgeArguments: ["-c", routedBridge], defaults: UserDefaults(suiteName: UUID().uuidString)!,
+                             onDeviceAnswerer: answerer ?? FakeAnswerer(chunks: [], failure: .assetsUnavailable))
+    }
+
+    /// Answers on the Mac with `chunks`, then fails with `failure` if one is given.
+    nonisolated struct FakeAnswerer: OnDeviceAnswering {
+        enum Failure: Error { case assetsUnavailable }
+
+        let chunks: [String]
+        var failure: Failure?
+
+        func answer(to question: String, attachments: [Allegato]) -> AsyncThrowingStream<String, any Error> {
+            AsyncThrowingStream { continuation in
+                for chunk in chunks { continuation.yield(chunk) }
+                continuation.finish(throwing: failure)
+            }
+        }
+    }
+
+    // A Domanda the router keeps on the Mac never starts the bridge: `/bin/false` would fail it.
+    @Test func aRouteOnTheMacAnswersWithoutTheBridge() async throws {
+        let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
+        let orb = OrbControls()
+        let rules = RuleClassifier(catalogo: try Catalogo(bundle: .main))
+        let intake = IntakePipeline(orb: orb, onDevice: .fitting) {
+            RequestClassifier(engines: [FixedEngine(type: .shortFact)], rules: rules)
+        }
+        let model = QuestionModel(cli: cli, orb: orb, intake: intake, bridgeExecutable: URL(filePath: "/bin/false"),
+                                  defaults: UserDefaults(suiteName: UUID().uuidString)!,
+                                  onDeviceAnswerer: FakeAnswerer(chunks: ["Li", "ma."]))
+        await Self.ask(model)
+
+        #expect(model.failure == nil)
+        #expect(model.answer == "Lima.")
+        let line = try #require(model.routedAnswer)
+        #expect(line.route == .onDevice(.shortFact, runnerUp: nil))
+        #expect(line.provider == nil)
+        #expect(line.cost == .free)
+        // Above Apple FM, "Rifai più forte" starts the Scala.
+        #expect(model.strongerRoute == .stronger(Scala.Step(family: .haiku, effort: nil)))
+    }
+
+    @Test func appleFMFailingBeforeTheFirstTokenFallsBackToHaiku() async throws {
+        let model = try Self.routedModel(.shortFact, onDevice: .fitting,
+                                         answerer: FakeAnswerer(chunks: [], failure: .assetsUnavailable))
+        await Self.ask(model)
+
+        #expect(model.failure == nil)
+        #expect(model.answer == "Ecco")
+        let line = try #require(model.routedAnswer)
+        #expect(line.route == Route(family: .haiku, model: "haiku", effort: nil, reason: .type(.shortFact, runnerUp: nil),
+                                    onDeviceFallback: .failed))
+        #expect(line.provider == .anthropic)
+    }
+
+    @Test func appleFMFailingAfterTheFirstTokenStaysAFailure() async throws {
+        let model = try Self.routedModel(.shortFact, onDevice: .fitting,
+                                         answerer: FakeAnswerer(chunks: ["Li"], failure: .assetsUnavailable))
+        await Self.ask(model)
+
+        #expect(model.failure == .unexpected)
+        #expect(model.answer == "Li")
+        #expect(model.routedAnswer?.route.destination == .onDevice)
     }
 
     // The reason line under the answer shows the effort the SDK applied, not the one the router asked for.

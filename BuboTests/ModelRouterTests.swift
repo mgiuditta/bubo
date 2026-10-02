@@ -21,9 +21,7 @@ struct ModelRouterTests {
     }
 
     @Test(arguments: [
-        (RequestType.shortFact, ModelFamily.haiku, Effort?.none),
-        (.summary, .haiku, nil),
-        (.writing, .sonnet, .medium),
+        (RequestType.writing, ModelFamily.sonnet, Effort?.some(.medium)),
         (.reasoning, .opus, .medium),
         (.webSearch, .sonnet, .low),
     ])
@@ -36,10 +34,60 @@ struct ModelRouterTests {
     @Test(arguments: RequestType.allCases)
     func everyTipoHasARoute(type: RequestType) {
         for catalog in [Self.catalog, nil] {
-            let route = router.route(for: Self.classification(type), in: catalog)
-            #expect(route.family != nil)
-            #expect(route.reason == .type(type, runnerUp: nil))
+            for fit in [OnDeviceFit.fits(tokens: 10), .unavailable] {
+                let route = router.route(for: Self.classification(type), fit: fit, in: catalog)
+                #expect(route.family != nil || route.destination == .onDevice)
+                #expect(route.reason == .type(type, runnerUp: nil))
+            }
         }
+    }
+
+    @Test func aShortFactGoesToAppleFM() {
+        let route = router.route(for: Self.classification(.shortFact), fit: .fits(tokens: 12), in: Self.catalog)
+        #expect(route == .onDevice(.shortFact, runnerUp: nil))
+        #expect(route.family == nil && route.model == nil && route.effort == nil)
+    }
+
+    @Test func aSummaryWhoseAttachmentFitsGoesToAppleFM() {
+        let route = router.route(for: Self.classification(.summary), fit: .fits(tokens: 2_000), hasAttachments: true,
+                                 in: Self.catalog)
+        #expect(route == .onDevice(.summary, runnerUp: nil))
+    }
+
+    @Test(arguments: [true, false])
+    func anAttachmentTooLongGoesToHaikuAndSaysSo(hasAttachments: Bool) {
+        let route = router.route(for: Self.classification(.summary), fit: .tooLong(tokens: 2_001),
+                                 hasAttachments: hasAttachments, in: Self.catalog)
+        #expect(route == Route(family: .haiku, model: "haiku", effort: nil, reason: .type(.summary, runnerUp: nil),
+                               onDeviceFallback: hasAttachments ? .attachmentTooLong : .questionTooLong))
+    }
+
+    @Test func beforeMacOS264AnAttachmentGoesToHaiku() {
+        for type in [RequestType.shortFact, .summary] {
+            let route = router.route(for: Self.classification(type), fit: .notMeasurable, hasAttachments: true,
+                                     in: Self.catalog)
+            #expect(route.family == .haiku)
+            #expect(route.onDeviceFallback == .attachmentNotMeasurable)
+        }
+        // Without an Allegato a Fatto breve is short enough: it stays on the Mac, while a pasted text does not.
+        let fact = router.route(for: Self.classification(.shortFact), fit: .notMeasurable, in: Self.catalog)
+        #expect(fact.destination == .onDevice)
+        let summary = router.route(for: Self.classification(.summary), fit: .notMeasurable, in: Self.catalog)
+        #expect(summary.onDeviceFallback == .attachmentNotMeasurable)
+    }
+
+    @Test(arguments: [RequestType.shortFact, .summary])
+    func withAppleIntelligenceOffGoesToHaiku(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .unavailable, in: Self.catalog)
+        #expect(route == Route(family: .haiku, model: "haiku", effort: nil, reason: .type(type, runnerUp: nil),
+                               onDeviceFallback: .unavailable))
+    }
+
+    @Test(arguments: RequestType.allCases.filter { ![.shortFact, .summary].contains($0) })
+    func otherTipiNeverGoToAppleFM(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .fits(tokens: 10), in: Self.catalog)
+        #expect(route.destination == .claude)
+        #expect(route.onDeviceFallback == nil)
     }
 
     @Test func withoutTheCatalogTheAliasGoesAsItIs() {
@@ -114,6 +162,13 @@ struct RoutedAnswerTests {
         answer.usage = Self.usage(.apiKey, cost: 0.05)
         answer.fiveHourShare = 0.02
         #expect(answer.cost == .spesa(0.05))
+    }
+
+    @Test func anAnswerFromTheMacCostsNothing() {
+        var answer = RoutedAnswer(route: .onDevice(.shortFact, runnerUp: nil), provider: nil)
+        answer.usage = Self.usage(.subscription, cost: 0.05)
+        answer.fiveHourShare = 0.02
+        #expect(answer.cost == .free)
     }
 
     @Test func aTurnWithoutAFigureShowsNoCost() {

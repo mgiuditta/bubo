@@ -16,7 +16,7 @@ struct OrbiteTests {
     static func model(orb: OrbControls) -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         return QuestionModel(cli: cli, orb: orb, bridgeExecutable: URL(filePath: "/bin/sh"),
-                             bridgeArguments: ["-c", bridge]) { nil }
+                             bridgeArguments: ["-c", bridge], apiKey: { nil }, onDevice: .off)
     }
 
     @Test(arguments: ["twelfth", "Twelfth", "  TWELFTH \n"])
