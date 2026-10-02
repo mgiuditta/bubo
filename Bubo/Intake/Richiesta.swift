@@ -17,8 +17,13 @@ nonisolated struct Richiesta: Equatable, Sendable {
         ClassifierInput(text: text, attachmentNames: attachments.map(\.name))
     }
 
+    /// Whether a model on the Mac may read every Allegato (`AttachmentPolicy`).
+    var isReadableOnDevice: Bool {
+        attachments.allSatisfy { AttachmentPolicy.allows($0, to: .onDevice) }
+    }
+
     /// What must fit in the on-device model's share of the context: the Allegati, or the text when there are none.
     var onDeviceContent: String {
-        attachments.isEmpty ? text : attachments.map(\.text).joined(separator: "\n\n")
+        attachments.isEmpty ? text : attachments.compactMap(\.text).joined(separator: "\n\n")
     }
 }

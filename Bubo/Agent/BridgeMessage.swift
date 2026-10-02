@@ -27,11 +27,12 @@ enum BridgeCommand: Equatable {
     /// `rosa` names the Varianti the agent may give the Orb with `⟦orb:nome⟧`; without it, the agent gets no
     /// instruction and the Orb follows only its tools. `unattended` makes it a turn with nobody in front of it, the one
     /// of an Esecuzione: no Richiesta di permesso, its rules as session rules, and a `denial` for each action denied.
+    /// `readableDirectories` are folders `claude` reads besides `directory`, as `--add-dir`: those of the Allegati.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
              keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
              remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [],
-             unattended: UnattendedTurn? = nil)
+             unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [])
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -76,7 +77,8 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
-                      keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended):
+                      keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended,
+                      readableDirectories):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -94,6 +96,7 @@ enum BridgeCommand: Equatable {
             object["effort"] = effort?.rawValue
             if !rosa.isEmpty { object["orb"] = rosa }
             if let unattended { object["unattended"] = ["rules": unattended.rules] }
+            if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):

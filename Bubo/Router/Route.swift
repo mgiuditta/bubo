@@ -12,6 +12,8 @@ nonisolated struct Route: Equatable, Sendable {
     enum OnDeviceFallback: Equatable, Sendable {
         /// The Allegati are over `OnDeviceModel.attachmentLimit`.
         case attachmentTooLong
+        /// An Allegato a model on the Mac does not read: a folder, an image, a file that is not text.
+        case attachmentNotText
         /// No Allegato, but the text of the Domanda itself is over the limit.
         case questionTooLong
         /// macOS before 26.4 cannot count the tokens of an Allegato, and nothing is estimated.

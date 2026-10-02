@@ -157,7 +157,7 @@ Fuori dalla v1: Condividi, Azione rapida, Finder Sync, Accessibilità, Registraz
 
 - Senza consenso un Allegato va **solo a Claude o a un modello sul Mac**, anche un file fuori da ogni Progetto. Il router da solo sceglie solo modelli sul Mac (feature 10).
 - Se l'utente sceglie un altro fornitore, la chip mostra "allegato → <fornitore>" e chiede conferma una volta per Allegato.
-- Claude riceve i file **per percorso** e l'agente li legge; il trascinamento dà già l'accesso per intento (`com.apple.macl`).
+- Claude riceve i file **per percorso** e l'agente li legge: Bubo gli apre in lettura la cartella di ogni Allegato (`additionalDirectories`). Il trascinamento dà l'accesso per intento (`com.apple.macl`) a Bubo, non a `claude`: partito con il disclaim (ADR 0005), per i file in Documenti, Scrivania e Download chiede da sé File e cartelle. Un'immagine trascinata senza file (da una pagina web) diventa un PNG nella cartella delle Domande. Testo e indirizzi web vanno come testo.
 - Gli altri fornitori ricevono il **contenuto** nel prompt solo per testo e PDF estratto, sotto un **tetto** per destinazione: al massimo metà del contesto del modello d'arrivo, il resto a istruzioni, domanda e risposta. Apple FM: ≤ 2.000 token misurati con `tokenCount(for:)` su `contextSize` (4.096); Ollama e LM Studio: metà del contesto letto dal server (`/api/show` per Ollama); client OpenAI-compatibili senza metadati: 32.000 token fissi. Oltre il tetto Bubo avvisa e propone Claude; niente spezzettamento in più passaggi in v1 ([#65](https://github.com/mgiuditta/bubo/issues/65)). Una cartella passa solo come percorso, quindi solo a Claude.
 - Gli screenshot dal selettore seguono le stesse regole.
 

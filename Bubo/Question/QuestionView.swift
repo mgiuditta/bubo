@@ -15,6 +15,10 @@ struct QuestionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
+            // Dropped on the Orb before the HUD opened: they go with the next Domanda from here too.
+            if !model.attachments.isEmpty {
+                AttachmentChips(attachments: model.attachments, remove: model.detach)
+            }
             HStack(spacing: Spacing.xSmall) {
                 TextField(voice?.isListening == true ? "Ti ascolto…" : "Chiedi qualcosa a Claude", text: $model.prompt)
                     .textFieldStyle(.plain)

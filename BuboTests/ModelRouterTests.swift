@@ -62,6 +62,14 @@ struct ModelRouterTests {
                                onDeviceFallback: hasAttachments ? .attachmentTooLong : .questionTooLong))
     }
 
+    @Test(arguments: [RequestType.shortFact, .summary])
+    func anAttachmentTheMacDoesNotReadGoesToHaiku(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .fits(tokens: 10), hasAttachments: true,
+                                 readsOnDevice: false, in: Self.catalog)
+        #expect(route.family == .haiku)
+        #expect(route.onDeviceFallback == .attachmentNotText)
+    }
+
     @Test func beforeMacOS264AnAttachmentGoesToHaiku() {
         for type in [RequestType.shortFact, .summary] {
             let route = router.route(for: Self.classification(type), fit: .notMeasurable, hasAttachments: true,

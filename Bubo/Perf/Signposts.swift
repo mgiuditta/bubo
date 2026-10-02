@@ -75,6 +75,8 @@ enum Signpost {
     case formaCompilation
     /// Interval: from opening the Plugin window to its first snapshot, read from the files.
     case pluginsFirstDraw
+    /// Interval: from a drop on the Orb to its Allegati in the prompt, with the Orb in Ascolto.
+    case dropToListening
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -94,6 +96,7 @@ enum Signpost {
         case .voiceInterruption: "Interruzione della voce"
         case .formaCompilation: "Compilazione Forma"
         case .pluginsFirstDraw: "Primo disegno dei Plugin"
+        case .dropToListening: "Rilascio sull'Orb"
         }
     }
 }

@@ -72,6 +72,14 @@ final class OrbPanelController {
         view.onAsk = { [weak self] in self?.askInPanel() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }
+        view.registerForDraggedTypes(OrbDropTarget.types)
+        view.onDropEnter = questions.awaitAttachments
+        view.onDropExit = { [questions] in
+            if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
+        }
+        view.onDrop = { [weak self, questions] pasteboard in
+            self?.drop(pasteboard, into: questions) ?? false
+        }
         view.menu = menu
         let frameLog = OrbFrameLog.fromLaunchArguments()
         do {
@@ -102,11 +110,12 @@ final class OrbPanelController {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.updateVisibility() }
         }
-        // The pointer over other apps or over Bubo's windows: the Panel takes clicks only inside the circle.
-        NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved) { [weak self] _ in
+        // The pointer over other apps or over Bubo's windows: the Panel takes clicks only inside the circle. A drag
+        // from another app moves the pointer too, so that a drop on the Orb reaches it.
+        NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
             MainActor.assumeIsolated { self?.updateClickThrough() }
         }
-        NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [weak self] event in
+        NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] event in
             self?.updateClickThrough()
             return event
         }
@@ -120,6 +129,41 @@ final class OrbPanelController {
             return
         }
         bubble.open(focus: .prompt)
+    }
+
+    /// Puts what is dropped on the Orb in the prompt of the bubble, with the Orb in Ascolto; returns whether anything
+    /// could be attached.
+    private func drop(_ pasteboard: NSPasteboard, into questions: QuestionModel) -> Bool {
+        let interval = Signposts.beginInterval(.dropToListening)
+        defer { Signposts.endInterval(.dropToListening, interval) }
+        let attachments: [Allegato]
+        do {
+            let images = try QuestionModel.directory().appending(path: "Allegati", directoryHint: .isDirectory)
+            attachments = OrbDropTarget.attachments(from: pasteboard, imageDirectory: images)
+        } catch {
+            Logger.panel.error("No folder for dropped images: \(error)")
+            attachments = []
+        }
+        guard !attachments.isEmpty else {
+            if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
+            return false
+        }
+        questions.attach(attachments)
+        bubble.open(focus: .prompt)
+        // The chips are seen at once; VoiceOver hears what came with the drop.
+        let names = attachments.map(\.name).formatted(.list(type: .and))
+        let announcement = attachments.count == 1 ? String(localized: "Allegato: \(names)")
+            : String(localized: "Allegati: \(names)")
+        NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                             userInfo: [.announcement: announcement,
+                                        .priority: NSAccessibilityPriorityLevel.high.rawValue])
+        // For the manual check of focus theft, as for the bubble: kinds and count, never names or paths.
+        Logger.panel.info("""
+            Dropped \(attachments.map { String(describing: $0.kind) }.joined(separator: ","), privacy: .public); \
+            Bubo active \(NSApp.isActive), \
+            front \(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none", privacy: .public)
+            """)
+        return true
     }
 
     @ObservationIgnored private var openHUD: () -> Void = {}
@@ -149,12 +193,15 @@ final class OrbPanelController {
         ) { [questions] _ in
             MainActor.assumeIsolated {
                 bubble.loseKeyboard(closes: PanelBubble.closesOnLosingKeyboard(
-                    prompt: questions.prompt, answer: questions.answer, isAnswering: questions.isAnswering))
+                    prompt: questions.prompt, answer: questions.answer, isAnswering: questions.isAnswering,
+                    hasAttachments: !questions.attachments.isEmpty))
             }
         }
         // The window follows the bubble: on screen when it is open, with the keyboard when the prompt asks for it.
+        // Put away, the bubble ends the Ascolto of its Allegati, which stay in the prompt.
         Task { [weak self] in
-            for await _ in Observations({ (bubble.isOpen, bubble.takesKeyboard) }) {
+            for await (isOpen, _) in Observations({ (bubble.isOpen, bubble.takesKeyboard) }) {
+                if !isOpen { questions.stopAwaitingAttachments() }
                 self?.updateBubbleWindow()
             }
         }

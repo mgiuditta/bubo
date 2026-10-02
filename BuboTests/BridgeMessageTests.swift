@@ -10,6 +10,12 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":["user"],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func askWithAllegatiCarriesTheirFolders() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], readableDirectories: [URL(filePath: "/tmp/allegati/")]).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""dirs":["/tmp/allegati"]"#))
+    }
+
     @Test func askInAWorktreeCarriesTheMainCheckout() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                          settingSources: ["user"], projectConfigRoot: URL(filePath: "/tmp/repo/")).line()

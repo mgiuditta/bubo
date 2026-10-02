@@ -296,6 +296,22 @@
         }
       }
     },
+    "%@ → %@, allegato che Apple FM non legge" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, allegato che Apple FM non legge"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, attachment Apple FM can't read"
+          }
+        }
+      }
+    },
     "%@ → %@, allegato troppo lungo per Apple FM" : {
       "localizations" : {
         "it" : {
@@ -1160,6 +1176,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Added: %@"
+          }
+        }
+      }
+    },
+    "Allegati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attachments"
+          }
+        }
+      }
+    },
+    "Allegati: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attached: %@"
+          }
+        }
+      }
+    },
+    "Allegato: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attached: %@"
           }
         }
       }
@@ -5191,6 +5237,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The terminal didn't start: %@"
+          }
+        }
+      }
+    },
+    "Immagine" : {
+      "comment" : "File name of an image dragged onto the Orb, before .png",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image"
           }
         }
       }
@@ -10443,6 +10500,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove the filter"
+          }
+        }
+      }
+    },
+    "Togli l'allegato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove attachment"
           }
         }
       }

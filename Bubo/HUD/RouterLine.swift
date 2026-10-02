@@ -96,6 +96,8 @@ struct RouterLine: View {
         switch fallback {
         case .attachmentTooLong:
             LocalizedStringResource("\(type) → \(family), allegato troppo lungo per Apple FM", comment: comment)
+        case .attachmentNotText:
+            LocalizedStringResource("\(type) → \(family), allegato che Apple FM non legge", comment: comment)
         case .questionTooLong:
             LocalizedStringResource("\(type) → \(family), domanda troppo lunga per Apple FM", comment: comment)
         case .attachmentNotMeasurable:

@@ -34,7 +34,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -97,6 +97,11 @@ function send(event: Event) {
 // La risposta di Bubo a una Richiesta: `lasting` quando vale per il resto della Sessione.
 type Answer = { allowed: boolean; lasting: boolean };
 const denied: Answer = { allowed: false, lasting: false };
+
+// Le cartelle degli Allegati come arrivano da Bubo: solo percorsi assoluti.
+function directoriesOf(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((dir): dir is string => typeof dir === "string" && dir.startsWith("/")) : [];
+}
 
 // Le Richieste di permesso in attesa della risposta di Bubo: si risolvono una volta sola, approvate solo con "allow".
 const permissions = new Map<string, (answer: Answer) => void>();
@@ -299,10 +304,12 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `unattended` è il turno di un'Esecuzione, senza nessuno davanti: nessuna Richiesta di permesso, le Regole
 // dell'Automazione come regole di sessione, e prima di `done` un evento `denial` per ogni azione negata. Con `init`
 // arriva `mode`, la modalità che `claude` ha scelto davvero: `auto` può non essere disponibile.
+// `dirs` sono le cartelle che `claude` legge oltre a `cwd`, come `--add-dir`: quelle degli Allegati di una Domanda.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
-                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended) {
+                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended,
+                   dirs: string[] = []) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
   const restored = resumed?.restored;
   const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
@@ -333,6 +340,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     prompt,
     options: {
       cwd,
+      ...(dirs.length > 0 ? { additionalDirectories: dirs } : {}),
       projectConfigRoot,
       model,
       effort,
@@ -695,7 +703,8 @@ lines.on("line", (line) => {
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended));
+               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended),
+               directoriesOf(command.dirs));
       break;
     }
     case "config": {

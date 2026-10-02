@@ -75,7 +75,7 @@ final class IntakePipeline {
         let classification = await classifier.classification(of: richiesta.classifierInput)
         let fit = await measured
         let route = router.route(for: classification, fit: fit, hasAttachments: !richiesta.attachments.isEmpty,
-                                 in: catalog)
+                                 readsOnDevice: richiesta.isReadableOnDevice, in: catalog)
         Signposts.endInterval(.intakeDecision, decision)
         // Where the Domanda goes and what was measured: never its text.
         let fallback = route.onDeviceFallback.map { String(describing: $0) } ?? "-"
@@ -101,7 +101,7 @@ final class IntakePipeline {
         async let measured = onDevice.fit(of: richiesta.onDeviceContent)
         let classification = await classifier.classification(of: richiesta.classifierInput)
         return router.route(for: classification, fit: await measured, hasAttachments: !richiesta.attachments.isEmpty,
-                            in: catalog)
+                            readsOnDevice: richiesta.isReadableOnDevice, in: catalog)
     }
 
     /// Gives the Orb `provider`'s Tinta: `submission`'s answer moved to it, after Apple Foundation Models failed.

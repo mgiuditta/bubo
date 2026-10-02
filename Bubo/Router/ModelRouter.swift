@@ -10,12 +10,14 @@ nonisolated struct ModelRouter {
     ///   - fit: What Apple Foundation Models can take of the Richiesta, already measured.
     ///   - hasAttachments: Whether the Richiesta carries Allegati: without them, a Fatto breve that could not be
     ///     measured still goes on the Mac.
+    ///   - readsOnDevice: Whether a model on the Mac may read every Allegato: not a folder, not an image.
     ///   - catalog: What `supportedModels()` listed, or `nil` when it was not read yet.
     func route(for classification: RequestClassification?, fit: OnDeviceFit = .unavailable,
-               hasAttachments: Bool = false, in catalog: ModelCatalog?) -> Route {
+               hasAttachments: Bool = false, readsOnDevice: Bool = true, in catalog: ModelCatalog?) -> Route {
         guard let classification else { return Route(family: nil, model: nil, effort: nil, reason: .unclassified) }
         let type = classification.type
-        let fallback = Self.onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments)
+        let fallback = Self.onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments,
+                                             readsOnDevice: readsOnDevice)
         if Self.onDeviceTypes.contains(type), fallback == nil {
             return .onDevice(type, runnerUp: classification.runnerUp)
         }
@@ -39,8 +41,9 @@ nonisolated struct ModelRouter {
     /// Before macOS 26.4 nothing is counted: a Fatto breve without Allegati still goes on the Mac, while a Riassunto
     /// or an Allegato, which may be long, goes to Haiku.
     private static func onDeviceFallback(for type: RequestType, fit: OnDeviceFit,
-                                         hasAttachments: Bool) -> Route.OnDeviceFallback? {
+                                         hasAttachments: Bool, readsOnDevice: Bool) -> Route.OnDeviceFallback? {
         guard onDeviceTypes.contains(type) else { return nil }
+        guard readsOnDevice else { return .attachmentNotText }
         switch fit {
         case .fits: return nil
         case .tooLong: return hasAttachments ? .attachmentTooLong : .questionTooLong

@@ -1,6 +1,7 @@
 import MetalKit
 
-/// The Metal view inside the Panel: a click opens the HUD, a drag moves the Panel, a right click opens the menu.
+/// The Metal view inside the Panel: a click opens the HUD, a drag moves the Panel, a right click opens the menu, and
+/// what is dropped on it becomes an Allegato.
 ///
 /// Reads as a button to VoiceOver, with the same menu as its secondary action and "Chiedi nel Panel" among its actions.
 final class OrbPanelView: MTKView {
@@ -12,6 +13,12 @@ final class OrbPanelView: MTKView {
     var onDragEnd: () -> Void = {}
     /// Called when the pointer moves over the Panel or leaves it, to update the click circle.
     var onPointerMove: () -> Void = {}
+    /// Called when a drag enters the Orb, before anything is dropped.
+    var onDropEnter: () -> Void = {}
+    /// Called when a drag leaves the Orb without dropping.
+    var onDropExit: () -> Void = {}
+    /// Called with what is dropped on the Orb; returns whether it became Allegati.
+    var onDrop: (NSPasteboard) -> Bool = { _ in false }
 
     /// The press under way, in screen coordinates; `nil` when the button is up.
     private var press: PanelPress?
@@ -54,6 +61,20 @@ final class OrbPanelView: MTKView {
         guard let press else { return }
         self.press = nil
         if press.isDrag { onDragEnd() } else { onPress() }
+    }
+
+    // A drop never activates Bubo: the Panel is non-activating, and the app the drag comes from stays in front.
+    override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        onDropEnter()
+        return .copy
+    }
+
+    override func draggingExited(_ sender: (any NSDraggingInfo)?) {
+        onDropExit()
+    }
+
+    override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        onDrop(sender.draggingPasteboard)
     }
 
     override func isAccessibilityElement() -> Bool { true }
