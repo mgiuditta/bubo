@@ -596,6 +596,16 @@
         }
       }
     },
+    "%lld aggiornamenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld updates"
+          }
+        }
+      }
+    },
     "%lld da guardare · %lld decise · %lld già attive" : {
       "localizations" : {
         "en" : {
@@ -1046,6 +1056,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paired on %@"
+          }
+        }
+      }
+    },
+    "Aggiorna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "Aggiorna %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update %@"
+          }
+        }
+      }
+    },
+    "Aggiornamenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
+          }
+        }
+      }
+    },
+    "Aggiornamenti disponibili" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates available"
+          }
+        }
+      }
+    },
+    "Aggiornamento disponibile: versione %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available: version %@"
+          }
+        }
+      }
+    },
+    "Aggiorno…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
           }
         }
       }
@@ -2929,6 +2999,96 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "Componenti nuovi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New components"
+          }
+        }
+      }
+    },
+    "Forse c'è un aggiornamento: il repository è passato a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There may be an update: the repository moved to %@"
+          }
+        }
+      }
+    },
+    "Ho visto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seen"
+          }
+        }
+      }
+    },
+    "L'autore non ha cambiato versione: questa è già l'ultima che pubblica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The author hasn't changed the version: this is already the latest they publish."
+          }
+        }
+      }
+    },
+    "La nuova versione porta codice che gira sul Mac, fuori dalla sandbox." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new version brings code that runs on the Mac, outside the sandbox."
+          }
+        }
+      }
+    },
+    "Nuovo codice eseguibile dall'ultimo aggiornamento: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Per aggiornarlo, claude esegue questo comando sul Mac:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To update it, claude runs this command on the Mac:"
+          }
+        }
+      }
+    },
+    "Tutti i plugin sono aggiornati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All plugins are up to date"
+          }
+        }
+      }
+    },
+    "aggiornamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "update"
           }
         }
       }
@@ -6814,6 +6974,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn into Session on %@"
+          }
+        }
+      }
+    },
+    "claude non ha accettato il comando confermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude didn't accept the confirmed command."
           }
         }
       }
