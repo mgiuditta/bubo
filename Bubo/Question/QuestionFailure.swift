@@ -13,6 +13,9 @@ enum QuestionFailure: Error, Equatable {
     /// The Allegati could not go to the endpoint picked in "Rifai con…": unconfirmed, over its cap, or without text.
     /// Nothing was sent.
     case attachmentsHeld
+    /// A Budget the Domanda counts in is spent: it was not sent, or `claude` stopped at the cap. Nothing is asked again
+    /// without the user's choice.
+    case budgetExhausted(QuestionBudgetStop)
     /// Anything else, such as the Domande folder not being writable.
     case unexpected
 }

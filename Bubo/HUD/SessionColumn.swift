@@ -478,6 +478,15 @@ struct SessionRow: View {
                     .lineLimit(4)
                     .textSelection(.enabled)
             }
+            if let scope = session.budgetStop, session.activity == .ferma, !isArchived {
+                // Every turn of a Sessione is Claude's: a spent Budget means the API key, so the subscription is a way.
+                BudgetStopNotice(scope: scope, detail: "La Sessione si è fermata: riparte solo con una tua scelta.",
+                                 retry: { store.resumeAfterBudget(session.id) },
+                                 continueOnce: { store.resumeAfterBudget(session.id, ignoringBudget: true) },
+                                 switchToSubscription: { store.resumeWithSubscription(session.id) })
+                    .controlSize(.small)
+                    .padding(.top, Spacing.xxSmall)
+            }
             if session.unstartedPrompt != nil && session.activity == .errore && !isArchived {
                 Button("Riprova") { store.retry(session.id) }
                     .buttonStyle(.borderedProminent)

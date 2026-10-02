@@ -7,7 +7,7 @@ import Foundation
 /// and a turn across midnight counts in the month it ends. Only Spesa counts; the Cronologia CLI is not in the ledger.
 struct BudgetGuard {
     /// What a Budget limits.
-    nonisolated enum Scope: Hashable, Sendable {
+    nonisolated enum Scope: Codable, Hashable, Sendable {
         /// One provider paid per use, as the CostLedger names it.
         case provider(String)
         /// The Spesa of a Progetto's Sessioni.
@@ -91,6 +91,26 @@ struct BudgetGuard {
     /// any.
     func tightest(provider: String, project: URL? = nil) -> Status? {
         statuses(provider: provider, project: project).max { $0.share < $1.share }
+    }
+
+    /// What a turn of `provider` on `project` may still spend (spec 18, Soglia e 100%).
+    nonisolated enum Allowance: Equatable, Sendable {
+        /// No Budget counts the turn.
+        case unlimited
+        /// Up to this many US dollars, the least that is left among the Budgets the turn counts in: Claude's
+        /// `maxBudgetUsd`.
+        case upTo(Decimal)
+        /// A Budget the turn counts in is spent in full: nothing is sent without the user's choice.
+        case exhausted(Scope)
+    }
+
+    /// What a turn of `provider` on `project` may still spend, before it is sent: the shared residue, read again at
+    /// every turn of every Sessione and Domanda, never split ahead between them.
+    func allowance(provider: String, project: URL? = nil) -> Allowance {
+        let statuses = statuses(provider: provider, project: project)
+        if let spent = statuses.first(where: { $0.level == .exhausted }) { return .exhausted(spent.scope) }
+        guard let least = statuses.map(\.remaining).min() else { return .unlimited }
+        return .upTo(least)
     }
 
     /// Whether the router avoids `provider` in its automatic choices: a Budget it counts in is at the threshold.

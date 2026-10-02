@@ -44,7 +44,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         do {
             let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
                                        withdraw: notifier.withdraw)
-            return try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
+            let store = try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
+            // Passa all'abbonamento at 100% of a Budget moves the Domande too: one bridge, one credential.
+            store.moveToSubscription = { [questions] in questions.moveToSubscription() }
+            return store
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")
             return nil
