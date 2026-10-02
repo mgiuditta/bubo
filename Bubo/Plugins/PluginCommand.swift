@@ -1,3 +1,5 @@
+import Foundation
+
 /// A `claude plugin …` command that changes the plugins, always with an explicit scope (spec 20, Scrittura).
 ///
 /// A `command` source is confirmed only with `--accept-command` and the fingerprint the CLI showed, never with `-y`.
@@ -15,6 +17,9 @@ nonisolated enum PluginCommand: Sendable, Equatable {
     /// Removes the Marketplace `name` from `scope`, or from every scope when `nil`: only then `claude` uninstalls
     /// every plugin of it, in every scope and Progetto.
     case removeMarketplace(name: String, scope: PluginScope?)
+    /// Saves `values` of the `userConfig` of `plugin`; the ones left out keep theirs. The values go on standard
+    /// input, never in the arguments.
+    case configure(PluginID, values: PluginOptionValues)
 
     /// The arguments after `claude`.
     var arguments: [String] {
@@ -36,7 +41,14 @@ nonisolated enum PluginCommand: Sendable, Equatable {
             ["plugin", "marketplace", "add", "--scope", scope.rawValue, "--", source]
         case let .removeMarketplace(name, scope):
             ["plugin", "marketplace", "remove"] + (scope.map { ["--scope", $0.rawValue] } ?? []) + ["--", name]
+        case let .configure(plugin, _):
+            ["plugin", "configure", plugin.description, "--values-stdin", "--json"]
         }
+    }
+
+    /// What `claude` reads on its standard input; `nil` when it reads nothing.
+    var input: Data? {
+        if case let .configure(_, values) = self { values.json } else { nil }
     }
 
     /// How long `claude` may take: 120 s to install, since the CLI already allows 60 s for `npm ci`, and to clone a
@@ -51,7 +63,8 @@ nonisolated enum PluginCommand: Sendable, Equatable {
     /// The plugin it acts on; `nil` for `prune` and the Marketplaces.
     var plugin: PluginID? {
         switch self {
-        case let .install(plugin, _, _), let .enable(plugin, _), let .disable(plugin, _), let .uninstall(plugin, _, _): plugin
+        case let .install(plugin, _, _), let .enable(plugin, _), let .disable(plugin, _), let .uninstall(plugin, _, _),
+             let .configure(plugin, _): plugin
         case .prune, .addMarketplace, .removeMarketplace: nil
         }
     }

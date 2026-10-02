@@ -242,6 +242,12 @@ final class AgentBridge {
         try process?.input.write(contentsOf: BridgeCommand.coolConfiguration.line())
     }
 
+    /// Has the turns in progress connect again to the MCP server `name`, after a login; with no bridge running, there is
+    /// none, and the next turn connects by itself.
+    func reconnectMCPServer(named name: String) throws {
+        try process?.input.write(contentsOf: BridgeCommand.reconnectMCPServer(name: name).line())
+    }
+
     /// Where `claude` reads the Progetto's settings for `directory`: the main checkout when it is a worktree.
     private static func projectConfigRoot(of directory: URL) -> URL? {
         TrustGate.mainCheckout(ofWorktree: directory).map { URL(filePath: $0, directoryHint: .isDirectory) }

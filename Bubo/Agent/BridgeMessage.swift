@@ -46,6 +46,8 @@ enum BridgeCommand: Equatable {
     case warmConfiguration(settingSources: [String], projectConfigRoot: URL? = nil)
     /// Closes the `claude` kept ready by `warmConfiguration`, if any.
     case coolConfiguration
+    /// Has every turn in progress connect again to the MCP server `name`, after a login.
+    case reconnectMCPServer(name: String)
     /// Lists the Cronologia CLI, most recent first: the first page, or all of it when `isComplete`.
     case readHistory(id: String, isComplete: Bool)
     /// Reads the latest messages of `conversation`, or all of them when `isComplete`, for the Indice.
@@ -111,6 +113,8 @@ enum BridgeCommand: Equatable {
             object["projectConfigRoot"] = projectConfigRoot?.path
         case .coolConfiguration:
             object = ["type": "cool"]
+        case let .reconnectMCPServer(name):
+            object = ["type": "reconnect", "server": name]
         case let .readHistory(id, isComplete):
             object = ["type": "history", "id": id, "all": isComplete]
         case let .readTranscript(id, conversation, isComplete):

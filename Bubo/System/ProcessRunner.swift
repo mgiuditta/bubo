@@ -23,14 +23,17 @@ nonisolated extension ProcessRunner {
         }
     }
 
-    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed, in `folder` when given.
+    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, in `folder` when given; standard input gets
+    /// `input`, then is closed.
     ///
     /// Standard error goes to Bubo's own and is not collected, or, when `mergingErrors`, into the standard output,
-    /// for a command that tells why it failed only there.
-    static func disclaimed(environment: [String: String], in folder: URL? = nil, mergingErrors: Bool = false) -> ProcessRunner {
+    /// for a command that tells why it failed only there. `input` is for what must never be an argument, such as a
+    /// secret: `ps` shows the arguments to every user of the Mac.
+    static func disclaimed(environment: [String: String], in folder: URL? = nil, mergingErrors: Bool = false,
+                           input: Data? = nil) -> ProcessRunner {
         ProcessRunner { executable, arguments in
             try await runDisclaimed(executable, arguments: arguments, environment: environment, in: folder,
-                                    mergingErrors: mergingErrors)
+                                    mergingErrors: mergingErrors, input: input)
         }
     }
 }
@@ -67,9 +70,21 @@ private func runProcess(_ executable: URL, arguments: [String],
 
 @concurrent
 private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String],
-                           in folder: URL?, mergingErrors: Bool) async throws -> ProcessOutput {
+                           in folder: URL?, mergingErrors: Bool, input: Data?) async throws -> ProcessOutput {
     let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment, in: folder,
                                            mergingErrors: mergingErrors)
+    // A few hundred bytes at most: they fit in the pipe before the child reads them.
+    // A child that already exited gives an error, never a SIGPIPE.
+    if let input {
+        _ = fcntl(process.input.fileDescriptor, F_SETNOSIGPIPE, 1)
+        do {
+            try process.input.write(contentsOf: input)
+        } catch {
+            kill(process.pid, SIGKILL)
+            _ = await ProcessSpawner.waitForExit(of: process.pid)
+            throw error
+        }
+    }
     try process.input.close()
     return try await withTaskCancellationHandler {
         let standardOutput = try await readText(from: process.output)

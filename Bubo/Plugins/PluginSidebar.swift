@@ -7,6 +7,8 @@ import SwiftUI
 struct PluginSidebar: View {
     let snapshot: PluginSnapshot?
     let project: URL?
+    /// How many MCP servers wait for a login: they count in Da sistemare.
+    let serversNeedingAuthentication: Int
     @Binding var selection: PluginSidebarItem?
     /// The source of the Marketplace being added from a row, while `claude` works.
     let addingSource: String?
@@ -23,11 +25,13 @@ struct PluginSidebar: View {
         List(selection: $selection) {
             PluginSidebarLabel("Installati", systemImage: "puzzlepiece.extension")
                 .tag(PluginSidebarItem.installed)
-            if let problems = snapshot?.problems, !problems.isEmpty {
-                PluginSidebarLabel("Da sistemare", systemImage: "wrench.adjustable",
-                                   count: Set(problems.map(\.plugin)).count)
+            let toFix = Set(snapshot?.problems.map(\.plugin) ?? []).count + serversNeedingAuthentication
+            if toFix > 0 {
+                PluginSidebarLabel("Da sistemare", systemImage: "wrench.adjustable", count: toFix)
                     .tag(PluginSidebarItem.toFix)
             }
+            PluginSidebarLabel("Server MCP", systemImage: "server.rack")
+                .tag(PluginSidebarItem.mcpServers)
             if let snapshot {
                 Section("Marketplace") {
                     ForEach(snapshot.marketplaces) { marketplace in

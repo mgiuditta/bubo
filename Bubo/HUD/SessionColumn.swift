@@ -306,7 +306,9 @@ struct SessionRow: View {
         }
         .sheet(isPresented: $isShowingConfiguration) {
             ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:),
-                        readSandboxRules: store.sandboxRules(of:))
+                        readSandboxRules: store.sandboxRules(of:)) { [project = session.project] server in
+                try await store.logIn(toMCPServer: server, in: project)
+            }
         }
         .sheet(isPresented: $isShowingMemory) {
             MemoryPanel(project: session.project,

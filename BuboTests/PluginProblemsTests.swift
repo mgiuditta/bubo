@@ -96,7 +96,7 @@ struct PluginProblemsTests {
     @Test func oneClickAddsTheMarketplaceThenInstallsForTheProgetto() async throws {
         let home = try PluginHome()
         let calls = Mutex<[[String]]>([])
-        let cli = PluginCLI(run: { arguments, _ in
+        let cli = PluginCLI(run: { arguments, _, _ in
             calls.withLock { $0.append(arguments) }
             if arguments.starts(with: ["plugin", "marketplace", "list"]) {
                 return ProcessOutput(exitCode: 0, standardOutput: #"[{"name": "team"}]"#)
@@ -121,7 +121,7 @@ struct PluginProblemsTests {
     @Test func aFailedFirstCommandStopsTheRest() async throws {
         let home = try PluginHome()
         let calls = Mutex(0)
-        let cli = PluginCLI(run: { _, _ in
+        let cli = PluginCLI(run: { _, _, _ in
             calls.withLock { $0 += 1 }
             return ProcessOutput(exitCode: 1, standardOutput: "✘ Failed to add marketplace: not found")
         }, home: home.home, queue: PluginWriteQueue())
@@ -138,9 +138,11 @@ struct PluginProblemsTests {
         let home = try PluginHome()
         try home.addMarketplace("ufficiale", plugins: [["name": "formattatore", "source": "./plugins/formattatore"]])
         try home.install(["formattatore@ufficiale": [home.installation()]])
-        let catalog = PluginCatalog(folders: home.folders, listing: .answering(PluginList())) { _ in
-            [.init(plugin: "formattatore@ufficiale", message: "hook failed", type: "hook-load-failed")]
-        }
+        let catalog = PluginCatalog(folders: home.folders, listing: .answering(PluginList()), configuration: { _ in
+            ClaudeConfiguration(skills: [], plugins: [],
+                                pluginErrors: [.init(plugin: "formattatore@ufficiale", message: "hook failed", type: "hook-load-failed")],
+                                mcpServers: [], instructions: [])
+        })
         let following = Task { await catalog.follow(project: home.project) }
         defer { following.cancel() }
         try await waitForCondition { catalog.snapshot?.problems.isEmpty == false }

@@ -79,7 +79,7 @@ struct PluginCLITests {
         let home = try PluginHome()
         let main = try Self.repository(in: home.home, worktrees: ["uno", "due", "tre"])
         let folders = Folders()
-        let cli = PluginCLI(run: { _, folder in
+        let cli = PluginCLI(run: { _, folder, _ in
             folders.seen.withLock { $0.append(folder) }
             return ProcessOutput(exitCode: 0, standardOutput: #"{"outcome":"ok","message":""}"#)
         }, home: home.home, queue: PluginWriteQueue())
@@ -93,7 +93,7 @@ struct PluginCLITests {
 
     @Test func writesRunOneAtATimeInOrder() async throws {
         let state = QueueState()
-        let cli = PluginCLI(run: { arguments, _ in
+        let cli = PluginCLI(run: { arguments, _, _ in
             state.running.withLock { $0 += 1 }
             state.most.withLock { $0 = max($0, state.running.withLock { $0 }) }
             try await Task.sleep(for: .milliseconds(30))
@@ -113,7 +113,7 @@ struct PluginCLITests {
 
     @Test func aCommandPastItsTimeIsStopped() async throws {
         let stopped = Mutex(false)
-        let cli = PluginCLI(run: { _, _ in
+        let cli = PluginCLI(run: { _, _, _ in
             do {
                 try await Task.sleep(for: .seconds(30))
             } catch {
@@ -130,7 +130,7 @@ struct PluginCLITests {
 
     @Test func cancellingStopsTheRunningCommandAndTheOneWaiting() async throws {
         let started = Mutex<[String]>([])
-        let cli = PluginCLI(run: { arguments, _ in
+        let cli = PluginCLI(run: { arguments, _, _ in
             started.withLock { $0.append(arguments[1]) }
             try await Task.sleep(for: .seconds(30))
             return ProcessOutput(exitCode: 0, standardOutput: "")
@@ -147,12 +147,12 @@ struct PluginCLITests {
     }
 
     @Test func noResultIsAnErrorWithTheExitCode() async throws {
-        let cli = PluginCLI(run: { _, _ in ProcessOutput(exitCode: 1, standardOutput: "") },
+        let cli = PluginCLI(run: { _, _, _ in ProcessOutput(exitCode: 1, standardOutput: "") },
                             home: URL.temporaryDirectory, queue: PluginWriteQueue())
         await #expect(throws: PluginCLIError.failed(exitCode: 1)) {
             try await cli.perform(.enable(Self.plugin, scope: .user), project: nil)
         }
-        let prune = PluginCLI(run: { _, _ in ProcessOutput(exitCode: 0, standardOutput: "Nothing to prune.\n") },
+        let prune = PluginCLI(run: { _, _, _ in ProcessOutput(exitCode: 0, standardOutput: "Nothing to prune.\n") },
                               home: URL.temporaryDirectory, queue: PluginWriteQueue())
         let pruned = try await prune.perform(.prune(scope: .user), project: nil)
         #expect(pruned.succeeded)

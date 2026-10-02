@@ -37,6 +37,18 @@ nonisolated struct ClaudeConfiguration: Decodable, Equatable, Sendable {
         var needsAuthentication: Bool { status == "needs-auth" }
         /// Whether the server is not working.
         var hasFailed: Bool { status == "failed" }
+
+        /// The status, as the panel and the Plugin window say it.
+        var statusTitle: LocalizedStringResource {
+            switch status {
+            case "connected": "Connesso"
+            case "failed": "Non funziona"
+            case "needs-auth": "Accesso richiesto"
+            case "pending": "In connessione"
+            case "disabled": "Disattivato"
+            default: LocalizedStringResource(stringLiteral: status)
+            }
+        }
     }
 
     /// A CLAUDE.md or rules file loaded in the context.

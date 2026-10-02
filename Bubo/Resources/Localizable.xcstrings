@@ -4,6 +4,16 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ (da compilare)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (required)"
+          }
+        }
+      }
+    },
     "%@ a listino" : {
       "comment" : "Cost of an answer at list price, included in the subscription.",
       "localizations" : {
@@ -58,6 +68,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ becomes:"
+          }
+        }
+      }
+    },
+    "%@ non può andare a capo. Scrivilo su una riga sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ can't contain line breaks. Write it on one line."
           }
         }
       }
@@ -886,6 +906,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "API key saved in the keychain"
+          }
+        }
+      }
+    },
+    "Accedi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign In"
+          }
+        }
+      }
+    },
+    "Accedi a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to %@"
           }
         }
       }
@@ -1799,6 +1839,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for claude…"
+          }
+        }
+      }
+    },
+    "Aspetto l'accesso nel browser…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for sign-in in the browser…"
           }
         }
       }
@@ -3015,6 +3065,16 @@
         }
       }
     },
+    "Claude non carica server MCP in questo Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude loads no MCP servers in this Project."
+          }
+        }
+      }
+    },
     "Claude non ha ancora salvato ricordi in questo Progetto." : {
       "localizations" : {
         "en" : {
@@ -3327,6 +3387,16 @@
         }
       }
     },
+    "Configura…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configure…"
+          }
+        }
+      }
+    },
     "Connesso" : {
       "localizations" : {
         "en" : {
@@ -3513,6 +3583,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continuous"
+          }
+        }
+      }
+    },
+    "Controlla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check"
           }
         }
       }
@@ -5452,12 +5532,32 @@
         }
       }
     },
+    "Impostazioni da compilare: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings to fill in: %@"
+          }
+        }
+      }
+    },
     "Impostazioni dell'organizzazione" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Organization settings"
+          }
+        }
+      }
+    },
+    "Impostazioni di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings for %@"
           }
         }
       }
@@ -5798,6 +5898,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your Claude sign-in has expired."
+          }
+        }
+      }
+    },
+    "L'accesso non è riuscito. Esegui nel Terminale il comando qui sotto, poi premi Controlla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in didn't work. Run the command below in Terminal, then press Check."
           }
         }
       }
@@ -6348,6 +6458,16 @@
         }
       }
     },
+    "Leggo le impostazioni…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the settings…"
+          }
+        }
+      }
+    },
     "Leggo le issue…" : {
       "localizations" : {
         "en" : {
@@ -6374,6 +6494,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reading the rules…"
+          }
+        }
+      }
+    },
+    "Leggo lo stato…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the status…"
           }
         }
       }
@@ -7306,12 +7436,32 @@
         }
       }
     },
+    "Nessun server MCP" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No MCP servers"
+          }
+        }
+      }
+    },
     "Nessun server MCP." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "No MCP servers."
+          }
+        }
+      }
+    },
+    "Nessun valore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No value"
           }
         }
       }
@@ -8334,16 +8484,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thinking"
-          }
-        }
-      }
-    },
-    "Per accedere, apri claude nel Terminale, scrivi /mcp e scegli %@." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To sign in, open claude in Terminal, type /mcp and choose %@."
           }
         }
       }
@@ -9755,6 +9895,16 @@
         }
       }
     },
+    "Salvo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving…"
+          }
+        }
+      }
+    },
     "Sandbox" : {
       "localizations" : {
         "en" : {
@@ -9895,6 +10045,16 @@
         }
       }
     },
+    "Scegli un Progetto per vedere i server MCP che Claude carica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Project to see the MCP servers Claude loads."
+          }
+        }
+      }
+    },
     "Scegli un plugin" : {
       "localizations" : {
         "en" : {
@@ -9941,6 +10101,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose a conversation to read it."
+          }
+        }
+      }
+    },
+    "Scegli…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose…"
           }
         }
       }
@@ -11587,6 +11757,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "They apply in every project, in the terminal too. Bubo reads them from ~/.claude/settings.json and never changes the file."
+          }
+        }
+      }
+    },
+    "Valore già salvato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Value already saved"
           }
         }
       }
