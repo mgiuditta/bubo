@@ -416,6 +416,38 @@ final class SessionStore {
         turnTasks[id] = Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
     }
 
+    /// Interrupts the turn in progress of the Sessione `id`, as Bubo's quitting would: `claude` stops, and the
+    /// Sessione is Ferma with Riprendi, its worktree kept. Nothing for a Sessione at rest.
+    func interrupt(_ id: UUID) {
+        guard let turn = turnTasks[id], sessions.first(where: { $0.id == id })?.isRunning == true else { return }
+        // Before the cancel: the end of the turn reads it.
+        update(id) { $0.isInterrupted = true }
+        turn.cancel()
+        Task {
+            await turn.value
+            update(id) { session in
+                session.enter(.ferma)
+                session.failure = nil
+                session.isInterrupted = true
+            }
+        }
+    }
+
+    /// Removes the worktree that an Archiviata Sessione of an Automazione still has: a crash cut its archive short.
+    ///
+    /// - Parameters:
+    ///   - deletingBranch: Whether its branch goes too, as for an Esecuzione Senza modifiche.
+    /// - Returns: Whether there was one to remove.
+    @discardableResult
+    func removeLeftoverWorktree(of id: UUID, deletingBranch: Bool) async -> Bool {
+        guard let session = sessions.first(where: { $0.id == id }), session.automation != nil,
+              session.phase == .archiviata, let workspace = session.workspace, workspace.branch != nil,
+              FileManager.default.fileExists(atPath: workspace.folder.path)
+        else { return false }
+        await worktrees.remove(workspace, of: session.project, deletingBranch: deletingBranch)
+        return true
+    }
+
     /// Riprova on a Sessione whose turn did not start, because its Sandbox could not or `claude` was too old: the same
     /// turn again, with the Sandbox as the Progetto has it now. Nothing for any other Sessione.
     func retry(_ id: UUID) {

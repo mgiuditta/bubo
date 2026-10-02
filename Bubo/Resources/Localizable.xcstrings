@@ -14523,6 +14523,86 @@
           }
         }
       }
+    },
+    "Apri Impostazioni di Sistema" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open System Settings"
+          }
+        }
+      }
+    },
+    "Con il coperchio chiuso il Mac dorme comunque." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With the lid closed, the Mac sleeps anyway."
+          }
+        }
+      }
+    },
+    "Le Automazioni partono solo con Bubo aperto e il Mac sveglio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automations run only while Bubo is open and the Mac is awake."
+          }
+        }
+      }
+    },
+    "Recupero dell'Esecuzione prevista %@: era persa mentre il Mac dormiva o Bubo era chiuso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Catching up on the run due %@: it was missed while the Mac slept or Bubo was closed."
+          }
+        }
+      }
+    },
+    "Riprende la Sessione dell'Esecuzione interrotta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resumes the Session of the interrupted run"
+          }
+        }
+      }
+    },
+    "Saltata (Mac spento o Bubo chiuso)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped (Mac off or Bubo closed)"
+          }
+        }
+      }
+    },
+    "Tieni sveglio il Mac quando c'è un'Automazione nelle prossime 2 ore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the Mac awake when an Automation is due in the next 2 hours"
+          }
+        }
+      }
+    },
+    "macOS aspetta la tua approvazione in Impostazioni di Sistema." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS is waiting for your approval in System Settings."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
