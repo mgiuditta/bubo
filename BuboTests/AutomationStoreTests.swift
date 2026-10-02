@@ -35,6 +35,22 @@ struct AutomationStoreTests {
         #expect(store[automation.id]?.rules == [])
     }
 
+    // #388: togliere una Regola dalle Impostazioni la toglie dall'Automazione, anche dopo un riavvio.
+    @Test func revokingARuleRemovesItFromTheAutomation() throws {
+        defer { try? FileManager.default.removeItem(at: base) }
+        let file = base.appending(path: "Automazioni.json")
+        let store = AutomationStore(file: file)
+        let automation = automation(in: base)
+        store.add(automation)
+        store.allow("Bash(npm test)", in: automation.id)
+        store.allow("Bash(npm run lint)", in: automation.id)
+
+        store.revoke("Bash(npm test)", in: automation.id)
+
+        #expect(store[automation.id]?.rules == ["Bash(npm run lint)"])
+        #expect(AutomationStore(file: file)[automation.id]?.rules == ["Bash(npm run lint)"])
+    }
+
     @Test func aRuleForAnAutomationThatIsGoneIsNotSaved() {
         #expect(!AutomationStore().allow("Bash(npm test)", in: UUID()))
     }
