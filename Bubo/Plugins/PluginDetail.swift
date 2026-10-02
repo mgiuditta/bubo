@@ -4,7 +4,10 @@ import SwiftUI
 /// bottom Attiva or Disattiva (primary) and Disinstalla… (secondary), or Installa… when it is not installed.
 struct PluginDetail: View {
     let entry: PluginEntry
+    /// What puts the plugin in Da sistemare, gravest first.
     let problems: [PluginProblem]
+    /// Everything the window shows, for the action of each problem.
+    let snapshot: PluginSnapshot
     let marketplace: Marketplace?
     let officialCache: OfficialCatalogCache?
     let catalog: PluginCatalog
@@ -153,26 +156,14 @@ struct PluginDetail: View {
         }
     }
 
+    /// One box per problem, gravest first, each with one button.
     private var problemList: some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
             ForEach(Array(problems.enumerated()), id: \.offset) { _, problem in
-                Label {
-                    switch problem {
-                    case let .loadFailed(_, message): Text(verbatim: message)
-                    case .missingProjectPlugin: Text("Plugin di Progetto non installato su questo Mac")
-                    }
-                } icon: {
-                    Image(systemName: "exclamationmark.triangle")
-                        .foregroundStyle(Palette.danger)
-                        .accessibilityLabel(Text("Errore"))
-                }
-                .font(Typography.body(size: 12))
-                .foregroundStyle(Palette.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
+                PluginProblemBox(problem: problem,
+                                 remedy: PluginRemedy(problem: problem, entry: entry, snapshot: snapshot),
+                                 catalog: catalog, install: install)
             }
         }
-        .padding(Spacing.small)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Palette.surface, in: .rect(cornerRadius: 8))
     }
 }

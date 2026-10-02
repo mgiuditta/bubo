@@ -18,6 +18,9 @@ nonisolated struct ClaudeConfiguration: Decodable, Equatable, Sendable {
         /// The plugin, as `name@marketplace`.
         let plugin: String
         let message: String
+        /// What went wrong, from an open set: `dependency-unsatisfied`, `manifest-validation-error`, `path-not-found`,
+        /// `hook-load-failed`, `generic-error` and others; `nil` from a bridge before #209.
+        var type: String?
     }
 
     /// A server MCP and how its connection went.

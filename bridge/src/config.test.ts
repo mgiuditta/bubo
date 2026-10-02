@@ -17,7 +17,7 @@ test("init e mcpServerStatus diventano la configurazione del pannello", () => {
   expect(result).toEqual({
     skills: ["prova", "review"],
     plugins: [{ name: "figma", path: "/p/figma", version: "1.2.0" }, { name: "locale", path: "/p/locale" }],
-    pluginErrors: [{ plugin: "rotto@mercato", message: "manca base@mercato" }],
+    pluginErrors: [{ plugin: "rotto@mercato", type: "dependency-unsatisfied", message: "manca base@mercato" }],
     mcpServers: [
       { name: "db", status: "failed", source: "project", error: "Connection closed" },
       { name: "linear", status: "needs-auth", source: "claudeai" },

@@ -6,7 +6,7 @@ export type Instructions = { path: string; type: string };
 export type Configuration = {
   skills: string[];
   plugins: { name: string; path: string; version?: string }[];
-  pluginErrors: { plugin: string; message: string }[];
+  pluginErrors: { plugin: string; type: string; message: string }[];
   mcpServers: { name: string; status: string; source?: string; error?: string }[];
   instructions: Instructions[];
   agents: AgentInfo[];
@@ -25,7 +25,7 @@ export function configuration(init: SDKSystemMessage, servers: McpServerStatus[]
   return {
     skills: init.skills,
     plugins: init.plugins.map(({ name, path, version }) => ({ name, path, ...(version && { version }) })),
-    pluginErrors: (init.plugin_errors ?? []).map(({ plugin, message }) => ({ plugin, message })),
+    pluginErrors: (init.plugin_errors ?? []).map(({ plugin, type, message }) => ({ plugin, type, message })),
     mcpServers: init.mcp_servers.map(({ name, status: initial, source }) => {
       const current = status.get(name);
       const origin = current?.source ?? current?.scope ?? source;

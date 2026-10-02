@@ -11,10 +11,13 @@ struct PluginsWindow: View {
 
     /// The Sessioni, for their Progetti; `nil` when they are unavailable.
     let store: SessionStore?
-    @State private var catalog = PluginCatalog()
+    @State private var catalog: PluginCatalog
     @State private var project: URL?
     @State private var attempt = 0
     @State private var selection: PluginSidebarItem?
+    /// Whether the user chose a sidebar item: until then, Da sistemare is chosen as soon as it has something.
+    @State private var hasChosen = false
+    private let route = PluginsWindowRoute.shared
     @State private var plugin: PluginID?
     @State private var query = ""
     @State private var isChoosingFolder = false
@@ -31,6 +34,11 @@ struct PluginsWindow: View {
     init(store: SessionStore?) {
         self.store = store
         _project = State(initialValue: store?.projects.first)
+        var sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])?
+        if let store {
+            sessionErrors = { project in try await store.configuration(of: project).pluginErrors }
+        }
+        _catalog = State(initialValue: PluginCatalog(sessionErrors: sessionErrors))
     }
 
     /// What the plugins are read for: the Progetto, and Riprova.
@@ -41,12 +49,12 @@ struct PluginsWindow: View {
 
     /// The plugins `claude` failed to load.
     private var failing: Set<PluginID> {
-        Set(catalog.snapshot?.problems.compactMap { if case let .loadFailed(id, _) = $0 { id } else { nil } } ?? [])
+        Set(catalog.snapshot?.problems.compactMap { if case let .loadFailed(id, _, _) = $0 { id } else { nil } } ?? [])
     }
 
     var body: some View {
         NavigationSplitView {
-            PluginSidebar(snapshot: catalog.snapshot, project: project, selection: $selection, addingSource: addingSource) {
+            PluginSidebar(snapshot: catalog.snapshot, project: project, selection: chosenSelection, addingSource: addingSource) {
                 isChoosingFolder = true
             } add: { source in
                 add(source)
@@ -69,7 +77,7 @@ struct PluginsWindow: View {
             .navigationSplitViewColumnWidth(min: 300, ideal: 380)
         } detail: {
             if let snapshot = catalog.snapshot, let entry = snapshot.plugins.first(where: { $0.id == plugin }) {
-                PluginDetail(entry: entry, problems: snapshot.problems.filter { $0.plugin == entry.id },
+                PluginDetail(entry: entry, problems: snapshot.problems.filter { $0.plugin == entry.id }, snapshot: snapshot,
                              marketplace: snapshot.marketplace(named: entry.id.marketplace),
                              officialCache: catalog.officialCache, catalog: catalog) {
                     installing = entry
@@ -84,10 +92,17 @@ struct PluginsWindow: View {
         .searchable(text: $query, placement: .toolbar, prompt: "Cerca plugin")
         .frame(minWidth: 820, idealWidth: 1000, minHeight: 480, idealHeight: 640)
         .task(id: LoadKey(project: project, attempt: attempt)) { await catalog.follow(project: project) }
-        .onChange(of: catalog.snapshot == nil) { _, isReading in
-            if !isReading, selection == nil, let snapshot = catalog.snapshot {
-                selection = .initialSelection(in: snapshot)
+        .onChange(of: catalog.snapshot.map { PluginSidebarItem.initialSelection(in: $0) }) { _, initial in
+            // The errors of `claude` and of the Sessioni arrive after the files: Da sistemare until the user chooses.
+            if let initial, !hasChosen, selection == nil || initial == .toFix {
+                selection = initial
             }
+        }
+        .onChange(of: route.problemsProject, initial: true) { _, asked in
+            guard asked != nil, let asked = route.takeProblemsProject() else { return }
+            project = asked
+            selection = .toFix
+            hasChosen = false
         }
         .onChange(of: catalog.snapshot?.marketplaces.map(\.name)) { _, names in
             // A Marketplace removed while selected.
@@ -123,6 +138,16 @@ struct PluginsWindow: View {
         .preferredColorScheme(.dark)
         // Last, so everything inside gets it: selection is lightness, not the system blue (design system).
         .tint(Palette.accent)
+    }
+
+    /// The sidebar's selection, remembering that the user chose.
+    private var chosenSelection: Binding<PluginSidebarItem?> {
+        Binding {
+            selection
+        } set: { item in
+            selection = item
+            hasChosen = true
+        }
     }
 
     private func showAddFailure(_ failure: Text) {

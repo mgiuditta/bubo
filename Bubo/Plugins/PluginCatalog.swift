@@ -20,6 +20,10 @@ import os
     @ObservationIgnored let folders: PluginFolders
     @ObservationIgnored private let listing: PluginListing
     @ObservationIgnored private let cli: PluginCLI
+    /// Reads the `plugin_errors` of a Sessione's `system/init` in a folder; `nil` without Sessioni.
+    @ObservationIgnored private let sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])?
+    /// The last `plugin_errors` read, merged into every later reading of the files.
+    @ObservationIgnored private var errors: [ClaudeConfiguration.PluginError] = []
     /// The main checkout of the Progetto followed, which the commands run in.
     @ObservationIgnored private var project: URL?
     /// The words of `snapshot`'s plugins, replaced with it.
@@ -29,11 +33,14 @@ import os
     /// The readings started, so an older one never replaces a newer one.
     @ObservationIgnored private var readings = 0
 
-    /// Creates a catalog of the plugins in `folders`, completed by `listing` and changed by `cli`.
-    init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live()) {
+    /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` that
+    /// `sessionErrors` reads, and changed by `cli`.
+    init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live(),
+         sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])? = nil) {
         self.folders = folders
         self.listing = listing
         self.cli = cli
+        self.sessionErrors = sessionErrors
     }
 
     /// Draws from the files, then asks `claude` in background, then reads again at each FSEvents change of
@@ -46,12 +53,14 @@ import os
         self.project = project
         snapshot = nil
         list = nil
+        errors = []
         isListingUnavailable = false
         let state = Signposts.beginInterval(.pluginsFirstDraw)
         await reload(project)
         Signposts.endInterval(.pluginsFirstDraw, state)
         await withDiscardingTaskGroup { group in
             group.addTask { await self.refreshListing(project) }
+            group.addTask { await self.refreshSessionErrors(project) }
             group.addTask { await self.loadOfficialCache() }
             group.addTask { await self.watch(project) }
         }
@@ -102,6 +111,21 @@ import os
             throw error
         }
         await refreshListing(project)
+        // A Sessione reads its errors only at its start, so they are read again, without holding up the window.
+        Task { await refreshSessionErrors(project) }
+        return result
+    }
+
+    /// Runs the commands of `remedy` in order, stopping at the first that does not reach its goal.
+    ///
+    /// - Returns: How the last command run ended; success with no command.
+    /// - Throws: `PluginCLIError`, or `CancellationError`.
+    func fix(with remedy: PluginRemedy) async throws -> PluginCommandResult {
+        var result = PluginCommandResult(succeeded: true)
+        for command in remedy.commands {
+            result = try await perform(command)
+            guard result.succeeded else { break }
+        }
         return result
     }
 
@@ -112,6 +136,7 @@ import os
         let reading = readings
         var next = await PluginSnapshot.read(from: folders, project: project)
         if let list { next = next.merging(list, project: project) }
+        if !errors.isEmpty { next = next.merging(errors) }
         let search = await PluginSearch.indexing(next.plugins)
         guard reading == readings, !Task.isCancelled else { return }
         self.search = search
@@ -128,6 +153,21 @@ import os
         } catch {
             Logger.plugins.info("Plugins not listed by claude: \(String(describing: error), privacy: .public)")
             isListingUnavailable = true
+        }
+    }
+
+    private func refreshSessionErrors(_ project: URL?) async {
+        guard let project, let sessionErrors else { return }
+        do {
+            let read = try await sessionErrors(project)
+            // The window may have moved to another Progetto meanwhile.
+            guard project == self.project else { return }
+            errors = read
+            await reload(project)
+        } catch is CancellationError {
+            return
+        } catch {
+            Logger.plugins.info("Plugin errors of the Sessioni not read: \(String(describing: error), privacy: .public)")
         }
     }
 
