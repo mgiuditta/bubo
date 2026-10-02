@@ -50,6 +50,12 @@ nonisolated enum ClaudeReadiness: Equatable, Sendable {
         return version
     }
 
+    /// The version of the `claude` that `locator` finds, such as `2.1.287`; `nil` when it is missing or fails.
+    static func installedVersion(locator: ClaudeLocator = ClaudeLocator(), runner: ProcessRunner = defaultRunner) async
+        -> String? {
+        await version(locator: locator, runner: runner)?.version
+    }
+
     /// The `claude` that `locator` finds, with the first word of its `--version`; `nil` when it is missing or fails.
     private static func version(locator: ClaudeLocator, runner: ProcessRunner) async -> (claude: URL, version: String)? {
         guard let claude = await locator.executableURL(),
