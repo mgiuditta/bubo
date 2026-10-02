@@ -27,6 +27,9 @@ final class HUDPresenter {
     /// The Sessione whose Apri PR sheet the HUD shows, opened from the menu or the Palette; `nil` for none.
     var pullRequestSession: Session?
 
+    /// The Sessione whose foglio di Consegna the HUD shows, opened from the menu or the Sessione; `nil` for none.
+    var deliverySession: Session?
+
     /// The Sessione the HUD brings into view once it is in front, chosen from the menu bar; the Vista that shows it
     /// sets it back to `nil`.
     var revealedSession: Session.ID?
@@ -93,6 +96,12 @@ final class HUDPresenter {
     /// Brings the HUD to the front with the Apri PR sheet of `session`.
     func openPullRequest(of session: Session) {
         pullRequestSession = session
+        show()
+    }
+
+    /// Brings the HUD to the front with the foglio di Consegna of `session`.
+    func deliver(_ session: Session) {
+        deliverySession = session
         show()
     }
 

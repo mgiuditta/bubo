@@ -51,6 +51,8 @@ final class DeliveriesController {
     }
     /// The Mac on this Mac's Biglietto: the computer's name.
     let machine: String
+    /// The notice of each Sessione delivered since Bubo started: "Consegnata con ‹canale› a ‹nome›…".
+    private(set) var deliveredNotices: [Session.ID: String] = [:]
 
     private let key: MachineKey
     private let store: TicketStore
@@ -139,6 +141,23 @@ final class DeliveriesController {
         guard let replacement = ticket.replacement, let ownKey else { return }
         pendingImport = TicketImport(ticket: replacement, review: .keyChanged(ticket.id),
                                      code: VerificationCode(ownKey, replacement.publicKey))
+    }
+
+    /// This Macchina's key, which seals the Consegne it sends.
+    ///
+    /// - Throws: ``MachineKey/Failure``.
+    func sealingKey() async throws(MachineKey.Failure) -> SecureEnclave.P256.KeyAgreement.PrivateKey {
+        try await key.privateKey()
+    }
+
+    /// Notes that the Sessione `id` went through `channel` to `ticket`'s Macchina: the notice in the Sessione.
+    func noteDelivery(of id: Session.ID, through channel: String, to ticket: ReceivedTicket) {
+        deliveredNotices[id] = String(localized: "Consegnata con \(channel) a \(ticket.person) · \(ticket.machine). La Sessione resta tua; da qui in poi le due copie vanno ognuna per conto suo.")
+    }
+
+    /// Hides the notice of the Sessione `id`.
+    func dismissDeliveryNotice(of id: Session.ID) {
+        deliveredNotices[id] = nil
     }
 
     /// The code of this Mac and `ticket`'s verified key.

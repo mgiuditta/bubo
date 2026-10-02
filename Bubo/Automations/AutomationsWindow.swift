@@ -10,6 +10,8 @@ struct AutomationsWindow: View {
     let store: SessionStore?
     /// What starts the Esecuzioni; `nil` when the Sessioni are unavailable.
     let runner: ExecutionRunner?
+    /// Brings the HUD to the front on a Sessione: Apri Sessione of the Storico.
+    var showSession: (UUID) -> Void = { _ in }
     @State private var isCreating = false
     /// The Automazione whose Modifica sheet is open.
     @State private var editing: Automation?
@@ -53,7 +55,8 @@ struct AutomationsWindow: View {
                 ReadinessCard()
                     .listRowSeparator(.hidden)
                 ForEach(store.automations.automations) { automation in
-                    AutomationRow(automation: automation, resume: resumeAction(for: automation, in: store)) {
+                    AutomationRow(automation: automation, resume: resumeAction(for: automation, in: store),
+                                  openSession: { openAction(for: $0, in: store) }) {
                         runner?.run(automation.id)
                     } togglePause: {
                         if automation.isPaused {
@@ -74,6 +77,13 @@ struct AutomationsWindow: View {
             ContentUnavailableView("Automazioni", systemImage: "clock.arrow.circlepath",
                                    description: Text("Nessuna Automazione. Creane una con Nuova Automazione."))
         }
+    }
+
+    /// Apri Sessione of an Esecuzione whose Sessione `id` is still in the Vista; `nil` once it is gone or archived,
+    /// as the Senza modifiche.
+    private func openAction(for id: UUID, in store: SessionStore) -> (() -> Void)? {
+        guard store.sessions.contains(where: { $0.id == id && $0.isLive }) else { return nil }
+        return { showSession(id) }
     }
 
     /// Riprendi of the latest Esecuzione of `automation`, when the Mac's sleep or Bubo's quitting interrupted it and its

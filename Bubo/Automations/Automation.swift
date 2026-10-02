@@ -129,6 +129,16 @@ nonisolated struct Execution: Codable, Equatable, Sendable {
         }
     }
 
+    /// What the notification at its end says: its outcome and how many actions were denied; `nil` when it ends with
+    /// nothing to look at, as Senza modifiche, or is not over (spec 19).
+    var resultNotice: String? {
+        switch outcome {
+        case .fatta: String(localized: "Fatta, da guardare. Azioni negate: \(denialCount).")
+        case .errore: String(localized: "Finita con un errore. Azioni negate: \(denialCount).")
+        case .inCorso, .senzaModifiche, .saltata, .interrotta: nil
+        }
+    }
+
     /// Why an Esecuzione did not start.
     enum SkipReason: String, Codable, Sendable {
         /// The same Automazione was still at work, or, outside git, another Sessione worked in the Progetto's folder.

@@ -45,6 +45,14 @@ struct BuboApp: App {
                     Button("Aggiorna PR") {}
                         .disabled(true)
                 }
+                // Off while the Sessione is in Lavora (spec 24).
+                if let session = appDelegate.sessions?.deliverySessionToOpen {
+                    Button("Consegna «\(session.title)»…") { appDelegate.hud.deliver(session) }
+                        .disabled(session.activity == .lavora)
+                } else {
+                    Button("Consegna…") {}
+                        .disabled(true)
+                }
                 Divider()
                 // Only with Bubo in front: no global shortcut (spec 14).
                 Button("Cerca…") { appDelegate.togglePalette() }
@@ -114,7 +122,9 @@ struct BuboApp: App {
 
         // In the Finestra menu, with no shortcut (spec 19).
         Window("Automazioni", id: AutomationsWindow.windowID) {
-            AutomationsWindow(store: appDelegate.sessions, runner: appDelegate.executions)
+            AutomationsWindow(store: appDelegate.sessions, runner: appDelegate.executions) { id in
+                appDelegate.hud.show(session: id)
+            }
         }
         .defaultLaunchBehavior(.suppressed)
 

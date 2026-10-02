@@ -1,11 +1,13 @@
 import SwiftUI
 
 /// One Automazione of its window: name, Progetto, model, Ripetizione with its next time or its pausa, latest
-/// Esecuzione, [Avvia ora] and Pausa/Riprendi, Modifica and Elimina.
+/// Esecuzione, [Avvia ora] and Pausa/Riprendi, Modifica and Elimina; its Storico folded under it.
 struct AutomationRow: View {
     let automation: Automation
     /// Riprendi of its latest Esecuzione, Interrotta; `nil` when there is none to resume.
     var resume: (() -> Void)?
+    /// Opens the HUD on the Sessione of one of its Esecuzioni; `nil` when that Sessione is gone or archived.
+    var openSession: (UUID) -> (() -> Void)? = { _ in nil }
     /// [Avvia ora].
     let run: () -> Void
     /// Pausa, or Riprendi when in pausa.
@@ -17,6 +19,22 @@ struct AutomationRow: View {
     @State private var isConfirmingDelete = false
 
     var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+            summary
+            if !automation.executions.isEmpty {
+                ExecutionHistory(executions: automation.executions, openSession: openSession)
+            }
+        }
+        .padding(.vertical, Spacing.xxSmall)
+        .confirmationDialog("Eliminare «\(automation.name)»?", isPresented: $isConfirmingDelete) {
+            Button("Elimina", role: .destructive, action: delete)
+        } message: {
+            Text("Le Sessioni già nate restano. Le Regole «in questa Automazione» se ne vanno con lei.")
+        }
+    }
+
+    /// Name, Progetto, model, Ripetizione and latest Esecuzione, with the buttons.
+    private var summary: some View {
         HStack(alignment: .center, spacing: Spacing.small) {
             VStack(alignment: .leading, spacing: Spacing.xxSmall) {
                 Text(verbatim: automation.name)
@@ -59,12 +77,6 @@ struct AutomationRow: View {
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
             .fixedSize()
-        }
-        .padding(.vertical, Spacing.xxSmall)
-        .confirmationDialog("Eliminare «\(automation.name)»?", isPresented: $isConfirmingDelete) {
-            Button("Elimina", role: .destructive, action: delete)
-        } message: {
-            Text("Le Sessioni già nate restano. Le Regole «in questa Automazione» se ne vanno con lei.")
         }
     }
 
