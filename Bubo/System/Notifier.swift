@@ -7,15 +7,16 @@ import UserNotifications
 /// only where `PermissionNotice` offers it. Each answer carries the ids of its Sessione and Richiesta, so it reaches
 /// that Richiesta only, and nothing if it no longer waits.
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
-    /// Creates a notifier that calls `openHUD` when the user clicks a notification, and `answer` with the Richiesta,
-    /// its Sessione and whether the call may run when the user picks Solo ora or No.
-    init(openHUD: @escaping @MainActor () -> Void,
+    /// Creates a notifier that calls `openHUD` when the user clicks a notification, with the Sessione it is about if
+    /// any, and `answer` with the Richiesta, its Sessione and whether the call may run when the user picks Solo ora or
+    /// No.
+    init(openHUD: @escaping @MainActor (UUID?) -> Void,
          answer: @escaping @MainActor (PermissionRequest.ID, UUID, Bool) -> Void) {
         self.openHUD = openHUD
         self.answer = answer
     }
 
-    private let openHUD: @MainActor () -> Void
+    private let openHUD: @MainActor (UUID?) -> Void
     private let answer: @MainActor (PermissionRequest.ID, UUID, Bool) -> Void
     private let center = UNUserNotificationCenter.current()
 
@@ -91,6 +92,25 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// Announces how `execution` of `automation` ended, with its outcome and how many actions were denied: nothing
+    /// for one with nothing to look at. A click opens the HUD on its Sessione.
+    func announceResult(of execution: Execution, from automation: Automation) async {
+        guard let notice = execution.resultNotice, let session = execution.session else { return }
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            content.title = automation.name
+            content.subtitle = String(localized: "Automazione · \(execution.startedAt.formatted(date: .omitted, time: .shortened))")
+            content.body = notice
+            content.threadIdentifier = automation.id.uuidString
+            content.userInfo = [Identifier.session: session.uuidString]
+            content.sound = .default
+            try await center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        } catch {
+            Logger.automations.error("Result notification not posted: \(error)")
+        }
+    }
+
     /// Removes the notification of the Sessione `id`, which no longer waits.
     func withdraw(_ id: UUID) {
         center.removeDeliveredNotifications(withIdentifiers: [id.uuidString])
@@ -103,7 +123,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         [.banner, .list, .sound]
     }
 
-    /// Answers the Richiesta of the notification with Solo ora or No, in the background; any other click opens the HUD.
+    /// Answers the Richiesta of the notification with Solo ora or No, in the background; any other click opens the HUD,
+    /// on the Sessione of the notification if it has one.
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
                                             didReceive response: UNNotificationResponse) async {
         let ids = response.notification.request.content.userInfo
@@ -112,10 +133,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         case Identifier.deny: false
         default: nil
         }
-        guard let allows, let request = ids[Identifier.request] as? String,
-              let session = (ids[Identifier.session] as? String).flatMap(UUID.init(uuidString:))
-        else {
-            await openHUD()
+        let session = (ids[Identifier.session] as? String).flatMap(UUID.init(uuidString:))
+        guard let allows, let request = ids[Identifier.request] as? String, let session else {
+            await openHUD(session)
             return
         }
         await answer(request, session, allows)

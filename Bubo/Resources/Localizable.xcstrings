@@ -183,6 +183,22 @@
         }
       }
     },
+    "%@ · %@ · %lld negate" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$lld negate"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ · %3$lld denied"
+          }
+        }
+      }
+    },
     "%@ · %lld" : {
       "localizations" : {
         "en" : {
@@ -1874,6 +1890,16 @@
         }
       }
     },
+    "Apri Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Session"
+          }
+        }
+      }
+    },
     "Apri come Progetto e crea Sessione" : {
       "comment" : "Button: the dropped folder is a git repo with no Sessioni yet",
       "localizations" : {
@@ -2142,6 +2168,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automation %@"
+          }
+        }
+      }
+    },
+    "Automazione · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automation · %@"
           }
         }
       }
@@ -4902,6 +4938,16 @@
         }
       }
     },
+    "Fatta, da guardare. Azioni negate: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done, ready to review. Actions denied: %lld."
+          }
+        }
+      }
+    },
     "Fatto breve" : {
       "localizations" : {
         "en" : {
@@ -5008,6 +5054,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filter: %@"
+          }
+        }
+      }
+    },
+    "Finita con un errore. Azioni negate: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ended with an error. Actions denied: %lld."
           }
         }
       }
@@ -11902,6 +11958,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Downloading the dictation model"
+          }
+        }
+      }
+    },
+    "Storico (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History (%lld)"
           }
         }
       }

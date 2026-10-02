@@ -13,6 +13,10 @@ final class ExecutionRunner {
     /// Esecuzione Senza modifiche.
     static let nothingToReport = String(localized: "Niente da segnalare.")
 
+    /// Called once an Esecuzione that started has ended, with its Automazione and how it went: the notification of
+    /// its result follows it.
+    var onFinish: (Automation, Execution) -> Void = { _, _ in }
+
     /// How many Esecuzioni hold an activity now, against App Nap and idle sleep: none once they end or the Mac sleeps.
     var heldActivities: Int { activities.count }
 
@@ -134,8 +138,10 @@ final class ExecutionRunner {
             outcome = .senzaModifiche
             await sessions.archiveUnchanged(session)
         }
-        automations.record(Execution(startedAt: startedAt, scheduledAt: scheduledAt, session: session, outcome: outcome,
-                                     denialCount: denials), for: id)
+        let execution = Execution(startedAt: startedAt, scheduledAt: scheduledAt, session: session, outcome: outcome,
+                                  denialCount: denials)
+        automations.record(execution, for: id)
+        if let automation = automations[id] { onFinish(automation, execution) }
         Logger.automations.notice("Esecuzione ended: \(outcome.rawValue, privacy: .public), denials: \(denials)")
     }
 }
