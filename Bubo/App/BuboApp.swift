@@ -93,6 +93,8 @@ struct BuboApp: App {
         .commands {
             CommandGroup(before: .windowList) {
                 Button("Cronologia") { appDelegate.history.show() }
+                // Also in the Palette, as every menu item; no shortcut (spec 18).
+                Button("Costi") { appDelegate.costs.show() }
                 Divider()
             }
         }
