@@ -14,6 +14,9 @@ import SwiftUI
 struct ReviewSheet: View {
     let sessionID: UUID
     let store: SessionStore
+    /// The file whose first blocco the cursor starts on, by path in the Sessione's folder; `nil` for the first
+    /// undecided blocco.
+    var file: String?
     @Environment(\.dismiss) private var dismiss
     @State private var review = Review()
     @State private var isLoaded = false
@@ -36,6 +39,7 @@ struct ReviewSheet: View {
     /// What stops in the terminal at Fondi, while its confirmation is shown.
     @State private var terminalNotice = ""
     @State private var isConfirmingTerminalClose = false
+    @State private var isOpeningPullRequest = false
     @FocusState private var isFocused: Bool
     @FocusState private var isEditingMessage: Bool
 
@@ -174,6 +178,16 @@ struct ReviewSheet: View {
                             Text(verbatim: terminalNotice)
                         }
                 }
+                if session?.workspace?.branch != nil && session?.phase == .aperta {
+                    let ghMissing = GitHubCLI().executable == nil
+                    Button("Apri PR…") { isOpeningPullRequest = true }
+                        .disabled(session?.isRunning != false || isMerging || ghMissing)
+                        .help(ghMissing ? GitHubCLIError.missing.localizedDescription
+                              : String(localized: "Propone titolo e descrizione, poi fa il push e apre la PR su GitHub"))
+                        .sheet(isPresented: $isOpeningPullRequest) {
+                            if let session { PullRequestSheet(session: session, store: store) }
+                        }
+                }
                 if session?.workspace?.branch != nil {
                     Menu("Altre azioni", systemImage: "ellipsis.circle") {
                         Button("Fondi gli accettati e scarta il resto…") { isConfirmingPartialMerge = true }
@@ -195,7 +209,7 @@ struct ReviewSheet: View {
             }
             Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente")
                 .font(Typography.mono(size: 10.5))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
         }
     }
 
@@ -247,6 +261,7 @@ struct ReviewSheet: View {
                         LazyVStack(alignment: .leading, spacing: 0) {
                             ForEach(hunk.lines.indices, id: \.self) { index in
                                 DiffLineRow(line: hunk.lines[index], isDecided: decisions[id] != nil, size: 13.5)
+                                    .opensInViewer { openViewer(file) { hunk.newFileLine(at: index) } }
                             }
                         }
                     }
@@ -287,11 +302,15 @@ struct ReviewSheet: View {
             let file = review.files[fileIndex]
             hunkHeader(file: file, hunk: file.hunks[hunkIndex])
         case let .line(fileIndex, hunkIndex, lineIndex):
-            let hunk = review.files[fileIndex].hunks[hunkIndex]
+            let file = review.files[fileIndex]
+            let hunk = file.hunks[hunkIndex]
             DiffLineRow(line: hunk.lines[lineIndex], isDecided: decisions[hunk.id] != nil)
+                .opensInViewer { openViewer(file) { hunk.newFileLine(at: lineIndex) } }
         case let .pair(fileIndex, hunkIndex, pairIndex):
-            let hunk = review.files[fileIndex].hunks[hunkIndex]
+            let file = review.files[fileIndex]
+            let hunk = file.hunks[hunkIndex]
             SideBySideLineRow(pair: hunk.pairs[pairIndex], isDecided: decisions[hunk.id] != nil)
+                .opensInViewer { openViewer(file) { hunk.newFileLine(atPair: pairIndex) } }
         }
     }
 
@@ -312,8 +331,21 @@ struct ReviewSheet: View {
         .onTapGesture { cursor = hunk.id }
     }
 
+    /// Opens the visore at `line` of `file` in the Sessione's folder, where the file is as the agent left it.
+    ///
+    /// The line is worked out only now, from the blocco's `@@` header; a deleted file has nothing to show.
+    private func openViewer(_ file: ChangedFile, at line: () -> Int?) {
+        guard let folder = session?.workspace?.folder, let line = line() else { return }
+        let location = SourceLocation(file: folder.appending(path: file.path), line: line)
+        guard location.isExistingFile else {
+            NSSound.beep()
+            return
+        }
+        store.viewer.show(location, in: folder)
+    }
+
     private func handle(_ press: KeyPress) -> KeyPress.Result {
-        guard noting == nil, !isEditingMessage, session?.phase == .aperta, let current = cursor ?? review.hunkIDs.first
+        guard noting == nil, !isEditingMessage, session?.isLive == true, let current = cursor ?? review.hunkIDs.first
         else { return .ignored }
         switch press.characters {
         case "j": cursor = review.hunk(movingBy: 1, from: current)
@@ -463,7 +495,8 @@ struct ReviewSheet: View {
             failed = false
             if session?.phase == .aperta { await refreshPreview() }
             if cursor.flatMap(review.row(of:)) == nil {
-                cursor = review.hunkIDs.first { decisions[$0] == nil } ?? review.hunkIDs.first
+                cursor = file.flatMap(review.firstHunk(inFileAt:))
+                    ?? review.hunkIDs.first { decisions[$0] == nil } ?? review.hunkIDs.first
             }
         } catch is CancellationError {
             return

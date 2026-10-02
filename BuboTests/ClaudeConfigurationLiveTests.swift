@@ -26,6 +26,10 @@ struct ClaudeConfigurationLiveTests {
         try Self.write("---\nname: progetto\ndescription: Una skill del Progetto\n---\nciao\n",
                        to: repo.appending(path: ".claude/skills/progetto/SKILL.md"))
         try Self.write("# Progetto\n", to: repo.appending(path: "CLAUDE.md"))
+        try Self.write("---\nname: agente-progetto\ndescription: Un agente del Progetto\ntools: Read\n---\n",
+                       to: repo.appending(path: ".claude/agents/sotto/agente.md"))
+        try Self.write("---\nname: agente-utente\ndescription: Un agente dell'utente\n---\n",
+                       to: configuration.appending(path: "agents/agente-utente.md"))
         try Self.write(#"{"mcpServers": {"del-progetto": {"command": "/usr/bin/true"}}}"#, to: repo.appending(path: ".mcp.json"))
         try Self.write("---\nname: utente\ndescription: Una skill dell'utente\n---\nciao\n",
                        to: configuration.appending(path: "skills/utente/SKILL.md"))
@@ -35,7 +39,7 @@ struct ClaudeConfigurationLiveTests {
         var environment = ChildEnvironment.make(claude: claude)
         environment["CLAUDE_CONFIG_DIR"] = configuration.path
         agent = AgentBridge(executable: tools.bun, arguments: ["run", LiveTools.bridge.appending(path: "src/main.ts").path],
-                            environment: environment, trustGate: gate) { _, _ in "" }
+                            environment: environment, trustGate: gate) { _, _, _ in "" }
     }
 
     static func write(_ text: String, to file: URL) throws {
@@ -84,6 +88,10 @@ struct ClaudeConfigurationLiveTests {
         #expect(shown.skills.contains("progetto") && shown.skills.contains("utente"))
         #expect(Set(shown.mcpServers.map(\.name)).isSuperset(of: ["del-progetto", "dell-utente"]))
         #expect(shown.instructions.map(\.path) == [repo.appending(path: "CLAUDE.md").path])
+        // `supportedAgents()`: the files of both sources, by their `name`, next to the built-in agents.
+        #expect(shown.agents.contains(.init(name: "agente-progetto", description: "Un agente del Progetto", model: nil)))
+        #expect(shown.agents.contains { $0.name == "agente-utente" })
+        #expect(shown.agents.count > 2)
         let written = try await filesWritten(since: before)
         #expect(written.isEmpty, "Il pannello ha scritto nella cartella di configurazione: \(written)")
 
@@ -91,6 +99,30 @@ struct ClaudeConfigurationLiveTests {
         let start = ContinuousClock.now
         _ = try await agent.configuration(of: repo)
         #expect(ContinuousClock.now - start < .seconds(1))
+    }
+
+    @Test func theSpareShowsTheSameConfigurationWithinOneSecondAndWritesNothing() async throws {
+        try gate.trust(repo)
+        let cold = try await agent.configuration(of: repo)
+        let before = configurationFiles()
+
+        // Only `init`: with no login, a turn of the model would fail instead of answering.
+        try agent.warmConfiguration(for: repo)
+        try await Task.sleep(for: .seconds(5))
+        let start = ContinuousClock.now
+        let warm = try await agent.configuration(of: repo)
+        let elapsed = ContinuousClock.now - start
+
+        #expect(Set(warm.skills) == Set(cold.skills))
+        #expect(warm.plugins == cold.plugins)
+        #expect(Set(warm.mcpServers.map(\.name)) == Set(cold.mcpServers.map(\.name)))
+        #expect(warm.instructions == cold.instructions)
+        #expect(elapsed < .seconds(1), "Con la riserva: \(elapsed)")
+        try agent.coolConfiguration()
+        // Only the CLI's own housekeeping: the SDK parks the spare in `spares/` and removes its folder there when it
+        // closes, and a `claude` that lives a few seconds marks its cleanup. No conversation, no transcript.
+        let written = try await filesWritten(since: before).subtracting([".last-cleanup", "spares"])
+        #expect(written.isEmpty, "La riserva ha scritto nella cartella di configurazione: \(written)")
     }
 
     @Test func anUntrustedProgettoShowsOnlyTheUsersConfiguration() async throws {
@@ -103,6 +135,8 @@ struct ClaudeConfigurationLiveTests {
         #expect(shown.skills.contains("utente") && !shown.skills.contains("progetto"))
         #expect(shown.mcpServers.map(\.name) == ["dell-utente"])
         #expect(shown.instructions.isEmpty)
+        let agents = Set(shown.agents.map(\.name))
+        #expect(agents.contains("agente-utente") && !agents.contains("agente-progetto"))
     }
 }
 

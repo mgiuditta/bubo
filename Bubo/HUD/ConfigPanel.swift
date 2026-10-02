@@ -9,8 +9,15 @@ import SwiftUI
 struct ConfigPanel: View {
     /// The Progetto's folder.
     let project: URL
+    /// Whether the Progetto runs its Sessioni's commands in the Sandbox.
+    let sandbox: SandboxStore
     /// Reads the configuration `claude` loads in a folder.
     let read: (URL) async throws -> ClaudeConfiguration
+    /// Reads the Regole di permesso of `claude` in a folder that widen its Sandbox.
+    var readSandboxRules: (URL) async throws -> [SandboxWideningRule] = { _ in [] }
+    /// Logs in to an MCP server of the Progetto with `claude mcp login`: the configuration read again after it
+    /// succeeded, `nil` when it failed. Without it, the panel shows only the command.
+    var logIn: ((String) async throws -> ClaudeConfiguration?)?
     @Environment(\.dismiss) private var dismiss
     @State private var configuration: ClaudeConfiguration?
     @State private var failed = false
@@ -19,7 +26,8 @@ struct ConfigPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
             if let configuration {
-                ConfigurationForm(project: project, configuration: configuration)
+                ConfigurationForm(project: project, configuration: configuration, sandbox: sandbox,
+                                  readSandboxRules: readSandboxRules, logIn: logIn.map(loggingIn))
             } else if failed {
                 ErrorNotice("Non riesco a leggere la configurazione di Claude",
                             remedy: "Controlla che la CLI claude funzioni nel Terminale, poi riprova.",
@@ -40,6 +48,15 @@ struct ConfigPanel: View {
         .task(id: attempt) { await load() }
     }
 
+    /// `logIn`, which shows the configuration read again once it succeeded.
+    private func loggingIn(_ logIn: @escaping (String) async throws -> ClaudeConfiguration?) -> (String) async throws -> Bool {
+        { server in
+            guard let read = try await logIn(server) else { return false }
+            configuration = read
+            return true
+        }
+    }
+
     private func load() async {
         failed = false
         let state = Signposts.signposter.beginInterval("Configurazione di Claude", id: Signposts.signposter.makeSignpostID())
@@ -58,6 +75,10 @@ struct ConfigPanel: View {
 private struct ConfigurationForm: View {
     let project: URL
     let configuration: ClaudeConfiguration
+    let sandbox: SandboxStore
+    let readSandboxRules: (URL) async throws -> [SandboxWideningRule]
+    let logIn: ((String) async throws -> Bool)?
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Form {
@@ -74,7 +95,10 @@ private struct ConfigurationForm: View {
                 Text("Configurazione di Claude")
             }
 
+            ProjectSandboxSection(project: project, store: sandbox, readRules: readSandboxRules)
+
             ProjectRulesSection(project: project)
+            TeamResourcesSection(project: project)
 
             Section("CLAUDE.md · \(configuration.instructions.count)") {
                 if configuration.instructions.isEmpty {
@@ -83,7 +107,7 @@ private struct ConfigurationForm: View {
                 }
                 ForEach(configuration.instructions, id: \.path) { file in
                     LabeledContent {
-                        Text(Self.title(ofMemory: file.type))
+                        Text(file.level)
                     } label: {
                         Text(verbatim: file.path)
                             .font(.callout.monospaced())
@@ -98,7 +122,7 @@ private struct ConfigurationForm: View {
                         .foregroundStyle(.secondary)
                 }
                 ForEach(configuration.mcpServers, id: \.name) { server in
-                    MCPServerRow(server: server)
+                    MCPServerRow(server: server, project: project, logIn: logIn)
                 }
             }
 
@@ -111,6 +135,12 @@ private struct ConfigurationForm: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(Palette.danger)
                             .accessibilityLabel("Errore")
+                    }
+                }
+                if !configuration.pluginErrors.isEmpty {
+                    Button("Sistema nella finestra Plugin") {
+                        PluginsWindowRoute.shared.showProblems(of: project)
+                        openWindow(id: PluginsWindow.windowID)
                     }
                 }
                 if configuration.plugins.isEmpty {
@@ -134,27 +164,18 @@ private struct ConfigurationForm: View {
         }
         .formStyle(.grouped)
     }
-
-    /// Where a CLAUDE.md comes from, as the CLI names it.
-    private static func title(ofMemory type: String) -> LocalizedStringResource {
-        switch type {
-        case "User": "Utente"
-        case "Project": "Progetto"
-        case "Local": "Locale"
-        case "Managed": "Gestito"
-        default: LocalizedStringResource(stringLiteral: type)
-        }
-    }
 }
 
 /// A server MCP: name and source, its status, and what to do when it is not working.
 private struct MCPServerRow: View {
     let server: ClaudeConfiguration.MCPServer
+    let project: URL
+    let logIn: ((String) async throws -> Bool)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
             LabeledContent {
-                Text(status)
+                Text(server.statusTitle)
                     .foregroundStyle(server.hasFailed || server.needsAuthentication ? Palette.danger : Color.secondary)
             } label: {
                 Text(verbatim: server.name)
@@ -169,31 +190,26 @@ private struct MCPServerRow: View {
                     .foregroundStyle(.secondary)
                     .textSelection(.enabled)
             }
-            // The SDK cannot complete an OAuth login: only the CLI can.
+            // The SDK cannot complete an OAuth login: only the CLI can, `claude mcp login`.
             if server.needsAuthentication {
-                Text("Per accedere, apri claude nel Terminale, scrivi /mcp e scegli \(server.name).")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .textSelection(.enabled)
+                let command = MCPLogin.commandLine(for: server.name, in: URL(filePath: TrustGate.root(of: project)))
+                if let logIn {
+                    MCPLoginBox(server: server.name, command: command) { try await logIn(server.name) }
+                        .font(.callout)
+                } else {
+                    Text(verbatim: command)
+                        .font(.callout.monospaced())
+                        .foregroundStyle(.secondary)
+                        .textSelection(.enabled)
+                }
             }
         }
-        .accessibilityElement(children: .combine)
-    }
-
-    private var status: LocalizedStringResource {
-        switch server.status {
-        case "connected": "Connesso"
-        case "failed": "Non funziona"
-        case "needs-auth": "Accesso richiesto"
-        case "pending": "In connessione"
-        case "disabled": "Disattivato"
-        default: LocalizedStringResource(stringLiteral: server.status)
-        }
+        .accessibilityElement(children: server.needsAuthentication ? .contain : .combine)
     }
 }
 
 #Preview {
-    ConfigPanel(project: URL(filePath: "/Users/u/Sviluppo/bubo")) { _ in
+    ConfigPanel(project: URL(filePath: "/Users/u/Sviluppo/bubo"), sandbox: SandboxStore()) { _ in
         ClaudeConfiguration(
             skills: ["swiftui-pro", "code-review"],
             plugins: [.init(name: "figma", version: "1.2.0")],

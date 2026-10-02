@@ -2,7 +2,7 @@ import Foundation
 
 /// What the notification of a Richiesta di permesso shows, and whether it may offer Solo ora.
 ///
-/// Solo ora is offered only on levels 1–3, and only when the whole command, file or address fits the notification
+/// Solo ora is offered only on levels 1–3, never outside the Sandbox, and only when the whole command, file or address fits the notification
 /// as it is: anything longer, on more lines, with invisible characters, or with no such subject is approved in the HUD.
 /// No is always offered.
 nonisolated struct PermissionNotice: Equatable {
@@ -19,13 +19,13 @@ nonisolated struct PermissionNotice: Equatable {
     /// The notice of `pending`.
     init(_ pending: RequestCenter.Pending) {
         let request = pending.request
-        let subject = request.command ?? request.path ?? request.url
+        let subject = request.subject
         // Every invisible or control character written out, as in the HUD: a notification never hides one.
         let shown = RepoActivations.escaped(subject ?? request.title ?? request.tool)
         let isCut = shown.count > Self.maxLength
         let isWhole = !isCut && subject.map { shown == $0.replacing("\\", with: "\\\\") } == true
         let text = if isWhole, let subject { subject } else if isCut { String(shown.prefix(Self.maxLength)) + "…" } else { shown }
-        offersAllowOnce = isWhole && !pending.needsHold
+        offersAllowOnce = isWhole && !pending.needsHold && !request.isOutsideSandbox
         subtitle = String(localized: "Livello \(pending.risk.level.rawValue) · \(String(localized: pending.risk.level.title))")
         body = if offersAllowOnce {
             text

@@ -29,6 +29,16 @@ nonisolated enum ChildEnvironment {
         return environment
     }
 
+    /// The environment of an editor's CLI: the user's basics and the system's `PATH`, where the scripts of VS Code
+    /// and Cursor find `bash`.
+    ///
+    /// - Parameter base: The environment to copy from; Bubo's own by default.
+    static func makeForEditor(base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
+        var environment = base.filter { copied.contains($0.key) }
+        environment["PATH"] = "/usr/bin:/bin:/usr/sbin:/sbin"
+        return environment
+    }
+
     /// The environment of a Sessione's terminal: the user's basics, the Sessione's ports, and a terminal that
     /// understands colours. The login shell adds the user's `PATH` from the profile.
     ///

@@ -12,11 +12,35 @@ final class HUDPresenter {
     /// no environment of its own.
     @ObservationIgnored var openWindow: OpenWindowAction?
 
+    /// Called each time something brings the HUD to the front; not when it appears at launch.
+    @ObservationIgnored var didShow: (() -> Void)?
+
     /// Whether the HUD shows the new Sessione sheet.
     var isCreatingSession = false
 
     /// Whether the HUD shows the new Bozza sheet.
     var isCreatingDraft = false
+
+    /// Whether the HUD shows the sheet of the GitHub issues (⌘I).
+    var isPickingIssue = false
+
+    /// The Sessione whose Apri PR sheet the HUD shows, opened from the menu or the Palette; `nil` for none.
+    var pullRequestSession: Session?
+
+    /// The Sessione the HUD brings into view once it is in front, chosen from the menu bar; the Vista that shows it
+    /// sets it back to `nil`.
+    var revealedSession: Session.ID?
+
+    /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
+    @ObservationIgnored var searchConversations: ((String) -> Void)?
+
+    /// Puts Allegati in the prompt of the Domanda, for a drop in the HUD with no open Sessione in front; set by the app.
+    @ObservationIgnored var attachToQuestion: ([Allegato]) -> Void = { _ in }
+
+    /// Opens the Costi window; set by the app, since it is an AppKit window.
+    @ObservationIgnored var showCosts: (() -> Void)?
+    /// Shows the Galassia of a Sessione's Progetto, filtered on it with its comet followed; `nil` in previews.
+    @ObservationIgnored var showInGalaxy: ((Session) -> Void)?
 
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
@@ -50,8 +74,31 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front on the Board, where the Bozze are, with the new Bozza sheet (⌥⌘N).
     func createDraft() {
-        switchVista(to: .board)
         isCreatingDraft = true
+        showDrafts()
+    }
+
+    /// Brings the HUD to the front on the Board, where the Bozze are.
+    func showDrafts() {
+        switchVista(to: .board)
+        show()
+    }
+
+    /// Brings the HUD to the front with the sheet of the open GitHub issues of a Progetto (⌘I).
+    func pickIssue() {
+        isPickingIssue = true
+        show()
+    }
+
+    /// Brings the HUD to the front with the Apri PR sheet of `session`.
+    func openPullRequest(of session: Session) {
+        pullRequestSession = session
+        show()
+    }
+
+    /// Brings the HUD to the front on the Sessione `id`.
+    func show(session id: Session.ID) {
+        revealedSession = id
         show()
     }
 
@@ -72,6 +119,7 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front, creating it if it was closed.
     func show() {
+        didShow?()
         NSApp.activate()
         if let window = hudWindow {
             window.makeKeyAndOrderFront(nil)

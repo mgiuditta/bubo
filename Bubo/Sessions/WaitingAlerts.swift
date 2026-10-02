@@ -38,7 +38,7 @@ final class WaitingAlerts {
     func follow(_ sessions: [Session], requests: RequestCenter = RequestCenter()) {
         var now: [UUID: PermissionRequest.ID?] = [:]
         var started: [(Session, RequestCenter.Pending?)] = []
-        for session in sessions where session.phase == .aperta && session.activity == .attende {
+        for session in sessions where session.isLive && session.activity == .attende {
             let pending = requests.queues[session.id]?.first
             now[session.id] = .some(pending?.id)
             switch waiting[session.id] {

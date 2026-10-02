@@ -173,7 +173,7 @@ Moduli nuovi sul Mac:
 - `Remote/PairingController`: QR, codice di verifica, scambio, revoca.
 - `Remote/PresenceMonitor`: utente al Mac sì o no.
 - `Remote/SleepGuard`: asserzione contro lo stop.
-- `Settings/RemotePane`: Impostazioni › iPhone.
+- `Settings/RemoteSettingsView`: Impostazioni › iPhone.
 
 Estensioni: `Permissions/RequestCenter` (una Richiesta può essere risolta da un Verdetto; stesso percorso della risposta dall'HUD), `Intake/` (Command → prompt), `System/Notifications` (niente doppioni quando il Telecomando manda la push), `Sessions/` (estratto degli ultimi messaggi per la card).
 

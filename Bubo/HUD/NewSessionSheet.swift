@@ -2,7 +2,7 @@ import os
 import SwiftUI
 
 /// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda or the
-/// Cronologia CLI conversation it continues.
+/// conversation it continues: whole from the Cronologia CLI, or up to a message with Continua da qui.
 ///
 /// In a folder that is not trusted, the trust dialog comes first (#266).
 struct NewSessionSheet: View {
@@ -40,8 +40,20 @@ struct NewSessionSheet: View {
                     }
                 }
                 if let conversation = draft.conversation {
-                    LabeledContent("Riprende dalla Cronologia CLI") {
+                    LabeledContent {
                         Text(verbatim: conversation.title)
+                            .lineLimit(2)
+                    } label: {
+                        if draft.upToMessage == nil {
+                            Text("Riprende dalla Cronologia CLI")
+                        } else {
+                            Text("Continua da qui")
+                        }
+                    }
+                }
+                if !draft.files.isEmpty {
+                    LabeledContent("File da guardare") {
+                        Text(verbatim: draft.files.map(\.lastPathComponent).formatted(.list(type: .and)))
                             .lineLimit(2)
                     }
                 }
@@ -61,6 +73,7 @@ struct NewSessionSheet: View {
                          ?? String(localized: "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto."))
                         .foregroundStyle(checkoutTaken == nil ? Color.secondary : Palette.danger)
                 }
+                .tint(Palette.switchTrack)
                 if !isOnCheckout {
                     TextField("Branch", text: $branch)
                         .font(.body.monospaced())
@@ -80,7 +93,7 @@ struct NewSessionSheet: View {
         .padding(Spacing.medium)
         .frame(width: 520)
         .onAppear {
-            project = project ?? draft.conversation?.folder ?? store.projects.first
+            project = project ?? draft.project ?? draft.conversation?.folder ?? store.projects.first
             if draft.continuesQuestion { title = Session.proposedTitle(for: draft.question) }
             if let conversation = draft.conversation { title = Session.proposedTitle(for: conversation.title) }
             prompt = draft.prompt
@@ -129,7 +142,7 @@ struct NewSessionSheet: View {
             try store.start(draft.firstPrompt(text),
                             title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
                             branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
-                            forkingFrom: draft.conversation)
+                            forkingFrom: draft.conversation, upTo: draft.upToMessage)
         } catch {
             // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")

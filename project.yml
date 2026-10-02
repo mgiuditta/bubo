@@ -3,14 +3,30 @@ options:
   bundleIdPrefix: com.mgiuditta
   deploymentTarget:
     macOS: "26.0"
+    iOS: "26.0"
   developmentLanguage: it
   createIntermediateGroups: true
 
 packages:
+  # Tipi, cifratura e firma del Telecomando, condivisi da Mac e iPhone (spec 21).
+  RemoteKit:
+    path: Packages/RemoteKit
   # Solo la vista del terminale, versione fissata: dopo la 1.20 arrivano cambi di API (spec 15).
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm
     exactVersion: 1.20.0
+  # Embedding locali dell'Indice (#112): solo MLXEmbedders, niente MLXHuggingFace e quindi niente macro.
+  # mlx-swift-lm vuole mlx-swift 0.32.x: fissata anche quella, per importare MLX.
+  MLXSwiftLM:
+    url: https://github.com/ml-explore/mlx-swift-lm
+    exactVersion: 3.32.3
+  MLXSwift:
+    url: https://github.com/ml-explore/mlx-swift
+    exactVersion: 0.32.3
+  # Solo il tokenizer dei modelli; i pesi li scarica Bubo (Index/EmbeddingModel).
+  SwiftTransformers:
+    url: https://github.com/huggingface/swift-transformers
+    exactVersion: 1.3.4
 
 settings:
   base:
@@ -42,13 +58,37 @@ targets:
       - path: Bubo/Resources/Fonts
         type: folder
         buildPhase: resources
+      # La minima di claude, la stessa che legge il ponte (spec 27): ClaudeCompatibility la legge dal bundle.
+      - path: bridge/compat.json
+        buildPhase: resources
     dependencies:
+      - package: RemoteKit
       - package: SwiftTerm
+      - package: MLXSwiftLM
+        product: MLXEmbedders
+      - package: MLXSwift
+        product: MLX
+      - package: SwiftTransformers
+        product: Tokenizers
+    # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
+    info:
+      path: Bubo/Info.plist
+      properties:
+        # XcodeGen scriverebbe 1.0 e 1: si tengono le versioni dei build setting.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleURLTypes:
+          - CFBundleURLName: com.mgiuditta.bubo
+            CFBundleTypeRole: Viewer
+            CFBundleURLSchemes:
+              - bubo
     entitlements:
       path: Bubo/Bubo.entitlements
       properties:
         keychain-access-groups:
           - $(AppIdentifierPrefix)com.mgiuditta.bubo
+        # Il runtime rinforzato nega il microfono senza questa eccezione (push-to-talk, spec 08).
+        com.apple.security.device.audio-input: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
@@ -59,6 +99,8 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Bubo ascolta solo mentre tieni premuta la scorciatoia e trascrive sul Mac."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Bubo trascrive sul Mac quello che dici mentre tieni premuta la scorciatoia."
     postBuildScripts:
       - name: Ponte agente
         shell: /bin/zsh
@@ -75,6 +117,7 @@ targets:
           codesign --force --options runtime --entitlements entitlements.plist --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$helper"
         inputFiles:
           - $(SRCROOT)/bridge/src/main.ts
+          - $(SRCROOT)/bridge/compat.json
           - $(SRCROOT)/bridge/package.json
           - $(SRCROOT)/bridge/bun.lock
           - $(SRCROOT)/bridge/entitlements.plist
@@ -95,23 +138,62 @@ targets:
           - $(SRCROOT)/Bubo/Terminal/TerminalLauncher.c
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-terminal
-      - name: Archivio Metal 4 delle Forme
+      - name: Script di Linear
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          opener="$TARGET_BUILD_DIR/$CONTENTS_FOLDER_PATH/Helpers/bubo-linear"
+          mkdir -p "${opener:h}"
+          flags=()
+          for arch in ${=ARCHS}; do flags+=(-arch $arch); done
+          xcrun clang -O2 -Wall -Werror $flags -mmacosx-version-min="$MACOSX_DEPLOYMENT_TARGET" \
+            "$SRCROOT/Bubo/Integrations/LinearOpener.c" -o "$opener"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$opener"
+        inputFiles:
+          - $(SRCROOT)/Bubo/Integrations/LinearOpener.c
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-linear
+      - name: Archivio Metal 4 del Blob
         shell: /bin/zsh
         script: |
           [[ "$CONFIGURATION" == Release ]] || exit 0
           resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
-          "$SRCROOT/scripts/metal-archive.sh" "$resources/default.metallib" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources/Forme.mtl4archive"
+          "$SRCROOT/scripts/metal-archive.sh" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources"
         inputFiles:
           - $(SRCROOT)/scripts/metal-archive.sh
           - $(SRCROOT)/Bubo/Orb/Orb.metal
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/default.metallib
+          - $(SRCROOT)/Bubo/Orb/OrbShading.h
         outputFiles:
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Forme.mtl4archive
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.metallib
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.mtl4archive
+  # Il Telecomando: l'app iPhone di Bubo (spec 21, ADR 0007).
+  BuboRemote:
+    type: application
+    platform: iOS
+    sources:
+      - path: BuboRemote
+    dependencies:
+      - package: RemoteKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote
+        PRODUCT_NAME: Bubo
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: Bubo
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: "Bubo usa la fotocamera solo per leggere il QR di accoppiamento del Mac."
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID protegge la chiave con cui il Telecomando firma le tue decisioni."
   BuboTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: BuboTests
+      # Every Forma again, with its GPU probe kernel (FORMA_PROBE): FormaTests reads the SDFs through it.
+      - path: Bubo/Orb/Forme
       # The frame log reader of the performance tests, checked against what the app writes.
       - path: BuboPerfTests/FrameLog.swift
       # The budgets and the report of scripts/perf.sh.
@@ -125,6 +207,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.tests
+        MTL_PREPROCESSOR_DEFINITIONS: FORMA_PROBE=1
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Bubo.app/Contents/MacOS/Bubo"
         BUNDLE_LOADER: "$(TEST_HOST)"
   BuboPerfTests:
@@ -163,6 +246,10 @@ schemes:
       targets:
         - BuboTests
         - BuboUITests
+  BuboRemote:
+    build:
+      targets:
+        BuboRemote: all
   BuboPerf:
     build:
       targets:

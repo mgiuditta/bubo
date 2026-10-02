@@ -149,9 +149,9 @@ Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#140](https://gith
 
 ### Server e porte (deciso)
 
-- **Rilevamento sempre attivo, a eventi**: URL `localhost` nell'output del terminale, OSC 133 (inizio e fine comando), `PostToolUse` di Bash dal ponte. Dopo ogni evento qualche scansione ravvicinata con `libproc`; a riposo nessuna. Mai `lsof` né `ps`.
+- **Rilevamento sempre attivo, a eventi**: URL `localhost` nell'output del terminale, Invio digitato nel terminale, OSC 133 (inizio e fine comando, quando la shell lo emette: zsh e bash solo con un'integrazione che arriva con #167), fine di un Bash dell'agente dal ponte (`PostToolUse` o `PostToolUseFailure`), uscita di un server già trovato, avvio di Bubo e di una Sessione sul checkout. Dopo ogni evento qualche scansione ravvicinata con `libproc`; a riposo nessuna. Mai `lsof` né `ps`.
 - **Attribuzione**: un socket in ascolto è della Sessione se la `cwd` del processo sta nel suo worktree, oppure se la porta è una delle sue 10. Docker e tunnel `ssh` compaiono solo nel secondo caso. IPv4 e IPv6 letti entrambi.
-- **"Avvia server"**: se esiste `.claude/launch.json`, un pulsante lancia il comando in una scheda del terminale con la `PORT` della Sessione. Bubo non ha un suo formato di configurazione.
+- **"Avvia server"**: se esiste `.claude/launch.json`, un pulsante lancia il comando in una scheda del terminale con la `PORT` della Sessione; con `autoPort: false` (porta fissa, per esempio per un callback OAuth) `PORT` è la `port` del file. Bubo non ha un suo formato di configurazione.
 - **Etichetta**: quando la porta viene trovata compare solo `localhost:NNNN` sulla Sessione e nella Board (17). L'Anteprima si apre con un clic sull'etichetta o con ⌘⇧P, mai da sola. Quando l'agente usa l'Anteprima, l'etichetta mostra "l'agente usa l'anteprima".
 - **Server che torna in ascolto** dopo un riavvio: l'Anteprima aperta si ricarica.
 
@@ -160,10 +160,10 @@ Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#140](https://gith
 Fonte: [#133](https://github.com/mgiuditta/bubo/issues/133), [#139](https://github.com/mgiuditta/bubo/issues/139).
 
 - **Dove**: pannello accanto al terminale, staccabile. Una `WebPage` per Sessione, la stessa per utente e agente.
-- **Cosa apre**: solo i server `localhost` della Sessione, più l'`url` di `launch.json`. Ogni altra navigazione viene annullata; i link esterni vanno al browser di sistema. `localhost`, mai `127.0.0.1`.
+- **Cosa apre**: solo `localhost` e `*.localhost` sulle porte dei server della Sessione, più l'`url` di `launch.json` se è locale (`127.0.0.1` o `::1` diventano `localhost`). Ogni altra navigazione viene annullata; una pagina esterna aperta come pagina principale va al browser di sistema, un frame esterno no. `localhost`, mai `127.0.0.1`.
 - **Cookie per Sessione**: `WKWebsiteDataStore(forIdentifier:)` con l'id della Sessione. Un login fatto nella Sessione A non esiste nella B; un login fatto dall'utente vale anche per l'agente.
-- **Permessi**: microfono e fotocamera negati sempre (`requestMediaCapturePermissionFor` → nega); nessuna eccezione in v1.
-- **Strumenti per l'utente**: larghezze preimpostate (mobile, tablet, desktop, più `customUserAgent`), console visibile (script iniettato su `console.*`, `onerror`, `unhandledrejection`), Web Inspector attivo (`isInspectable`), ricarica.
+- **Permessi**: microfono e fotocamera negati sempre (`WebPage.Configuration.deviceSensorAuthorization = .init(decision: .deny)`, che copre anche i sensori); nessuna eccezione in v1.
+- **Strumenti per l'utente**: larghezze preimpostate (mobile, tablet, desktop, più `customUserAgent`), console visibile (script iniettato nel mondo della pagina su `console.*`, `onerror`, `unhandledrejection`, che manda a Bubo solo livello e testo), Web Inspector attivo (`isInspectable`), ricarica.
 - **Certificato non fidato**: pagina "Apri nel browser", nessuna eccezione di fiducia in Bubo.
 - **Vita**: la `WebPage` nasce al primo uso (clic dell'utente o primo strumento dell'agente) e resta viva anche a pannello chiuso, perché l'agente la usa fuori schermo; si chiude quando il server non è più rilevato o la Sessione diventa Fusa o Archiviata. L'archivio dei cookie resta.
 
@@ -173,14 +173,17 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 
 - **Meccanismo**: un server MCP nel processo del ponte (`createSdkMcpServer`) inoltra le chiamate a Swift con il protocollo stdio; Swift pilota la stessa `WebPage` dell'utente, con gli stessi cookie. Niente Playwright, niente Chromium headless, nessun processo esterno.
 - **Strumenti e Livello di rischio**: screenshot, DOM, console e rete in lettura sono **1 Lettura**; navigare, cliccare, compilare, scorrere ed eseguire JS sono **2 Modifica reversibile**. In Modalità autonoma l'agente verifica senza Richieste di permesso. Tutti limitati ai server `localhost` della Sessione.
-- **Quando esistono**: solo se la Sessione ha un server rilevato; senza server la loro descrizione non entra nel contesto (0 token). Nessuna verifica forzata e nessuna opzione nelle Impostazioni: l'agente li usa quando servono. Si rivede se l'agente verifica troppo poco.
-- **Vince l'utente**: un clic o un tasto dell'utente nell'Anteprima mentre l'agente pilota fa fallire l'azione in corso con "l'utente ha preso il controllo".
-- **Limiti**: screenshot ridimensionati a 1568 px sul lato lungo; console e rete come ultime 200 righe, con un filtro; ogni azione scade dopo 10 s.
+- **Quando esistono**: solo se la Sessione ha un server rilevato; senza server la loro descrizione non entra nel contesto (0 token). Il turno parte con gli strumenti se il server c'è già; se compare o sparisce a turno in corso il ponte chiama `setMcpServers` con **tutti** i server dinamici (`bubo` più `anteprima`, o solo `bubo`), perché la chiamata li sostituisce. Nessuna verifica forzata e nessuna opzione nelle Impostazioni: l'agente li usa quando servono. Si rivede se l'agente verifica troppo poco.
+- **Vince l'utente**: un clic o un tasto dell'utente nell'Anteprima mentre l'agente pilota fa fallire l'azione in corso con "l'utente ha preso il controllo". Lo riconosce lo script nel mondo della pagina: `pointerdown` e `keydown` con `isTrusted`; gli eventi sintetici dell'agente non lo sono.
+- **Fuori dai server**: l'agente ha gli stessi limiti di navigazione dell'utente (`PreviewPolicy`), ma una pagina esterna mossa dall'agente (link, `location`, `window.open`, redirect) non va mai al browser di sistema: viene annullata e lo strumento fallisce, finché l'utente non tocca di nuovo la pagina.
+- **Limiti**: screenshot ridimensionati a 1568 px sul lato lungo, un tetto scelto per costo e velocità (i modelli recenti ne leggono di più); console e rete come ultime 200 righe, con un filtro; ogni azione scade dopo 10 s. La rete sono le richieste viste dallo script nel mondo della pagina (`fetch`, `XMLHttpRequest`) più le risorse di `performance`: WebKit non dà il traffico della pagina.
 
 ### Visore ed editor (deciso)
 
 - **Visore** in sola lettura con evidenziazione della sintassi e numeri di riga, aperto al punto giusto da Galassia (11), diff (02) e percorsi ⌘-clic nel terminale. Un pulsante "Apri nell'editor" porta alla stessa riga. Nessuna modifica: l'editor vero è fuori portata.
-- **Editor**: VS Code, Cursor, Zed e Xcode rilevati con `NSWorkspace` per bundle id; predefinito il primo trovato, modificabile nelle Impostazioni. Si apre sempre con la CLI del bundle alla riga (`code -g`, `cursor -g`, `zed f:r:c`, `xed -l`), avviata con disclaim; mai con `vscode://`. Per gli altri editor `open -b`, senza riga.
+- **Editor**: VS Code, Cursor, Zed e Xcode rilevati con `NSWorkspace` per bundle id; predefinito il primo trovato, modificabile nelle Impostazioni. Si apre sempre con la CLI del bundle alla riga (`code -g`, `cursor -g`, `zed f:r:c`, `xed -l`), avviata con disclaim; mai con `vscode://`. VS Code, Cursor e Zed ricevono anche la cartella del worktree (`code <worktree> -g <file>:<riga>`), così il file sta nella radice della finestra e Workspace Trust non chiede conferma. Per gli altri editor `open -b`, senza riga.
+- **⌘-clic**: SwiftTerm riconosce `percorso:riga[:colonna]` solo con una `/` nel percorso (`a.swift:3` non è un link); Bubo risolve i relativi rispetto alla cartella della scheda e apre il visore se il file esiste, altrimenti il link va all'app predefinita.
+- **Dal diff** (Revisione, 02): ⌘-clic, menu contestuale o azione VoiceOver "Apri nel visore" su una riga, perché il clic semplice resta al diff. Le righe del diff non hanno numeri: la riga del file nuovo si conta dall'intestazione `@@ -a,b +c,d @@` del blocco; una riga rimossa va alla riga che ne prende il posto, o a quella prima se il blocco finisce lì. Un file eliminato non si apre.
 - **Riuso**: "Nuovo agente" della feature 19 apre il file creato con lo stesso lanciatore.
 
 ### Moduli
@@ -192,7 +195,7 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 - `Servers/PortWatcher`: scansione `libproc` (`proc_listpids`, `PROC_PIDLISTFDS`, `PROC_PIDFDSOCKETINFO`, `PROC_PIDVNODEPATHINFO`) a raffica dopo un evento, 0 a riposo.
 - `Servers/ServerAttribution`: socket → Sessione (worktree che contiene la `cwd`, poi le 10 porte).
 - `Servers/LaunchConfig`: lettura di `.claude/launch.json` e "Avvia server".
-- `Preview/PreviewPage`: una `WebPage` per Sessione, archivio di cookie per id, criterio di navigazione (solo `localhost` della Sessione), microfono e fotocamera negati, script della console e della rete in un mondo separato.
+- `Preview/PreviewPage`: una `WebPage` per Sessione, archivio di cookie per id, criterio di navigazione (solo `localhost` della Sessione), microfono e fotocamera negati, script della console nel mondo della pagina (solo messaggi di log verso Bubo); gli script di Bubo che leggono il DOM in un mondo separato.
 - `Preview/PreviewPanel`: pannello staccabile, larghezze, console, ⌘⇧P, pagina "Apri nel browser".
 - `Preview/PreviewDriver`: lato Swift degli strumenti dell'agente (screenshot, DOM, click, compilazione, scorrimento, JS), tempi limite, interruzione quando l'utente prende il controllo.
 - `bridge/` (TS): server MCP dell'Anteprima con `createSdkMcpServer`, registrato solo con un server rilevato; inoltro a Swift sul protocollo stdio esistente.
@@ -212,7 +215,7 @@ Fonte: [#139](https://github.com/mgiuditta/bubo/issues/139).
 ### Casi limite
 
 - **Sessione senza server**: niente etichetta e niente strumenti MCP; ⌘⇧P non fa nulla.
-- **Due Sessioni con lo stesso dev server**: porte diverse da `PORT`, cookie diversi, nessun conflitto.
+- **Due Sessioni con lo stesso dev server**: porte diverse da `PORT`, cookie diversi, nessun conflitto. Se il server ignora `PORT` (Vite) la seconda prende la porta libera successiva e resta attribuita per `cwd`.
 - **Server staccato o lanciato dall'agente in background**: attribuito dalla `cwd`, non dall'albero dei processi.
 - **Docker, tunnel `ssh`, server fuori dal worktree**: solo se ascoltano nelle porte della Sessione.
 - **Server che si riavvia**: etichetta tenuta, Anteprima ricaricata al ritorno dell'ascolto.

@@ -49,7 +49,7 @@ struct TrustGateLiveTests {
         var environment = ChildEnvironment.make(claude: claude)
         environment["CLAUDE_CONFIG_DIR"] = configuration.path
         agent = AgentBridge(executable: tools.bun, arguments: ["run", LiveTools.bridge.appending(path: "src/main.ts").path],
-                            environment: environment, trustGate: gate) { _, _ in "" }
+                            environment: environment, trustGate: gate) { _, _, _ in "" }
     }
 
     var hookRan: URL { work.appending(path: "hook-ran") }

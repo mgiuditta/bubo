@@ -154,6 +154,7 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 | Ponte | **≤ 50 MB** | `footprint` | 25 | perf.sh |
 | Totale con 10 Sessioni, configurazione vuota | **≤ 1,6 GB** (i `claude` ~1,35 GB) | `footprint` deduplicato su Bubo, ponte e `claude` | 25 | perf.sh |
 | 10 Sessioni sospese | **≤ 200 MB** in totale (Bubo + ponte, 0 `claude`) | `footprint` | 25 | perf.sh |
+| Riserva del pannello della configurazione | **230–260 MB**, un solo `claude`; mai nei primi 10 s dopo l'HUD interattivo, chiusa con la pressione di memoria ([#311](https://github.com/mgiuditta/bubo/issues/311)) | `footprint` | 25, 04 | perf.sh |
 | Sessione pesante | avviso oltre **2 GB** per `claude`, letto ogni **30 s** | `ProcessFootprintMonitor` | 25 | feature |
 | Orb | **60 fps**, tempo GPU **p95 ≤ 4 ms** | `gpuStartTime`/`gpuEndTime`, log del Metal HUD | 25, fase 1–2 | 2× |
 | Orb nascosto o coperto | **0 fotogrammi** | contatore dei fotogrammi | 25 | invariante |
@@ -183,8 +184,8 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#187](https://github.com/mgiuditta/bubo/issues/187).
 
 - Prima dell'HUD interattivo solo ciò che serve a disegnarlo: finestra, Orb, design token, impostazioni lette.
-- **Dopo** l'HUD interattivo, in background e in quest'ordine: ponte `bun`, rilevamento di `claude` (onboarding, 26), osservatori FSEvents, iscrizione a MetricKit.
-- **Nessun `claude`** finché non si apre una Sessione. Nessun Indice caricato all'avvio: si carica alla prima ricerca (regola dell'Indice).
+- **Dopo** l'HUD interattivo, in background e in quest'ordine: ponte `bun`, rilevamento di `claude` (onboarding, 26), osservatori FSEvents, iscrizione a MetricKit, attesa della riserva del pannello della configurazione.
+- **Nessun `claude`** finché non si apre una Sessione. Unica eccezione, per decisione dell'utente su [#311](https://github.com/mgiuditta/bubo/issues/311): la **riserva** del pannello della configurazione, un `claude` avviato con `prewarm()` **10 s dopo** l'HUD interattivo, solo se esiste un Progetto (mai durante l'onboarding), chiuso con la pressione di memoria. Nessun Indice caricato all'avvio: si carica alla prima ricerca (regola dell'Indice).
 - Il signpost `HUD interattivo` è un evento nel sottosistema di Bubo, categoria `pointsOfInterest`. MetricKit riceve lo stesso punto come fine dell'avvio esteso (`extendLaunchMeasurement`/`finishExtendedLaunchMeasurement`).
 
 ### Memoria e processi (deciso)
@@ -197,6 +198,8 @@ Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#18
   - Nessuna impostazione in v1.
   - Effetto: 10 Sessioni ferme passano da ~1,4 GB a ~200 MB.
 - **Sessioni che crescono**: il footprint di ogni `claude` si legge ogni **30 s**. Oltre **2 GB** la Sessione mostra "Sessione pesante: [Riavvia]". Riavvia chiude e riprende, come la sospensione.
+  - Con un `claude` per turno (oggi, in attesa di [#198](https://github.com/mgiuditta/bubo/issues/198)) l'avviso compare solo a turno in corso e la fine del turno lo libera da sola: "Riavvia a fine turno" non serve. Riavvia interrompe il turno e ripete la sua richiesta con un `claude` nuovo, nella stessa copia e in una Conversazione nuova, come Riprendi; durante la risoluzione dei conflitti solo l'avviso ([#199](https://github.com/mgiuditta/bubo/issues/199)).
+  - Il `claude` di una Sessione è il figlio del ponte avviato con `--session-id` uguale alla Conversazione del turno: `proc_listchildpids`, `KERN_PROCARGS2` e `proc_pid_rusage`, nessun processo lanciato. Soglia di uscita **1,5 GB**.
 
 ### Fotogrammi e reattività (deciso)
 
@@ -238,8 +241,10 @@ Non decisi nelle issue, facili da cambiare.
 - **Report di `perf.sh`**: Markdown e JSON in `.build/perf/<data>/`, una riga per budget con valore, soglia ed esito. Giudica al budget esatto (1×) ed esce con 1 se un budget è superato o un invariante è rotto; le righe non misurate dicono perché e non bloccano. Con più letture dello stesso budget conta la peggiore.
 - **Uso di `perf.sh`**: `scripts/perf.sh` a Bubo chiuso e senza toccare il Mac (i UI test vogliono schermo e fuoco); `--freddo` subito dopo un riavvio misura l'avvio freddo dal lancio al signpost `HUD interattivo`; `--live` apre una Sessione vera per l'intervallo sul main thread. La build non è firmata (`CODE_SIGNING_ALLOWED=NO`) e usa `.build/DerivedData` come `check.sh`: il permesso di Accessibilità del runner resta legato a quel percorso.
 - **Letture**: i test allegano ogni lettura all'`.xcresult` come JSON `perf-<id>` (`BuboPerfTests/PerfMeasurement.swift`); lo script aggiunge le sue. Il tempo GPU dell'Orb si legge anche dal log del Metal HUD (`MTL_HUD_LOG_ENABLED`, solo con `TEST_RUNNER_BUBO_METAL_HUD=1`). Il report è `scripts/perf/`, compilato da `perf.sh` insieme a `PerfBudgets.swift`.
-- **Metal assente sul runner**: i test di fotogrammi si saltano con un avviso nel report, non falliscono.
+- **CI**: `.github/workflows/perf.yml` lancia `scripts/perf.sh --ci` su `macos-26` con Xcode 26.6, lo stesso del Mac di sviluppo: il codice deve compilare con l'Xcode predefinito di `macos-26` (Xcode 27 c'è solo sull'etichetta `xcode-27`, in anteprima, su macOS 27). Gira a ogni push su `main` e a mano (`workflow_dispatch`), non su ogni PR, per il costo del runner macOS (0,062 $/min su un repo privato). I 1,2 s e 600 ms dei criteri di #195 sono il p95 dell'avvio caldo misurato: sul runner la base è già 270–550 ms, quindi un ritardo finto va calibrato su quella. Con `--ci` lo script esce con 1 solo se una lettura blocca la PR (oltre 2× o invariante rotto) e scrive gli avvisi di GitHub Actions: errore per chi blocca, avviso per chi supera il budget entro 2× o non è misurato. Il report va nel riepilogo dell'esecuzione e nell'artefatto `prestazioni` con letture e `.xcresult`.
+- **Metal assente sul runner**: i test di fotogrammi si saltano con un avviso nel report, non falliscono. La GPU paravirtuale delle VM di GitHub conta come assente: lì il Panel trasparente dell'Orb oscura lo schermo invece di disegnare. I test di prestazione lanciano Bubo con `-ApplePersistenceIgnoreState YES`, così una finestra chiusa da un test non resta chiusa nel successivo.
 - **Isteresi dell'avviso**: "Sessione pesante" sparisce sotto 1,5 GB, per non lampeggiare vicino ai 2 GB.
+- **Quota senza `claude` all'avvio** ([#197](https://github.com/mgiuditta/bubo/issues/197)): l'HUD mostra l'ultima Quota salvata (le finestre già azzerate restano nascoste). La lettura col metodo di uso parte solo quando l'utente apre l'HUD dopo l'avvio, una volta per avvio; prima arriva dalle Domande e dalle Sessioni (`rate_limit_event`). Non è in `LaunchSequence`, che non avvia `claude` fuori dall'onboarding.
 - **Dopo un riavvio di Bubo** le Sessioni partono sospese: nessun `claude` finché l'utente non scrive (coerente con la 01, niente ripresa automatica).
 - **Diagnostica**: report MetricKit salvati come JSON in `Application Support/Bubo/Diagnostica/`, tenuti 30 giorni; la sezione mostra l'ultimo giorno (avvio, hang, memoria di picco, hitch) e "Mostra nel Finder".
 
@@ -262,7 +267,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 
 ### Flusso
 
-1. **Avvio**: lancio → HUD e Orb → primo fotogramma → main thread libero → evento `HUD interattivo` → `LaunchSequence`: ponte, rilevamento di `claude`, FSEvents, MetricKit. Nessun `claude`.
+1. **Avvio**: lancio → HUD e Orb → primo fotogramma → main thread libero → evento `HUD interattivo` → `LaunchSequence`: ponte, rilevamento di `claude`, FSEvents, MetricKit. Nessun `claude`; la riserva del pannello della configurazione parte 10 s dopo, se esiste un Progetto.
 2. **Apertura Sessione**: intervallo `Apertura Sessione` → ponte avvia `claude` → `initialize` → `Sessione pronta`.
 3. **Inattività**: 10 minuti senza turno, Richieste o comandi in background → `SessionSuspender` chiude il `claude`. La Sessione resta Ferma.
 4. **Messaggio a Sessione sospesa**: il messaggio va in coda → `resume` → `Ripresa Sessione` → invio. L'Orb passa a Pensiero all'invio, come sempre.

@@ -6,9 +6,11 @@ import Foundation
 //   perf-report launch-time <start> <events>  A cold-launch reading: from <start>, seconds since 1970, to the first
 //                                             "HUD interattivo" signpost in <events>, `log show --style ndjson`.
 //   perf-report report <readings> <output>    report.md and report.json in <output> from the JSON readings in
-//                                             <readings>; exits with 1 when a budget is not kept.
+//               [--ci]                        <readings>; exits with 1 when a budget is not kept. With --ci, exits
+//                                             with 1 only when a reading blocks the pull request, and prints the
+//                                             GitHub Actions annotations.
 
-let usage = "uso: perf-report metal-hud <messaggi> | launch-time <inizio> <eventi> | report <letture> <uscita>"
+let usage = "uso: perf-report metal-hud <messaggi> | launch-time <inizio> <eventi> | report <letture> <uscita> [--ci]"
 
 func write(_ measurement: PerfMeasurement) throws {
     FileHandle.standardOutput.write(try JSONEncoder().encode(measurement))
@@ -56,12 +58,18 @@ do {
         } else {
             try write(PerfMeasurement(skipping: .coldLaunch, because: "Nessun segnale HUD interattivo dopo l'avvio"))
         }
-    case ("report", 3):
-        let output = URL(filePath: arguments.last!)
-        let report = BudgetReport(measurements: try readings(in: URL(filePath: arguments.dropFirst().first!)))
+    case ("report", 3),
+         ("report", 4) where arguments.last == "--ci":
+        let paths = Array(arguments.dropFirst().prefix(2))
+        let output = URL(filePath: paths[1])
+        let report = BudgetReport(measurements: try readings(in: URL(filePath: paths[0])))
         try report.markdown.write(to: output.appending(path: "report.md"), atomically: true, encoding: .utf8)
         try report.json().write(to: output.appending(path: "report.json"))
         print(report.markdown, terminator: "")
+        if arguments.count == 4 {
+            report.workflowAnnotations.forEach { print($0) }
+            exit(report.blocksPullRequest ? 1 : 0)
+        }
         exit(report.isWithinBudgets ? 0 : 1)
     default:
         FileHandle.standardError.write(Data("\(usage)\n".utf8))

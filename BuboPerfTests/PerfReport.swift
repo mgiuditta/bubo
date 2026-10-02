@@ -1,3 +1,4 @@
+import Metal
 import XCTest
 
 extension XCTestCase {
@@ -21,7 +22,23 @@ extension XCTestCase {
 
     /// Attaches `value`, in the unit of the budget's row, as a reading for the report of `scripts/perf.sh`.
     @MainActor func record(_ value: Double, reportedAs id: BudgetID, from source: String) {
-        let measurement = PerfMeasurement(id, value: value, from: source)
+        attach(PerfMeasurement(id, value: value, from: source))
+    }
+
+    /// Skips the test on a Mac without a usable Metal device, leaving `id` in the report as not measured.
+    ///
+    /// The paravirtual GPU of a virtual machine, such as GitHub's macOS runners, counts as none:
+    /// there the Orb's transparent Panel blacks out the screen instead of drawing.
+    ///
+    /// - Throws: `XCTSkip` with `reason` when there is no usable Metal device.
+    @MainActor func skipWithoutMetal(reportedAs id: BudgetID, because reason: String) throws {
+        if let device = MTLCreateSystemDefaultDevice(), !device.name.localizedStandardContains("Paravirtual") { return }
+        attach(PerfMeasurement(skipping: id, because: reason))
+        throw XCTSkip(reason)
+    }
+
+    @MainActor private func attach(_ measurement: PerfMeasurement) {
+        let id = measurement.id
         do {
             let attachment = XCTAttachment(data: try JSONEncoder().encode(measurement), uniformTypeIdentifier: "public.json")
             attachment.name = "\(PerfMeasurement.attachmentPrefix)\(id.rawValue)"

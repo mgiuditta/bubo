@@ -57,6 +57,36 @@ nonisolated struct BudgetReport: Codable, Sendable {
         rows.allSatisfy { $0.outcome == .kept || $0.outcome == .notMeasured }
     }
 
+    /// Whether a reading blocks a pull request: a 2× budget beyond twice its limit, or a broken invariant.
+    var blocksPullRequest: Bool {
+        rows.contains(where: \.blocksPullRequest)
+    }
+
+    /// The GitHub Actions workflow commands for the rows CI watches: an error for each reading that blocks
+    /// the pull request, a warning for each beyond its budget only, or not measured.
+    ///
+    /// Budgets checked only on the reference Mac get none.
+    var workflowAnnotations: [String] {
+        rows.filter { $0.budget.gate != .referenceMac }.compactMap { row in
+            let budget = row.budget
+            let comparison = budget.gate == .invariant ? "=" : "≤"
+            let limit = "\(comparison) \(Self.format(budget.limit, unit: budget.unit))"
+            let value = row.value.map { Self.format($0, unit: budget.unit) } ?? "—"
+            let message = "\(budget.area): \(value), budget \(limit)"
+            if row.blocksPullRequest {
+                return "::error title=Prestazioni::\(message), blocca la PR"
+            }
+            switch row.outcome {
+            case .kept, .broken:
+                return nil
+            case .exceeded:
+                return "::warning title=Prestazioni::\(message), entro 2× il budget"
+            case .notMeasured:
+                return "::warning title=Prestazioni::\(budget.area) non misurato: \(row.notes.joined(separator: "; "))"
+            }
+        }
+    }
+
     /// The report as a Markdown page, for people.
     var markdown: String {
         let header = """

@@ -24,6 +24,14 @@ nonisolated enum FileEvents {
     /// Ending the iteration stops the stream.
     static func batches(under root: String, since: FSEventStreamEventId,
                         latency: TimeInterval = 1) -> AsyncStream<FileEventBatch> {
+        batches(under: [root], since: since, latency: latency)
+    }
+
+    /// Returns the changes under any of `roots`, except under `excluded` (at most 8 folders), since the event `since`.
+    ///
+    /// Ending the iteration stops the stream.
+    static func batches(under roots: [String], excluding excluded: [String] = [], since: FSEventStreamEventId,
+                        latency: TimeInterval = 1) -> AsyncStream<FileEventBatch> {
         let (batches, continuation) = AsyncStream.makeStream(of: FileEventBatch.self)
         let sink = Sink(continuation)
         let flags = kFSEventStreamCreateFlagFileEvents | kFSEventStreamCreateFlagUseCFTypes
@@ -39,10 +47,11 @@ nonisolated enum FileEvents {
                 for index in 0..<count where flags[index] & FileEvents.rescanFlags != 0 { needsRescan = true }
                 Unmanaged<Sink>.fromOpaque(info!).takeUnretainedValue().continuation
                     .yield(FileEventBatch(paths: paths, needsRescan: needsRescan, latestID: ids[count - 1]))
-            }, &context, [root] as CFArray, since, latency, FSEventStreamCreateFlags(flags)) else {
+            }, &context, roots as CFArray, since, latency, FSEventStreamCreateFlags(flags)) else {
                 Unmanaged<Sink>.fromOpaque(context.info!).release()
                 return false
             }
+            if !excluded.isEmpty { FSEventStreamSetExclusionPaths(stream, excluded as CFArray) }
             FSEventStreamSetDispatchQueue(stream, DispatchQueue(label: "com.mgiuditta.bubo.file-events", qos: .utility))
             FSEventStreamStart(stream)
             slot = stream

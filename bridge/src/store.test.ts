@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { importSessionToStore } from "@anthropic-ai/claude-agent-sdk";
-import { ConversationStore } from "./store";
+import { ConversationStore, mirrorOnly } from "./store";
 
 const main = { projectKey: "-p", sessionId: "s" };
 const agent = { ...main, subpath: "subagents/agent-a" };
@@ -79,4 +79,13 @@ test("spegnere la copia della Cronologia CLI cancella solo quelle copie", async 
   expect(store.importedAt("cli")).toBeUndefined();
   expect(await store.load({ projectKey: "-p", sessionId: "cli" })).toBeNull();
   expect(await store.load(main)).toEqual(entries("1"));
+});
+
+test("un turno copia nello store ma non riprende dallo store", async () => {
+  const store = new ConversationStore(":memory:");
+  await store.append(main, entries("1"));
+  const seen = mirrorOnly(store);
+  await seen.append(main, entries("2"));
+  expect(await seen.load(main)).toBeNull();
+  expect(await store.load(main)).toEqual(entries("1", "2"));
 });

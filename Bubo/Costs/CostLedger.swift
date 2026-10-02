@@ -6,12 +6,16 @@ import os
 /// Idempotent: a turn read again, while it streams or after a crash, replaces its entry instead of adding one.
 @Observable
 final class CostLedger {
-    /// One turn of a Sessione, with its Progetto.
+    /// One turn of a Sessione, with its Progetto, or of a Domanda, in the group "Domande".
     struct Entry: Codable, Equatable, Identifiable, Sendable {
-        /// The turn: the id Bubo gave the agent's conversation.
+        /// The turn: the id Bubo gave the agent's conversation, or a Domanda's turn.
         let id: String
+        /// The Sessione, or the Domanda.
         var session: UUID
-        var project: URL
+        /// The Progetto of the Sessione; `nil` for a Domanda, which counts in the group "Domande".
+        var project: URL?
+        /// Who answered, such as "Anthropic" or an endpoint's name; `nil` in turns saved before it was kept, all Claude's.
+        var provider: String?
         /// When the turn last reported, so a turn across midnight counts on the day it ends.
         var date: Date
         var usage: TurnUsage
@@ -59,8 +63,25 @@ final class CostLedger {
 
     /// Records `usage` as the turn `turn` of the Sessione `session` on `project`, replacing what the turn reported before.
     func record(_ usage: TurnUsage, turn: String, session: UUID, project: URL, at date: Date = .now) {
-        let entry = Entry(id: turn, session: session, project: project, date: date, usage: usage)
-        if let index = entries.firstIndex(where: { $0.id == turn }) {
+        add(Entry(id: turn, session: session, project: project, provider: "Anthropic", date: date, usage: usage))
+    }
+
+    /// Records `usage` as the turn `turn` of the Domanda `question`, answered by `provider`, in the group "Domande".
+    ///
+    /// A Domanda turned into a Sessione keeps these turns here; the Sessione's turns count in its Progetto.
+    func record(_ usage: TurnUsage, turn: String, question: UUID, provider: String, at date: Date = .now) {
+        add(Entry(id: turn, session: question, project: nil, provider: provider, date: date, usage: usage))
+    }
+
+    /// The total of the group "Domande", per provider and, within one, per unit.
+    func questionTotals() -> [String: [CostUnit: Amount]] {
+        entries.filter { $0.project == nil }.reduce(into: [:]) { totals, entry in
+            totals[entry.provider ?? "Anthropic", default: [:]][entry.usage.unit, default: Amount()].add(entry.usage)
+        }
+    }
+
+    private func add(_ entry: Entry) {
+        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
             entries[index] = entry
         } else {
             entries.append(entry)

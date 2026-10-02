@@ -117,4 +117,18 @@ struct RiskClassifierTests {
         request.mcpSource = nil
         #expect(Self.classifier.risk(of: request).level == .rete)
     }
+
+    @Test(arguments: [
+        ("screenshot", RiskLevel.lettura), ("dom", .lettura), ("console", .lettura), ("rete", .lettura),
+        ("naviga", .modifica), ("clicca", .modifica), ("compila", .modifica), ("scorri", .modifica),
+        ("esegui_js", .modifica),
+    ])
+    func theAnteprimasToolsReadOrChangeThePage(tool: String, level: RiskLevel) {
+        var request = PermissionRequest(id: "1", tool: "mcp__anteprima__\(tool)")
+        request.mcpSource = "sdk"
+        #expect(Self.classifier.risk(of: request).level == level)
+        // A server of the Progetto with the same name is not Bubo's.
+        request.mcpSource = "project"
+        #expect(Self.classifier.risk(of: request).level == .rete)
+    }
 }

@@ -45,29 +45,41 @@ struct SessionColumn: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TextField("Cerca", text: $search, prompt: Text("Cerca nelle Sessioni e nella Cronologia CLI"))
-                .textFieldStyle(.roundedBorder)
-                .padding([.horizontal, .top], Spacing.small)
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
-                    ForEach(groups, id: \.title.key) { group in
-                        GroupHeader(title: Text("\(Text(group.title)) · \(group.sessions.count)"))
-                        ForEach(group.sessions) { session in
-                            SessionRow(session: session, store: store)
+            HStack(spacing: Spacing.xxSmall) {
+                TextField("Cerca", text: $search, prompt: Text("Filtra Sessioni e Cronologia CLI"))
+                    .textFieldStyle(.roundedBorder)
+                // The words inside the conversations are searched in the Palette: one search, no second box.
+                Button("Cerca nei messaggi", systemImage: "text.magnifyingglass") {
+                    hud.searchConversations?(query)
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .help(Text("Cerca nei messaggi nella Palette (⌘K)"))
+            }
+            .padding([.horizontal, .top], Spacing.small)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
+                        ForEach(groups, id: \.title.key) { group in
+                            GroupHeader(title: Text("\(Text(group.title)) · \(group.sessions.count)"))
+                            ForEach(group.sessions) { session in
+                                SessionRow(session: session, store: store)
+                            }
                         }
-                    }
-                    if !conversations.isEmpty {
-                        GroupHeader(title: Text("Cronologia CLI"))
-                        ForEach(conversations) { conversation in
-                            CLIConversationRow(conversation: conversation) {
-                                hud.createSession(from: SessionDraft(conversation: conversation))
-                            } read: {
-                                reading = conversation
+                        if !conversations.isEmpty {
+                            GroupHeader(title: Text("Cronologia CLI"))
+                            ForEach(conversations) { conversation in
+                                CLIConversationRow(conversation: conversation) {
+                                    hud.createSession(from: SessionDraft(conversation: conversation))
+                                } read: {
+                                    reading = conversation
+                                }
                             }
                         }
                     }
+                    .padding(Spacing.small)
                 }
-                .padding(Spacing.small)
+                .revealingSession(with: proxy)
             }
         }
         .frame(width: 280)
@@ -191,11 +203,12 @@ private struct CLIConversationRow: View {
 }
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
-/// Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
+/// the issue (`#42`) · Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Mostra nella Galassia, Archivia, Cancella…
 /// and the configuration
-/// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
+/// of Claude in its Progetto in its menu; under it, the agent's questions and its oldest Richiesta di permesso.
 struct SessionRow: View {
     @Environment(HUDPresenter.self) private var hud
+    @Environment(SessionSummarizer.self) private var summarizer: SessionSummarizer?
     let session: Session
     let store: SessionStore
     /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
@@ -206,12 +219,39 @@ struct SessionRow: View {
     @State private var lostChanges: [String] = []
     @State private var isConfirmingDeletion = false
     @State private var isShowingConfiguration = false
+    @State private var isShowingMemory = false
     @State private var isReviewing = false
     /// What stops in the terminal at Archivia, while its confirmation is shown.
     @State private var archiveNotice = ""
     @State private var isConfirmingArchive = false
+    /// The servers of the Sessione's `.claude/launch.json`, for Avvia server.
+    @State private var launchServers: [LaunchConfig] = []
+    /// Whether a drag from Finder or a browser is over the row.
+    @State private var isDropTargeted = false
 
-    private var isArchived: Bool { session.phase != .aperta }
+    private var isArchived: Bool { !session.isLive }
+
+    /// Whether the Esecuzione asked for the Modalità autonoma but `claude` chose another mode.
+    private var isAutonomyUnavailable: Bool {
+        session.automation != nil && session.permissionMode == .autonomous
+            && session.effectiveMode.map { $0 != PermissionMode.autonomous.rawValue } == true
+    }
+
+    /// Gives what is dropped on the row to the Sessione when it is open, or else to a new Domanda; returns whether
+    /// anything could be attached.
+    private func drop(_ urls: [URL]) -> Bool {
+        let attachments = HUDDropDestination.attachments(from: urls)
+        guard !attachments.isEmpty else { return false }
+        switch HUDDropDestination(sessionInFront: session) {
+        case let .session(id):
+            store.attach(attachments, to: id)
+            let names = attachments.map(\.name).formatted(.list(type: .and))
+            AccessibilityNotification.Announcement(String(localized: "Allegati a «\(session.title)»: \(names)")).post()
+        case .question:
+            hud.attachToQuestion(attachments)
+        }
+        return true
+    }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
@@ -225,6 +265,55 @@ struct SessionRow: View {
                 } message: {
                     Text(verbatim: archiveNotice)
                 }
+            // Dropped on the Sessione in the HUD: they go with its next turn.
+            if !session.attachments.isEmpty, !isArchived {
+                VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+                    Text("Allegati al prossimo turno")
+                        .font(Typography.body(size: 12))
+                        .foregroundStyle(Palette.textSecondary)
+                    AttachmentChips(attachments: session.attachments) { allegato in
+                        store.detach(allegato, from: session.id)
+                    }
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element, so each switch stays a control of its own.
+            if !isArchived, session.allowsAutonomy {
+                AutonomyToggle(isAutonomous: session.isAutonomous,
+                               isSandboxed: store.sandbox.isEnabled(in: session.project)) { isOn in
+                    store.setAutonomous(isOn, in: session.id)
+                } setSandboxed: { isOn in
+                    store.sandbox.setEnabled(isOn, in: session.project)
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element, so Correggi and Aggiorna PR stay buttons of their own.
+            if session.phase == .inRevisione {
+                PullRequestBadge(session: session, store: store)
+                    .controlSize(.small)
+                    .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element, so Apri and Annulla stay buttons of their own.
+            if !session.memoryLines.isEmpty, !isArchived {
+                VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+                    ForEach(session.memoryLines.reversed()) { line in
+                        MemoryLineRow(line: line, isInTurn: store.isInTurn(session.project)) {
+                            try store.undo(line.id, in: session.id)
+                        }
+                    }
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element, so each option and answer stays a control of its own.
+            // The keys go to it only when no Richiesta nor other Sessione's questions wait: one key never answers two.
+            if let question = store.questions[session.id]?.first, !isArchived {
+                AgentQuestionView(question: question,
+                                  hasKeyboard: store.permissions.first == nil && store.questions.count == 1) { replies in
+                    store.answer(question.id, in: session.id, with: replies)
+                }
+                .id(question.id)
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
             // Outside the combined element, so each answer stays a button of its own.
             if let queue = store.permissions.queues[session.id], let pending = queue.first, !isArchived {
                 PermissionRequestView(pending: pending, project: session.project, queued: queue.count - 1,
@@ -232,12 +321,49 @@ struct SessionRow: View {
                     store.answer(pending.id, in: session.id, with: answer)
                 } allowInProject: {
                     try store.allowInProject(pending.id, in: session.id)
+                } allowDomainInProject: {
+                    store.allowDomainInProject(pending.id, in: session.id)
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element too, so each Consenti stays a button of its own.
+            if let blocks = store.sandboxBlocks[session.id], !blocks.isEmpty, !isArchived {
+                SandboxBlockList(blocks: blocks, project: session.project, sandbox: store.sandbox)
+                    .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element too, so each Consenti stays a button of its own.
+            if let mark = session.automation, !isArchived, !session.denials.isEmpty || isAutonomyUnavailable {
+                DenialReport(denials: session.denials, isAutonomyUnavailable: isAutonomyUnavailable,
+                             rules: store.automations[mark.automation]?.rules) { denial in
+                    for rule in denial.suggestions { store.automations.allow(rule, in: mark.automation) }
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }
         }
+        // The regola "Sessione davanti": files and addresses dropped on an open Sessione are its Allegati.
+        .dropDestination(for: URL.self) { urls, _ in
+            drop(urls)
+        } isTargeted: { isDropTargeted = $0 }
+        .overlay {
+            if isDropTargeted {
+                RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(Palette.lineStrong)
+                    .allowsHitTesting(false)
+            }
+        }
+        // Read again each time the Sessione changes Attività: the agent may have written the file.
+        .task(id: session.terminalFolder == nil ? nil : session.activitySince) {
+            launchServers = session.terminalFolder.map(LaunchConfig.read(in:)) ?? []
+        }
         .sheet(isPresented: $isShowingConfiguration) {
-            ConfigPanel(project: session.project, read: store.configuration(of:))
+            ConfigPanel(project: session.project, sandbox: store.sandbox, read: store.configuration(of:),
+                        readSandboxRules: store.sandboxRules(of:)) { [project = session.project] server in
+                try await store.logIn(toMCPServer: server, in: project)
+            }
+        }
+        .sheet(isPresented: $isShowingMemory) {
+            MemoryPanel(project: session.project,
+                        isInTurn: store.isInTurn(session.project),
+                        read: store.configuration(of:))
         }
         .sheet(isPresented: $isReviewing) {
             ReviewSheet(sessionID: session.id, store: store)
@@ -264,19 +390,32 @@ struct SessionRow: View {
                     ActivityWait(since: since, isWaitingForUser: session.activity == .attende && !isArchived)
                 }
             }
+            if let mark = session.automation {
+                Text("Automazione · \(mark.name) · \(mark.startedAt.formatted(date: .omitted, time: .shortened))")
+                    .font(Typography.mono(size: 10, weight: .medium))
+                    .textCase(.uppercase)
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+            }
             if let summary = session.summary {
                 Text(verbatim: summary)
                     .font(Typography.body(size: 12))
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
             }
-            Text(verbatim: [session.project.lastPathComponent,
+            Text(verbatim: [session.issue?.label, session.pullRequest?.label, session.project.lastPathComponent,
                             session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch,
                             String(localized: session.phase.title)]
                 .compactMap(\.self).joined(separator: " · "))
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            if !isArchived {
+                SandboxIndicator(state: SandboxState(isEnabled: store.sandbox.isEnabled(in: session.project),
+                                                     currentTurn: store.sandboxedTurns[session.id])) {
+                    isShowingConfiguration = true
+                }
+            }
             if !isOnBoard {
                 SessionCostTotal(total: store.ledger.total(of: session.id),
                                  lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
@@ -288,6 +427,42 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("\(lineCounts.added) righe aggiunte, \(lineCounts.removed) tolte"))
+            }
+            if !isArchived, let server = store.servers.servers[session.id]?.first {
+                let isDrivenByAgent = store.previews.pages[session.id]?.isDrivenByAgent == true
+                // The Anteprima opens only from here or with ⌘⇧P, never on its own.
+                Button(action: openPreview) {
+                    if isDrivenByAgent {
+                        Text("L'agente usa l'anteprima")
+                            .font(Typography.body(size: 11))
+                            .foregroundStyle(Palette.textPrimary)
+                    } else {
+                        Text(verbatim: "localhost:\(String(server.port))")
+                            .font(Typography.mono(size: 11))
+                            .foregroundStyle(Palette.textPrimary)
+                    }
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(Text("Server in ascolto su localhost:\(String(server.port))"))
+                .accessibilityValue(isDrivenByAgent ? Text("L'agente usa l'anteprima") : Text(verbatim: ""))
+                .help("Apre l'anteprima del server")
+            } else if !isArchived, session.terminalFolder != nil, let server = launchServers.first {
+                if launchServers.count == 1 {
+                    Button("Avvia server") { launch(server) }
+                        .controlSize(.small)
+                        .help(Text(verbatim: server.commandLine ?? ""))
+                } else {
+                    Menu("Avvia server") {
+                        ForEach(launchServers, id: \.name) { server in
+                            Button(server.name) { launch(server) }
+                        }
+                    }
+                    .fixedSize()
+                    .controlSize(.small)
+                }
+            }
+            if store.footprints.heavySessions.contains(session.id) {
+                HeavySessionBanner(restart: store.canRestartTurn(session.id) ? { store.restartTurn(session.id) } : nil)
             }
             if let failure = session.failure, !isArchived {
                 Text(verbatim: failure)
@@ -303,10 +478,20 @@ struct SessionRow: View {
                     .lineLimit(4)
                     .textSelection(.enabled)
             }
+            if session.unstartedPrompt != nil && session.activity == .errore && !isArchived {
+                Button("Riprova") { store.retry(session.id) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+                    .padding(.top, Spacing.xxSmall)
+            }
             if session.isInterrupted && session.activity == .ferma && session.prompt != nil {
                 Button("Riprendi") { store.resume(session.id) }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
+                    .padding(.top, Spacing.xxSmall)
+            }
+            if let summarizer, let notice = summarizer.notices[session.id] {
+                SummaryNoticeRow(notice: notice, summarizer: summarizer)
                     .padding(.top, Spacing.xxSmall)
             }
         }
@@ -321,7 +506,18 @@ struct SessionRow: View {
         .contextMenu {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
+            if !isArchived, let showInGalaxy = hud.showInGalaxy {
+                Button("Mostra nella Galassia") { showInGalaxy(session) }
+            }
+            if !isArchived {
+                SessionModelMenu(model: session.model) { store.setModel($0, in: session.id) }
+            }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
+            Button("Memoria del Progetto…") { isShowingMemory = true }
+            if summarizer != nil {
+                Button("Riassumi ora", action: summarize)
+                    .disabled(session.isRunning)
+            }
             if !isArchived {
                 Button("Archivia", action: archive)
                     .disabled(session.isRunning)
@@ -330,14 +526,28 @@ struct SessionRow: View {
                 .disabled(session.isRunning)
         }
         .accessibilityActions {
+            if store.footprints.heavySessions.contains(session.id) && store.canRestartTurn(session.id) {
+                Button("Riavvia") { store.restartTurn(session.id) }
+            }
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
+            if !isArchived, let showInGalaxy = hud.showInGalaxy {
+                Button("Mostra nella Galassia") { showInGalaxy(session) }
+            }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
+            Button("Memoria del Progetto…") { isShowingMemory = true }
             if !session.isRunning {
+                if summarizer != nil { Button("Riassumi ora", action: summarize) }
                 if !isArchived { Button("Archivia", action: archive) }
                 Button("Cancella…", action: confirmDeletion)
             }
         }
+    }
+
+    /// Riassumi ora: the Riassunto di Sessione in the Secondo cervello, whatever the Fase.
+    private func summarize() {
+        guard let summarizer else { return }
+        Task { await summarizer.summarize(session.id) }
     }
 
     /// Archivia, after a confirmation when something runs in the Sessione's terminal.
@@ -348,6 +558,17 @@ struct SessionRow: View {
         } else {
             store.archive(session.id)
         }
+    }
+
+    /// Avvia server: the command of `server` in a new scheda of the Sessione's terminal.
+    private func launch(_ server: LaunchConfig) {
+        store.terminals.launch(server, in: session)
+        if !store.terminals.isDetached { hud.show() }
+    }
+
+    private func openPreview() {
+        store.showPreview(of: session)
+        if !store.previews.isDetached { hud.show() }
     }
 
     private func openTerminal() {

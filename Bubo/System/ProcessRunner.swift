@@ -16,21 +16,35 @@ nonisolated extension ProcessRunner {
         try await runProcess(executable, arguments: arguments)
     }
 
-    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed.
-    ///
-    /// Standard error goes to Bubo's own and is not collected.
-    static func disclaimed(environment: [String: String]) -> ProcessRunner {
+    /// Runs real processes with `Process` and exactly `environment`, standard input closed.
+    static func live(environment: [String: String]) -> ProcessRunner {
         ProcessRunner { executable, arguments in
-            try await runDisclaimed(executable, arguments: arguments, environment: environment)
+            try await runProcess(executable, arguments: arguments, environment: environment)
+        }
+    }
+
+    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, in `folder` when given; standard input gets
+    /// `input`, then is closed.
+    ///
+    /// Standard error goes to Bubo's own and is not collected, or, when `mergingErrors`, into the standard output,
+    /// for a command that tells why it failed only there. `input` is for what must never be an argument, such as a
+    /// secret: `ps` shows the arguments to every user of the Mac.
+    static func disclaimed(environment: [String: String], in folder: URL? = nil, mergingErrors: Bool = false,
+                           input: Data? = nil) -> ProcessRunner {
+        ProcessRunner { executable, arguments in
+            try await runDisclaimed(executable, arguments: arguments, environment: environment, in: folder,
+                                    mergingErrors: mergingErrors, input: input)
         }
     }
 }
 
 @concurrent
-private func runProcess(_ executable: URL, arguments: [String]) async throws -> ProcessOutput {
+private func runProcess(_ executable: URL, arguments: [String],
+                        environment: [String: String]? = nil) async throws -> ProcessOutput {
     let process = Process()
     process.executableURL = executable
     process.arguments = arguments
+    if let environment { process.environment = environment }
     process.standardInput = FileHandle.nullDevice
     let output = Pipe()
     let error = Pipe()
@@ -55,8 +69,22 @@ private func runProcess(_ executable: URL, arguments: [String]) async throws -> 
 }
 
 @concurrent
-private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String]) async throws -> ProcessOutput {
-    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment)
+private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String],
+                           in folder: URL?, mergingErrors: Bool, input: Data?) async throws -> ProcessOutput {
+    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment, in: folder,
+                                           mergingErrors: mergingErrors)
+    // A few hundred bytes at most: they fit in the pipe before the child reads them.
+    // A child that already exited gives an error, never a SIGPIPE.
+    if let input {
+        _ = fcntl(process.input.fileDescriptor, F_SETNOSIGPIPE, 1)
+        do {
+            try process.input.write(contentsOf: input)
+        } catch {
+            kill(process.pid, SIGKILL)
+            _ = await ProcessSpawner.waitForExit(of: process.pid)
+            throw error
+        }
+    }
     try process.input.close()
     return try await withTaskCancellationHandler {
         let standardOutput = try await readText(from: process.output)

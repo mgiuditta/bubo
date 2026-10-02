@@ -46,13 +46,15 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         ])
     }
 
-    /// Announces that `session` waits for the user, for `pending` if it is a Richiesta di permesso, asking for the
-    /// permission the first time.
+    /// Announces that `session` waits for the user, for `pending` if it is a Richiesta di permesso.
     ///
-    /// - Returns: Whether the notification was posted; `false` when the user denied notifications.
+    /// The permission is provisional: no system alert, the notifications go quietly to the Notification Center until
+    /// the user chooses to keep them (spec 26).
+    ///
+    /// - Returns: Whether the notification was posted; `false` when the user turned notifications off.
     func announce(_ session: Session, request pending: RequestCenter.Pending?) async -> Bool {
         do {
-            guard try await center.requestAuthorization(options: [.alert, .sound]) else { return false }
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return false }
             let content = UNMutableNotificationContent()
             content.title = session.title
             if let pending {

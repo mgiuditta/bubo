@@ -74,7 +74,7 @@ struct BoardColumnTests {
     /// and the Colonna's group are the same.
     @Test func theBoardAndTheColonnaAgreeOnEveryEvent() throws {
         let sequences = [
-            [ActivityTests.running, #"{"v":3,"type":"summary","id":"a1","text":"Context Usage"}"#, ActivityTests.idle],
+            [ActivityTests.running, #"{"v":4,"type":"summary","id":"a1","text":"Context Usage"}"#, ActivityTests.idle],
             [ActivityTests.running, ActivityTests.waiting, ActivityTests.running, ActivityTests.idle],
             [ActivityTests.running, ActivityTests.waiting],
         ]

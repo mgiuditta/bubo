@@ -13,11 +13,22 @@ nonisolated struct RequestCenter: Equatable {
 
         /// Whether approving takes a 1-second press: level 4–5, or `claude` says one key must not approve it.
         var needsHold: Bool { risk.level.isDangerous || request.defaultsToNo }
-        /// Whether "Per questa Sessione" is offered: never from levels 4–5, nor when `claude` says no lasting permission.
-        var allowsSessionRule: Bool { !needsHold && !request.suppressesRule && SessionRule(request) != nil }
+        /// Whether "Per questa Sessione" is offered: never from levels 4–5, nor when `claude` says no lasting permission,
+        /// nor for a command outside the Sandbox.
+        var allowsSessionRule: Bool {
+            !needsHold && !request.suppressesRule && !request.isOutsideSandbox && SessionRule(request) != nil
+        }
         /// The rule "Sempre in questo Progetto" would save: never from levels 4–5, nor when `claude` says no lasting
         /// permission, nor when no CLI rule could be as narrow as the call.
-        var projectRule: ProjectRule? { allowsSessionRule ? ProjectRule(request) : nil }
+        var projectRule: ProjectRule? {
+            allowsSessionRule && request.tool != PermissionRequest.networkTool ? ProjectRule(request) : nil
+        }
+        /// The host "Sempre in questo Progetto" would add to the Progetto's Sandbox, in Bubo's store and never in the
+        /// settings: only for a Richiesta "Rete: host" that offers "Per questa Sessione".
+        var projectDomain: SandboxAllowance? {
+            guard allowsSessionRule, request.tool == PermissionRequest.networkTool, let host = request.host else { return nil }
+            return .domain(from: host)
+        }
     }
 
     /// What happens to a Richiesta as it arrives.
@@ -42,7 +53,8 @@ nonisolated struct RequestCenter: Equatable {
     /// Takes `request` from `session`, whose calls carry `risk`.
     mutating func receive(_ request: PermissionRequest, in session: UUID, risk: Risk, at date: Date = .now) -> Verdict {
         if risk.isCritical { return .denied }
-        if !risk.level.isDangerous, let rule = SessionRule(request), sessionRules[session]?.contains(rule) == true {
+        if !risk.level.isDangerous, !request.isOutsideSandbox, let rule = SessionRule(request),
+           sessionRules[session]?.contains(rule) == true {
             return .allowed
         }
         queues[session, default: []].append(Pending(request: request, risk: risk, since: date))
@@ -117,6 +129,7 @@ nonisolated struct SessionRule: Hashable {
         case "Bash": subject = request.command
         case "Edit", "Write", "MultiEdit", "NotebookEdit", "Read": subject = request.path
         case "WebFetch": subject = request.url.flatMap { URL(string: $0)?.host() }
+        case PermissionRequest.networkTool: subject = request.host?.lowercased()
         default: subject = request.tool.hasPrefix("mcp__") ? nil : request.command ?? request.path ?? request.url
         }
         if subject == nil && !request.tool.hasPrefix("mcp__") { return nil }

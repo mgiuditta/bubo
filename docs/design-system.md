@@ -49,6 +49,17 @@ Regole: niente gradienti di marca, niente alone colorato dietro i pannelli (l'un
 - Dati, etichette in maiuscolo, costi, durate: SF Mono, cifre tabulari.
 - Il logotipo BUBO resta l'unico punto con un carattere display; da definire con il marchio.
 
+## Marchio e logotipo (provvisorio)
+
+Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/issues/228)), in attesa di un lavoro di design vero.
+
+- **Segno**: l'Orb a riposo che diventa gufo reale (*Bubo bubo*): disco con due ciuffi spinti in fuori, la V del disco facciale tra loro, occhi grandi e un becco piccolo. Nessun riferimento a marchi altrui.
+- **Colore**: acromatico come il contenitore. Gufo color luna (da `#F6F7F9` a `textSecondary`, con il volume dell'Orb) su squircle in grafite (da `#1C1F24` a `ink`), filo chiaro sul bordo e un anello dell'HUD attorno al gufo. Le sfumature sono solo di luminosità, per il volume: niente Tinte, Lume o gradienti di marca, il colore resta dell'Orb e dei segnali.
+- **Icona**: griglia macOS, tela 1024 con corpo squircle di 824 (superellisse n = 5) e ombra nel margine. Sorgente `design/brand/app-icon.svg`.
+- **Glifo della barra dei menu**: la stessa sagoma monocroma in 18 pt, occhi e becco forati, immagine modello (`MenuBarGlyph`, 1× e 2×). Sorgente `design/brand/menu-bar-glyph.svg`; a 1× gli occhi sono allineati ai pixel e il becco è solo un accenno.
+- **Rigenerare**: `swift scripts/brand-icons.swift` riscrive le 10 PNG di `AppIcon.appiconset` e le 2 del glifo; `polish-check.sh` controlla misure e modello.
+- **Logotipo**: ancora da fare.
+
 ## Forma e materiale
 
 - Raggi: 8 (controlli), 14 (pannelli), capsula per prompt e chip. Niente raggi enormi ovunque.
@@ -60,8 +71,16 @@ Regole: niente gradienti di marca, niente alone colorato dietro i pannelli (l'un
 - Il contenitore si muove poco e in fretta (150–250 ms); l'Orb è l'unica cosa che respira.
 - `prefers-reduced-motion` / Riduci movimento: anelli fermi, Morph in dissolvenza.
 
+## Nel codice
+
+- I token sono in `Bubo/Design/Palette.swift`; `PaletteContrastTests` controlla il contrasto AA di ogni testo su `ink`, su `surface` e sul foglio di sistema (`#212527`).
+- **Solo scuro**: l'HUD forza lo schema scuro (fogli compresi); HUD, Agenti e Impostazioni danno ai controlli `tint(Palette.accent)`, quindi pulsante predefinito, pieno e segmentati sono color luna con testo in `ink`. Gli interruttori e le caselle hanno `tint(Palette.switchTrack)` (= `textSecondary`): su una traccia color luna il pomello bianco di sistema sparirebbe. Galassia, Visore, Cronologia, Palette ⌘K e Terminale staccato hanno `darkAqua`.
+- **Anteprima**: la pagina web è dell'utente, non di Bubo. Incorporata nell'HUD o staccata, riceve lo schema del sistema (`prefers-color-scheme`), non quello scuro forzato dell'HUD: lo legge da `AppleInterfaceStyle` e da `AppleInterfaceThemeChangedNotification`, non da `NSApp`, che lo schema forzato può cambiare.
+- L'Orb dell'HUD e il radiale del fondo prendono la Tinta del fornitore attivo; il segno accanto a BUBO è color luna (`markLight`, `markDark`).
+- Visore: parole chiave in grassetto, commenti in corsivo, stringhe e commenti in `textSecondary`; niente `success`, che è delle aggiunte.
+- `reference/bubo.html` è superato nei colori (lo dice in testa): la struttura resta di riferimento.
+
 ## Da fare
 
-- Aggiornare `Bubo/Design/Palette.swift` e i punti che usano `accent` come tinta (HUDBackground, HUDHeader, HUDRings, OrbPlaceholder).
-- `reference/bubo.html` è ancora nella palette vecchia: la struttura resta di riferimento, i colori no.
-- Marchio e logotipo.
+- Restano nell'accento di sistema, perché `tint` non li cambia: la selezione delle liste (i file della Galassia), gli anelli di focus, la scheda scelta nella barra delle Impostazioni e i link. Servirebbe una selezione disegnata da Bubo.
+- Marchio definitivo e logotipo (ora c'è la proposta provvisoria sopra).

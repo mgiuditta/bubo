@@ -86,9 +86,9 @@ Architettura comune in [INDEX.md](INDEX.md). Si appoggia sull'**Indice** ([indic
 Fonti: [#131](https://github.com/mgiuditta/bubo/issues/131) (varianti B + C del prototipo usa-e-getta `prototypes/cronologia-ricerca.html`, ramo `prototype/cronologia-ricerca`; scartata A, il pannello Cronologia nell'HUD, perché 340 px bastano per la lista ma non per leggere una conversazione) e [#140](https://github.com/mgiuditta/bubo/issues/140), che vince sulla scorciatoia e sul contenuto della casella.
 
 - **Si cerca nella Palette, si legge nella finestra Cronologia.**
-- **Palette**: tasto **⌘K**, solo con Bubo in primo piano. Si apre sopra la finestra di Bubo attiva, che sia l'HUD o il Panel. È una casella sola per **comandi, conversazioni e Secondo cervello**, con risultati in gruppi: Comandi per primi se la query li nomina, poi Conversazioni, poi Secondo cervello. Ogni comando mostra la sua scorciatoia, se ne ha una. Con la query vuota mostra le conversazioni recenti e i comandi più usati. ⌘⇧F non esiste.
+- **Palette**: tasto **⌘K** (voce "Cerca…" del menu File), solo con Bubo in primo piano. Si apre sopra la finestra di Bubo attiva, che sia l'HUD o il Panel; dal Panel solo quando Bubo è già l'app attiva, perché il Panel non attiva l'app (preflight #157), altrimenti con l'App Intent. È una casella sola per **comandi, conversazioni e Secondo cervello**, con risultati in gruppi: Comandi per primi se la query li nomina, poi Conversazioni, poi Secondo cervello. Ogni comando mostra la sua scorciatoia, se ne ha una. Con la query vuota mostra le conversazioni recenti e i comandi più usati. ⌘⇧F non esiste.
 - Il campo del pannello Cronologia dell'HUD apre la stessa Palette: una sola ricerca, niente seconda casella.
-- **Da fuori da Bubo**: nessuna scorciatoia globale nuova (restano solo ⌥Spazio e ⌘⇧O). La cronologia si raggiunge con l'App Intent **"Cerca nella cronologia"** (Spotlight, Comandi rapidi, quick key facoltativa), che apre la Palette.
+- **Da fuori da Bubo**: nessuna scorciatoia globale nuova (restano solo ⌥Spazio, con la variante ⌥⇧ della sola dettatura, e ⌘⇧O). La cronologia si raggiunge con l'App Intent **"Cerca nella cronologia"** (Spotlight, Comandi rapidi, quick key facoltativa), che apre la Palette.
 - **Finestra Cronologia**: fuori dall'HUD, come la finestra Costi. Nessun tasto: si apre dal menu Finestra, dalla Palette e dal clic su un risultato. Se il risultato apre la finestra Cronologia o una Sessione, parte la finestra giusta e resta visibile un solo Orb.
 
 ### Risultato (deciso)
@@ -103,7 +103,7 @@ Fonti: [#131](https://github.com/mgiuditta/bubo/issues/131) (varianti B + C del 
 ### Filtri (deciso)
 
 - **Progetto**, **data** (7 / 30 / 90 giorni / sempre), **fonte** (Sessioni / Cronologia CLI); nella Palette, con gli altri gruppi, anche **tipo** (Comandi, Conversazioni, Secondo cervello).
-- Nella Palette si scrivono nella casella (`@progetto`, `7g`, `cli`) e diventano gettoni. Nella finestra Cronologia sono una colonna a sinistra con i conteggi.
+- Nella Palette si scrivono nella casella (`@progetto`, `7g`, `cli`; il tipo con `comandi`, `conversazioni`, `cervello` o `note`) e diventano gettoni. Un filtro sulle conversazioni (Progetto, data, fonte) lascia solo le conversazioni. Nella finestra Cronologia sono una colonna a sinistra con i conteggi.
 - Default: tutti i Progetti, sempre.
 - Branch e PR: non in v1.
 
@@ -148,12 +148,12 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi: `Palette/` e `History
 - `System/Intents` (09): App Intent "Cerca nella cronologia", che apre la Palette.
 - Riuso: `Index/` e `Agent/SearchTool` (Indice), `Sessions/` (01), Attività (06), `Agent/AgentBridge` per `resume` e `forkSession`.
 
-Requisito sull'Indice: ogni frammento di conversazione porta `sessionId`, id del messaggio, autore (tu / agente) e data, e la ricerca restituisce da quale ramo della fusione arriva (parole, significato) con le posizioni FTS5 da evidenziare.
+Requisito sull'Indice: ogni frammento di conversazione porta `sessionId`, id del messaggio, autore (tu / agente) e data (`SessionStoreEntry.timestamp` se la conversazione è nella copia di Bubo, altrimenti il `lastModified` della conversazione: `SessionMessage` non ha data), e la ricerca restituisce da quale ramo della fusione arriva (parole, significato) con le parole da evidenziare. FTS5 non ha `offsets()`: la Palette evidenzia in Swift le parole che iniziano con quelle cercate, senza maiuscole né accenti, come le trova l'Indice (`Palette/MatchHighlight`). I turni di una Sessione ripetono i messaggi precedenti, quindi nella Palette una Sessione è una riga sola e un messaggio conta una volta.
 
 ### Flusso
 
 1. **Conservazione**: fine di ogni scrittura della Conversazione dell'agente → `append` nello store. `CLIHistory` vede una conversazione nuova della CLI → `importSessionToStore` (se l'interruttore è acceso). `mirror_error` → segnale nella Sessione → a fine turno `importSessionToStore` ripara la copia.
-2. **Indicizzazione**: fine turno → l'Indice legge le conversazioni dallo store e dalle API dell'SDK, mai dal JSONL ([indice-semantico.md](indice-semantico.md)).
+2. **Indicizzazione**: fine turno → l'Indice legge le conversazioni dallo store e dalle API dell'SDK, mai dal JSONL ([indice-semantico.md](indice-semantico.md)). Le Sessioni di Bubo si leggono per id da `Session.conversations` con `getSessionMessages`, non da `listSessions`; la Cronologia CLI e i turni mancanti (Indice cancellato) si recuperano all'avvio e a ogni copia della Cronologia CLI.
 3. **Ricerca**: ⌘K (o App Intent, o campo del pannello Cronologia) → Palette sopra la finestra attiva → testo + gettoni → `ConversationSearch` → righe per conversazione con frammento e anteprima.
 4. **Apertura**: ↩ → finestra Cronologia → `ConversationReader` carica la conversazione → scorre sul messaggio trovato ed evidenziato.
 5. **Ripresa**: ⌘↩ → `forkSession({ upToMessageId })` → nuova Sessione in un worktree nuovo, ferma in attesa del prompt. ⌥↩ → `resume` della stessa Sessione, oppure fork intero per la Cronologia CLI; oltre 30 giorni `load` dallo store in un JSONL temporaneo.

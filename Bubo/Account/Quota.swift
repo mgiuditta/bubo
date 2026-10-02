@@ -1,9 +1,9 @@
 import Foundation
 
 /// The used part of the Claude subscription limits, as `claude` reports it; never estimated by Bubo.
-nonisolated struct Quota: Equatable, Sendable {
+nonisolated struct Quota: Codable, Equatable, Sendable {
     /// A limit window: how much of it is used and when it starts again from zero.
-    struct Window: Equatable, Decodable, Sendable {
+    struct Window: Codable, Equatable, Sendable {
         /// The share of the window used, from 0 to 1.
         var used: Double
         /// When the window starts again from zero.
@@ -25,6 +25,13 @@ nonisolated struct Quota: Equatable, Sendable {
             used = try container.decode(Double.self, forKey: .used)
             resetsAt = Date(timeIntervalSince1970: try container.decode(Double.self, forKey: .resetsAt))
         }
+
+        /// Encodes the window as the bridge sends it, `resetsAt` in Unix seconds.
+        func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(used, forKey: .used)
+            try container.encode(resetsAt.timeIntervalSince1970, forKey: .resetsAt)
+        }
     }
 
     /// The subscription limit that stopped a request, as `claude` reports it.
@@ -44,6 +51,23 @@ nonisolated struct Quota: Equatable, Sendable {
     var fiveHour: Window?
     /// The weekly window, if `claude` reported it.
     var sevenDay: Window?
+
+    /// The key of the last Quota `claude` reported, kept for the next launch.
+    static let defaultsKey = "lastQuota"
+
+    /// The Quota last saved in `defaults` with `save(to:)`; empty when there is none, or it cannot be read.
+    ///
+    /// Shown until `claude` reports a newer one; its windows whose reset has passed stay hidden.
+    static func saved(in defaults: UserDefaults) -> Quota {
+        guard let data = defaults.data(forKey: defaultsKey) else { return Quota() }
+        return (try? JSONDecoder().decode(Quota.self, from: data)) ?? Quota()
+    }
+
+    /// Saves this Quota in `defaults`, for the next launch.
+    func save(to defaults: UserDefaults) {
+        guard let data = try? JSONEncoder().encode(self) else { return }
+        defaults.set(data, forKey: Self.defaultsKey)
+    }
 
     /// This Quota updated with the windows in `newer`; a window `newer` lacks stays as it was.
     func merging(_ newer: Quota) -> Quota {

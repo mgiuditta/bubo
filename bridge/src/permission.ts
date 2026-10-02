@@ -1,4 +1,4 @@
-import type { CanUseTool, PermissionResult } from "@anthropic-ai/claude-agent-sdk";
+import type { CanUseTool, PermissionResult, PermissionUpdate } from "@anthropic-ai/claude-agent-sdk";
 
 // La Richiesta di permesso che il ponte manda a Bubo: solo stringhe e booleani, già ripuliti.
 // Bubo ne ricava il Livello di rischio da strumento, comando e percorso; il resto è testo da mostrare.
@@ -9,6 +9,7 @@ export type PermissionRequest = {
   command?: string;
   path?: string;
   url?: string;
+  host?: string;
   title?: string;
   description?: string;
   blockedPath?: string;
@@ -16,6 +17,7 @@ export type PermissionRequest = {
   fromSubagent?: boolean;
   defaultToNo?: boolean;
   suppressAlwaysAllowRule?: boolean;
+  outsideSandbox?: boolean;
 };
 
 type Options = Parameters<CanUseTool>[2];
@@ -33,13 +35,13 @@ export function clean(value: unknown): string | undefined {
 // quindi l'utente deve poterlo vedere tutto. Bubo lo mostra con l'escape; oltre `subjectLength` si nega.
 export const subjectLength = 100_000;
 
-function raw(value: unknown): string | undefined {
+export function raw(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
 // Un soggetto troppo lungo per essere letto prima di approvarlo.
 export function isTooLong(request: PermissionRequest): boolean {
-  return [request.command, request.path, request.url].some((text) => (text?.length ?? 0) > subjectLength);
+  return [request.command, request.path, request.url, request.host].some((text) => (text?.length ?? 0) > subjectLength);
 }
 
 export function permissionRequest(request: string, toolName: string, input: Record<string, unknown>,
@@ -51,6 +53,7 @@ export function permissionRequest(request: string, toolName: string, input: Reco
     command: raw(input.command),
     path: raw(input.file_path ?? input.notebook_path ?? input.path),
     url: raw(input.url),
+    host: raw(input.host),
     title: clean(options.title),
     description: clean(options.description),
     blockedPath: clean(options.blockedPath),
@@ -66,8 +69,30 @@ export function isAllowed(answer: unknown): boolean {
   return answer === "allow";
 }
 
-// Le domande all'utente vivono sulla scheda dello strumento (AskUserQuestion): Bubo non le mostra ancora.
-// Un'approvazione con un tasto lì risponderebbe al posto dell'utente: si nega e Claude va avanti da solo.
+// Se Bubo ha approvato per il resto della Sessione ("Per questa Sessione" o "Sempre in questo Progetto").
+export function isLasting(scope: unknown): boolean {
+  return scope === "session";
+}
+
+// La Richiesta che la CLI fa per un host fuori dai domini della Sandbox, con `{ host }` come input. Non documentata:
+// nome verificato nel binario 2.1.286, test in `violations.test.ts`. Arriva solo con `strictAllowlist: false`.
+export const networkTool = "SandboxNetworkAccess";
+
+// La regola `WebFetch(domain:host)` della sola sessione, come la propone la CLI: allarga la Sandbox a `host` anche per
+// WebFetch, subito. Mai `localSettings`, dove la CLI la salverebbe da sola: Bubo non scrive i settings per la Sandbox.
+// `undefined` per un host che non è un nome di dominio semplice.
+export function networkRule(host: unknown): PermissionUpdate | undefined {
+  if (typeof host !== "string" || !/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$/.test(host.toLowerCase())) return undefined;
+  return {
+    type: "addRules",
+    rules: [{ toolName: "WebFetch", ruleContent: `domain:${host.toLowerCase()}` }],
+    behavior: "allow",
+    destination: "session",
+  };
+}
+
+// Gli strumenti che l'utente usa sulla propria scheda: un'approvazione con un tasto risponderebbe al posto suo.
+// `AskUserQuestion` ha la sua scheda in Bubo (`question.ts`) e non arriva qui; gli altri si negano e Claude va avanti.
 export function needsItsOwnCard(toolName: string, options: Options): boolean {
   return toolName === "AskUserQuestion" || (options as { requiresUserInteraction?: unknown }).requiresUserInteraction === true;
 }
@@ -77,8 +102,10 @@ export const deniedWithoutBubo = "Bubo non ha potuto chiedere il permesso all'ut
 export const deniedOwnCard = "Bubo non può ancora mostrare questa domanda all'utente: continua senza, con la scelta più prudente.";
 
 // Approvato, gira esattamente l'input che Bubo ha mostrato.
-export function permissionResult(allowed: boolean, input: Record<string, unknown>, message = deniedByUser): PermissionResult {
+// `updatedPermissions` sono le regole di sessione che vengono con l'approvazione.
+export function permissionResult(allowed: boolean, input: Record<string, unknown>, message = deniedByUser,
+                                 updatedPermissions?: PermissionUpdate[]): PermissionResult {
   return allowed
-    ? { behavior: "allow", updatedInput: input, decisionClassification: "user_temporary" }
+    ? { behavior: "allow", updatedInput: input, decisionClassification: "user_temporary", ...(updatedPermissions ? { updatedPermissions } : {}) }
     : { behavior: "deny", message, decisionClassification: "user_reject" };
 }

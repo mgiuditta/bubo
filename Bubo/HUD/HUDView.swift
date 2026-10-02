@@ -10,8 +10,10 @@ struct HUDView: View {
     let questions: QuestionModel
     /// The Sessioni; `nil` when they cannot be kept.
     let sessions: SessionStore?
-    /// The `claude` found during onboarding; `nil` while detecting, or with no onboarding.
-    @State private var readiness: ClaudeReadiness?
+    /// The first launch, until the first answer in a Sessione.
+    let onboarding: OnboardingFlow
+    /// What starts once the HUD is interactive.
+    let launch: LaunchSequence
 
     var body: some View {
         @Bindable var hud = hud
@@ -25,6 +27,12 @@ struct HUDView: View {
         .padding(.horizontal, Spacing.large)
         .frame(minWidth: 720, minHeight: 560)
         .background { HUDBackground() }
+        // A drop with no Sessione in front: a new Domanda with the Allegati (regola "Sessione davanti").
+        .dropDestination(for: URL.self) { urls, _ in
+            let attachments = HUDDropDestination.attachments(from: urls)
+            questions.attach(attachments)
+            return !attachments.isEmpty
+        }
         .foregroundStyle(Palette.textPrimary)
         .sheet(isPresented: $hud.isCreatingSession) {
             if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }
@@ -33,20 +41,52 @@ struct HUDView: View {
         .onChange(of: chosenVista) { hud.switchVista(to: chosenVista) }
         // The new Vista's body has been laid out.
         .onChange(of: hud.vista) { hud.endVistaSwitch() }
-        // Runs after the first appearance, once the main thread is free again.
+        // Runs after the first appearance, once the main thread is free again: launch is over.
         .task {
-            Signposts.markHUDInteractive()
-            guard isOnboarding else { return }
-            readiness = await Signposts.measure(.claudeDetection) { await ClaudeReadiness.detect() }
+            let launching = launch.start()
+            guard !onboarding.isCompleted else { return }
+            async let recents = Self.recentProjects()
+            // The sequence finds `claude` during onboarding, after the bridge.
+            await launching.value
+            onboarding.show(await recents)
         }
-        // Without a Domanda the Quota comes from the SDK's usage method, when the HUD appears.
-        .task { await questions.refreshQuota() }
+        // Each time `claude` needs a remedy: during the onboarding, or when a Sessione finds it too old (spec 27).
+        .task(id: onboarding.needsRemedy) { await watchClaude() }
+        // Back from the Terminal: the login there leaves no other trace Bubo is allowed to read.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task { await onboarding.recheck() }
+        }
+        // Signed in from a remedy: the login rewrites `~/.claude.json`, and the first question asks again.
+        .task(id: onboarding.isAwaitingSignIn) {
+            guard onboarding.isAwaitingSignIn else { return }
+            for await _ in InstallWatcher().changes() {
+                await onboarding.recheck()
+                if !onboarding.isAwaitingSignIn { return }
+            }
+        }
+        // Last, so the sheets above get it too: selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
+        // Only dark, sheets included, whatever the system's appearance (design system, ADR 0004).
+        .preferredColorScheme(.dark)
     }
 
-    /// Onboarding lasts until there is a Sessione; after it, no `claude` starts at launch (spec 26).
-    // ponytail: until OnboardingFlow (#202) keeps the onboarding's own mark.
-    private var isOnboarding: Bool {
-        sessions?.sessions.isEmpty ?? true
+    /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
+    private var showsOnboarding: Bool {
+        !onboarding.isCompleted && sessions?.sessions.isEmpty == true
+    }
+
+    /// Checks `claude` again at each installation or login seen by FSEvents, until it is ready.
+    private func watchClaude() async {
+        guard onboarding.needsRemedy else { return }
+        for await _ in InstallWatcher().changes() {
+            await onboarding.recheck()
+            if !onboarding.needsRemedy { return }
+        }
+    }
+
+    /// The recent Progetti, read off the main thread.
+    @concurrent nonisolated private static func recentProjects() async -> [RecentProject] {
+        RecentProjects.load()
     }
 
     /// The Sessioni to lay out, when there is at least one.
@@ -59,8 +99,22 @@ struct HUDView: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
-                if let readiness, isOnboarding { ClaudePill(readiness: readiness) }
-                QuotaView(quota: questions.quota)
+                    // Here, not next to the other sheets: one sheet modifier per view.
+                    .sheet(item: Bindable(hud).pullRequestSession) { session in
+                        if let sessions { PullRequestSheet(session: session, store: sessions) }
+                    }
+                if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
+                QuotaView(quota: questions.quota) { hud.showCosts?() }
+            }
+            // Here, not next to the other sheets: one sheet modifier per view.
+            .sheet(isPresented: Bindable(hud).isPickingIssue) {
+                if let sessions { IssuePicker(store: sessions) }
+            }
+            // The Risorse di squadra to look at, or that cannot be read, of each Progetto with Sessioni.
+            if let sessions {
+                ForEach(sessions.projects, id: \.self) { project in
+                    TeamResourcesNotice(project: project)
+                }
             }
             Spacer(minLength: Spacing.large)
             if hud.vista == .orbita, let sessions = visibleSessions {
@@ -69,21 +123,32 @@ struct HUDView: View {
                 SessionBoard(store: sessions)
                     .padding(.bottom, Spacing.small)
             } else {
-                OrbPlaceholder()
+                HUDOrb()
                     .frame(maxWidth: 520, maxHeight: 520)
                     .padding(Spacing.large)
+                    .overlay(alignment: .bottom) {
+                        if let forecast = questions.intake.forecast { OrbCaption(forecast: forecast) }
+                    }
             }
             if hud.vista == .striscia, let sessions = visibleSessions {
                 SessionStrip(store: sessions)
                     .padding(.bottom, Spacing.small)
             }
-            QuestionView(model: questions)
-                .frame(maxWidth: 560)
+            if showsOnboarding {
+                OnboardingStage(flow: onboarding)
+            } else {
+                // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
+                // the first token, or until `claude` is ready.
+                if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
+                    FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
+                        .padding(.bottom, Spacing.small)
+                }
+                QuestionView(model: questions)
+                    .frame(maxWidth: 560)
+            }
             Spacer(minLength: Spacing.large)
-            if let terminals = sessions?.terminals, terminals.isShown, !terminals.isDetached {
-                TerminalPanel(store: terminals)
-                    .frame(height: 280)
-                    .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+            if let sessions {
+                PanelRow(terminals: sessions.terminals, previews: sessions.previews)
             }
         }
         .padding(.vertical, Spacing.medium)
@@ -95,6 +160,8 @@ struct HUDView: View {
 }
 
 #Preview {
-    HUDView(questions: QuestionModel(), sessions: nil)
+    HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in UUID() },
+            launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
+                                   subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())
 }

@@ -148,15 +148,15 @@ struct SessionTests {
                 echo "$line" >> "$1"
                 id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
                 case "$line" in
-                    *'"type":"ask"'*) echo "{\"v\":3,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                    *'"type":"ask"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
                     *'"type":"history"'*)
                         kept=$(sed -n 's/.*"keep":"\([^"]*\)".*/\1/p' "$1" | head -1)
-                        echo "{\"v\":3,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
+                        echo "{\"v\":4,\"type\":\"history\",\"id\":\"$id\",\"conversations\":[{\"id\":\"$kept\",\"title\":\"Bubo\",\"lastModified\":0},{\"id\":\"c-1\",\"title\":\"CLI\",\"lastModified\":0}]}" ;;
                 esac
             done
             """#
         return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
-                           environment: ["PATH": "/usr/bin:/bin"]) { _, _ in "" }
+                           environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
     }
 
     /// Waits up to 5 s for `condition`.
@@ -192,9 +192,138 @@ struct SessionTests {
         #expect(try await store.history().map(\.id) == ["c-1"])
 
         store.delete(session.id)
-        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":3}"#
+        let forget = #"{"conversations":["\#(kept)"],"type":"forget","v":4}"#
         try await Self.wait { (try? String(contentsOf: log, encoding: .utf8).contains(forget)) == true }
         #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
+    }
+
+    /// The `resume` and `keep` of each `ask` in `log`, in order.
+    static func asks(in log: URL) throws -> [(resume: String?, keep: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["resume"] as? String, command?["keep"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func eachTurnResumesTheConversationOfTheLastTurnThatRan() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        // Ends every turn at once; the turn asked "Sbaglia" fails before answering.
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"prompt":"Sbaglia"'*) echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"no\"}" ;;
+                    *'"type":"ask"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        for (prompt, ending) in [("Ancora", Session.Activity.ferma), ("Sbaglia", .errore), ("Infine", .ferma)] {
+            store.sendBack(prompt, to: id, keepingAcceptedAmong: [])
+            try await Self.wait { store.sessions.first?.activity == ending }
+        }
+
+        let session = try #require(store.sessions.first)
+        #expect(session.conversations.count == 4)
+        let asks = try Self.asks(in: log)
+        #expect(asks.map(\.keep) == session.conversations)
+        // The failed turn never ran: the next one resumes the turn before it.
+        #expect(asks.map(\.resume) == ["c-1", session.conversations[0], session.conversations[1],
+                                        session.conversations[1]])
+        #expect(session.continuedConversation == session.conversations[3])
+        #expect(session.forkedFrom == "c-1")
+    }
+
+    @Test func aSessionSavedBeforeTheChainResumesWhatItForked() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma","forkedFrom":"c-1","conversations":["t-1"]}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.continuedConversation) == ["c-1"])
+    }
+
+    /// The `prompt` and `upTo` of each `ask` in `log`, in order.
+    static func prompts(in log: URL) throws -> [(prompt: String?, upTo: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["prompt"] as? String, command?["upTo"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func riprendiAfterQuittingAsksThePromptOfTheInterruptedTurn() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let id = try store.start("Primo", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Rimando", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+        #expect(store.sessions.first?.turnPrompt == "Rimando")
+
+        // Bubo quits during the rimando: the saved Sessione was still in Lavora.
+        var saved = try #require(store.sessions.first)
+        saved.activity = .lavora
+        try JSONEncoder().encode([saved]).write(to: file)
+        let relaunched = SessionStore(file: file,
+                                      worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) { bridge }
+        relaunched.resume(id)
+        try await Self.wait { relaunched.sessions.first?.conversations.count == 3 }
+        try await Self.wait { relaunched.sessions.first?.activity == .ferma }
+
+        #expect(try Self.prompts(in: log).map(\.prompt) == ["Primo", "Rimando", "Rimando"])
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func continuaDaQuiCutsOnlyTheConversationItForks() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation, upTo: "m-2")
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Ancora", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+
+        let session = try #require(store.sessions.first)
+        #expect(try Self.prompts(in: log).map(\.upTo) == ["m-2", nil])
+        #expect(try Self.asks(in: log).map(\.resume) == ["c-1", session.conversations[0]])
+        #expect(session.forkedUpTo == "m-2")
     }
 
     @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
@@ -213,5 +342,22 @@ struct SessionTests {
         #expect(sessions.map(\.isInterrupted) == [false])
         #expect(sessions.map(\.forkedFrom) == [nil])
         #expect(sessions.map(\.conversations) == [[]])
+    }
+
+    @Test func aSessionSavedBeforeSummariesDecodes() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.summaryNote) == [nil])
+        #expect(sessions.map(\.isSummaryPending) == [false])
+    }
+}
+
+extension SessionTests {
+    @Test func aSessionSavedBeforeAutomationsDecodesWithoutAMark() throws {
+        let saved = #"[{"id":"6A1F3C2E-0000-4000-8000-000000000001","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let session = try #require(try JSONDecoder().decode([Session].self, from: Data(saved.utf8)).first)
+        #expect(session.automation == nil)
+        #expect(session.denials.isEmpty)
+        #expect(session.effectiveMode == nil)
     }
 }

@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { clean, deniedByUser, isAllowed, needsItsOwnCard, permissionRequest, permissionResult, isTooLong, subjectLength } from "./permission";
+import { clean, deniedByUser, isAllowed, isLasting, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, isTooLong, subjectLength } from "./permission";
 
 const options = (extra: object = {}) =>
   ({ signal: new AbortController().signal, toolUseID: "toolu_1", requestId: "r1", ...extra }) as Parameters<typeof permissionRequest>[3];
@@ -49,4 +49,16 @@ test("comando, percorso e URL arrivano interi; troppo lunghi si negano", () => {
   expect(permissionRequest("r", "Bash", { command: "a\rb‮c" }, options).command).toBe("a\rb‮c");
   expect(isTooLong(permissionRequest("r", "Bash", { command: "x".repeat(subjectLength + 1) }, options))).toBe(true);
   expect(isTooLong(permissionRequest("r", "Bash", { command: long }, options))).toBe(false);
+});
+
+test("la Richiesta di rete porta l'host; per la Sessione aggiunge WebFetch(domain:) di sessione, mai nei settings", () => {
+  expect(permissionRequest("p5", networkTool, { host: "api.example.com" }, options()).host).toBe("api.example.com");
+  expect(isLasting("session")).toBe(true);
+  for (const scope of [undefined, "once", "project", true]) expect(isLasting(scope)).toBe(false);
+  const rule = networkRule("API.Example.com");
+  expect(rule).toEqual({ type: "addRules", rules: [{ toolName: "WebFetch", ruleContent: "domain:api.example.com" }], behavior: "allow", destination: "session" });
+  for (const host of ["", "a b", "*.x.dev", "x.dev/path", "[::1]", 42]) expect(networkRule(host)).toBeUndefined();
+  expect(permissionResult(true, { host: "a.dev" }, undefined, [rule!])).toEqual({
+    behavior: "allow", updatedInput: { host: "a.dev" }, decisionClassification: "user_temporary", updatedPermissions: [rule!],
+  });
 });

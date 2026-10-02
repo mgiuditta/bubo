@@ -150,7 +150,7 @@ Architettura comune in [INDEX.md](INDEX.md). Si appoggia su `Config/ConfigInspec
 
 - **Innesco**: passaggio della Sessione a Fusa o Archiviata, oppure "Riassumi ora". Una nota per Sessione: se la Sessione si riapre e torna Fusa o Archiviata, la stessa nota si aggiorna.
 - **Chi lo scrive**: Claude, col modello leggero scelto dal router (feature 10); il contenuto è già passato a Claude, quindi nessun nuovo destinatario. Senza rete: Apple Foundation Models.
-- **Ingresso del modello**: titolo, Progetto, branch, messaggi dell'utente e dell'agente della Sessione. Niente output grezzo dei tool.
+- **Ingresso del modello**: titolo, Progetto, branch, messaggi dell'utente e dell'agente della Sessione. Niente output grezzo dei tool I messaggi sono quelli di tutti i turni (`Session.conversations`): ogni turno è una Conversazione dell'agente distinta.
 - **Filtro dei segreti**: locale, prima della scrittura su disco. Il testo prodotto dal modello passa dal filtro; se trova un segreto lo sostituisce con `[rimosso]`.
 - **Forma**:
 
@@ -159,7 +159,7 @@ Architettura comune in [INDEX.md](INDEX.md). Si appoggia su `Config/ConfigInspec
   titolo: "…"
   progetto: "…"
   branch: "…"
-  stato: fusa | archiviata
+  fase: fusa | archiviata
   creata: AAAA-MM-GG
   aggiornata: AAAA-MM-GG
   sessione: "bubo://sessione/<id>"

@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// Bubo's settings window.
-// ponytail: Permessi si aggiunge con la feature che lo riempie (niente sezioni vuote).
 struct SettingsView: View {
     var body: some View {
         TabView {
@@ -14,11 +13,31 @@ struct SettingsView: View {
             Tab("Account", systemImage: "person.crop.circle") {
                 AccountSettingsView()
             }
+            Tab("Permessi", systemImage: "lock.shield") {
+                PermissionsSettingsView()
+            }
+            Tab("Modelli", systemImage: "cpu") {
+                ModelsSettingsView()
+            }
+            Tab("Macchine", systemImage: "server.rack") {
+                MachinesSettingsView()
+            }
+            Tab("Voce", systemImage: "waveform") {
+                VoiceSettingsView()
+            }
+            Tab("iPhone", systemImage: "iphone") {
+                RemoteSettingsView()
+            }
             Tab("Scorciatoie", systemImage: "keyboard") {
                 ShortcutSettingsView()
+            }
+            Tab("Diagnostica", systemImage: "stethoscope") {
+                DiagnosticsView()
             }
         }
         .frame(width: 480)
         .scenePadding()
+        // System controls, but selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
     }
 }

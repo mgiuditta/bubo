@@ -15,6 +15,15 @@ nonisolated struct KeyShortcut: Hashable, Sendable {
     /// ⌥Spazio, the default shortcut that shows and hides the HUD.
     static let showHUD = KeyShortcut(keyCode: UInt32(kVK_Space), carbonModifiers: UInt32(optionKey), keyLabel: "Spazio")
 
+    /// Esc alone, which stops Bubo's voice while it speaks (spec 08); never a shortcut the user records.
+    static let escape = KeyShortcut(keyCode: UInt32(kVK_Escape), carbonModifiers: 0, keyLabel: "⎋")
+
+    /// The same combination plus ⇧, which held only dictates into the prompt (spec 08); `nil` when it has ⇧ already.
+    var dictationVariant: KeyShortcut? {
+        guard carbonModifiers & UInt32(shiftKey) == 0 else { return nil }
+        return KeyShortcut(keyCode: keyCode, carbonModifiers: carbonModifiers | UInt32(shiftKey), keyLabel: keyLabel)
+    }
+
     /// The shortcut as shown in menus and settings, such as `⌥Spazio`.
     var displayName: String {
         var symbols = ""

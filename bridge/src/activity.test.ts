@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
-import type { SDKMessage } from "@anthropic-ai/claude-agent-sdk";
-import { edits, progress } from "./activity";
+import type { PostToolUseHookInput, SDKMessage } from "@anthropic-ai/claude-agent-sdk";
+import { edits, progress, reads, searched } from "./activity";
 
 // Sequenze registrate con Claude Code 2.1.286 e SDK 0.3.286 il 01/10/2026, CLAUDE_CONFIG_DIR vuoto,
 // CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS=1, API key non valida: costo 0. Solo i campi che contano.
@@ -79,4 +79,39 @@ test("Edit e Write diventano scritture; gli altri strumenti no", () => {
     { type: "edit", file: "/w/b.md", lines: ["# Titolo"] },
   ]);
   expect(edits(state("running") as SDKMessage)).toEqual([]);
+});
+
+// Dai tipi dell'SDK (NotebookEditInput): una cella del notebook è una scrittura.
+test("NotebookEdit è una scrittura", () => {
+  const message = {
+    type: "assistant", parent_tool_use_id: null, message: { content: [
+      { type: "tool_use", id: "t1", name: "NotebookEdit", input: { notebook_path: "/w/n.ipynb", new_source: "x = 1\n" } },
+    ] },
+  };
+  expect(edits(message as unknown as SDKMessage)).toEqual([{ type: "edit", file: "/w/n.ipynb", lines: ["x = 1"] }]);
+});
+
+// Dai tipi dell'SDK (FileReadInput): Read diventa una lettura appena chiesta; Edit no.
+test("Read diventa una lettura", () => {
+  const message = {
+    type: "assistant", parent_tool_use_id: null, message: { content: [
+      { type: "tool_use", id: "t1", name: "Read", input: { file_path: "/w/a.swift" } },
+      { type: "tool_use", id: "t2", name: "Edit", input: { file_path: "/w/b.swift", old_string: "a", new_string: "b" } },
+    ] },
+  };
+  expect(reads(message as unknown as SDKMessage)).toEqual([{ type: "read", files: ["/w/a.swift"] }]);
+  expect(reads(state("running") as SDKMessage)).toEqual([]);
+});
+
+// Dai tipi dell'SDK (PostToolUseHookInput, GrepOutput, GlobOutput): i file trovati, assoluti, al più 100.
+const hook = (tool_name: string, tool_response: unknown) =>
+  ({ hook_event_name: "PostToolUse", tool_name, tool_response, tool_input: {}, tool_use_id: "t", cwd: "/w",
+     session_id: "s", transcript_path: "/t" }) as PostToolUseHookInput;
+
+test("Grep e Glob diventano letture dei file trovati", () => {
+  expect(searched(hook("Glob", { filenames: ["/w/a.swift", "b/c.ts"], numFiles: 2 })))
+    .toEqual({ type: "read", files: ["/w/a.swift", "/w/b/c.ts"] });
+  expect(searched(hook("Grep", { filenames: Array.from({ length: 150 }, (_, i) => `/w/${i}`) }))?.files.length).toBe(100);
+  expect(searched(hook("Grep", { mode: "content", filenames: [] }))).toBeUndefined();
+  expect(searched(hook("Bash", { filenames: ["/w/a"] }))).toBeUndefined();
 });

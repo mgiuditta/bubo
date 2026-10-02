@@ -32,6 +32,13 @@ struct OrbSnapshotterTests {
         #expect(image.width == Self.size && image.height == Self.size)
     }
 
+    @Test func aVarianteWithoutAFormaIsDrawnAsTheBlob() async throws {
+        let drago = Variante(nome: "drago", forma: "drago", categoria: .creativo, descrizione: "", parole: [])
+        let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: drago, pixelSize: Self.size)))
+        #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
+        #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
+    }
+
     @Test func theLenteIsSolidAtItsGlassAndClearAtTheCorner() async throws {
         let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: lente, pixelSize: Self.size)))
         #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
@@ -44,6 +51,17 @@ struct OrbSnapshotterTests {
         let row = (0..<Self.size).map { pixel(bytes, x: $0, y: Self.size / 2) }
         let halo = try #require(row.first { (16..<255).contains($0[3]) })
         #expect(abs(Int(halo[0]) - Int(halo[2])) <= 1 && abs(Int(halo[1]) - Int(halo[2])) <= 1)
+    }
+
+    // The Orbite's pipeline builds, and its diagram is light strokes on a dark disc: a point of light at the centre,
+    // ink between the strokes, nothing at the corner.
+    @Test func theOrbiteDrawsItsDiagram() async throws {
+        let image = try #require(await snapshotter.snapshot(of: Orbite.variante, pixelSize: Self.size))
+        let bytes = try pixels(of: image)
+        #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2).allSatisfy { $0 > 200 })
+        let ground = pixel(bytes, x: Self.size / 2 + 5, y: Self.size / 2 - 30)
+        #expect(ground[3] > 200 && ground[2] < 60)
+        #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
     }
 
     @Test func aSecondRequestReturnsTheCachedStill() async throws {

@@ -1,4 +1,5 @@
 import Foundation
+import Metal
 import Testing
 @testable import Bubo
 
@@ -31,6 +32,34 @@ struct CatalogoTests {
         #expect(catalogo.varianti(in: .ricerca).contains(lente))
     }
 
+    // MARK: - The rosa for the tag ⟦orb:nome⟧
+
+    @Test func theRosaOfTheBundledCatalogoNamesEveryVarianteToday() throws {
+        let catalogo = try Self.bundled.get()
+        #expect(Set(catalogo.rosa()) == Set(catalogo.varianti))
+    }
+
+    @Test func theRosaKeepsTheFirstOfEachCategoriaThenTheCategoriaAskedFor() throws {
+        let catalogo = try Catalogo(json: Self.json([
+            Self.entry(nome: "lente", forma: "lente"),
+            Self.entry(nome: "binocolo", forma: "binocolo"),
+            Self.entry(nome: "radar", forma: "radar"),
+            Self.entry(nome: "parentesi", forma: "parentesi", categoria: "codice"),
+            Self.entry(nome: "terminale", forma: "terminale", categoria: "codice"),
+        ].joined(separator: ",")))
+
+        #expect(catalogo.rosa(around: .codice, limit: 3).map(\.nome) == ["parentesi", "lente", "terminale"])
+        #expect(catalogo.rosa(limit: 3).map(\.nome) == ["parentesi", "lente", "binocolo"])
+        #expect(catalogo.rosa(around: .ricerca).count == 5)
+    }
+
+    @Test func theFirstBlockHasOneVariantePerCategoria() throws {
+        let catalogo = try Self.bundled.get()
+        for categoria in Categoria.allCases {
+            #expect(catalogo.varianti(in: categoria).count == 1, "\(categoria)")
+        }
+    }
+
     @Test func bundledNamesAreUniqueKebabCaseASCII() throws {
         let names = try Self.bundled.get().varianti.map(\.nome)
         #expect(Set(names).count == names.count)
@@ -45,25 +74,34 @@ struct CatalogoTests {
         }
     }
 
+    /// The Forme the app's shader library draws, read from its `forma_<name>` fragment functions.
+    private static func drawnForme() throws -> Set<String> {
+        let library = try #require(MTLCreateSystemDefaultDevice()?.makeDefaultLibrary())
+        return Set(library.functionNames.filter { $0.hasPrefix(Forma.fragmentFunctionPrefix) }
+            .map { String($0.dropFirst(Forma.fragmentFunctionPrefix.count)) })
+    }
+
     @Test func everyBundledFormaHasItsSDFAndEverySDFIsUsed() throws {
         let required = try Self.bundled.get().formaNames
-        let drawn = Set(Forma.allCases.filter { $0 != .blob }.map(\.rawValue))
+        // The Blob is no Variante, and the Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
+        let drawn = try Self.drawnForme().subtracting([Forma.blob.rawValue, Forma.orbite.rawValue])
         #expect(required == drawn)
     }
 
-    @Test func theShaderDrawsExactlyTheFormeTheRendererKnows() throws {
-        let shader = URL(filePath: #filePath).deletingLastPathComponent()
-            .appending(path: "../Bubo/Orb/Orb.metal").standardized
-        let source = try String(contentsOf: shader, encoding: .utf8)
-        var cases: [Int32: String] = [:]
-        for match in source.matches(of: /case (\d+): return (\w+)\(/) {
-            cases[try #require(Int32(match.1))] = String(match.2)
+    /// One Forma per file: `Orb/Forme/<name>.metal` makes `forma_<name>` and nothing else does.
+    @Test func eachFormaIsTheFileNamedAfterIt() throws {
+        let folder = URL(filePath: #filePath).deletingLastPathComponent()
+            .appending(path: "../Bubo/Orb/Forme").standardized
+        let files = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "metal" }
+        for file in files {
+            let name = file.deletingPathExtension().lastPathComponent
+            let source = try String(contentsOf: file, encoding: .utf8)
+            #expect(source.contains("ORB_FORMA(\(name))") || source.contains("ORB_FORMA_SDF(\(name),"), "\(name)")
         }
-        let forme = Forma.allCases.filter { $0 != .blob }
-        #expect(cases == Dictionary(uniqueKeysWithValues: forme.map { ($0.functionConstant, $0.rawValue) }))
-        for forma in forme {
-            #expect(source.contains("static float \(forma.rawValue)(float3 p"), "\(forma)")
-        }
+        let names = Set(files.map { $0.deletingPathExtension().lastPathComponent })
+        let drawn = try Self.drawnForme()
+        #expect(drawn == names.union([Forma.blob.rawValue]))
     }
 
     @Test(arguments: ["it", "en"])

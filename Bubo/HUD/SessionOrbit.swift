@@ -5,11 +5,12 @@ import SwiftUI
 struct SessionOrbit: View {
     let store: SessionStore
     let quota: Quota
+    @Environment(HUDPresenter.self) private var hud
     /// The Sessione whose card is shown; until one is chosen, the one waiting the longest.
     @State private var selection: Session.ID?
 
     private var sessions: [Session] {
-        Session.inActivityOrder(store.sessions.reversed().filter { $0.phase == .aperta })
+        Session.inActivityOrder(store.sessions.reversed().filter { $0.isLive })
     }
 
     private var selected: Session? {
@@ -19,7 +20,7 @@ struct SessionOrbit: View {
     var body: some View {
         let sessions = sessions
         VStack(spacing: Spacing.small) {
-            OrbPlaceholder()
+            HUDOrb()
                 .overlay { QuotaArcs(quota: quota) }
                 .overlay {
                     GeometryReader { proxy in
@@ -42,6 +43,12 @@ struct SessionOrbit: View {
                     .padding(Spacing.xxSmall)
                     .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.large))
             }
+        }
+        // The Sessione chosen in the menu bar becomes the chosen one here.
+        .onChange(of: hud.revealedSession, initial: true) {
+            guard let id = hud.revealedSession else { return }
+            selection = id
+            hud.revealedSession = nil
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sessioni")
@@ -114,8 +121,9 @@ private struct QuotaArcs: View {
     var body: some View {
         TimelineView(.everyMinute) { context in
             ZStack {
-                arc(quota.fiveHour, at: context.date, scale: 0.95, color: Palette.attention)
-                arc(quota.sevenDay, at: context.date, scale: 0.93, color: Palette.attention.opacity(0.45))
+                // Lume is only for what waits for the user (design system): the Quota is drawn with lightness.
+                arc(quota.fiveHour, at: context.date, scale: 0.95, color: Palette.textSecondary)
+                arc(quota.sevenDay, at: context.date, scale: 0.93, color: Palette.textFaint)
             }
         }
         .accessibilityHidden(true)

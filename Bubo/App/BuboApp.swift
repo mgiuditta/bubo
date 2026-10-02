@@ -3,15 +3,20 @@ import SwiftUI
 @main
 struct BuboApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
-    /// The miniature Orb of the menu bar, drawn once.
-    private let menuBarIcon = MenuBarOrb.makeImage()
 
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
-            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions)
+            HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions,
+                    onboarding: appDelegate.onboarding, launch: appDelegate.launch)
                 .environment(appDelegate.hud)
+                .environment(appDelegate.summarizer)
+                .environment(appDelegate.pushToTalk)
+                .environment(appDelegate.hotKeys)
         }
         .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("Informazioni su Bubo", action: appDelegate.showAboutPanel)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Nuova Sessione…") { appDelegate.hud.createSession() }
                     .keyboardShortcut("n")
@@ -19,6 +24,30 @@ struct BuboApp: App {
                 Button("Nuova Bozza…") { appDelegate.hud.createDraft() }
                     .keyboardShortcut("n", modifiers: [.option, .command])
                     .disabled(appDelegate.sessions == nil)
+                Button("Sessione da issue GitHub…") { appDelegate.hud.pickIssue() }
+                    .keyboardShortcut("i")
+                    .disabled(appDelegate.sessions == nil)
+                Divider()
+                // Each names its Sessione, as the Palette has no other context; no shortcut (spec 16).
+                if let session = appDelegate.sessions?.pullRequestSessionToOpen {
+                    Button("Apri PR di «\(session.title)»…") { appDelegate.hud.openPullRequest(of: session) }
+                        .disabled(GitHubCLI().executable == nil)
+                } else {
+                    Button("Apri PR…") {}
+                        .disabled(true)
+                }
+                if let session = appDelegate.sessions?.pullRequestSessionToUpdate {
+                    Button("Aggiorna la PR di «\(session.title)»") {
+                        Task { await appDelegate.sessions?.requestPullRequestUpdate(of: session.id) }
+                    }
+                } else {
+                    Button("Aggiorna PR") {}
+                        .disabled(true)
+                }
+                Divider()
+                // Only with Bubo in front: no global shortcut (spec 14).
+                Button("Cerca…") { appDelegate.togglePalette() }
+                    .keyboardShortcut("k")
             }
             CommandGroup(before: .toolbar) {
                 Section("Vista delle Sessioni") {
@@ -42,6 +71,17 @@ struct BuboApp: App {
                 }
                 .keyboardShortcut("`", modifiers: .control)
                 .disabled(appDelegate.sessions?.terminals.isShown != true && appDelegate.sessions?.terminalSession == nil)
+                Button {
+                    appDelegate.togglePreview()
+                } label: {
+                    appDelegate.sessions?.previews.isShown == true ? Text("Nascondi l'anteprima")
+                        : Text("Mostra l'anteprima")
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+                .disabled(appDelegate.sessions?.previews.isShown != true && appDelegate.sessions?.previewSession == nil)
+                // ⌥⌘G, not ⇧⌘G: that is Trova precedente in the HIG (preflight #119).
+                Button("Mostra la Galassia") { appDelegate.showGalaxy() }
+                    .keyboardShortcut("g", modifiers: [.option, .command])
                 Divider()
             }
         }
@@ -49,24 +89,54 @@ struct BuboApp: App {
         .defaultSize(width: 1200, height: 800)
         .defaultLaunchBehavior(.presented)
 
+        // In the Finestra menu, with no shortcut (spec 14).
+        .commands {
+            CommandGroup(before: .windowList) {
+                Button("Cronologia") { appDelegate.history.show() }
+                // Also in the Palette, as every menu item; no shortcut (spec 18).
+                Button("Costi") { appDelegate.costs.show() }
+                Divider()
+            }
+        }
+
+        // In the Finestra menu, with no shortcut (spec 19).
+        Window("Agenti", id: AgentsWindow.windowID) {
+            AgentsWindow(store: appDelegate.sessions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
+        // In the Finestra menu and the Palette, with no shortcut (spec 20).
+        Window("Plugin", id: PluginsWindow.windowID) {
+            PluginsWindow(store: appDelegate.sessions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
+        // In the Finestra menu, with no shortcut (spec 19).
+        Window("Automazioni", id: AutomationsWindow.windowID) {
+            AutomationsWindow(store: appDelegate.sessions, runner: appDelegate.executions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(appDelegate.sessions)
+                .environment(appDelegate.secondBrain)
+                .environment(appDelegate.semanticSearch)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
+                .environment(appDelegate.remote)
+                // System controls, as macOS expects of the Impostazioni, but only dark like the rest of Bubo
+                // (design system, ADR 0004).
+                .preferredColorScheme(.dark)
         }
 
         MenuBarExtra {
-            MenuBarContent()
+            MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions)
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         } label: {
-            Label {
-                Text(MenuBarOrb.accessibilityDescription)
-            } icon: {
-                Image(nsImage: menuBarIcon)
-            }
+            MenuBarLabel(sessions: appDelegate.sessions)
         }
 
         #if DEBUG

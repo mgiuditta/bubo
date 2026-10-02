@@ -4,6 +4,8 @@ import SwiftUI
 ///
 /// Levels 1–3 take one key: ↩ Solo ora, esc No. Levels 4–5 open on No and approve only with a 1-second press,
 /// with no "Per questa Sessione" nor "Sempre in questo Progetto", which first shows the rule it would save.
+/// A command that wants out of the Sandbox carries the mark "Fuori dalla Sandbox" and offers only No and Solo ora.
+/// A Richiesta "Rete: host" saves "Sempre in questo Progetto" in the Progetto's Sandbox, in Bubo, at once.
 struct PermissionRequestView: View {
     let pending: RequestCenter.Pending
     /// The folder of the Sessione's Progetto, where "Sempre in questo Progetto" saves its rule.
@@ -15,6 +17,8 @@ struct PermissionRequestView: View {
     let answer: (PermissionAnswer) -> Void
     /// Saves the Richiesta's rule in the Progetto, then allows the call.
     var allowInProject: () throws -> Void = {}
+    /// Adds the host of a Richiesta "Rete: host" to the Progetto's Sandbox, then allows the call.
+    var allowDomainInProject: () -> Void = {}
     @State private var isShowingRule = false
 
     private var request: PermissionRequest { pending.request }
@@ -34,10 +38,23 @@ struct PermissionRequestView: View {
                         .foregroundStyle(Palette.textSecondary)
                 }
             }
-            Text(verbatim: request.title ?? request.tool)
-                .font(Typography.body(size: 12, weight: .semibold))
-                .lineLimit(3)
-            if let subject = request.command ?? request.path ?? request.url {
+            if request.isOutsideSandbox {
+                Label("Fuori dalla Sandbox", systemImage: "lock.open")
+                    .font(Typography.mono(size: 10, weight: .medium))
+                    .textCase(.uppercase)
+                    .foregroundStyle(Palette.danger)
+                    .help("Il comando gira con i tuoi permessi, senza i limiti della Sandbox. Puoi consentirlo solo per questa volta.")
+            }
+            Group {
+                if request.tool == PermissionRequest.networkTool, let host = request.host {
+                    Text("Rete: \(RepoActivations.escaped(host))")
+                } else {
+                    Text(verbatim: request.title ?? request.tool)
+                }
+            }
+            .font(Typography.body(size: 12, weight: .semibold))
+            .lineLimit(3)
+            if let subject = request.subject {
                 // Tutto quello che verrà eseguito, invisibili e controlli scritti per esteso: niente righe tagliate.
                 ScrollView {
                     Text(verbatim: Self.shown(subject))
@@ -50,7 +67,8 @@ struct PermissionRequestView: View {
                 .padding(Spacing.xxSmall)
                 .background(Palette.ink.opacity(0.6), in: .rect(cornerRadius: CornerRadius.small))
             }
-            if let detail = request.detail {
+            // The CLI's own sentence for a host is in English and says no more than the title.
+            if let detail = request.detail, request.tool != PermissionRequest.networkTool {
                 Text(verbatim: detail)
                     .font(Typography.body(size: 11))
                     .foregroundStyle(Palette.textSecondary)
@@ -87,6 +105,9 @@ struct PermissionRequestView: View {
                 }
                 if pending.projectRule != nil {
                     Button("Sempre in questo Progetto…") { isShowingRule = true }
+                } else if pending.projectDomain != nil {
+                    Button("Sempre in questo Progetto", action: allowDomainInProject)
+                        .help("Aggiunge l'host ai domini della Sandbox di questo Progetto, in Bubo. Lo togli dalla configurazione del Progetto.")
                 }
             }
             Spacer(minLength: 0)
@@ -158,6 +179,17 @@ private struct HoldToAllowButton: View {
         PermissionRequestView(
             pending: .init(request: PermissionRequest(id: "2", tool: "Bash", command: "git push --force origin main"),
                            risk: Risk(level: .irreversibile), since: .now),
+            project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
+        PermissionRequestView(
+            pending: .init(request: {
+                var request = PermissionRequest(id: "3", tool: "Bash", command: "swift package resolve")
+                request.isOutsideSandbox = true
+                return request
+            }(), risk: Risk(level: .modifica), since: .now),
+            project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
+        PermissionRequestView(
+            pending: .init(request: PermissionRequest(id: "4", tool: PermissionRequest.networkTool, host: "api.github.com"),
+                           risk: Risk(level: .rete), since: .now),
             project: URL(filePath: "/Users/u/Sviluppo/repo"), queued: 0, hasKeyboard: false) { _ in }
     }
     .frame(width: 320)

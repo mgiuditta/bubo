@@ -15,4 +15,14 @@ enum NetworkStatus {
         }
         return false
     }
+
+    /// Whether the network path is usable, now and at each change, until the iteration ends.
+    static func changes() -> AsyncStream<Bool> {
+        let monitor = NWPathMonitor()
+        let (statuses, continuation) = AsyncStream.makeStream(of: Bool.self)
+        monitor.pathUpdateHandler = { continuation.yield($0.status == .satisfied) }
+        continuation.onTermination = { _ in monitor.cancel() }
+        monitor.start(queue: DispatchQueue(label: "com.mgiuditta.bubo.network-changes"))
+        return statuses
+    }
 }

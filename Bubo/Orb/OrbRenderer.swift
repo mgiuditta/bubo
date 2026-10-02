@@ -44,6 +44,8 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private var director = MorphDirector()
     /// The Variante last passed to the Regia, to request each choice once.
     private var requestedVariante: Variante?
+    /// When the Orbite was last requested, the start of its diagram's clock.
+    private var orbiteStart: CFTimeInterval = 0
     private var lastFrameTime = CACurrentMediaTime()
     #if DEBUG
     private var meter = FrameMeter()
@@ -54,9 +56,10 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     func draw(in view: MTKView) {
         let now = CACurrentMediaTime()
         let reducesMotion = Motion.isReduced
-        animation.state = controls.state
+        animation.state = controls.displayedState
         animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
+        animation.voiceLevel = controls.voiceLevel
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
         uniforms.apply(animation)
@@ -64,12 +67,13 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 
         if controls.variante != requestedVariante {
             requestedVariante = controls.variante
-            if let forma = controls.variante.flatMap({ Forma(rawValue: $0.forma) }) {
-                _ = pipelines.pipeline(for: forma) // starts loading it while the Orb holds or morphs
+            if controls.variante == Orbite.variante { orbiteStart = now }
+            if let forma = controls.variante.map({ Forma(rawValue: $0.forma) }) {
+                pipelines.prepare(forma) // starts loading it while the Orb holds or morphs
             }
             director.request(controls.variante, at: now)
         }
-        director.enter(controls.state, at: now)
+        director.enter(controls.displayedState, at: now)
         director.reducesMotion = reducesMotion
         director.advance(to: now)
         if requestedVariante != nil, director.destination == nil {
@@ -82,6 +86,9 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         let formaPipeline = pipelines.pipeline(for: frame.forma)
         uniforms.morph = formaPipeline == nil || frame.forma == .blob ? 0 : frame.morph
         uniforms.opacity = frame.opacity
+        if frame.forma == .orbite {
+            uniforms.diagramTime = Orbite.diagramTime(since: orbiteStart, at: now, reducesMotion: reducesMotion)
+        }
 
         guard let pass = view.currentRenderPassDescriptor,
               let drawable = view.currentDrawable,
