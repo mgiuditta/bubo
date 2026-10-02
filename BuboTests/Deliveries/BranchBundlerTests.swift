@@ -111,7 +111,7 @@ struct BranchBundlerTests {
         #expect(try git("show", "consegna/ada/stampa:README.md", in: clone) == "ciao, mondo\n")
         let log = try git("log", "--format=%s|%ae", "\(pushed)..consegna/ada/stampa", in: clone)
         #expect(log.split(separator: "\n").count == 2)
-        #expect(log.hasPrefix("Modifiche non salvate di Ada|\(BranchBundler.committerEmail)"))
+        #expect(log.hasPrefix(String(localized: "Modifiche non salvate di \("Ada")") + "|\(BranchBundler.committerEmail)"))
     }
 
     @Test func aCloneWithoutTheBaseCannotFetchTheBundle() async throws {
