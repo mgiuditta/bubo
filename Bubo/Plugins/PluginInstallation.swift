@@ -23,13 +23,10 @@ nonisolated extension PluginInstallation {
         }
     }
 
-    /// Whether `folder` and `other` are the same path, trailing slash and `.` and `..` aside.
+    /// Whether `folder` and `other` are the same folder, symbolic links such as `/tmp` and `/private/tmp`, trailing
+    /// slash and `.` and `..` aside.
     static func isSameFolder(_ folder: URL, _ other: URL?) -> Bool {
         guard let other else { return false }
-        func normalized(_ url: URL) -> String {
-            let path = url.standardizedFileURL.path
-            return path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
-        }
-        return normalized(folder) == normalized(other)
+        return TrustGate.realPath(folder.path) == TrustGate.realPath(other.path)
     }
 }

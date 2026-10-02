@@ -23,12 +23,12 @@ nonisolated extension ProcessRunner {
         }
     }
 
-    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed.
+    /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed, in `folder` when given.
     ///
     /// Standard error goes to Bubo's own and is not collected.
-    static func disclaimed(environment: [String: String]) -> ProcessRunner {
+    static func disclaimed(environment: [String: String], in folder: URL? = nil) -> ProcessRunner {
         ProcessRunner { executable, arguments in
-            try await runDisclaimed(executable, arguments: arguments, environment: environment)
+            try await runDisclaimed(executable, arguments: arguments, environment: environment, in: folder)
         }
     }
 }
@@ -64,8 +64,9 @@ private func runProcess(_ executable: URL, arguments: [String],
 }
 
 @concurrent
-private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String]) async throws -> ProcessOutput {
-    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment)
+private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String],
+                           in folder: URL?) async throws -> ProcessOutput {
+    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment, in: folder)
     try process.input.close()
     return try await withTaskCancellationHandler {
         let standardOutput = try await readText(from: process.output)

@@ -1,9 +1,10 @@
 import SwiftUI
 
 /// The Plugin window, from the Finestra menu and the Palette: the plugins of every Marketplace, the installed
-/// ones, and what needs attention, read only (spec 20, building step 1).
+/// ones, and what needs attention; install, turn on and off, uninstall (spec 20, building steps 1 and 2).
 ///
-/// Three columns: sidebar, list, detail; one search over every Marketplace. Bubo never writes in `~/.claude`.
+/// Three columns: sidebar, list, detail; one search over every Marketplace. Bubo never writes in `~/.claude`: every
+/// change is a `claude plugin …` command.
 struct PluginsWindow: View {
     /// The id of the window's scene.
     static let windowID = "plugin"
@@ -17,6 +18,8 @@ struct PluginsWindow: View {
     @State private var plugin: PluginID?
     @State private var query = ""
     @State private var isChoosingFolder = false
+    @State private var installing: PluginEntry?
+    @State private var uninstalling: PluginEntry?
 
     /// Creates the window, on the most recent Progetto of `store`.
     init(store: SessionStore?) {
@@ -46,7 +49,9 @@ struct PluginsWindow: View {
                        emptyTitle: selection == .installed || selection == nil ? "Nessun plugin installato" : "Nessun plugin",
                        isLoading: catalog.snapshot == nil, isSearching: !query.isEmpty,
                        isListingUnavailable: catalog.isListingUnavailable, failing: failing, marketplaces: catalog.snapshot?.marketplaces ?? [],
-                       officialCache: catalog.officialCache, selection: $plugin) {
+                       officialCache: catalog.officialCache, selection: $plugin) { entry in
+                installing = entry
+            } retry: {
                 attempt += 1
             }
             .navigationSplitViewColumnWidth(min: 300, ideal: 380)
@@ -54,7 +59,11 @@ struct PluginsWindow: View {
             if let snapshot = catalog.snapshot, let entry = snapshot.plugins.first(where: { $0.id == plugin }) {
                 PluginDetail(entry: entry, problems: snapshot.problems.filter { $0.plugin == entry.id },
                              marketplace: snapshot.marketplace(named: entry.id.marketplace),
-                             officialCache: catalog.officialCache)
+                             officialCache: catalog.officialCache, catalog: catalog) {
+                    installing = entry
+                } uninstall: {
+                    uninstalling = entry
+                }
                 .id(entry.id)
             } else {
                 ContentUnavailableView("Scegli un plugin", systemImage: "puzzlepiece.extension")
@@ -67,6 +76,13 @@ struct PluginsWindow: View {
             if !isReading, selection == nil, let snapshot = catalog.snapshot {
                 selection = .initialSelection(in: snapshot)
             }
+        }
+        .sheet(item: $installing) { entry in
+            InstallSheet(entry: entry, marketplace: catalog.snapshot?.marketplace(named: entry.id.marketplace),
+                         officialCache: catalog.officialCache, hasProject: project != nil, catalog: catalog)
+        }
+        .sheet(item: $uninstalling) { entry in
+            UninstallSheet(entry: entry, catalog: catalog)
         }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }

@@ -13,6 +13,8 @@ struct PluginEntryList: View {
     let marketplaces: [Marketplace]
     let officialCache: OfficialCatalogCache?
     @Binding var selection: PluginID?
+    /// Opens the Installa sheet of an entry.
+    let install: (PluginEntry) -> Void
     /// Asks `claude` for the list again.
     let retry: () -> Void
 
@@ -51,7 +53,7 @@ struct PluginEntryList: View {
                     Section {
                         ForEach(section.entries) { entry in
                             PluginRow(entry: entry, failed: failing.contains(entry.id), marketplace: marketplaces.first { $0.name == entry.id.marketplace },
-                                      officialCache: officialCache)
+                                      officialCache: officialCache) { install(entry) }
                                 .tag(entry.id)
                         }
                     } header: {

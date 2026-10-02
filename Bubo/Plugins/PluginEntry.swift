@@ -38,4 +38,20 @@ nonisolated struct PluginEntry: Identifiable, Sendable, Equatable {
 
     /// Whether at least one installation is on.
     var isEnabled: Bool { installations.contains(where: \.isEnabled) }
+
+    /// The scopes it can be uninstalled from, in the order of `PluginScope`: every one but `managed`.
+    var uninstallableScopes: [PluginScope] {
+        let scopes = Set(installations.map(\.scope))
+        return PluginScope.allCases.filter { $0 != .managed && scopes.contains($0) }
+    }
+
+    /// The scope Attiva and Disattiva write; `nil` when only the organization manages it.
+    ///
+    /// `local` for a plugin of the Progetto, so the settings the team shares stay as they are and the change is only
+    /// for this person here; `user` otherwise.
+    var switchScope: PluginScope? {
+        let scopes = Set(installations.map(\.scope))
+        if scopes.contains(.local) || scopes.contains(.project) { return .local }
+        return scopes.contains(.user) ? .user : nil
+    }
 }

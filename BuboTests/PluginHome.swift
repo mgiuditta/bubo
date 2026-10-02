@@ -78,14 +78,14 @@ final class PluginHome {
 
 /// A `claude plugin list` that never answers, as with no network or no `claude`.
 extension PluginListing {
-    static let never = PluginListing {
+    static let never = PluginListing { _ in
         try await Task.sleep(for: .seconds(3_600))
         throw CancellationError()
     }
 
     /// A `claude plugin list` that answers `list` at once.
     static func answering(_ list: PluginList) -> PluginListing {
-        PluginListing { list }
+        PluginListing { _ in list }
     }
 }
 
