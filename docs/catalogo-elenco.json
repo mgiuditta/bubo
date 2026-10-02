@@ -58,8 +58,8 @@
           "descrizione": "Quando Bubo cerca qualcosa: sul web, nei file, tra le note.",
           "silhouette": "Una lente d'ingrandimento con il manico in basso a destra.",
           "esempi": {
-            "it": "Trova dove si impostano le variabili d'ambiente.",
-            "en": "Find every place where we read from UserDefaults."
+            "it": "Trova il file dove definiamo i colori del tema.",
+            "en": "Look through the docs folder for the release checklist."
           }
         },
         {
@@ -81,8 +81,8 @@
           "silhouette": "Un cuore paffuto.",
           "moto": "Batte circa cinquanta volte al minuto.",
           "esempi": {
-            "it": "Riassumimi il referto in parole semplici.",
-            "en": "What's a normal resting heart rate?"
+            "it": "Il mio battito a riposo è 85: è troppo alto?",
+            "en": "How can I keep my heart healthy after 50?"
           }
         },
         {
@@ -91,7 +91,7 @@
           "descrizione": "Quando Bubo legge, scrive o riordina la posta.",
           "silhouette": "Una busta chiusa con la patta a V in rilievo.",
           "esempi": {
-            "it": "Riassumimi questa mail in tre righe.",
+            "it": "Dimmi quali mail di oggi richiedono una risposta.",
             "en": "Write a polite email to reschedule Thursday's meeting."
           }
         },
@@ -135,8 +135,8 @@
           "silhouette": "Un pennello tondo con la punta in basso a sinistra.",
           "moto": "Fa una lenta pennellata.",
           "esempi": {
-            "it": "Scrivimi una poesia breve sull'autunno.",
-            "en": "Sum up the plot of this short story."
+            "it": "Disegnami un gufo stilizzato per un biglietto d'auguri.",
+            "en": "Sketch a watercolor illustration of a lighthouse."
           }
         },
         {
@@ -146,8 +146,8 @@
           "silhouette": "Una moneta con il bordo rialzato e una stella.",
           "moto": "Ogni tanto fa un giro su se stessa.",
           "esempi": {
-            "it": "Cos'è lo spread tra BTP e Bund?",
-            "en": "What does APR stand for?"
+            "it": "Quanto ho speso questo mese al ristorante?",
+            "en": "Help me split the rent fairly among three roommates."
           }
         },
         {
@@ -157,8 +157,8 @@
           "silhouette": "Un aereo di linea visto dall'alto, muso in alto a destra.",
           "moto": "Rolla dolcemente.",
           "esempi": {
-            "it": "Treno o aereo da Roma a Parigi?",
-            "en": "Summarize this itinerary day by day."
+            "it": "Trova un volo diretto da Milano a Lisbona a maggio.",
+            "en": "Which airlines let me bring a cabin bag for free?"
           }
         },
         {
@@ -251,7 +251,7 @@
           "moto": "Ruota sull'asse.",
           "esempi": {
             "it": "Cerca sul web la documentazione ufficiale di questa libreria.",
-            "en": "Search the web for the latest Xcode release notes."
+            "en": "Search the web for reviews of the new e-reader models."
           }
         },
         {
@@ -262,7 +262,7 @@
           "silhouette": "Un punto interrogativo grosso e arrotondato.",
           "moto": "Si inclina come chi si domanda.",
           "esempi": {
-            "it": "Qual è la capitale dell'Australia?",
+            "it": "In che anno è caduto il muro di Berlino?",
             "en": "What's the tallest mountain in Africa?"
           }
         },
@@ -274,7 +274,7 @@
           "silhouette": "Un imbuto con il becco corto.",
           "moto": "Una goccia scende.",
           "esempi": {
-            "it": "Fammi il riassunto di questo PDF.",
+            "it": "Accorcia questo verbale a cinque righe.",
             "en": "Shorten this text to one paragraph."
           }
         },
@@ -286,7 +286,7 @@
           "silhouette": "Un cervello di profilo con due solchi.",
           "esempi": {
             "it": "Un'auto a guida autonoma deve proteggere prima i passeggeri o i pedoni?",
-            "en": "A bat and a ball cost 1.10: explain the trap."
+            "en": "If three cats catch three mice in three minutes, how long for 100 cats? Think it through."
           }
         },
         {
@@ -297,7 +297,7 @@
           "silhouette": "Una gomma per cancellare con un angolo smussato.",
           "moto": "Strofina avanti e indietro.",
           "esempi": {
-            "it": "Correggi grammatica e punteggiatura di questo testo.",
+            "it": "Sistemami gli errori di battitura in questa lettera.",
             "en": "Rewrite this paragraph in a more formal tone."
           }
         },
@@ -308,7 +308,7 @@
           "silhouette": "Un calendario da tavolo con due anelli in alto.",
           "esempi": {
             "it": "Riassumi l'agenda di domani.",
-            "en": "What day of the week was 4 July 1976?"
+            "en": "What do I have on my calendar next Tuesday?"
           }
         },
         {
@@ -357,7 +357,7 @@
           "silhouette": "Una bilancia a due piatti in equilibrio.",
           "moto": "I piatti oscillano.",
           "esempi": {
-            "it": "Aiutami a decidere tra due offerte di lavoro.",
+            "it": "Pro e contro di comprare casa o restare in affitto.",
             "en": "Pros and cons of a four-day week for a small company."
           }
         },
@@ -389,7 +389,7 @@
           "descrizione": "Quando si parla di risparmi e di come mettere soldi da parte.",
           "silhouette": "Un salvadanaio a maialino con la fessura.",
           "esempi": {
-            "it": "Se risparmio 300 euro al mese, quanto avrò tra 15 anni?",
+            "it": "Come metto da parte 5.000 euro per le vacanze entro l'estate?",
             "en": "How much should I save each month?"
           }
         },
@@ -442,7 +442,7 @@
           "silhouette": "Un trolley con il manico estratto.",
           "esempi": {
             "it": "Prepara la lista delle cose da mettere in valigia per Londra.",
-            "en": "Draft a packing list for a week of hiking in Scotland."
+            "en": "What should I pack for a ski weekend?"
           }
         },
         {
@@ -552,7 +552,7 @@
           "moto": "Ondeggia.",
           "esempi": {
             "it": "Che schema di sillabe ha un haiku?",
-            "en": "Write a limerick about a cat who codes."
+            "en": "Write a haiku about rain on the windows."
           }
         },
         {
@@ -573,7 +573,7 @@
           "silhouette": "Un manubrio con due dischi per lato.",
           "moto": "Si alza e si abbassa.",
           "esempi": {
-            "it": "Ho 40 minuti al giorno: meglio corsa o pesi?",
+            "it": "Quante serie e ripetizioni servono per aumentare la forza?",
             "en": "Make me a beginner strength workout."
           }
         },
@@ -585,7 +585,7 @@
           "moto": "Dondola appena.",
           "esempi": {
             "it": "Aggiungi un hook che lanci il linter dopo ogni modifica.",
-            "en": "Review the hooks in settings.json."
+            "en": "Add a hook that runs the linter before every commit."
           }
         }
       ]
@@ -643,7 +643,7 @@
           "silhouette": "Un orologio da polso con il cinturino.",
           "moto": "La lancetta dei secondi gira.",
           "esempi": {
-            "it": "Che ore sono?",
+            "it": "Mi dici l'ora esatta?",
             "en": "What time is it now?"
           }
         },
@@ -718,15 +718,15 @@
           "descrizione": "Quando si parla di lingue: traduzioni, parole straniere, pronuncia.",
           "silhouette": "Tre cubi con le lettere, due sotto e uno sopra.",
           "esempi": {
-            "it": "Come si dice \"arrivederci\" in giapponese?",
-            "en": "What's the plural of cactus?"
+            "it": "Traduci in tedesco \"dov'è la stazione?\".",
+            "en": "How do you pronounce \"croissant\" in French?"
           }
         },
         {
           "nome": "aeroplanino",
           "categoria": "mail",
           "descrizione": "Quando Bubo invia una mail o una risposta.",
-          "silhouette": "Un aeroplanino di carta.",
+          "silhouette": "Un aeroplanino di carta visto di profilo, con il muso orizzontale.",
           "moto": "Plana in avanti.",
           "esempi": {
             "it": "Manda questa risposta al cliente.",
@@ -938,8 +938,8 @@
           "descrizione": "Quando si viaggia in treno: orari, abbonamenti, tratte.",
           "silhouette": "Una locomotiva vista di tre quarti.",
           "esempi": {
-            "it": "Quali sono gli orari dei treni Milano–Torino domattina?",
-            "en": "Is a rail pass worth it for 9 days?"
+            "it": "Quanto ci mette il regionale da Firenze a Pisa?",
+            "en": "Is there a night train from Vienna to Venice?"
           }
         },
         {
@@ -982,7 +982,7 @@
           "silhouette": "Una meridiana tonda con lo gnomone triangolare.",
           "esempi": {
             "it": "Quando torna l'ora solare?",
-            "en": "When does daylight saving time end in the US?"
+            "en": "Why do we have daylight saving time at all?"
           }
         },
         {
@@ -1015,7 +1015,7 @@
           "silhouette": "Una lampadina con il bulbo tondo e la ghiera.",
           "moto": "Si accende piano.",
           "esempi": {
-            "it": "Proponi cinque titoli per un post sul lavoro da remoto.",
+            "it": "Dammi dieci idee per il compleanno di mia sorella.",
             "en": "Brainstorm names for a coffee shop."
           }
         },
@@ -1151,7 +1151,7 @@
           "silhouette": "Un cerchio diviso a metà: un sole da un lato e una luna dall'altro.",
           "moto": "Ruota piano.",
           "esempi": {
-            "it": "Che ore sono a Tokyo adesso?",
+            "it": "Se a Roma sono le 18, che ore sono a New York?",
             "en": "Find a fair meeting time for Rome, San Francisco and Tokyo."
           }
         },
@@ -1162,7 +1162,7 @@
           "silhouette": "Un grafico a quattro barre crescenti.",
           "moto": "Le barre crescono a turno.",
           "esempi": {
-            "it": "Punti chiave di questo bilancio, in elenco.",
+            "it": "Fammi un grafico dei ricavi trimestrali dell'anno scorso.",
             "en": "Chart my expenses by month."
           }
         },
@@ -1207,7 +1207,7 @@
           "descrizione": "Quando si cercano risultati sportivi: partite, classifiche, campionati.",
           "silhouette": "Una coppa con due manici su una base.",
           "esempi": {
-            "it": "Chi ha vinto ieri sera?",
+            "it": "Com'è finita la finale di Wimbledon?",
             "en": "What's the current league table?"
           }
         },
@@ -1326,7 +1326,7 @@
           "silhouette": "Un segnaposto a goccia rovesciata con un foro.",
           "moto": "Saltella sul posto.",
           "esempi": {
-            "it": "Trova un ristorante vegano aperto stasera qui vicino.",
+            "it": "Dove si trova la farmacia di turno più vicina?",
             "en": "Find a pharmacy open now near me."
           }
         },
@@ -1370,7 +1370,7 @@
           "silhouette": "Un megafono a cono con l'impugnatura.",
           "esempi": {
             "it": "Trasforma questi appunti in un annuncio per l'ufficio.",
-            "en": "Summarize this newsletter in two bullets."
+            "en": "Draft an announcement for the whole team about the new office hours."
           }
         },
         {
@@ -1380,7 +1380,7 @@
           "descrizione": "Quando si parla di vaccini e iniezioni.",
           "silhouette": "Una siringa con lo stantuffo e l'ago.",
           "esempi": {
-            "it": "Cerca le linee guida aggiornate sul vaccino antinfluenzale.",
+            "it": "Ogni quanto va fatto il richiamo del tetano?",
             "en": "Which vaccines do I need for Thailand?"
           }
         }
@@ -1408,7 +1408,7 @@
           "silhouette": "Una cornetta del telefono inclinata.",
           "moto": "Trema come se squillasse.",
           "esempi": {
-            "it": "Qual è il prefisso telefonico della Spagna?",
+            "it": "Come recupero un numero cancellato dalla rubrica?",
             "en": "How do I block a phone number?"
           }
         },
@@ -1546,8 +1546,8 @@
           "descrizione": "Quando si parla di alimentazione sana: dieta, verdure, calorie.",
           "silhouette": "Una carota con il ciuffo.",
           "esempi": {
-            "it": "Quante calorie ha una banana?",
-            "en": "Compare intermittent fasting and calorie counting."
+            "it": "Quante porzioni di verdura dovrei mangiare al giorno?",
+            "en": "Is a plant-based diet enough for protein?"
           }
         },
         {
@@ -1642,7 +1642,7 @@
           "silhouette": "Un termometro verticale con il bulbo in basso.",
           "moto": "La colonnina sale e scende.",
           "esempi": {
-            "it": "Che differenza c'è tra temperatura percepita e reale?",
+            "it": "Quale sarà la massima domani a Bologna?",
             "en": "How cold will it get tonight?"
           }
         }
@@ -1695,7 +1695,7 @@
           }
         },
         {
-          "nome": "vinile",
+          "nome": "giradischi",
           "categoria": "musica",
           "descrizione": "Quando si parla di album e dischi: collezioni, edizioni, discografie.",
           "silhouette": "Un giradischi con il disco e il braccio.",
@@ -1712,7 +1712,7 @@
           "silhouette": "Un tavolo tondo visto dall'alto con quattro sedie.",
           "esempi": {
             "it": "Fissa una riunione con il team giovedì.",
-            "en": "Prepare the agenda for tomorrow's offsite."
+            "en": "Set up a 30-minute sync with the design team on Friday."
           }
         },
         {
@@ -1755,7 +1755,7 @@
           "descrizione": "Quando si parla di borsa e azioni che salgono.",
           "silhouette": "Un toro di profilo con le corna in avanti.",
           "esempi": {
-            "it": "Com'è andato oggi il titolo in borsa?",
+            "it": "Il mercato azionario è in rialzo questa settimana?",
             "en": "Should I buy index funds now?"
           }
         },
@@ -2106,7 +2106,7 @@
           "descrizione": "Quando si fa matematica: calcoli, dimostrazioni, problemi.",
           "silhouette": "Il simbolo pi greco in rilievo.",
           "esempi": {
-            "it": "Dimostra che la radice di 2 è irrazionale.",
+            "it": "Quanto fa il 15% di 340?",
             "en": "Solve this equation step by step."
           }
         },
@@ -2159,7 +2159,7 @@
           "silhouette": "Una porta socchiusa con la maniglia.",
           "moto": "Si apre un poco.",
           "esempi": {
-            "it": "Prepara un messaggio di benvenuto per il nuovo collega.",
+            "it": "Scrivi due righe di benvenuto per i nuovi clienti dello studio.",
             "en": "Write a welcome email for new customers."
           }
         },
@@ -2372,7 +2372,7 @@
           "silhouette": "Un drago di profilo con le ali spiegate.",
           "moto": "Le ali battono piano.",
           "esempi": {
-            "it": "Inventa una storia della buonanotte con un drago timido.",
+            "it": "Scrivi una fiaba su un cavaliere e un drago che diventano amici.",
             "en": "Write a fantasy tale about a lost kingdom."
           }
         },
@@ -2424,7 +2424,7 @@
           "silhouette": "Un cappello a punta piegata con il pompon.",
           "moto": "Il pompon dondola.",
           "esempi": {
-            "it": "Quanti giorni mancano a Natale?",
+            "it": "Idee per decorare la casa per le feste di dicembre.",
             "en": "Christmas dinner ideas for eight people."
           }
         },
@@ -3082,7 +3082,7 @@
           "silhouette": "Una palla pesante con una catena e un anello.",
           "esempi": {
             "it": "Mi conviene estinguere prima il prestito?",
-            "en": "Should I pay off a 5% loan early or invest?"
+            "en": "How long will it take to repay a 20,000 euro loan at 400 a month?"
           }
         },
         {
@@ -3571,7 +3571,7 @@
           "nome": "occhio",
           "categoria": "agente",
           "descrizione": "Quando Bubo osserva in attesa di un evento: cartelle, notifiche, cambiamenti.",
-          "silhouette": "Un occhio a mandorla con l'iride tonda.",
+          "silhouette": "Un occhio socchiuso con le ciglia.",
           "moto": "Sbatte la palpebra.",
           "esempi": {
             "it": "Tieni d'occhio la cartella Download e avvisami.",
@@ -4036,7 +4036,7 @@
           }
         },
         {
-          "nome": "cartello",
+          "nome": "bivio",
           "categoria": "agente",
           "descrizione": "Quando Bubo smista: issue, segnalazioni, richieste in arrivo.",
           "silhouette": "Un palo con due frecce che puntano in direzioni opposte.",
@@ -4149,7 +4149,7 @@
           }
         },
         {
-          "nome": "moto",
+          "nome": "motocicletta",
           "categoria": "viaggi",
           "descrizione": "Quando si viaggia in moto.",
           "silhouette": "Una motocicletta di profilo.",
@@ -4162,7 +4162,7 @@
           "nome": "fantasma",
           "categoria": "creativo",
           "descrizione": "Quando si parla di storie di paura.",
-          "silhouette": "Un fantasma a lenzuolo con l'orlo ondulato.",
+          "silhouette": "Un fantasma con due occhi e la bocca aperta, l'orlo a tre punte.",
           "moto": "Fluttua.",
           "esempi": {
             "it": "Raccontami una storia di paura per il campeggio.",
@@ -4329,7 +4329,7 @@
           "categoria": "chat",
           "gruppo": "conversazione",
           "descrizione": "Quando si parla di re, regine e storia delle monarchie.",
-          "silhouette": "Una corona a cinque punte con le perle.",
+          "silhouette": "Una corona a tre punte, senza perle.",
           "esempi": {
             "it": "Chi era Elisabetta I?",
             "en": "How does the British royal succession work?"
@@ -4718,8 +4718,8 @@
           "silhouette": "Un faro da palco su un supporto a forcella.",
           "moto": "Il fascio si muove.",
           "esempi": {
-            "it": "Quando suonano in Italia l'anno prossimo?",
-            "en": "Find the setlist from last night's concert."
+            "it": "Ci sono concerti jazz a Bologna questo weekend?",
+            "en": "Which bands are headlining the summer festivals?"
           }
         },
         {
@@ -5002,7 +5002,7 @@
           "categoria": "chat",
           "gruppo": "conversazione",
           "descrizione": "Quando la connessione di casa non va: wifi, internet lento.",
-          "silhouette": "Tre archi concentrici sopra un punto.",
+          "silhouette": "Un modem con due antenne.",
           "moto": "Gli archi si accendono a turno.",
           "esempi": {
             "it": "Il wifi di casa è lentissimo: cosa faccio?",
@@ -5390,7 +5390,7 @@
           "categoria": "chat",
           "gruppo": "natura",
           "descrizione": "Quando si parla di spiagge e scogli come ambiente naturale: conchiglie, coralli.",
-          "silhouette": "Una conchiglia a ventaglio con le coste.",
+          "silhouette": "Una conchiglia a spirale.",
           "esempi": {
             "it": "Come si formano le conchiglie?",
             "en": "Why are coral reefs dying?"

@@ -48,10 +48,26 @@ struct CatalogoElencoTests {
     /// At most this many characters of `nome: descrizione` lines in one rosa (about 1,000 tokens).
     private static let maxRosaCharacters = 3_000
 
-    private static let loaded = Result {
-        let url = URL(filePath: #filePath).deletingLastPathComponent()
-            .appending(path: "../docs/catalogo-elenco.json").standardized
-        return try JSONDecoder().decode(Elenco.self, from: Data(contentsOf: url))
+    /// The fields an entry may have; `JSONDecoder` would silently drop a misspelled one.
+    private static let fields: Set<String> = ["nome", "categoria", "gruppo", "descrizione", "silhouette", "moto", "esempi"]
+
+    private static let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+    private static let data = Result { try Data(contentsOf: root.appending(path: "docs/catalogo-elenco.json")) }
+    private static let loaded = Result { try JSONDecoder().decode(Elenco.self, from: data.get()) }
+
+    /// The texts of the labelled set of #85, which measures the router on requests it has never seen.
+    private static func labelledRequests() throws -> [String] {
+        struct LabelledSet: Decodable {
+            struct Request: Decodable { let testo: String }
+            let richieste: [Request]
+        }
+        let url = root.appending(path: "BuboTests/Fixtures/richieste-etichettate.json")
+        return try JSONDecoder().decode(LabelledSet.self, from: Data(contentsOf: url)).richieste.map(\.testo)
+    }
+
+    /// `text` lowercased, without punctuation and with single spaces around every word, to compare requests.
+    private static func normalized(_ text: String) -> String {
+        " " + text.lowercased().split { !$0.isLetter && !$0.isNumber }.joined(separator: " ") + " "
     }
 
     @Test func theListHas480To520UniqueKebabCaseNames() throws {
@@ -73,15 +89,36 @@ struct CatalogoElencoTests {
 
     @Test func everyEntryHasADescriptionASilhouetteAndAnItalianAndEnglishExample() throws {
         let voci = try Self.loaded.get().voci
+        func isBlank(_ text: String) -> Bool { text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         for voce in voci {
-            #expect(!voce.descrizione.trimmingCharacters(in: .whitespaces).isEmpty, "\(voce.nome)")
-            #expect(!voce.silhouette.trimmingCharacters(in: .whitespaces).isEmpty, "\(voce.nome)")
-            #expect(voce.moto.map { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? true, "\(voce.nome)")
+            #expect(!isBlank(voce.descrizione), "\(voce.nome)")
+            #expect(!isBlank(voce.silhouette), "\(voce.nome)")
+            #expect(voce.moto.map { !isBlank($0) } ?? true, "\(voce.nome)")
             #expect(Set(voce.esempi.keys) == ["it", "en"], "\(voce.nome)")
-            #expect(voce.esempi.values.allSatisfy { !$0.trimmingCharacters(in: .whitespaces).isEmpty }, "\(voce.nome)")
+            #expect(!voce.esempi.values.contains(where: isBlank), "\(voce.nome)")
         }
         let examples = voci.flatMap(\.esempi.values)
         #expect(Set(examples).count == examples.count)
+    }
+
+    @Test func everyEntryHasOnlyKnownFields() throws {
+        let json = try #require(try JSONSerialization.jsonObject(with: Self.data.get()) as? [String: Any])
+        let blocchi = try #require(json["blocchi"] as? [[String: Any]])
+        for blocco in blocchi {
+            for voce in try #require(blocco["varianti"] as? [[String: Any]]) {
+                let unknown = Set(voce.keys).subtracting(Self.fields)
+                #expect(unknown.isEmpty, "\(voce["nome"] ?? "?"): \(unknown.sorted())")
+            }
+        }
+    }
+
+    @Test func noExampleRepeatsARequestOfTheLabelledSet() throws {
+        let labelled = try Self.labelledRequests().map(Self.normalized)
+        for voce in try Self.loaded.get().voci {
+            for example in voce.esempi.values.map(Self.normalized) {
+                #expect(!labelled.contains { $0.contains(example) || example.contains($0) }, "\(voce.nome): \(example)")
+            }
+        }
     }
 
     @Test func everyCategoriaHasEntries() throws {
@@ -93,8 +130,10 @@ struct CatalogoElencoTests {
         let elenco = try Self.loaded.get()
         let declared = Set(elenco.gruppi.map { Rosa(categoria: $0.categoria, gruppo: $0.nome) })
         #expect(declared.count == elenco.gruppi.count)
-        #expect(elenco.gruppi.allSatisfy { !$0.descrizione.trimmingCharacters(in: .whitespaces).isEmpty })
+        #expect(elenco.gruppi.allSatisfy { !$0.descrizione.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty })
         let grouped = Set(elenco.gruppi.map(\.categoria))
+        // The first pass chooses among the Categorie without gruppi and every gruppo: it is a rosa too.
+        #expect(Categoria.allCases.count - grouped.count + elenco.gruppi.count <= Self.maxRosaCount)
         for voce in elenco.voci {
             if grouped.contains(voce.categoria) {
                 #expect(declared.contains(Rosa(categoria: voce.categoria, gruppo: voce.gruppo)), "\(voce.nome)")
@@ -116,7 +155,8 @@ struct CatalogoElencoTests {
     }
 
     @Test func everyCatalogoVarianteIsListedWithTheSameCategoriaAndDescription() throws {
-        let voci = Dictionary(uniqueKeysWithValues: try Self.loaded.get().voci.map { ($0.nome, $0) })
+        // A duplicate name fails `theListHas480To520UniqueKebabCaseNames`, not the whole test process.
+        let voci = Dictionary(try Self.loaded.get().voci.map { ($0.nome, $0) }) { first, _ in first }
         for variante in try Catalogo(bundle: .main).varianti {
             let voce = try #require(voci[variante.nome], "\(variante.nome)")
             #expect(voce.categoria == variante.categoria, "\(variante.nome)")
@@ -124,9 +164,10 @@ struct CatalogoElencoTests {
         }
     }
 
-    @Test func theFirstBlockStartsWithTheVariantiAlreadyDrawn() throws {
-        let first = try #require(try Self.loaded.get().blocchi.first).varianti.map(\.nome)
+    @Test func theVariantiAlreadyDrawnComeFromTheFirstBlocks() throws {
+        let names = try Self.loaded.get().voci.map(\.nome)
         let drawn = try Catalogo(bundle: .main).varianti.map(\.nome)
-        #expect(Array(first.prefix(drawn.count)) == drawn)
+        let blocks = (drawn.count + Self.blockSize - 1) / Self.blockSize
+        #expect(Set(drawn).isSubset(of: names.prefix(blocks * Self.blockSize)))
     }
 }
