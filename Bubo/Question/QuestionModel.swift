@@ -74,6 +74,7 @@ final class QuestionModel {
     ///   - onDeviceAnswerer: Answers the Domande the router keeps on the Mac; Foundation Models on `onDevice` when `nil`.
     ///   - ledger: Where each turn's tokens and figure are recorded, in the group "Domande"; none when `nil`.
     ///   - prices: The prices the turns of other providers are estimated with.
+    ///   - budgets: The Budgets the router avoids past their threshold, and the reason line warns of.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -86,7 +87,7 @@ final class QuestionModel {
          localServers: LocalModelDetector = LocalModelDetector(),
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
-         ledger: CostLedger? = nil, prices: PriceTable = .shared) {
+         ledger: CostLedger? = nil, prices: PriceTable = .shared, budgets: BudgetSettings = .shared) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
@@ -98,6 +99,7 @@ final class QuestionModel {
         self.onDevice = onDevice
         self.ledger = ledger
         self.prices = prices
+        self.budgets = budgets
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -136,6 +138,7 @@ final class QuestionModel {
     @ObservationIgnored private let onDevice: OnDeviceModel
     @ObservationIgnored private let ledger: CostLedger?
     @ObservationIgnored private let prices: PriceTable
+    @ObservationIgnored private let budgets: BudgetSettings
     /// The Domanda in the CostLedger: one per prompt, its retries included.
     @ObservationIgnored private var question = UUID()
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
@@ -274,9 +277,25 @@ final class QuestionModel {
             if availability != .available { routed.localOutages[endpoint.id] = availability }
         }
         routed.isOffline = !(await isOnline)
+        routed.overBudget = overBudgetProviders(among: routed.endpoints)
         routed.fiveHourUsed = fiveHourUsed
         routed.quotaThresholds = QuotaThresholds.saved(in: defaults)
         return routed
+    }
+
+    /// The providers paid per use among Claude and `endpoints` whose Budget is past its threshold: Claude only with
+    /// the API key, since the subscription has no Budget.
+    private func overBudgetProviders(among endpoints: [OpenAICompatibleEndpoint]) -> Set<String> {
+        guard let ledger else { return [] }
+        let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        let paid = endpoints.filter { !$0.isOnMac }.map(\.name) + (usesAPIKey ? [Budgets.claude] : [])
+        return Set(paid.filter(guarded.isAvoided))
+    }
+
+    /// What the reason line says of the Budgets after `usage`, a turn of `provider` the ledger already has.
+    private func budgetNotice(after usage: TurnUsage, of provider: String) -> BudgetNotice? {
+        guard let ledger else { return nil }
+        return BudgetGuard(budgets: budgets.budgets, entries: ledger.entries).notice(after: usage, of: provider)
     }
 
     /// Looks for Ollama and LM Studio on the Mac, and proposes the model found, once: never again, whatever the
@@ -649,6 +668,7 @@ final class QuestionModel {
                     let reading = UsageReader.turn(usage, from: endpoint, prices: prices.snapshot)
                     self.routedAnswer?.usage = reading
                     ledger?.record(reading, turn: turn, question: question, provider: endpoint.name)
+                    self.routedAnswer?.budgetNotice = budgetNotice(after: reading, of: endpoint.name)
                 }
             }
             if var summary {
@@ -757,7 +777,9 @@ final class QuestionModel {
                                     usage: { [weak self] usage in
                                         guard let self else { return }
                                         routedAnswer?.usage = usage
-                                        ledger?.record(usage, turn: turn, question: question, provider: "Anthropic")
+                                        ledger?.record(usage, turn: turn, question: question,
+                                                       provider: Budgets.claude)
+                                        routedAnswer?.budgetNotice = budgetNotice(after: usage, of: Budgets.claude)
                                     },
                                     answeredBy: { [weak self] in
                                         self?.routedAnswer?.answeringModel = $0

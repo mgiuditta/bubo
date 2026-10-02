@@ -20,6 +20,11 @@ struct RouterLine: View {
                 .truncationMode(.tail)
                 .layoutPriority(-1)
             Spacer(minLength: Spacing.xSmall)
+            if let budget = answer.budgetNotice {
+                Text(Self.text(of: budget))
+                    .foregroundStyle(Palette.attention)
+                    .accessibilityIdentifier("question.budgetNotice")
+            }
             if let cost {
                 Text(verbatim: cost)
                     .font(Typography.mono(size: 11))
@@ -68,6 +73,11 @@ struct RouterLine: View {
         case .claude: route.family?.name ?? ""
         case .onDevice: appleFM
         case let .endpoint(endpoint): endpoint.name
+        }
+        if case let .type(type, _) = route.reason, let avoided = route.avoidedBudget {
+            let budget = BudgetGuard.Scope.provider(avoided).budgetTitle
+            return LocalizedStringResource("\(String(localized: type.label)) → \(family), \(budget) oltre la soglia",
+                                           comment: Self.comment)
         }
         if case let .type(type, _) = route.reason, let pause = route.pausedPreference {
             return reason(String(localized: type.label), family, pause)
@@ -123,6 +133,10 @@ struct RouterLine: View {
             LocalizedStringResource("\(type) → \(family), \(server) non risponde", comment: comment)
         case let .localModelMissing(server):
             LocalizedStringResource("\(type) → \(family), \(server) non ha più il modello", comment: comment)
+        case let .overBudget(provider):
+            LocalizedStringResource(
+                "\(type) → \(family), tua preferenza in pausa: \(BudgetGuard.Scope.provider(provider).budgetTitle) oltre la soglia",
+                comment: comment)
         }
     }
 
@@ -143,6 +157,21 @@ struct RouterLine: View {
                                     comment: comment)
         case .failed:
             LocalizedStringResource("\(type) → \(family), Apple FM non ha risposto", comment: comment)
+        }
+    }
+
+    /// What the line says of the Budgets after the turn.
+    static func text(of notice: BudgetNotice) -> LocalizedStringResource {
+        switch notice {
+        case let .reached(scope, share) where share >= 1:
+            LocalizedStringResource("\(scope.budgetTitle) esaurito",
+                                    comment: "Reason line: the monthly Budget the answer counts in is spent, such as «Budget di OpenAI esaurito».")
+        case let .reached(scope, share):
+            LocalizedStringResource("\(scope.budgetTitle): \(share.formatted(.percent.precision(.fractionLength(0))))",
+                                    comment: "Reason line: the monthly Budget the answer counts in is past its threshold, with the share spent, such as «Budget di OpenAI: 84%».")
+        case .unpriced:
+            LocalizedStringResource("senza prezzo, fuori dal Budget",
+                                    comment: "Reason line: the model has no known price, so its provider's Budget cannot count the answer.")
         }
     }
 

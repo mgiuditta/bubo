@@ -53,6 +53,8 @@ final class CostLedger {
     }
 
     @ObservationIgnored private let file: URL?
+    /// Called with each turn recorded, after the ledger has it: the Budgets read it at once.
+    @ObservationIgnored var didRecord: ((Entry) -> Void)?
 
     /// The ledger in Bubo's Application Support folder.
     static func makeDefault() throws -> CostLedger {
@@ -87,6 +89,7 @@ final class CostLedger {
             entries.append(entry)
         }
         save()
+        didRecord?(entry)
     }
 
     /// The total of the Sessione `session`, one amount per unit it has turns in.
