@@ -12,6 +12,7 @@ struct BuboApp: App {
                 .environment(appDelegate.summarizer)
                 .environment(appDelegate.pushToTalk)
                 .environment(appDelegate.hotKeys)
+                .environment(appDelegate.deliveries)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -125,6 +126,7 @@ struct BuboApp: App {
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
                 .environment(appDelegate.remote)
+                .environment(appDelegate.deliveries)
                 // System controls, as macOS expects of the Impostazioni, but only dark like the rest of Bubo
                 // (design system, ADR 0004).
                 .preferredColorScheme(.dark)

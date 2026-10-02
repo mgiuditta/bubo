@@ -2304,6 +2304,52 @@
         }
       }
     },
+    "Biglietti ricevuti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tickets received"
+          }
+        }
+      }
+    },
+    "Biglietto di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@’s Ticket"
+          }
+        }
+      }
+    },
+    "Biglietto di %@ per «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@’s Ticket for “%2$@”"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Biglietto di %1$@ per «%2$@»"
+          }
+        }
+      }
+    },
+    "Biglietto di %@ verificato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@’s Ticket verified."
+          }
+        }
+      }
+    },
     "BUBO" : {
       "localizations" : {
         "en" : {
@@ -2755,6 +2801,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "chiave cambiata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "key changed"
+          }
+        }
+      }
+    },
+    "Chiave nel Secure Enclave di questo Mac, non si esporta. Manda il Biglietto a chi deve consegnarti Sessioni, poi confrontate il codice a voce." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key in this Mac’s Secure Enclave, never exported. Send the Ticket to whoever will hand Sessions over to you, then compare the code aloud."
           }
         }
       }
@@ -3443,6 +3509,16 @@
         }
       }
     },
+    "Coincide" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matches"
+          }
+        }
+      }
+    },
     "Collega" : {
       "localizations" : {
         "en" : {
@@ -3655,6 +3731,16 @@
         }
       }
     },
+    "Condividi…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share…"
+          }
+        }
+      }
+    },
     "Conferma in Impostazioni › Modelli che il progetto della chiave ha la fatturazione attiva: senza, Google usa le Domande per addestrare i suoi modelli e in Europa non è ammesso." : {
       "localizations" : {
         "en" : {
@@ -3701,6 +3787,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connected"
+          }
+        }
+      }
+    },
+    "Consegne" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deliveries"
           }
         }
       }
@@ -5438,6 +5534,26 @@
         }
       }
     },
+    "I Biglietti non si salvano. Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Tickets can’t be saved. Try again."
+          }
+        }
+      }
+    },
+    "I Biglietti ricevuti non si leggono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Tickets received can’t be read."
+          }
+        }
+      }
+    },
     "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
       "localizations" : {
         "en" : {
@@ -5524,6 +5640,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ignored"
+          }
+        }
+      }
+    },
+    "Il Biglietto di %@ per «%@» è già verificato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@’s Ticket for “%2$@” is already verified."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Il Biglietto di %1$@ per «%2$@» è già verificato."
+          }
+        }
+      }
+    },
+    "Il Biglietto è stato modificato o è danneggiato. Chiedi di rimandarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Ticket was changed or is damaged. Ask for it to be sent again."
+          }
+        }
+      }
+    },
+    "Il file non è un file Bubo, oppure non si legge." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file isn’t a Bubo file, or can’t be read."
+          }
+        }
+      }
+    },
+    "Il file è di una versione più nuova di Bubo. Aggiorna Bubo, poi riaprilo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file is from a newer version of Bubo. Update Bubo, then open it again."
+          }
+        }
+      }
+    },
+    "Il mio Biglietto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Ticket"
           }
         }
       }
@@ -6230,6 +6402,62 @@
         }
       }
     },
+    "La chiave di %@ è cambiata. Può essere un Mac reinstallato, o qualcuno che si spaccia per %@. Finché non confrontate il codice, non puoi consegnare lì." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@’s key changed. It may be a reinstalled Mac, or someone posing as %2$@. Until you compare the code, you can’t deliver there."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "La chiave di %1$@ è cambiata. Può essere un Mac reinstallato, o qualcuno che si spaccia per %2$@. Finché non confrontate il codice, non puoi consegnare lì."
+          }
+        }
+      }
+    },
+    "La chiave di questo Mac non si apre. Sblocca il Mac e riapri le Impostazioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac’s key can’t be opened. Unlock the Mac and open Settings again."
+          }
+        }
+      }
+    },
+    "Leggetevi il codice a voce o in chiamata. Deve essere uguale sul Mac di %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read the code to each other aloud or on a call. It must be the same on %@’s Mac."
+          }
+        }
+      }
+    },
+    "Macchina" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machine"
+          }
+        }
+      }
+    },
+    "Manda il mio Biglietto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send My Ticket…"
+          }
+        }
+      }
+    },
     "Mostra nella Galassia" : {
       "localizations" : {
         "en" : {
@@ -6240,12 +6468,102 @@
         }
       }
     },
+    "Nessun Biglietto. Apri quello che ti mandano per aggiungerlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Tickets. Open the one you’re sent to add it."
+          }
+        }
+      }
+    },
+    "Non coincide" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doesn’t Match"
+          }
+        }
+      }
+    },
+    "Non potrai più consegnare a «%@» né aprire le sue Consegne, finché non vi scambiate di nuovo i Biglietti." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You won’t be able to deliver to “%@” or open its Deliveries until you exchange Tickets again."
+          }
+        }
+      }
+    },
+    "Non si apre" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t Open"
+          }
+        }
+      }
+    },
     "Nuova Sessione su ${project}: ${text}" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "New Session on ${project}: ${text}"
+          }
+        }
+      }
+    },
+    "Ora manda il tuo: senza il tuo Biglietto, %@ non può aprire le tue Consegne né mandartene." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now send yours: without your Ticket, %@ can’t open your Deliveries or send you any."
+          }
+        }
+      }
+    },
+    "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of Bubo can’t open Deliveries yet. Update Bubo, then open it again."
+          }
+        }
+      }
+    },
+    "Questo Mac non ha il Secure Enclave: non può mandare né ricevere Consegne." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac has no Secure Enclave: it can’t send or receive Deliveries."
+          }
+        }
+      }
+    },
+    "Rimuovere il Biglietto di «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@’s Ticket?"
+          }
+        }
+      }
+    },
+    "Riverifica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verify Again"
           }
         }
       }
@@ -12316,6 +12634,16 @@
         }
       }
     },
+    "verificato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "verified"
+          }
+        }
+      }
+    },
     "VS Code, Cursor, Zed e Xcode aprono il file alla riga giusta; le altre app lo aprono dall'inizio." : {
       "localizations" : {
         "en" : {
@@ -13326,6 +13654,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“About”: a model without a known price is counted at the default model's price."
+          }
+        }
+      }
+    },
+    "È il Biglietto di questo Mac. Mandalo a chi deve consegnarti Sessioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This is this Mac’s Ticket. Send it to whoever will hand Sessions over to you."
           }
         }
       }
