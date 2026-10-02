@@ -215,6 +215,7 @@ extension ModelRouterTests {
 
         #expect(route.reason == .type(.writing, runnerUp: nil))
         #expect(route.family == .sonnet)
+        #expect(route.pausedPreference == .notInCatalog(.fable))
     }
 
     @Test func aPreferredEndpointAnswersWhenItMay() {
@@ -235,6 +236,26 @@ extension ModelRouterTests {
         #expect(allowed.reason == .preferred(.writing))
         #expect(withoutConsent.endpoint == nil)
         #expect(withoutConsent.reason == .type(.writing, runnerUp: nil))
+        #expect(withoutConsent.pausedPreference == .endpointUnavailable)
         #expect(withAllegati.endpoint == nil)
+        #expect(withAllegati.pausedPreference == .attachments)
+        #expect(allowed.pausedPreference == nil)
+    }
+
+    // #93: a preference that no longer answers leaves the default, and the reason line says why.
+    @Test func aPausedPreferenceIsInTheReason() {
+        let preferences = ModelRouter.Preferences(choices: [.writing: .claude(Scala.Step(family: .fable, effort: nil))])
+        let route = router.route(for: Self.classification(.writing), preferences: preferences, in: Self.catalog)
+
+        let reason = String(localized: RouterLine.reason(for: route))
+
+        #expect(reason.contains("tua preferenza"))
+        #expect(reason.contains(ModelFamily.fable.name))
+    }
+
+    @Test func aTipoWithoutPreferenceHasNoPause() {
+        let route = router.route(for: Self.classification(.writing), in: Self.catalog)
+
+        #expect(route.pausedPreference == nil)
     }
 }

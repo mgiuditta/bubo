@@ -23,23 +23,38 @@ nonisolated struct ModelRouter {
     ///   - hasAttachments: Whether the Richiesta carries Allegati: without them, a Fatto breve that could not be
     ///     measured still goes on the Mac.
     ///   - readsOnDevice: Whether a model on the Mac may read every Allegato: not a folder, not an image.
-    ///   - preferences: The user's preferences, which replace the Tipo's default when they can answer.
+    ///   - preferences: The user's preferences, which replace the Tipo's default when they can answer; when one
+    ///     cannot, the default answers and `Route.pausedPreference` says why.
     ///   - catalog: What `supportedModels()` listed, or `nil` when it was not read yet.
     func route(for classification: RequestClassification?, fit: OnDeviceFit = .unavailable,
                hasAttachments: Bool = false, readsOnDevice: Bool = true, preferences: Preferences = .none,
                in catalog: ModelCatalog?) -> Route {
         guard let classification else { return Route(family: nil, model: nil, effort: nil, reason: .unclassified) }
         let type = classification.type
-        if let preferred = Self.preferredRoute(for: type, preferences: preferences, hasAttachments: hasAttachments,
-                                               in: catalog) {
-            return preferred
+        guard let choice = preferences.choices[type] else {
+            return Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
+                                     readsOnDevice: readsOnDevice, in: catalog)
         }
-        let fallback = Self.onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments,
-                                             readsOnDevice: readsOnDevice)
-        if Self.onDeviceTypes.contains(type), fallback == nil {
+        guard let pause = Self.pause(of: choice, preferences: preferences, hasAttachments: hasAttachments,
+                                     in: catalog) else {
+            return Self.preferredRoute(of: choice, for: type, preferences: preferences, in: catalog)
+        }
+        var route = Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
+                                      readsOnDevice: readsOnDevice, in: catalog)
+        route.pausedPreference = pause
+        return route
+    }
+
+    /// The route of the Tipo's default, from the table of spec 10, within `catalog`.
+    private static func defaultRoute(for classification: RequestClassification, fit: OnDeviceFit,
+                                     hasAttachments: Bool, readsOnDevice: Bool, in catalog: ModelCatalog?) -> Route {
+        let type = classification.type
+        let fallback = onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments,
+                                        readsOnDevice: readsOnDevice)
+        if onDeviceTypes.contains(type), fallback == nil {
             return .onDevice(type, runnerUp: classification.runnerUp)
         }
-        let (family, effort) = Self.defaultChoice(for: type)
+        let (family, effort) = defaultChoice(for: type)
         guard let catalog else {
             return Route(family: family, model: family.alias, effort: effort,
                          reason: .type(type, runnerUp: classification.runnerUp), onDeviceFallback: fallback)
@@ -51,24 +66,36 @@ nonisolated struct ModelRouter {
                      reason: .type(type, runnerUp: classification.runnerUp), onDeviceFallback: fallback)
     }
 
-    /// The route of the user's preference for `type`; `nil` without one, or when it cannot answer and the default
-    /// does: a Claude family not in the catalog, an endpoint without a model or consent, or one offered a Domanda
-    /// with Allegati, which go only to Claude or to the Mac (#101).
-    private static func preferredRoute(for type: RequestType, preferences: Preferences, hasAttachments: Bool,
-                                       in catalog: ModelCatalog?) -> Route? {
-        switch preferences.choices[type] {
-        case let .claude(step)?:
-            guard let catalog else {
+    /// Why `choice` cannot answer now, and the default does; `nil` when it can.
+    ///
+    /// A Claude family not in the catalog, an endpoint without a model or consent, or one offered a Domanda with
+    /// Allegati, which go only to Claude or to the Mac (#101). Without a catalog, a Claude family is taken on trust.
+    private static func pause(of choice: TypePreference, preferences: Preferences, hasAttachments: Bool,
+                              in catalog: ModelCatalog?) -> Route.PausedPreference? {
+        switch choice {
+        case let .claude(step):
+            guard let catalog, catalog.entry(for: step.family.alias) == nil else { return nil }
+            return .notInCatalog(step.family)
+        case let .endpoint(id):
+            if hasAttachments { return .attachments }
+            return preferences.endpoints.contains { $0.id == id } ? nil : .endpointUnavailable
+        }
+    }
+
+    /// The route of `choice`, the user's preference for `type`, once `pause(of:)` found nothing in its way.
+    private static func preferredRoute(of choice: TypePreference, for type: RequestType, preferences: Preferences,
+                                       in catalog: ModelCatalog?) -> Route {
+        switch choice {
+        case let .claude(step):
+            guard let entry = catalog?.entry(for: step.family.alias) else {
                 return Route(family: step.family, model: step.family.alias, effort: step.effort, reason: .preferred(type))
             }
-            guard let entry = catalog.entry(for: step.family.alias) else { return nil }
             return Route(family: step.family, model: entry.value, effort: step.effort.flatMap { effort($0, in: entry) },
                          reason: .preferred(type))
-        case let .endpoint(id)?:
-            guard !hasAttachments, let endpoint = preferences.endpoints.first(where: { $0.id == id }) else { return nil }
-            return Route(family: nil, model: nil, effort: nil, reason: .preferred(type), destination: .endpoint(endpoint))
-        case nil:
-            return nil
+        case let .endpoint(id):
+            let endpoint = preferences.endpoints.first { $0.id == id }
+            return Route(family: nil, model: nil, effort: nil, reason: .preferred(type),
+                         destination: endpoint.map(Route.Destination.endpoint) ?? .claude)
         }
     }
 
