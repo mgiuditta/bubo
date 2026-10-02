@@ -37,10 +37,14 @@ nonisolated enum SecondBrainNotes {
     static let maximumSize = 8 << 20
 
     /// Whether the Indice leaves out everything at `relativePath`, relative to the Secondo cervello: hidden files
-    /// and folders, as `.obsidian/` and `.trash/`, and `Bubo/Sessioni/`, whose Riassunti repeat conversations.
-    static func skips(_ relativePath: String) -> Bool {
+    /// and folders, as `.obsidian/` and `.trash/`, `Bubo/Sessioni/`, whose Riassunti repeat conversations, and
+    /// `excludedFolders` with all they hold.
+    ///
+    /// Folders compare by whole names: excluding `Archivio` leaves `Archivio2` in.
+    static func skips(_ relativePath: String, excluding excludedFolders: Set<String> = []) -> Bool {
         let parts = relativePath.split(separator: "/")
         return parts.contains { $0.hasPrefix(".") } || parts.starts(with: ["Bubo", "Sessioni"] as [Substring])
+            || excludedFolders.contains { parts.starts(with: $0.split(separator: "/")) }
     }
 
     /// Whether a file named `name` is a note.
@@ -49,11 +53,12 @@ nonisolated enum SecondBrainNotes {
         return name.contains(".") && (fileExtension == "md" || fileExtension == "txt")
     }
 
-    /// Returns the notes at or under `path`, inside the Secondo cervello at `folder`, and the notes the Indice keeps
-    /// as they are because iCloud Drive left only their placeholder on the Mac.
+    /// Returns the notes at or under `path`, inside the Secondo cervello at `folder`, outside `excludedFolders`, and
+    /// the notes the Indice keeps as they are because iCloud Drive left only their placeholder on the Mac.
     ///
     /// Reading a placeholder would download it: a folder in iCloud Drive is never downloaded by the Indice.
-    static func files(at path: String, in folder: String) -> (notes: [String: FileStamp], kept: Set<String>) {
+    static func files(at path: String, in folder: String,
+                      excluding excludedFolders: Set<String> = []) -> (notes: [String: FileStamp], kept: Set<String>) {
         var notes: [String: FileStamp] = [:]
         var kept: Set<String> = []
         func add(_ file: String) {
@@ -74,7 +79,7 @@ nonisolated enum SecondBrainNotes {
         let relativeFolder = path == folder ? "" : String(path.dropFirst(folder.count + 1)) + "/"
         guard let entries = FileManager.default.enumerator(atPath: path) else { return (notes, kept) }
         for case let entry as String in entries {
-            if skips(relativeFolder + entry) {
+            if skips(relativeFolder + entry, excluding: excludedFolders) {
                 // Only for a folder: on a file it would skip the rest of the folder holding it.
                 if entries.fileAttributes?[.type] as? FileAttributeType == .typeDirectory { entries.skipDescendants() }
             } else {

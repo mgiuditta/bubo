@@ -244,4 +244,113 @@ struct SecondBrainTests {
         try FileManager.default.createDirectory(at: folder.notes.appending(path: ".obsidian"), withIntermediateDirectories: true)
         #expect(SecondBrainLocation(folder: folder.notes).isObsidianVault)
     }
+
+    // MARK: Excluded folders
+
+    @Test(arguments: ["Archivio", "Archivio/a.md", "Archivio/2025/b.md", "Lavoro/Vecchio/c.md"])
+    func anExcludedFolderSkipsEverythingInside(path: String) {
+        #expect(SecondBrainNotes.skips(path, excluding: ["Archivio", "Lavoro/Vecchio"]))
+    }
+
+    @Test(arguments: ["Archivio2/a.md", "Diario/Archivio.md", "Diario/Archivio/a.md", "Lavoro/a.md"])
+    func aNamesakeIsNotExcluded(path: String) {
+        #expect(!SecondBrainNotes.skips(path, excluding: ["Archivio", "Lavoro/Vecchio"]))
+    }
+
+    @Test func anExcludedFolderLeavesTheIndexAndComesBackWhenIncluded() async throws {
+        try folder.write("ornitorinco in archivio", to: "Archivio/2025/a.md")
+        try folder.write("ornitorinco nel diario", to: "Diario/b.md")
+        let index = try folder.claude.open()
+        var following = folder.follow(folder.notes, with: index)
+        #expect(try await waitUntil("archivio", in: index))
+
+        following.cancel()
+        following = Task { await index.keepSecondBrainFresh(at: folder.notes, excluding: ["Archivio"]) }
+        #expect(try await waitUntil("archivio", isFound: false, in: index))
+        #expect(try await index.hits(for: "ornitorinco").count == 1)
+
+        following.cancel()
+        following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        #expect(try await waitUntil("archivio", in: index))
+    }
+
+    @Test func anExclusionChangedWhileClosedAppliesAtTheNextStart() async throws {
+        try folder.write("ornitorinco in archivio", to: "Archivio/a.md")
+        var index = try folder.claude.open()
+        let first = folder.follow(folder.notes, with: index)
+        #expect(try await waitUntil("archivio", in: index))
+        first.cancel()
+        await first.value
+
+        index = try folder.claude.open()
+        let second = Task { [index] in await index.keepSecondBrainFresh(at: folder.notes, excluding: ["Archivio"]) }
+        defer { second.cancel() }
+        #expect(try await waitUntil("archivio", isFound: false, in: index))
+    }
+
+    @Test func beyondTheLimitTheLoadNamesTheLargestFolders() async throws {
+        for (folderName, count) in [("Grande", 4), ("Media", 2), ("Piccola", 1)] {
+            for number in 0..<count {
+                try folder.write("nota \(number)", to: "\(folderName)/\(number).md")
+            }
+        }
+        try folder.write("nota in cima", to: "cima.md")
+        let index = try folder.claude.open(fragmentLimit: 5)
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        #expect(try await waitUntil("cima", in: index))
+
+        let load = try await index.fragmentLoad(largest: 2)
+
+        #expect(load.exceedsLimit)
+        #expect(load.fragmentCount == 8)
+        #expect(load.largestFolders == [FolderLoad(relativePath: "Grande", fragmentCount: 4),
+                                        FolderLoad(relativePath: "Media", fragmentCount: 2)])
+    }
+
+    @Test(arguments: [(100_000, false), (100_001, true)])
+    func theLimitIsOneHundredThousandFragments(count: Int, exceeds: Bool) {
+        #expect(FragmentLoad(fragmentCount: count, limit: SearchIndex.fragmentLimit, largestFolders: []).exceedsLimit == exceeds)
+    }
+
+    @Test func exclusionsAreRememberedAndAnotherFolderStartsWithout() throws {
+        let defaults = try #require(UserDefaults(suiteName: "SecondBrainTests-\(UUID().uuidString)"))
+        let secondBrain = SecondBrain(index: nil, defaults: defaults)
+        secondBrain.choose(folder.notes)
+
+        try secondBrain.exclude(folder.notes.appending(path: "Archivio/2025"))
+        try secondBrain.exclude(folder.notes.appending(path: "Allegati"))
+        #expect(SecondBrain(index: nil, defaults: defaults).location?.excludedFolders == ["Allegati", "Archivio/2025"])
+        secondBrain.include("Allegati")
+        #expect(SecondBrain(index: nil, defaults: defaults).location?.excludedFolders == ["Archivio/2025"])
+
+        secondBrain.choose(folder.claude.folder)
+        #expect(SecondBrain(index: nil, defaults: defaults).location?.excludedFolders == [])
+    }
+
+    @Test func aFolderOutsideTheSecondBrainCannotBeExcluded() throws {
+        let secondBrain = SecondBrain(index: nil, defaults: try #require(UserDefaults(suiteName: "SecondBrainTests-\(UUID().uuidString)")))
+        secondBrain.choose(folder.notes)
+
+        #expect(throws: SecondBrainExclusionError.outsideSecondBrain) { try secondBrain.exclude(folder.claude.folder) }
+        #expect(throws: SecondBrainExclusionError.outsideSecondBrain) { try secondBrain.exclude(folder.notes) }
+    }
+
+    @Test func aChoiceSavedBeforeExclusionsStillLoads() throws {
+        let saved = #"{"path":"/Users/prova/Note"}"#
+
+        let location = try JSONDecoder().decode(SecondBrainLocation.self, from: Data(saved.utf8))
+
+        #expect(location.path == "/Users/prova/Note")
+        #expect(location.excludedFolders.isEmpty)
+    }
+
+    @Test func aMovedFolderKeepsItsExclusions() throws {
+        var location = SecondBrainLocation(folder: folder.notes)
+        location.excludedFolders = ["Archivio"]
+        try FileManager.default.moveItem(at: folder.notes, to: folder.claude.folder.appending(path: "Note spostate"))
+
+        #expect(location.resolved().excludedFolders == ["Archivio"])
+    }
 }

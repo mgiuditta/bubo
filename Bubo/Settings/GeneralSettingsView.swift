@@ -28,6 +28,7 @@ struct GeneralSettingsView: View {
                 .tint(Palette.switchTrack)
             ConversationSettingsSection()
             SecondBrainSettingsSection()
+            ExcludedFoldersSection()
             SemanticSearchSettingsSection()
             EditorSettingsSection()
             LinearSettingsSection()
