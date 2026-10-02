@@ -291,7 +291,7 @@ final class SessionStore {
     @discardableResult
     func startExecution(_ prompt: String, title: String, branch: String, in project: URL, automation: AutomationMark,
                         unattended: UnattendedTurn, isAutonomous: Bool,
-                        ended: @escaping (_ id: UUID, _ succeeded: Bool) -> Void = { _, _ in }) -> UUID {
+                        ended: @escaping (_ id: UUID, _ succeeded: Bool) async -> Void = { _, _ in }) -> UUID {
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
         session.automation = automation
@@ -302,7 +302,7 @@ final class SessionStore {
         followActivity()
         turnTasks[session.id] = Task {
             let succeeded = await run(session.id, prompt: prompt, branch: branch, unattended: unattended)
-            ended(session.id, succeeded)
+            await ended(session.id, succeeded)
         }
         return session.id
     }
@@ -837,6 +837,21 @@ final class SessionStore {
             guard let workspace = session.workspace else { return }
             await worktrees.remove(workspace, of: session.project, deletingBranch: false)
         }
+    }
+
+    /// Archives the Sessione of an Esecuzione Senza modifiche, with nothing to look at: no Riassunto, and its worktree
+    /// and its branch gone by the time it returns.
+    func archiveUnchanged(_ id: UUID) async {
+        guard let session = sessions.first(where: { $0.id == id }), session.isLive, !session.isRunning else { return }
+        update(id) { session in
+            session.phase = .archiviata
+            session.ports = nil
+            session.isInterrupted = false
+        }
+        previews.close(id)
+        await terminals.closeAll(of: id)
+        guard let workspace = session.workspace else { return }
+        await worktrees.remove(workspace, of: session.project, deletingBranch: true)
     }
 
     /// Records the Riassunto di Sessione of `id`: the note Bubo wrote, when it wrote one, and whether it still waits.

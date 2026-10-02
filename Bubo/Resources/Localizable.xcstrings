@@ -158,6 +158,16 @@
         }
       }
     },
+    "%@ · in pausa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · paused"
+          }
+        }
+      }
+    },
     "%@ · prezzi del %@" : {
       "comment" : "Cost of an answer, then the day of the price table it was estimated with, such as «prezzi del 12 agosto».",
       "localizations" : {
@@ -171,6 +181,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ · prices as of %2$@"
+          }
+        }
+      }
+    },
+    "%@ · prossima %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · next %2$@"
           }
         }
       }
@@ -641,18 +661,12 @@
         }
       }
     },
-    "(Esecuzione dell'Automazione «%@», prevista %@, partita %@. Nessuno può approvare le azioni: quelle negate finiscono in un resoconto per l'utente.)" : {
+    "(Esecuzione dell'Automazione «%@», prevista %@, partita %@. Nessuno può approvare le azioni: quelle negate finiscono in un resoconto per l'utente. Se non c'è niente da fare né da segnalare, rispondi soltanto: %@)" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "(Esecuzione dell'Automazione «%1$@», prevista %2$@, partita %3$@. Nessuno può approvare le azioni: quelle negate finiscono in un resoconto per l'utente.)"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "(Run of the automation “%1$@”, due %2$@, started %3$@. Nobody can approve actions: the denied ones go into a report for the user.)"
+            "value" : "(Run of the automation “%1$@”, due %2$@, started %3$@. Nobody can approve actions: the denied ones go into a report for the user. If there is nothing to do or report, reply only: %4$@)"
           }
         }
       }
@@ -1814,6 +1828,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Risky action: with the pointer, press and hold for one second."
+          }
+        }
+      }
+    },
+    "Azioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actions"
           }
         }
       }
@@ -3793,6 +3817,16 @@
         }
       }
     },
+    "Elimina" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        }
+      }
+    },
     "Elimina Bozza" : {
       "localizations" : {
         "en" : {
@@ -3809,6 +3843,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delete the Model"
+          }
+        }
+      }
+    },
+    "Eliminare «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete “%@”?"
+          }
+        }
+      }
+    },
+    "Elimina…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete…"
           }
         }
       }
@@ -3929,6 +3983,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Optional, for when your subscription isn't enough. Bubo never uses it on its own."
+          }
+        }
+      }
+    },
+    "Fatta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         }
       }
@@ -4175,6 +4239,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Merged into %@ with a local commit, not pushed."
+          }
+        }
+      }
+    },
+    "Giorni feriali" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekdays"
+          }
+        }
+      }
+    },
+    "Giorni feriali alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weekdays at %@"
+          }
+        }
+      }
+    },
+    "Giorno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day"
           }
         }
       }
@@ -4976,6 +5070,26 @@
         }
       }
     },
+    "In corso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running"
+          }
+        }
+      }
+    },
+    "In pausa: il Progetto non è più in %@. Riportalo lì, poi Riprendi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: the project is no longer at %@. Put it back there, then Resume."
+          }
+        }
+      }
+    },
     "In quale Progetto lavori sulle issue %@ di Linear? Bubo lo ricorderà." : {
       "localizations" : {
         "en" : {
@@ -5112,6 +5226,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installing…"
+          }
+        }
+      }
+    },
+    "Interrotta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interrupted"
           }
         }
       }
@@ -5582,6 +5706,16 @@
         }
       }
     },
+    "Le Sessioni già nate restano. Le Regole «in questa Automazione» se ne vanno con lei." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions it already started stay. Its “in this automation” rules go with it."
+          }
+        }
+      }
+    },
     "Le tue impostazioni" : {
       "localizations" : {
         "en" : {
@@ -5999,6 +6133,16 @@
         }
       }
     },
+    "Minuto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Minute"
+          }
+        }
+      }
+    },
     "Misure del Panel" : {
       "localizations" : {
         "en" : {
@@ -6086,6 +6230,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Broad change"
+          }
+        }
+      }
+    },
+    "Modifica Automazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Automation"
           }
         }
       }
@@ -6730,6 +6884,16 @@
         }
       }
     },
+    "Niente da segnalare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to report."
+          }
+        }
+      }
+    },
     "No" : {
       "localizations" : {
         "en" : {
@@ -7340,6 +7504,56 @@
         }
       }
     },
+    "Ogni %@ alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every %1$@ at %2$@"
+          }
+        }
+      }
+    },
+    "Ogni giorno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every day"
+          }
+        }
+      }
+    },
+    "Ogni giorno alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every day at %@"
+          }
+        }
+      }
+    },
+    "Ogni ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every hour"
+          }
+        }
+      }
+    },
+    "Ogni ora, al minuto %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every hour, at minute %lld"
+          }
+        }
+      }
+    },
     "OK" : {
       "localizations" : {
         "en" : {
@@ -7401,6 +7615,16 @@
         }
       }
     },
+    "Ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time"
+          }
+        }
+      }
+    },
     "Ora l'Indice cerca solo per parole." : {
       "localizations" : {
         "en" : {
@@ -7458,6 +7682,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Everywhere"
+          }
+        }
+      }
+    },
+    "Pausa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
           }
         }
       }
@@ -8537,6 +8771,16 @@
         }
       }
     },
+    "Ripetizione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repeat"
+          }
+        }
+      }
+    },
     "Riporta il terminale nell'HUD" : {
       "localizations" : {
         "en" : {
@@ -8734,6 +8978,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Router"
+          }
+        }
+      }
+    },
+    "Saltata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped"
+          }
+        }
+      }
+    },
+    "Saltata (sovrapposta)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped (overlapping)"
           }
         }
       }
@@ -9219,6 +9483,16 @@
         }
       }
     },
+    "Senza modifiche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No changes"
+          }
+        }
+      }
+    },
     "Senza regola" : {
       "localizations" : {
         "en" : {
@@ -9474,6 +9748,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skills · %lld"
+          }
+        }
+      }
+    },
+    "Solo con Avvia ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only with Run Now"
           }
         }
       }
@@ -10032,18 +10316,12 @@
         }
       }
     },
-    "Ultima Esecuzione: %@ · %lld negate" : {
+    "Ultima Esecuzione: %@ · %@ · %lld negate" : {
       "localizations" : {
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Ultima Esecuzione: %1$@ · %2$lld negate"
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last run: %1$@ · %2$lld denied"
+            "value" : "Last run: %1$@ · %2$@ · %3$lld denied"
           }
         }
       }
@@ -10158,6 +10436,16 @@
         }
       }
     },
+    "Un giorno della settimana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One day a week"
+          }
+        }
+      }
+    },
     "Un repository GitHub (owner/repo), un URL git o una cartella sul Mac. Per i repository privati usa le credenziali git che hai già." : {
       "localizations" : {
         "en" : {
@@ -10234,6 +10522,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A more natural voice for the spoken summary. OpenAI gets only the summary's text, with your key, and the cost goes on your account. If OpenAI doesn't answer, Bubo speaks with the Mac's voices."
+          }
+        }
+      }
+    },
+    "Una volta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once"
+          }
+        }
+      }
+    },
+    "Una volta, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once, %@"
           }
         }
       }

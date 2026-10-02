@@ -52,6 +52,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
     private(set) lazy var executions: ExecutionRunner? = sessions.map { ExecutionRunner(automations: $0.automations, sessions: $0) }
+    /// Starts the Esecuzioni at the times of their Ripetizioni; `nil` without the Sessioni.
+    private lazy var scheduler: AutomationScheduler? = sessions.flatMap { sessions in
+        executions.map { AutomationScheduler(automations: sessions.automations, runner: $0) }
+    }
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
         let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
@@ -174,6 +178,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Before any turn can start, so the first token reaches it.
         _ = onboarding
         sessions?.onFileActivity = { [weak self] id, progress in self?.galaxies.record(progress, by: id) }
+        // The Ripetizioni of the Automazioni; an Esecuzione left in corso at quitting becomes Interrotta.
+        scheduler?.start()
         // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
         summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
         // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
