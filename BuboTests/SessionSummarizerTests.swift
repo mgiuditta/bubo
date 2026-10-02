@@ -112,6 +112,27 @@ struct SessionSummarizerTests {
         #expect(read == ["primo turno", "secondo turno"])
     }
 
+    @Test func aTurnThatResumesTheOneBeforeDoesNotRepeatItsMessages() async throws {
+        let session = session()
+        let store = try makeStore([session])
+        var read: [String] = []
+        let engine = FakeSummaryEngine(needsNetwork: true) { input in
+            read = input.messages.map(\.text)
+            return Self.fixed
+        }
+        let first = [CLIConversation.Message(isFromUser: true, text: "aggiungi i test"),
+                     CLIConversation.Message(isFromUser: false, text: "fatto")]
+        let summarizer = makeSummarizer(store, engines: [engine], messages: [
+            "c1": first,
+            "c2": first + [CLIConversation.Message(isFromUser: true, text: "fatto"),
+                           CLIConversation.Message(isFromUser: false, text: "anche i doc")],
+        ])
+
+        _ = try await summarizer.summary(of: session.id)
+
+        #expect(read == ["aggiungi i test", "fatto", "fatto", "anche i doc"])
+    }
+
     @Test(arguments: PlantedSecrets.all)
     func aNoteHasNoSecretEvenWhenTheModelRepeatsThem(_ transcript: PlantedSecrets.Transcript) async throws {
         let session = session(titled: transcript.titolo, conversations: ["c1"])

@@ -251,6 +251,7 @@ final class SessionStore {
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
         session.forkedFrom = conversation?.id
+        session.continuedConversation = conversation?.id
         session.issue = issue
         if onCheckout {
             session.isOnCheckout = true
@@ -276,7 +277,8 @@ final class SessionStore {
     }
 
     /// Riavvia of a Sessione pesante: interrupts the turn in progress and asks its prompt again in a new `claude`,
-    /// in the same copy and in a new Conversazione. Nothing when ``canRestartTurn(_:)`` is false.
+    /// in the same copy and in a new Conversazione that resumes the same one as the interrupted turn. Nothing when
+    /// ``canRestartTurn(_:)`` is false.
     func restartTurn(_ id: UUID) {
         guard canRestartTurn(id), let prompt = turnPrompts[id] else { return }
         restart(id, prompt: prompt)
@@ -313,8 +315,8 @@ final class SessionStore {
         }
     }
 
-    /// Asks `claude` again, in the same worktree, the prompt of a Sessione that Bubo's quitting interrupted.
-    // ponytail: the same prompt in a new Conversazione; the SDK's `resume` comes with #159.
+    /// Asks `claude` again, in the same worktree, the prompt of a Sessione that Bubo's quitting interrupted: in a new
+    /// Conversazione that resumes the one before the interrupted turn, which never became the Sessione's.
     func resume(_ id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), session.isInterrupted, let prompt = session.prompt
         else { return }
@@ -721,12 +723,18 @@ final class SessionStore {
 
     /// Prepares the Sessione's copy on `branch` if it has none yet, then asks `claude` `prompt` there.
     ///
+    /// Each turn is a new Conversazione that resumes ``Session/continuedConversation`` as a fork, and takes its place
+    /// once `claude` ran it: when it ends, or fails after answering. An interrupted turn leaves it as it was, so that
+    /// Riavvia and Riprendi start from the same point.
+    ///
     /// - Parameter reopening: The copy of the Archiviata Sessione that Riprendi prepares again, in place of a new one.
     /// - Returns: Whether the turn ended without errors.
     @discardableResult
     private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         let environment = session.portEnvironment
+        var conversation: String?
+        var hasAnswered = false
         do {
             // Before the copy and the prompt: a `claude` too old starts nothing.
             if let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
@@ -770,12 +778,15 @@ final class SessionStore {
                 permissions.clear(id)
             }
             // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
-            let conversation = UUID().uuidString.lowercased()
-            update(id) { $0.conversations.append(conversation) }
+            let kept = UUID().uuidString.lowercased()
+            conversation = kept
+            update(id) { $0.conversations.append(kept) }
             // Also after an error: what was said enters the Indice.
-            defer { Task { [indexer, project = session.project] in await indexer?.add(conversation, in: project) } }
+            defer { Task { [indexer, project = session.project] in await indexer?.add(kept, in: project) } }
+            // Read now: Riavvia may have just interrupted the turn before.
+            let resumed = sessions.first { $0.id == id }?.continuedConversation
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
-                                   forkingFrom: session.forkedFrom, keeping: conversation,
+                                   forkingFrom: resumed, keeping: kept,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
                                    offersPreview: hasServer) { [weak self] progress in
@@ -792,21 +803,26 @@ final class SessionStore {
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             } usage: { [ledger] usage in
-                ledger.record(usage, turn: conversation, session: id, project: session.project)
+                ledger.record(usage, turn: kept, session: id, project: session.project)
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             } isDangerous: { request in
                 let risk = classifier.risk(of: request)
                 return risk.level.isDangerous || risk.isCritical
             }
-            var hasAnswered = false
             for try await _ in answer where !hasAnswered {
                 hasAnswered = true
                 onFirstToken()
             }
-            update(id) { $0.enter(.ferma) }
+            update(id) { session in
+                session.enter(.ferma)
+                if !Task.isCancelled { session.continuedConversation = kept }
+            }
             return true
         } catch {
+            if hasAnswered, !Task.isCancelled, let conversation {
+                update(id) { $0.continuedConversation = conversation }
+            }
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
             onTurnFailure(id, error)
             update(id) { session in

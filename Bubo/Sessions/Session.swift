@@ -66,6 +66,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var forkedFrom: String?
     /// The ids of the agent's conversations, one per turn, oldest first: Bubo keeps a copy of each (ADR 0006).
     var conversations: [String] = []
+    /// The conversation the next turn resumes as a fork, so that the agent sees the turns before: the latest turn's
+    /// that ran, else the Cronologia CLI one; `nil` for a new Conversazione.
+    var continuedConversation: String?
     /// The writes the agent asked for, with why, the latest last: the perché of the blocchi in the revisione.
     var edits: [EditNote] = []
     /// What the user decided in the revisione, by blocco id.
@@ -150,7 +153,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
-    /// Richiamato, its Riassunto and its pull request were kept.
+    /// Richiamato, its Riassunto, its pull request and its chain of conversations were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -170,6 +173,8 @@ nonisolated extension Session {
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false
         forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
         conversations = try container.decodeIfPresent([String].self, forKey: .conversations) ?? []
+        // Before the chain each turn started alone: the next one resumes what the Sessione forked, if anything.
+        continuedConversation = try container.decodeIfPresent(String.self, forKey: .continuedConversation) ?? forkedFrom
         edits = try container.decodeIfPresent([EditNote].self, forKey: .edits) ?? []
         decisions = try container.decodeIfPresent([String: HunkDecision].self, forKey: .decisions) ?? [:]
         resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)

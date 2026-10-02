@@ -197,6 +197,67 @@ struct SessionTests {
         #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
     }
 
+    /// The `resume` and `keep` of each `ask` in `log`, in order.
+    static func asks(in log: URL) throws -> [(resume: String?, keep: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["resume"] as? String, command?["keep"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func eachTurnResumesTheConversationOfTheLastTurnThatRan() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        // Ends every turn at once; the turn asked "Sbaglia" fails before answering.
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"prompt":"Sbaglia"'*) echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"no\"}" ;;
+                    *'"type":"ask"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        for (prompt, ending) in [("Ancora", Session.Activity.ferma), ("Sbaglia", .errore), ("Infine", .ferma)] {
+            store.sendBack(prompt, to: id, keepingAcceptedAmong: [])
+            try await Self.wait { store.sessions.first?.activity == ending }
+        }
+
+        let session = try #require(store.sessions.first)
+        #expect(session.conversations.count == 4)
+        let asks = try Self.asks(in: log)
+        #expect(asks.map(\.keep) == session.conversations)
+        // The failed turn never ran: the next one resumes the turn before it.
+        #expect(asks.map(\.resume) == ["c-1", session.conversations[0], session.conversations[1],
+                                        session.conversations[1]])
+        #expect(session.continuedConversation == session.conversations[3])
+        #expect(session.forkedFrom == "c-1")
+    }
+
+    @Test func aSessionSavedBeforeTheChainResumesWhatItForked() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma","forkedFrom":"c-1","conversations":["t-1"]}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.continuedConversation) == ["c-1"])
+    }
+
     @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
         let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
                                                                lastModified: .now))
