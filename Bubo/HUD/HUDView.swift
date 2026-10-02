@@ -30,7 +30,8 @@ struct HUDView: View {
         .background {
             HUDBackground()
                 // Here, not next to the other sheets: one sheet modifier per view.
-                .sheet(item: Bindable(deliveries).pendingImport) { pending in
+                // Not while the foglio di Consegna is up: that one shows a Biglietto added from it.
+                .sheet(item: hud.deliverySession == nil ? Bindable(deliveries).pendingImport : .constant(nil)) { pending in
                     TicketImportSheet(pending: pending, deliveries: deliveries)
                 }
         }
@@ -112,6 +113,10 @@ struct HUDView: View {
                     }
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota) { hud.showCosts?() }
+                    // Here, not next to the other sheets: one sheet modifier per view.
+                    .sheet(item: Bindable(hud).deliverySession) { session in
+                        DeliverySheet(flow: .live(for: session, deliveries: deliveries))
+                    }
             }
             // Here, not next to the other sheets: one sheet modifier per view.
             .sheet(isPresented: Bindable(hud).isPickingIssue) {
