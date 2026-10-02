@@ -12,6 +12,7 @@ struct BuboApp: App {
                     onboarding: appDelegate.onboarding, launch: appDelegate.launch)
                 .environment(appDelegate.hud)
                 .environment(appDelegate.summarizer)
+                .environment(appDelegate.pushToTalk)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

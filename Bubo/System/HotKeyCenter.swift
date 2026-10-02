@@ -1,7 +1,7 @@
 import Foundation
 import Observation
 
-/// Owns the global shortcut that shows and hides the HUD, and remembers it.
+/// Owns the global shortcut that shows and hides the HUD, or held down dictates (push-to-talk), and remembers it.
 @Observable
 final class HotKeyCenter {
     /// The `UserDefaults` key of the saved shortcut.
@@ -16,9 +16,13 @@ final class HotKeyCenter {
     @ObservationIgnored private let defaults: UserDefaults
 
     /// Creates the center and registers the saved shortcut, or ⌥Spazio.
-    init(defaults: UserDefaults = .standard, action: @escaping () -> Void) {
+    ///
+    /// - Parameters:
+    ///   - press: Runs when the shortcut goes down.
+    ///   - release: Runs when the shortcut is let go.
+    init(defaults: UserDefaults = .standard, press: @escaping () -> Void, release: @escaping () -> Void = {}) {
         self.defaults = defaults
-        self.hotKey = GlobalHotKey(action: action)
+        self.hotKey = GlobalHotKey(press: press, release: release)
         self.shortcut = defaults.string(forKey: Self.defaultsKey).flatMap(KeyShortcut.init(rawValue:)) ?? .showHUD
         apply(shortcut)
     }

@@ -1841,6 +1841,16 @@
         }
       }
     },
+    "Bubo non può usare il microfono" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't use the microphone"
+          }
+        }
+      }
+    },
     "Bubo non si fida di questo certificato e non apre la pagina. Puoi aprirla nel browser." : {
       "localizations" : {
         "en" : {
@@ -2461,12 +2471,32 @@
         }
       }
     },
+    "Collega un microfono o scegline uno in Impostazioni di Sistema › Suono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect a microphone or choose one in System Settings › Sound."
+          }
+        }
+      }
+    },
     "Collegare Linear?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Connect Linear?"
+          }
+        }
+      }
+    },
+    "Collegati a Internet e riprova: si scarica una volta sola, poi funziona offline." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect to the internet and try again: it downloads only once, then works offline."
           }
         }
       }
@@ -2657,6 +2687,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allow just this time"
+          }
+        }
+      }
+    },
+    "Consentilo in Impostazioni di Sistema › Privacy e sicurezza › Microfono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow it in System Settings › Privacy & Security › Microphone."
           }
         }
       }
@@ -4705,6 +4745,16 @@
         }
       }
     },
+    "La dettatura non conosce la lingua del Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictation doesn't know your Mac's language"
+          }
+        }
+      }
+    },
     "La PR punta a %@, non al branch di default %@." : {
       "localizations" : {
         "en" : {
@@ -5235,6 +5285,16 @@
         }
       }
     },
+    "Manca il modello della dettatura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The dictation model is missing"
+          }
+        }
+      }
+    },
     "Manca la CLI claude." : {
       "localizations" : {
         "en" : {
@@ -5352,6 +5412,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Commit message"
+          }
+        }
+      }
+    },
+    "Microfono non disponibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microphone unavailable"
           }
         }
       }
@@ -8015,6 +8085,16 @@
         }
       }
     },
+    "Scegli italiano o inglese in Impostazioni di Sistema › Generali › Lingua e Zona." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Italian or English in System Settings › General › Language & Region."
+          }
+        }
+      }
+    },
     "Scegli la cartella di un Progetto" : {
       "localizations" : {
         "en" : {
@@ -8351,6 +8431,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your consent is needed to send it to that provider."
+          }
+        }
+      }
+    },
+    "Serve una volta sola: riprova tra poco." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's needed only once: try again shortly."
           }
         }
       }
@@ -8692,6 +8782,16 @@
         }
       }
     },
+    "Sto scaricando il modello della dettatura" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Downloading the dictation model"
+          }
+        }
+      }
+    },
     "Striscia" : {
       "localizations" : {
         "en" : {
@@ -8778,6 +8878,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Text shortened: open Bubo to read it all."
+          }
+        }
+      }
+    },
+    "Ti ascolto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening…"
           }
         }
       }

@@ -11,11 +11,13 @@ struct QuestionView: View {
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
     @State private var askingConsent: RetryAlternative?
     @State private var isAskingConsent = false
+    /// Push-to-talk, whose partial text fills the prompt; `nil` in previews.
+    @Environment(PushToTalk.self) private var voice: PushToTalk?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
             HStack(spacing: Spacing.xSmall) {
-                TextField("Chiedi qualcosa a Claude", text: $model.prompt)
+                TextField(voice?.isListening == true ? "Ti ascolto…" : "Chiedi qualcosa a Claude", text: $model.prompt)
                     .textFieldStyle(.plain)
                     .font(Typography.body(size: 15))
                     .onSubmit(model.ask)
@@ -43,6 +45,10 @@ struct QuestionView: View {
             .background(Palette.surface, in: .rect(cornerRadius: CornerRadius.large))
             .overlay {
                 RoundedRectangle(cornerRadius: CornerRadius.large).strokeBorder(Palette.line)
+            }
+
+            if let voice, let failure = voice.failure {
+                VoiceNotice(failure: failure, dismiss: voice.dismissFailure)
             }
 
             if let resumesAt = model.resumesAt {
