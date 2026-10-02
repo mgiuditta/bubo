@@ -35,5 +35,21 @@ cat > "$script" <<JSON
 }
 JSON
 
-xcrun metal ${MACOSX_DEPLOYMENT_TARGET:+-mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET} "$source" -o "$metallib"
+# Gli stessi flag con cui Xcode compila default.metallib, da cui nascono le altre Forme: il Blob dell'archivio
+# e la Forma verso cui va il Morph devono restare lo stesso codice compilato, o il cambio di pipeline si vede.
+flags=(${MACOSX_DEPLOYMENT_TARGET:+-mmacosx-version-min=$MACOSX_DEPLOYMENT_TARGET})
+[[ ${MTL_FAST_MATH:-YES} == NO ]] && flags+=(-fno-fast-math)
+case ${MTL_LANGUAGE_REVISION:-UseDeploymentTarget} in
+  Metal[0-9][0-9]) revision=${MTL_LANGUAGE_REVISION#Metal}; flags+=(-std=metal${revision[1]}.${revision[2]}) ;;
+  UseDeploymentTarget) ;;
+  *) print -u2 "metal-archive.sh: MTL_LANGUAGE_REVISION=$MTL_LANGUAGE_REVISION non gestito"; exit 1 ;;
+esac
+case ${MTL_OPTIMIZATION_LEVEL:-default} in
+  default) ;;
+  s) flags+=(-Os) ;;
+  0) flags+=(-O0) ;;
+  *) print -u2 "metal-archive.sh: MTL_OPTIMIZATION_LEVEL=$MTL_OPTIMIZATION_LEVEL non gestito"; exit 1 ;;
+esac
+
+xcrun metal $flags "$source" -o "$metallib"
 xcrun metal-tt -gpu-family apple7 "$script" -o "$archive"

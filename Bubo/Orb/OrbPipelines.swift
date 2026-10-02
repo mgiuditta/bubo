@@ -1,5 +1,6 @@
 import Foundation
 import Metal
+import OSLog
 
 /// The Orb's render pipelines, one per Forma, each built from the Forma's own fragment function (ADR 0010).
 ///
@@ -20,9 +21,13 @@ final class OrbPipelines {
         compiler = try device.makeCompiler(descriptor: MTL4CompilerDescriptor())
         // An archive finds a pipeline only through the very library it was built from, and archiving from the
         // default library would compile every Forma into it: the archive has its own library, Orb.metal alone.
-        if let archived = try? Self.makeArchivedBlob(device: device, bundle: bundle) {
-            blob = archived
-        } else {
+        do {
+            blob = try Self.makeArchivedBlob(device: device, bundle: bundle)
+        } catch {
+            #if !DEBUG
+            // The Release build always ships the archive: without it the launch compiles on the main thread.
+            Logger.orb.fault("Blob missing from the Metal 4 archive: \(error.localizedDescription, privacy: .public)")
+            #endif
             blob = try compiler.makeRenderPipelineState(descriptor: Self.makeDescriptor(for: .blob, library: library))
         }
     }
@@ -33,17 +38,26 @@ final class OrbPipelines {
     private let compiler: MTL4Compiler
     private var ready: [Forma: MTLRenderPipelineState] = [:]
     private var loads: [Forma: Task<MTLRenderPipelineState?, Never>] = [:]
+    /// The Forme whose compilation failed: they wait for `prepare(_:)` to try again, not for the next frame.
+    private var failures: Set<Forma> = []
 
     /// Whether the shader library has the fragment function of `forma`; without it the Orb draws the Blob.
-    func draws(_ forma: Forma) -> Bool {
+    func canDraw(_ forma: Forma) -> Bool {
         functionNames.contains(forma.fragmentFunctionName)
     }
 
-    /// The pipeline of `forma` if it is ready; otherwise `nil`, after starting to load it.
+    /// Starts loading `forma` for a new request, trying again if it failed to compile before.
+    func prepare(_ forma: Forma) {
+        guard forma != .blob, ready[forma] == nil else { return }
+        failures.remove(forma)
+        load(forma)
+    }
+
+    /// The pipeline of `forma` if it is ready; otherwise `nil`, after starting to load it unless it failed.
     func pipeline(for forma: Forma) -> MTLRenderPipelineState? {
         if forma == .blob { return blob }
         if let pipeline = ready[forma] { return pipeline }
-        load(forma)
+        if !failures.contains(forma) { load(forma) }
         return nil
     }
 
@@ -59,14 +73,23 @@ final class OrbPipelines {
     private func load(_ forma: Forma) -> Task<MTLRenderPipelineState?, Never> {
         if let load = loads[forma] { return load }
         // Without its fragment function Metal would still build a pipeline, one that draws nothing.
-        let isDrawn = draws(forma)
+        // A Forma without one keeps its load, so the Orb stays Blob instead of retrying every frame.
+        let isDrawn = canDraw(forma)
         let load = Task { [library, compiler] () -> MTLRenderPipelineState? in
-            // A Forma that fails to build, or has no fragment function, keeps its load,
-            // so the Orb stays Blob instead of retrying every frame.
             guard isDrawn else { return nil }
-            let pipeline = try? await Self.compilePipeline(for: forma, library: library, compiler: compiler)
-            ready[forma] = pipeline
-            return pipeline
+            do {
+                let pipeline = try await Signposts.measure(.formaCompilation) {
+                    try await Self.compilePipeline(for: forma, library: library, compiler: compiler)
+                }
+                ready[forma] = pipeline
+                return pipeline
+            } catch {
+                Logger.orb.error(
+                    "Forma \(forma.rawValue, privacy: .public) failed to compile: \(error.localizedDescription, privacy: .public)")
+                loads[forma] = nil
+                failures.insert(forma)
+                return nil
+            }
         }
         loads[forma] = load
         return load
@@ -111,4 +134,8 @@ final class OrbPipelines {
         color.destinationAlphaBlendFactor = .oneMinusSourceAlpha
         return descriptor
     }
+}
+
+private extension Logger {
+    static let orb = Logger(subsystem: "com.mgiuditta.bubo", category: "orb")
 }

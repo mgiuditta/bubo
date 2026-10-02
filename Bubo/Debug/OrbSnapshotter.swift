@@ -30,7 +30,7 @@ final class OrbSnapshotter {
         let key = Key(nome: variante.nome, pixelSize: pixelSize)
         if let image = cache[key] { return image }
         let named = Forma(rawValue: variante.forma)
-        let forma = pipelines.draws(named) ? named : .blob
+        let forma = pipelines.canDraw(named) ? named : .blob
         guard let pipeline = await pipelines.loadedPipeline(for: forma),
               let image = render(forma, with: pipeline, pixelSize: pixelSize)
         else { return nil }

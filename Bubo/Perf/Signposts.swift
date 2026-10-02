@@ -65,6 +65,8 @@ enum Signpost {
     case onboardingFirstToken
     /// Interval: from sending a Richiesta to the classifier's decision, when the Morph towards its Variante starts.
     case intakeDecision
+    /// Interval: compiling the pipeline of a Forma on its first request (ADR 0010).
+    case formaCompilation
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -79,6 +81,7 @@ enum Signpost {
         case .galaxyFirstImage: "Prima immagine della Galassia"
         case .onboardingFirstToken: "Primo token onboarding"
         case .intakeDecision: "Decisione della Richiesta"
+        case .formaCompilation: "Compilazione Forma"
         }
     }
 }
