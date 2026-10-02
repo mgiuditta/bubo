@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Nuova Automazione, or Modifica of one: Progetto, name, request, Ripetizione, model and Modalità autonoma (spec 19).
+/// Nuova Automazione, or Modifica of one: Progetto, name, request, Ripetizione, model, agent and Modalità autonoma
+/// (spec 19).
 /// A Modifica counts from the next Esecuzione; the Regole and the history stay.
 ///
 /// Outside git the Modalità autonoma is off, since the Esecuzioni have no copy of their own; in a Progetto not trusted
@@ -17,6 +18,10 @@ struct AutomationSheet: View {
     @State private var name: String
     @State private var request: String
     @State private var model: Automation.ModelChoice
+    /// The agent the Esecuzioni run as; `nil` for the ordinary Sessione.
+    @State private var agent: String?
+    /// The agents of the chosen Progetto and of the user; read again when the Progetto changes.
+    @State private var agents: [String] = []
     @State private var isAutonomous: Bool
     @State private var kind: RecurrenceKind
     /// The time of the Ripetizione; its day too for Una volta.
@@ -40,6 +45,7 @@ struct AutomationSheet: View {
         _name = State(initialValue: editing?.name ?? "")
         _request = State(initialValue: editing?.request ?? "")
         _model = State(initialValue: editing?.model ?? .router)
+        _agent = State(initialValue: editing?.agent)
         _isAutonomous = State(initialValue: editing?.isAutonomous ?? true)
         let recurrence = editing?.recurrence ?? .daily(hour: 9, minute: 0)
         _kind = State(initialValue: RecurrenceKind(recurrence))
@@ -90,12 +96,24 @@ struct AutomationSheet: View {
                         Text(verbatim: alias).tag(Automation.ModelChoice.fixed(alias: alias))
                     }
                 }
+                Picker("Agente", selection: $agent) {
+                    Text("Nessuno").tag(String?.none)
+                    ForEach(agentChoices, id: \.self) { name in
+                        Text(verbatim: name).tag(Optional(name))
+                    }
+                }
                 Toggle("Modalità autonoma", isOn: isGit ? $isAutonomous : .constant(false))
                     .disabled(!isGit)
             }
             if !isGit {
                 Label("Il Progetto non è un repo git: niente copia isolata, quindi niente Modalità autonoma. Decidono solo le Regole.",
                       systemImage: "info.circle")
+                    .foregroundStyle(Palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if let agent, !agents.contains(agent) {
+                Label("L'agente «\(agent)» non c'è più in questo Progetto: l'Automazione andrebbe in pausa. Scegline un altro.",
+                      systemImage: "exclamationmark.triangle")
                     .foregroundStyle(Palette.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -119,6 +137,7 @@ struct AutomationSheet: View {
         .task(id: project) {
             isGit = project.map(AutomationStore.isGitRepository) ?? true
             isTrusted = project.map { TrustGate().isTrusted($0) } ?? true
+            agents = project.map { AgentCatalog.runnableAgents(in: $0) } ?? []
         }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }
@@ -131,10 +150,16 @@ struct AutomationSheet: View {
         return (0..<7).map { (first - 1 + $0) % 7 + 1 }
     }
 
+    /// The agents to pick from, with the chosen one even when its file is gone, so that the choice shows.
+    private var agentChoices: [String] {
+        guard let agent, !agents.contains(agent) else { return agents }
+        return agents + [agent]
+    }
+
     private var canCreate: Bool {
         project != nil && !name.trimmingCharacters(in: .whitespaces).isEmpty
             && !request.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-            && (kind != .once || time > .now)
+            && (kind != .once || time > .now) && agent.map(agents.contains) != false
     }
 
     private func confirm() {
@@ -144,6 +169,7 @@ struct AutomationSheet: View {
         automation.project = project
         automation.request = request.trimmingCharacters(in: .whitespacesAndNewlines)
         automation.model = model
+        automation.agent = agent
         automation.isAutonomous = isAutonomous && AutomationStore.isGitRepository(project)
         automation.recurrence = kind.recurrence(at: time, on: weekday)
         save(automation)

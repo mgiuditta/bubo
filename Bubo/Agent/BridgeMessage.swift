@@ -100,7 +100,11 @@ enum BridgeCommand: Equatable {
             object["permissionMode"] = permissionMode?.rawValue
             object["effort"] = effort?.rawValue
             if !rosa.isEmpty { object["orb"] = rosa }
-            if let unattended { object["unattended"] = ["rules": unattended.rules] }
+            if let unattended {
+                var turn: [String: Any] = ["rules": unattended.rules]
+                turn["agent"] = unattended.agent
+                object["unattended"] = turn
+            }
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]

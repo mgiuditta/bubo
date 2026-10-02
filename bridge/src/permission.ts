@@ -1,4 +1,4 @@
-import type { CanUseTool, PermissionResult, PermissionUpdate } from "@anthropic-ai/claude-agent-sdk";
+import type { CanUseTool, HookInput, PermissionResult, PermissionUpdate } from "@anthropic-ai/claude-agent-sdk";
 
 // La Richiesta di permesso che il ponte manda a Bubo: solo stringhe e booleani, già ripuliti.
 // Bubo ne ricava il Livello di rischio da strumento, comando e percorso; il resto è testo da mostrare.
@@ -15,6 +15,8 @@ export type PermissionRequest = {
   blockedPath?: string;
   mcpSource?: string;
   fromSubagent?: boolean;
+  /** Il nome del subagent che chiede, da `SubagentStart`; assente per il filo principale o se non si sa. */
+  agent?: string;
   defaultToNo?: boolean;
   suppressAlwaysAllowRule?: boolean;
   outsideSandbox?: boolean;
@@ -45,7 +47,7 @@ export function isTooLong(request: PermissionRequest): boolean {
 }
 
 export function permissionRequest(request: string, toolName: string, input: Record<string, unknown>,
-                                  options: Options): PermissionRequest {
+                                  options: Options, subagents?: Subagents): PermissionRequest {
   return {
     type: "permission",
     request,
@@ -59,9 +61,30 @@ export function permissionRequest(request: string, toolName: string, input: Reco
     blockedPath: clean(options.blockedPath),
     mcpSource: clean(options.mcpServer?.source),
     fromSubagent: options.agentID !== undefined || undefined,
+    agent: subagents?.name(options.agentID),
     defaultToNo: options.defaultToNo || undefined,
     suppressAlwaysAllowRule: options.suppressAlwaysAllowRule || undefined,
   };
+}
+
+// I subagent di un turno, da `SubagentStart` (`agent_id` → `agent_type`): `canUseTool` e `permission_denied` danno solo
+// l'`agent_id`, e ogni Richiesta o diniego di un subagent deve mostrarne il nome (spec 19).
+export class Subagents {
+  private readonly types = new Map<string, string>();
+
+  /** L'hook `SubagentStart`: da qui in poi il suo `agent_id` ha un nome. */
+  readonly hook = async (input: HookInput) => {
+    if (input.hook_event_name === "SubagentStart") {
+      const type = clean(input.agent_type);
+      if (type) this.types.set(input.agent_id, type);
+    }
+    return {};
+  };
+
+  /** Il nome del subagent `id`; `undefined` per il filo principale o un subagent mai partito in questo turno. */
+  name(id: string | undefined): string | undefined {
+    return id === undefined ? undefined : this.types.get(id);
+  }
 }
 
 // Approva solo una risposta esatta di Bubo; tutto il resto, anche una risposta storta, nega.

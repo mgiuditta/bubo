@@ -325,6 +325,23 @@ extension BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","unattended":{"rules":["Bash(npm test)"]},"v":4}"# + "\n")
     }
 
+    // #174: l'Esecuzione con un agente lo passa al ponte, che lo dà a `claude` come `Options.agent`.
+    @Test func anUnattendedAskCarriesItsAgent() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         unattended: UnattendedTurn(agent: "revisore")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","unattended":{"agent":"revisore","rules":[]},"v":4}"# + "\n")
+    }
+
+    // #174: la Richiesta di un subagent porta il suo nome.
+    @Test func aSubagentsPermissionRequestCarriesItsName() throws {
+        let line = #"{"v":4,"type":"permission","id":"a1","request":"p1","tool":"Bash","command":"ls","fromSubagent":true,"agent":"revisore"}"#
+        var request = PermissionRequest(id: "p1", tool: "Bash", command: "ls")
+        request.isFromSubagent = true
+        request.agent = "revisore"
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .permission(id: "a1", request))
+    }
+
     @Test func aDenialAndTheChosenModeArriveAsProgress() throws {
         let denial = #"{"v":4,"type":"denial","id":"a1","toolUseID":"t1","tool":"Bash","command":"npm test","suggestions":["Bash(npm test)"],"source":"sdk"}"#
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(denial.utf8))

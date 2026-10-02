@@ -1,5 +1,5 @@
 import { expect, test } from "bun:test";
-import { clean, deniedByUser, isAllowed, isLasting, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, isTooLong, subjectLength } from "./permission";
+import { clean, deniedByUser, isAllowed, isLasting, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, isTooLong, subjectLength, Subagents } from "./permission";
 
 const options = (extra: object = {}) =>
   ({ signal: new AbortController().signal, toolUseID: "toolu_1", requestId: "r1", ...extra }) as Parameters<typeof permissionRequest>[3];
@@ -60,5 +60,17 @@ test("la Richiesta di rete porta l'host; per la Sessione aggiunge WebFetch(domai
   for (const host of ["", "a b", "*.x.dev", "x.dev/path", "[::1]", 42]) expect(networkRule(host)).toBeUndefined();
   expect(permissionResult(true, { host: "a.dev" }, undefined, [rule!])).toEqual({
     behavior: "allow", updatedInput: { host: "a.dev" }, decisionClassification: "user_temporary", updatedPermissions: [rule!],
+  });
+});
+
+// #174: ogni Richiesta di un subagent porta il suo nome, da `SubagentStart`.
+test("la Richiesta di un subagent porta il nome dato da SubagentStart", async () => {
+  const subagents = new Subagents();
+  await subagents.hook({ session_id: "s", transcript_path: "/t", cwd: "/", hook_event_name: "SubagentStart", agent_id: "a1",
+                         agent_type: "revisore" });
+  expect(permissionRequest("p1", "Bash", { command: "ls" }, options({ agentID: "a1" }), subagents).agent).toBe("revisore");
+  expect(permissionRequest("p2", "Bash", { command: "ls" }, options(), subagents).agent).toBeUndefined();
+  expect(permissionRequest("p3", "Bash", { command: "ls" }, options({ agentID: "a2" }), subagents)).toMatchObject({
+    fromSubagent: true, agent: undefined,
   });
 });

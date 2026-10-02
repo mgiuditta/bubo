@@ -130,6 +130,11 @@ nonisolated struct AgentCatalog: Equatable, Sendable {
     /// The agents declared by the Markdown files of `folders` and of their subfolders, each folder in the order the
     /// file system lists it; files without a valid frontmatter are left out, as `claude` does.
     @concurrent static func files(in folders: [AgentFolder]) async -> [AgentFile] {
+        readFiles(in: folders)
+    }
+
+    /// The agents declared by the Markdown files of `folders`, as ``files(in:)`` reads them, on the caller's thread.
+    static func readFiles(in folders: [AgentFolder]) -> [AgentFile] {
         folders.flatMap { folder -> [AgentFile] in
             let paths = FileManager.default.enumerator(atPath: folder.url.path)?.compactMap { $0 as? String } ?? []
             return paths.filter { $0.hasSuffix(".md") }.compactMap { path in
@@ -140,6 +145,22 @@ nonisolated struct AgentCatalog: Equatable, Sendable {
                 return AgentFile(text: text, file: file, folder: folder.url, source: folder.source, namespace: namespace)
             }
         }
+    }
+
+    // MARK: Agents of the Automazioni
+
+    /// The user's `~/.claude` folder, where `claude` reads the user's agents.
+    static let userFolder = FileManager.default.homeDirectoryForCurrentUser.appending(path: ".claude",
+                                                                                      directoryHint: .isDirectory)
+
+    /// The names of the agents an Automazione can run as in `project`, sorted: those declared by the files of the
+    /// Progetto and of the user. The plugins' and the built-in ones are left out: no file of theirs says when they are
+    /// gone (spec 19).
+    ///
+    /// Reads the disk, a few small files.
+    static func runnableAgents(in project: URL, user: URL = userFolder) -> [String] {
+        let names = Set(readFiles(in: folders(project: project, user: user, plugins: [])).map(\.identifier))
+        return names.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     /// The folders of `folders` that exist.
