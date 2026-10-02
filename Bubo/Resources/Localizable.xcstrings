@@ -820,6 +820,36 @@
         }
       }
     },
+    "Accoppia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair"
+          }
+        }
+      }
+    },
+    "Accoppia un iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair an iPhone"
+          }
+        }
+      }
+    },
+    "Accoppiato il %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paired on %@"
+          }
+        }
+      }
+    },
     "ANTHROPIC_API_KEY è impostata nel tuo ambiente" : {
       "localizations" : {
         "en" : {
@@ -3217,6 +3247,16 @@
         }
       }
     },
+    "Con l'app Bubo per iPhone segui le Sessioni e decidi le Richieste da lontano. Escono dal Mac, cifrati con una chiave che hanno solo questo Mac e i tuoi iPhone: titolo della Sessione, Progetto, Attività, Fase, estratto degli ultimi messaggi, Richiesta in attesa (strumento, comando, percorso) e statistiche del diff. Mai i contenuti dei file, la trascrizione completa o gli Allegati. Serve lo stesso Account Apple su Mac e iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With the Bubo app for iPhone you follow your Sessions and decide Requests remotely. What leaves the Mac, encrypted with a key only this Mac and your iPhones hold: Session title, Project, Activity, Phase, an excerpt of the latest messages, the pending Request (tool, command, path) and diff stats. Never file contents, the full transcript or Attachments. Mac and iPhone need the same Apple Account."
+          }
+        }
+      }
+    },
     "Condividi con la squadra…" : {
       "localizations" : {
         "en" : {
@@ -4991,6 +5031,26 @@
         }
       }
     },
+    "Il QR è scaduto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The QR code has expired."
+          }
+        }
+      }
+    },
+    "Il Telecomando non ha risposto. Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Remote didn't respond. Try again."
+          }
+        }
+      }
+    },
     "Il Terminale non si è aperto. Scrivi «%@» nel Terminale, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -5412,6 +5472,16 @@
         }
       }
     },
+    "Inquadra il QR con l'app Bubo sull'iPhone. Scade tra %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan the QR code with the Bubo app on your iPhone. Expires in %@."
+          }
+        }
+      }
+    },
     "Installa" : {
       "localizations" : {
         "en" : {
@@ -5502,6 +5572,26 @@
         }
       }
     },
+    "iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPhone"
+          }
+        }
+      }
+    },
+    "iPhone accoppiati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paired iPhones"
+          }
+        }
+      }
+    },
     "Irreversibile esterno" : {
       "localizations" : {
         "en" : {
@@ -5538,6 +5628,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Index searches by words and by meaning."
+          }
+        }
+      }
+    },
+    "L'iPhone non vedrà più le Sessioni di questo Mac e non potrà decidere le Richieste. La chiave condivisa viene cancellata e i dati in iCloud vengono eliminati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The iPhone will no longer see this Mac's Sessions or decide its Requests. The shared key is deleted and the data in iCloud is removed."
           }
         }
       }
@@ -6586,6 +6686,16 @@
         }
       }
     },
+    "Mostra il QR" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show QR Code"
+          }
+        }
+      }
+    },
     "Mostra Panel" : {
       "localizations" : {
         "en" : {
@@ -6952,6 +7062,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No index: Claude creates it when it saves the first memory."
+          }
+        }
+      }
+    },
+    "Nessun iPhone accoppiato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No paired iPhones."
           }
         }
       }
@@ -7786,6 +7906,16 @@
         }
       }
     },
+    "Nuovo QR" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New QR Code"
+          }
+        }
+      }
+    },
     "Ogni %@ alle %@" : {
       "localizations" : {
         "en" : {
@@ -8427,6 +8557,16 @@
         }
       }
     },
+    "QR per accoppiare l'iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR code to pair the iPhone"
+          }
+        }
+      }
+    },
     "Quando Claude deve usarlo" : {
       "localizations" : {
         "en" : {
@@ -8674,6 +8814,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Revoke the “Bubo” key on OpenRouter"
+          }
+        }
+      }
+    },
+    "Revocare «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke “%@”?"
           }
         }
       }
@@ -9706,6 +9856,16 @@
         }
       }
     },
+    "Se i codici sono diversi, qualcun altro ha inquadrato il QR: non accoppiare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If the codes differ, someone else scanned the QR code: don't pair."
+          }
+        }
+      }
+    },
     "Se l'hai già installato, Bubo lo cerca di nuovo." : {
       "localizations" : {
         "en" : {
@@ -10151,6 +10311,16 @@
         }
       }
     },
+    "Sono diversi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codes Don't Match"
+          }
+        }
+      }
+    },
     "Sorgente" : {
       "localizations" : {
         "en" : {
@@ -10370,6 +10540,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tablet"
+          }
+        }
+      }
+    },
+    "Telecomando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remote"
           }
         }
       }
@@ -11951,6 +12131,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "«%@» mostra lo stesso codice?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Does “%@” show the same code?"
           }
         }
       }

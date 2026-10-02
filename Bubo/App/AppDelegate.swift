@@ -8,6 +8,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let hud = HUDPresenter()
     /// The always-on-top Panel with the Orb.
     let panel = OrbPanelController()
+    /// The pairing of the Telecomando, in Impostazioni › iPhone (spec 21).
+    let remote = PairingController.live()
     /// The Indice, kept fresh while Bubo runs; `nil` when its database cannot be opened.
     let searchIndex: SearchIndex? = {
         do {
