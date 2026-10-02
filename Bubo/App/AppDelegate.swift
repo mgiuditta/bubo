@@ -312,7 +312,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if madeDrafts { hud.showDrafts() }
     }
 
-    /// A `.bubo` file opened from the Finder: a Biglietto shows its code in the HUD; a Consegna, or a file that does
+    /// A `.bubo` file opened from the Finder: a Biglietto shows its code in the HUD, a Consegna its foglio there (or
+    /// its Bozza, opened again); a Biglietto or a file that does
     /// not open, an alert.
     private func open(bubo file: URL) async {
         let message: String
@@ -321,7 +322,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             hud.show()
             return
         case .consegna:
-            message = String(localized: "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila.")
+            // The same Consegna opened again: its Bozza, already there.
+            if let id = deliveries.receipt?.deliveryID, sessions?.drafts.drafts.contains(where: { $0.delivery?.id == id }) == true {
+                deliveries.dismissReceipt(keepingContent: true)
+                hud.showDrafts()
+            } else {
+                hud.show()
+            }
+            return
         case .failed(.unsupportedVersion):
             message = String(localized: "Il file è di una versione più nuova di Bubo. Aggiorna Bubo, poi riaprilo.")
         case .failed(.notBubo), .failed(.unreadable):

@@ -826,6 +826,46 @@
         }
       }
     },
+    "%lld messaggi" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld message"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld messages"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld messaggio"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld messaggi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld ricordi" : {
       "localizations" : {
         "en" : {
@@ -901,6 +941,46 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld risultati"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld subagent" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subagent"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subagents"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subagent"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld subagent"
                 }
               }
             }
@@ -1468,6 +1548,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Update PR"
+          }
+        }
+      }
+    },
+    "Aggiorna claude prima di avviarla: chi l'ha mandata ne ha una versione più nuova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update claude before starting it: the sender has a newer version."
           }
         }
       }
@@ -3371,12 +3461,48 @@
         }
       }
     },
+    "Il ramo %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The branch %@"
+          }
+        }
+      }
+    },
     "Il ramo della Sessione non si legge con git." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "git can't read the Session's branch."
+          }
+        }
+      }
+    },
+    "Il ramo parte da commit che non hai. Chiedi a %@ di pushare %@." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Il ramo parte da commit che non hai. Chiedi a %1$@ di pushare %2$@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The branch starts from commits you don't have. Ask %1$@ to push %2$@."
+          }
+        }
+      }
+    },
+    "Il ramo parte da commit che non hai. Chiedi a %@ di pushare il suo ramo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The branch starts from commits you don't have. Ask %@ to push their branch."
           }
         }
       }
@@ -3551,6 +3677,16 @@
         }
       }
     },
+    "Niente ramo: il Progetto non è un repo, o il ramo non aveva modifiche." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No branch: the Project isn't a repo, or the branch had no changes."
+          }
+        }
+      }
+    },
     "Non si revoca, non scade e non avvisa quando la apre." : {
       "localizations" : {
         "en" : {
@@ -3663,6 +3799,27 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This Session has no conversation to deliver yet."
+          }
+        }
+      }
+    },
+    "Questa conversazione ti arriva da %@, che l'ha consegnata. Riprendi da dove si era fermata: in poche righe, a che punto siamo e cosa resta da fare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This conversation comes from %@, who delivered it to you. Pick up where it left off: in a few lines, where things stand and what's left to do."
+          }
+        }
+      }
+    },
+    "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version of Bubo can’t open Deliveries yet. Update Bubo, then open it again."
           }
         }
       }
@@ -4115,6 +4272,16 @@
         }
       }
     },
+    "Cerco il Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking for the Project…"
+          }
+        }
+      }
+    },
     "Certificato non attendibile" : {
       "localizations" : {
         "en" : {
@@ -4560,6 +4727,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude is using more than 2 GB of memory. It gets light again when the turn ends."
+          }
+        }
+      }
+    },
+    "Clona" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clone"
+          }
+        }
+      }
+    },
+    "Clona il repo in una cartella che scegli" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clone the repo into a folder you choose"
           }
         }
       }
@@ -5256,6 +5443,16 @@
         }
       }
     },
+    "Cosa arriva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What arrives"
+          }
+        }
+      }
+    },
     "Cosa deve fare Claude?" : {
       "localizations" : {
         "en" : {
@@ -5382,6 +5579,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "From %@"
+          }
+        }
+      }
+    },
+    "Da %@ · %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Da %1$@ · %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %1$@ · %2$@"
           }
         }
       }
@@ -5613,6 +5826,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Locally destructive"
+          }
+        }
+      }
+    },
+    "Diventa una Bozza. Quando la avvii, riprende col tuo account e i tuoi Livelli di permesso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It becomes a Draft. When you start it, it resumes with your account and your Permission Levels."
           }
         }
       }
@@ -6785,6 +7008,26 @@
         }
       }
     },
+    "Il file è stato modificato o è danneggiato. Bubo non lo apre. Chiedi a %@ di rimandarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file was changed or is damaged. Bubo won't open it. Ask %@ to send it again."
+          }
+        }
+      }
+    },
+    "Il file è stato modificato o è danneggiato. Bubo non lo apre. Chiedi a chi l'ha mandato di rimandarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file was changed or is damaged. Bubo won't open it. Ask whoever sent it to send it again."
+          }
+        }
+      }
+    },
     "Il mio Biglietto" : {
       "localizations" : {
         "en" : {
@@ -7096,6 +7339,16 @@
         }
       }
     },
+    "Il ragionamento di %@ non c'è." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@'s reasoning isn't included."
+          }
+        }
+      }
+    },
     "Il repo non attiva nulla." : {
       "localizations" : {
         "en" : {
@@ -7112,6 +7365,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The repo has no team rules in .bubo/regole.json."
+          }
+        }
+      }
+    },
+    "Il repo non si clona. Controlla l'accesso al remote e riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The repo can't be cloned. Check your access to the remote and try again."
           }
         }
       }
@@ -7213,6 +7476,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project's local settings"
+          }
+        }
+      }
+    },
+    "Impostazioni › Consegne" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings › Deliveries"
           }
         }
       }
@@ -7633,6 +7906,16 @@
         }
       }
     },
+    "Non conosci chi l'ha mandata. Bubo apre solo Consegne di chi ha un Biglietto verificato. Scambiatevi i Biglietti, poi riaprila." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You don't know who sent it. Bubo only opens Deliveries from someone with a verified Ticket. Exchange Tickets, then open it again."
+          }
+        }
+      }
+    },
     "Non potrai più consegnare a «%@» né aprire le sue Consegne, finché non vi scambiate di nuovo i Biglietti." : {
       "localizations" : {
         "en" : {
@@ -7679,16 +7962,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mac-only Projects"
-          }
-        }
-      }
-    },
-    "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This version of Bubo can’t open Deliveries yet. Update Bubo, then open it again."
           }
         }
       }
@@ -7998,6 +8271,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The API key is saved, but Claude Code is still needed."
+          }
+        }
+      }
+    },
+    "La Consegna non parte: il ramo o la conversazione non si preparano. Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Delivery can't start: the branch or the conversation can't be prepared. Try again."
           }
         }
       }
@@ -8853,6 +9136,16 @@
         }
       }
     },
+    "Metti tra le Bozze" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add to Drafts"
+          }
+        }
+      }
+    },
     "Microfono non disponibile" : {
       "localizations" : {
         "en" : {
@@ -9340,6 +9633,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No CLAUDE.md loaded."
+          }
+        }
+      }
+    },
+    "Nessun Progetto con lo stesso remote." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Project with the same remote."
           }
         }
       }
@@ -10836,6 +11139,26 @@
         }
       }
     },
+    "Preparo la Bozza…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing the Draft…"
+          }
+        }
+      }
+    },
+    "Preparo la Consegna…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing the Delivery…"
+          }
+        }
+      }
+    },
     "Preparo la PR…" : {
       "localizations" : {
         "en" : {
@@ -11071,6 +11394,64 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When Claude should use it"
+          }
+        }
+      }
+    },
+    "Questa Consegna è per un'altra Macchina. Aprila lì, oppure chiedi a %@ di rifarla per «%@»." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Questa Consegna è per un'altra Macchina. Aprila lì, oppure chiedi a %1$@ di rifarla per «%2$@»."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Delivery is for another Machine. Open it there, or ask %1$@ to make it again for “%2$@”."
+          }
+        }
+      }
+    },
+    "Questa Consegna è per un'altra Macchina. Aprila lì, oppure chiedi a chi l'ha mandata di rifarla per «%@»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Delivery is for another Machine. Open it there, or ask whoever sent it to make it again for “%@”."
+          }
+        }
+      }
+    },
+    "Questa Consegna è per un'altra Macchina. È cifrata per «%@». Aprila lì, oppure chiedi a %@ di rifarla per «%@»." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Questa Consegna è per un'altra Macchina. È cifrata per «%1$@». Aprila lì, oppure chiedi a %2$@ di rifarla per «%3$@»."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Delivery is for another Machine. It's encrypted for “%1$@”. Open it there, or ask %2$@ to make it again for “%3$@”."
+          }
+        }
+      }
+    },
+    "Questa Consegna è per un'altra Macchina. È cifrata per «%@». Aprila lì, oppure chiedi a chi l'ha mandata di rifarla per «%@»." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Questa Consegna è per un'altra Macchina. È cifrata per «%1$@». Aprila lì, oppure chiedi a chi l'ha mandata di rifarla per «%2$@»."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Delivery is for another Machine. It's encrypted for “%1$@”. Open it there, or ask whoever sent it to make it again for “%2$@”."
           }
         }
       }
@@ -12164,6 +12545,26 @@
         }
       }
     },
+    "Scarta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard"
+          }
+        }
+      }
+    },
+    "Scarta Consegna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard Delivery"
+          }
+        }
+      }
+    },
     "Scatti nelle animazioni" : {
       "localizations" : {
         "en" : {
@@ -12194,6 +12595,16 @@
         }
       }
     },
+    "Scegli la cartella del Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the Project's folder."
+          }
+        }
+      }
+    },
     "Scegli la cartella di un Progetto" : {
       "localizations" : {
         "en" : {
@@ -12220,6 +12631,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose Folder…"
+          }
+        }
+      }
+    },
+    "Scegli prima dove va la Consegna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First choose where the Delivery goes"
           }
         }
       }
@@ -14625,6 +15046,32 @@
         }
       }
     },
+    "consegna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "delivery"
+          }
+        }
+      }
+    },
+    "da %@ · %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "da %1$@ · %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from %1$@ · %2$@"
+          }
+        }
+      }
+    },
     "dall'Indice: «%@»" : {
       "localizations" : {
         "en" : {
@@ -14986,6 +15433,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "on the checkout"
+          }
+        }
+      }
+    },
+    "verificata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "verified"
           }
         }
       }
@@ -15434,6 +15891,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your OpenRouter key reached the spending limit you gave it on openrouter.ai."
+          }
+        }
+      }
+    },
+    "La chiave di questo Mac non si apre, o Bubo non riesce a scrivere la Consegna. Sblocca il Mac e riaprila." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac's key can't be opened, or Bubo can't write the Delivery. Unlock the Mac and open it again."
           }
         }
       }
