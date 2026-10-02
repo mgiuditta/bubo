@@ -41,6 +41,7 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
     /// With the subscription the window's share comes first: it is what the user runs out of. A share that did not
     /// move (the window not reported, or under its precision) falls back to the Valore a listino.
     var cost: Cost? {
+        if route.destination == .onDevice { return .free }
         if let endpoint {
             if endpoint.isOnMac { return .free }
             return endpointTokens.map(Cost.tokens)

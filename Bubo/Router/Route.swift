@@ -1,5 +1,27 @@
-/// The router's decision for one Domanda: the model and effort `claude` gets, and why, for the reason line.
+/// The router's decision for one Domanda: who answers, the model and effort `claude` gets, and why, for the reason line.
 nonisolated struct Route: Equatable, Sendable {
+    /// Who answers.
+    enum Destination: Equatable, Sendable {
+        /// Claude, through the agent bridge.
+        case claude
+        /// Apple Foundation Models, on the Mac.
+        case onDevice
+    }
+
+    /// Why a Domanda that Apple Foundation Models could answer went to Claude instead.
+    enum OnDeviceFallback: Equatable, Sendable {
+        /// The Allegati are over `OnDeviceModel.attachmentLimit`.
+        case attachmentTooLong
+        /// No Allegato, but the text of the Domanda itself is over the limit.
+        case questionTooLong
+        /// macOS before 26.4 cannot count the tokens of an Allegato, and nothing is estimated.
+        case attachmentNotMeasurable
+        /// Apple Intelligence off, the Mac not eligible, or the model not ready.
+        case unavailable
+        /// The model failed before its first token.
+        case failed
+    }
+
     /// Why the router chose what it chose.
     enum Reason: Equatable, Sendable {
         /// The default of the Tipo; with `runnerUp`, the stronger default of the two Tipi the classifier hesitated over.
@@ -23,6 +45,15 @@ nonisolated struct Route: Equatable, Sendable {
     /// The effort asked for; `nil` for the model's default, and always for a model without effort.
     let effort: Effort?
     let reason: Reason
+    /// Who answers; with `.onDevice`, `family`, `model` and `effort` are `nil`.
+    var destination: Destination = .claude
+    /// Why Apple Foundation Models did not answer a Tipo it answers by default; `nil` when it did, or for other Tipi.
+    var onDeviceFallback: OnDeviceFallback?
+
+    /// The route of a Domanda of `type` that Apple Foundation Models answers on the Mac.
+    static func onDevice(_ type: RequestType, runnerUp: RequestType?) -> Route {
+        Route(family: nil, model: nil, effort: nil, reason: .type(type, runnerUp: runnerUp), destination: .onDevice)
+    }
 
     /// The route of a turn whose model the user picked, such as `sonnet` after a limit: no effort, `claude`'s default.
     static func chosen(_ model: String) -> Route {

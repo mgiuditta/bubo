@@ -194,6 +194,86 @@
         }
       }
     },
+    "%@ → %@, Apple FM con allegati richiede macOS 26.4" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, Apple FM con allegati richiede macOS 26.4"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, Apple FM with attachments needs macOS 26.4"
+          }
+        }
+      }
+    },
+    "%@ → %@, Apple FM non ha risposto" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, Apple FM non ha risposto"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, Apple FM didn't answer"
+          }
+        }
+      }
+    },
+    "%@ → %@, Apple Intelligence non disponibile: solo regole" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, Apple Intelligence non disponibile: solo regole"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, Apple Intelligence unavailable: rules only"
+          }
+        }
+      }
+    },
+    "%@ → %@, allegato troppo lungo per Apple FM" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, allegato troppo lungo per Apple FM"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, attachment too long for Apple FM"
+          }
+        }
+      }
+    },
+    "%@ → %@, domanda troppo lunga per Apple FM" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, domanda troppo lunga per Apple FM"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, question too long for Apple FM"
+          }
+        }
+      }
+    },
     "%@ → modello predefinito, %@ non disponibile" : {
       "localizations" : {
         "it" : {

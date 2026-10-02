@@ -59,8 +59,14 @@ struct RouterLine: View {
                        comment: "Model and effort in the reason line, as VoiceOver reads it: «Sonnet 5.5, sforzo medio»."))
     }
 
+    /// Apple Foundation Models as the line names it; a brand, so it is never translated.
+    private static let appleFM = "Apple FM"
+
     private var reason: LocalizedStringResource {
-        let family = answer.route.family?.name ?? ""
+        let family = answer.route.destination == .onDevice ? Self.appleFM : answer.route.family?.name ?? ""
+        if case let .type(type, _) = answer.route.reason, let fallback = answer.route.onDeviceFallback {
+            return Self.reason(String(localized: type.label), family, fallback)
+        }
         switch answer.route.reason {
         case let .type(type, nil):
             return LocalizedStringResource("\(String(localized: type.label)) → \(family)", comment: Self.comment)
@@ -80,6 +86,24 @@ struct RouterLine: View {
             return LocalizedStringResource("Rifai più forte → \(family)", comment: Self.comment)
         case .retried:
             return LocalizedStringResource("Rifatto da te", comment: Self.comment)
+        }
+    }
+
+    /// Why a Tipo that Apple Foundation Models answers went to `family` instead.
+    private static func reason(_ type: String, _ family: String,
+                               _ fallback: Route.OnDeviceFallback) -> LocalizedStringResource {
+        switch fallback {
+        case .attachmentTooLong:
+            LocalizedStringResource("\(type) → \(family), allegato troppo lungo per Apple FM", comment: comment)
+        case .questionTooLong:
+            LocalizedStringResource("\(type) → \(family), domanda troppo lunga per Apple FM", comment: comment)
+        case .attachmentNotMeasurable:
+            LocalizedStringResource("\(type) → \(family), Apple FM con allegati richiede macOS 26.4", comment: comment)
+        case .unavailable:
+            LocalizedStringResource("\(type) → \(family), Apple Intelligence non disponibile: solo regole",
+                                    comment: comment)
+        case .failed:
+            LocalizedStringResource("\(type) → \(family), Apple FM non ha risposto", comment: comment)
         }
     }
 
@@ -140,6 +164,10 @@ struct RouterLine: View {
         }())
         RouterLine(answer: RoutedAnswer(route: Route(family: .opus, model: "opus", effort: .medium,
                                                      reason: .type(.reasoning, runnerUp: .writing)), provider: .anthropic))
+        RouterLine(answer: RoutedAnswer(route: .onDevice(.shortFact, runnerUp: nil), provider: nil))
+        RouterLine(answer: RoutedAnswer(route: Route(family: .haiku, model: "haiku", effort: nil,
+                                                     reason: .type(.summary, runnerUp: nil),
+                                                     onDeviceFallback: .attachmentTooLong), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .chosen("sonnet"), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .stronger(Scala.Step(family: .opus, effort: .high)), provider: .anthropic))
         RouterLine(answer: {

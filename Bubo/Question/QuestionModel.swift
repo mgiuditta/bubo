@@ -1,7 +1,7 @@
 import Foundation
 import os
 
-/// A Domanda typed in the HUD, answered by `claude` through the agent bridge.
+/// A Domanda typed in the HUD, answered by `claude` through the agent bridge, or by Apple Foundation Models on the Mac.
 @Observable
 final class QuestionModel {
     /// What the user is typing.
@@ -49,6 +49,8 @@ final class QuestionModel {
     ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
     ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
     ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
+    ///   - onDevice: Apple's model on the Mac, which `intake` measures with when it is `nil`.
+    ///   - onDeviceAnswerer: Answers the Domande the router keeps on the Mac; Foundation Models on `onDevice` when `nil`.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -56,14 +58,16 @@ final class QuestionModel {
          apiKey: (() async throws -> String?)? = nil, endpoints: EndpointSettings = .shared,
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
          endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
-         speaker: (any VoiceSpeaker)? = nil) {
+         speaker: (any VoiceSpeaker)? = nil,
+         onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
         self.index = index
         self.secondBrain = secondBrain
         self.orb = orb
-        self.intake = intake ?? IntakePipeline(orb: orb)
+        self.intake = intake ?? IntakePipeline(orb: orb, onDevice: onDevice)
+        self.onDeviceAnswerer = onDeviceAnswerer ?? FoundationModelsAnswerer(model: onDevice)
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -91,6 +95,7 @@ final class QuestionModel {
     @ObservationIgnored private lazy var speaker = makeSpeaker()
     /// The Sintesi parlata being said.
     @ObservationIgnored private(set) var speaking: Task<Void, Never>?
+    @ObservationIgnored private let onDeviceAnswerer: any OnDeviceAnswering
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
@@ -107,12 +112,15 @@ final class QuestionModel {
 
     /// The step of the Scala above the last answer's, for "Rifai più forte"; `nil` while answering, before the first
     /// answer and at the top, where the command is off.
+    ///
+    /// Apple Foundation Models sits below the whole Scala: above it is the first step, Haiku.
     var strongerRoute: Route? {
-        guard !isAnswering, !answer.isEmpty, let routedAnswer,
-              let current = routedAnswer.route.step(answeredBy: routedAnswer.answeringModel),
-              let step = Scala(catalog: catalog, effortCaps: effortCaps).step(above: current)
-        else { return nil }
-        return .stronger(step)
+        guard !isAnswering, !answer.isEmpty, let routedAnswer else { return nil }
+        let scala = Scala(catalog: catalog, effortCaps: effortCaps)
+        let step = routedAnswer.route.destination == .onDevice
+            ? scala.steps.first
+            : routedAnswer.route.step(answeredBy: routedAnswer.answeringModel).flatMap(scala.step(above:))
+        return step.map(Route.stronger)
     }
 
     /// The choices of "Rifai con…" near the last answer, without the endpoints the user left out for this Domanda;
@@ -358,10 +366,55 @@ final class QuestionModel {
         var waitingForFirstToken: OSSignpostIntervalState? =
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
-        // Domande go to `claude` until the router chooses among providers (feature 10): Anthropic's Tinta.
-        let submission = await intake.submit(Richiesta(text: text), to: .anthropic, catalog: catalog)
+        // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
+        let richiesta = Richiesta(text: text)
+        let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog)
         defer { intake.finish(submission) }
-        let route = chosen ?? submission.route
+        var route = chosen ?? submission.route
+        // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
+        let asked = speaksAnswer ? text + SpokenSummary.instruction : text
+        if route.destination == .onDevice {
+            guard !Task.isCancelled else { return }
+            routedAnswer = RoutedAnswer(route: route, provider: nil)
+            do {
+                var summary = speaksAnswer ? SpokenSummary() : nil
+                var firstAudio: OSSignpostIntervalState?
+                for try await chunk in onDeviceAnswerer.answer(to: asked, attachments: richiesta.attachments) {
+                    if let state = waitingForFirstToken {
+                        Signposts.signposter.endInterval("Domanda, primo token", state)
+                        waitingForFirstToken = nil
+                        intake.beginWorking(on: submission)
+                        if speaksAnswer { firstAudio = Signposts.beginInterval(.voiceFirstAudio) }
+                    }
+                    answer += summary?.read(chunk) ?? chunk
+                    if let line = summary?.line {
+                        summary = nil
+                        say(line, for: submission, firstAudio: firstAudio)
+                    }
+                }
+                if var summary {
+                    answer += summary.finish()
+                    if let line = summary.line { say(line, for: submission, firstAudio: firstAudio) }
+                }
+                Logger.agent.info("Domanda answered on the Mac")
+                return
+            } catch is CancellationError {
+                return
+            } catch {
+                guard !Task.isCancelled else { return }
+                // After the first token the answer is under way: a failure stays a failure.
+                guard waitingForFirstToken != nil else {
+                    Logger.agent.error("Apple FM failed mid-answer: \(String(describing: error), privacy: .public)")
+                    failure = .unexpected
+                    return
+                }
+                // Before it, once, Haiku answers instead and the reason line says why.
+                Logger.agent.notice("Apple FM failed, Haiku answers: \(String(describing: error), privacy: .public)")
+                route = Route(family: .haiku, model: ModelFamily.haiku.alias, effort: nil, reason: route.reason,
+                              onDeviceFallback: .failed)
+                intake.answer(submission, movedTo: .anthropic)
+            }
+        }
         let started = ContinuousClock.now
         let windowBefore = quotaReports > 0 ? quota.fiveHour : nil
         let reportsBefore = quotaReports
@@ -377,8 +430,6 @@ final class QuestionModel {
             let bridge = try await readyBridge()
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
-            // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
-            let asked = speaksAnswer ? text + SpokenSummary.instruction : text
             let stream = bridge.ask(asked, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     progress: { [orb] progress in

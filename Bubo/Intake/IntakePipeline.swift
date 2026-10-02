@@ -30,14 +30,19 @@ final class IntakePipeline {
 
     /// Creates the pipeline that drives `orb`.
     ///
-    /// - Parameter makeClassifier: Builds the classifier on the first Richiesta, so launch does not pay for it; `nil` when
-    ///   it cannot be built, and then the Orb keeps its Forma.
-    init(orb: OrbControls = .shared, makeClassifier: @escaping () -> RequestClassifier? = IntakePipeline.bundledClassifier) {
+    /// - Parameters:
+    ///   - onDevice: Apple's model on the Mac, which measures what a Richiesta carries for the router.
+    ///   - makeClassifier: Builds the classifier on the first Richiesta, so launch does not pay for it; `nil` when it
+    ///     cannot be built, and then the Orb keeps its Forma.
+    init(orb: OrbControls = .shared, onDevice: OnDeviceModel = OnDeviceModel(),
+         makeClassifier: @escaping () -> RequestClassifier? = IntakePipeline.bundledClassifier) {
         self.orb = orb
+        self.onDevice = onDevice
         self.makeClassifier = makeClassifier
     }
 
     @ObservationIgnored private let orb: OrbControls
+    @ObservationIgnored private let onDevice: OnDeviceModel
     @ObservationIgnored private let makeClassifier: () -> RequestClassifier?
     @ObservationIgnored private let router = ModelRouter()
     @ObservationIgnored private lazy var classifier: RequestClassifier? = makeClassifier()
@@ -49,6 +54,9 @@ final class IntakePipeline {
 
     /// Starts `richiesta` towards `provider`: Pensiero and the Tinta at once, then the classification, the router's
     /// decision and the Morph.
+    ///
+    /// What the Richiesta carries is measured for Apple Foundation Models while it is classified, within the same
+    /// budget; a Domanda the router sends there takes the neutral Tinta.
     ///
     /// - Parameter catalog: The Claude models the account offers, for the router; `nil` when not read yet.
     func submit(_ richiesta: Richiesta, to provider: Provider?, catalog: ModelCatalog? = nil) async -> Submission {
@@ -63,14 +71,32 @@ final class IntakePipeline {
             return Submission(id: id, classification: nil, route: router.route(for: nil, in: catalog))
         }
         let decision = Signposts.beginInterval(.intakeDecision)
+        async let measured = onDevice.fit(of: richiesta.onDeviceContent)
         let classification = await classifier.classification(of: richiesta.classifierInput)
-        let route = router.route(for: classification, in: catalog)
+        let fit = await measured
+        let route = router.route(for: classification, fit: fit, hasAttachments: !richiesta.attachments.isEmpty,
+                                 in: catalog)
         Signposts.endInterval(.intakeDecision, decision)
+        // Where the Domanda goes and what was measured: never its text.
+        let fallback = route.onDeviceFallback.map { String(describing: $0) } ?? "-"
+        Logger.agent.info("""
+            Route \(String(describing: route.destination), privacy: .public), \
+            fit \(String(describing: fit), privacy: .public), fallback \(fallback, privacy: .public)
+            """)
+        let tinta = route.destination == .onDevice ? nil : provider
         if id == latest {
             orb.variante = classification.variante
-            forecast = Forecast(variante: classification.variante, provider: provider)
+            orb.provider = tinta
+            forecast = Forecast(variante: classification.variante, provider: tinta)
         }
         return Submission(id: id, classification: classification, route: route)
+    }
+
+    /// Gives the Orb `provider`'s Tinta: `submission`'s answer moved to it, after Apple Foundation Models failed.
+    func answer(_ submission: Submission, movedTo provider: Provider?) {
+        guard submission.id == latest else { return }
+        orb.provider = provider
+        forecast = forecast.map { Forecast(variante: $0.variante, provider: provider) }
     }
 
     /// Turns the Orb to Lavora: the first token of `submission`'s answer arrived.
