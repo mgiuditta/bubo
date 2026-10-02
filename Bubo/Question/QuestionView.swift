@@ -24,6 +24,7 @@ struct QuestionView: View {
                     // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
                     .accessibilityLabel("Chiedi qualcosa a Claude")
                     .accessibilityIdentifier("question.prompt")
+                    .onKeyPress(phases: .down, action: chipKeyPress)
                 // The Domanda ↔ Sessione switch: the conversation so far goes with it.
                 Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
                     hud.createSession(from: model.turnIntoSession())
@@ -45,6 +46,14 @@ struct QuestionView: View {
             .background(Palette.surface, in: .rect(cornerRadius: CornerRadius.large))
             .overlay {
                 RoundedRectangle(cornerRadius: CornerRadius.large).strokeBorder(Palette.line)
+            }
+
+            if showsChip, let route = model.chipRoute {
+                RouterChip(route: route)
+                    .accessibilityAction(named: "Modello successivo") { model.chooseModel(forward: true) }
+                    .accessibilityAction(named: "Sforzo più alto") { model.chooseEffort(stronger: true) }
+                    .accessibilityAction(named: "Sforzo più basso") { model.chooseEffort(stronger: false) }
+                    .accessibilityAction(named: "Torna al router") { model.returnToRouter() }
             }
 
             if let voice, let failure = voice.failure {
@@ -141,6 +150,34 @@ struct QuestionView: View {
             if case let .endpoint(endpoint) = alternative.target {
                 Text("\(endpoint.name) riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
             }
+        }
+    }
+
+    /// Whether the chip shows: there is a prompt, and push-to-talk is not held, which sends at release.
+    private var showsChip: Bool {
+        !model.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && voice?.isListening != true
+    }
+
+    /// The chip's keys in the prompt: Tab and ⇧Tab the model, ⌥↑ and ⌥↓ the effort, Esc back to the router; any
+    /// other key, or one with nothing to change, keeps its usual meaning.
+    private func chipKeyPress(_ press: KeyPress) -> KeyPress.Result {
+        guard showsChip else { return .ignored }
+        switch press.key {
+        case .tab:
+            model.chooseModel(forward: !press.modifiers.contains(.shift))
+            return .handled
+        // AppKit delivers ⇧Tab as the back-tab character.
+        case KeyEquivalent("\u{19}"):
+            model.chooseModel(forward: false)
+            return .handled
+        case .upArrow where press.modifiers.contains(.option):
+            return model.chooseEffort(stronger: true) ? .handled : .ignored
+        case .downArrow where press.modifiers.contains(.option):
+            return model.chooseEffort(stronger: false) ? .handled : .ignored
+        case .escape:
+            return model.returnToRouter() ? .handled : .ignored
+        default:
+            return .ignored
         }
     }
 

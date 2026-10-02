@@ -5993,6 +5993,17 @@
         }
       }
     },
+    "Modello successivo" : {
+      "comment" : "VoiceOver action of the router chip: pick the next model for this Domanda.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next model"
+          }
+        }
+      }
+    },
     "Modifica" : {
       "localizations" : {
         "en" : {
@@ -9238,6 +9249,28 @@
         }
       }
     },
+    "Sforzo più alto" : {
+      "comment" : "VoiceOver action of the router chip: pick a stronger effort level.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Higher effort"
+          }
+        }
+      }
+    },
+    "Sforzo più basso" : {
+      "comment" : "VoiceOver action of the router chip: pick a weaker effort level.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lower effort"
+          }
+        }
+      }
+    },
     "Si azzera %@ alle %@." : {
       "localizations" : {
         "en" : {
@@ -9555,6 +9588,28 @@
         }
       }
     },
+    "Tab cambia modello, Opzione e freccia su o giù cambia lo sforzo, Esc torna al router." : {
+      "comment" : "VoiceOver hint of the router chip under the prompt: its keyboard shortcuts, spelled out.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tab changes the model, Option with the up or down arrow changes the effort, Esc goes back to the router."
+          }
+        }
+      }
+    },
+    "Tab cambia modello, ⌥↑ e ⌥↓ lo sforzo, Esc torna al router" : {
+      "comment" : "Tooltip of the router chip under the prompt: its keyboard shortcuts.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tab changes the model, ⌥↑ and ⌥↓ the effort, Esc goes back to the router"
+          }
+        }
+      }
+    },
     "Tablet" : {
       "localizations" : {
         "en" : {
@@ -9741,6 +9796,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Back to the Standard Model (%@)"
+          }
+        }
+      }
+    },
+    "Torna al router" : {
+      "comment" : "VoiceOver action of the router chip: let the router choose the model again.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the router"
           }
         }
       }

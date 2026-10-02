@@ -4,8 +4,17 @@ import os
 /// A Domanda typed in the HUD, answered by `claude` through the agent bridge, or by Apple Foundation Models on the Mac.
 @Observable
 final class QuestionModel {
-    /// What the user is typing.
-    var prompt = ""
+    /// What the user is typing; each change asks the router for a new forecast, for the chip.
+    var prompt = "" {
+        didSet {
+            if prompt != oldValue { updateForecast() }
+        }
+    }
+    /// What the router would choose for the prompt as typed, for the chip; `nil` with an empty prompt and until the
+    /// first forecast.
+    private(set) var forecast: Route?
+    /// The model and effort the user picked in the chip for the next Domanda; `nil` when the router chooses.
+    private(set) var chipChoice: Route?
     /// The answer so far, growing as it streams.
     private(set) var answer = ""
     /// Whether an answer is on its way.
@@ -121,6 +130,58 @@ final class QuestionModel {
     /// `maxEffortLevel`): the Scala skips the steps above it from then on.
     @ObservationIgnored private var effortCaps: [ModelFamily: Effort] = [:]
 
+    /// The task asking the router for the prompt being typed.
+    @ObservationIgnored private(set) var forecasting: Task<Void, Never>?
+    /// How long typing must pause before the router is asked: not once per key.
+    private static let forecastDelay = Duration.milliseconds(250)
+
+    /// What the chip in the prompt shows: the user's choice, or else the router's forecast.
+    var chipRoute: Route? {
+        chipChoice ?? forecast
+    }
+
+    /// Picks the next model in the chip (Tab), or the previous one (⇧Tab), for the next Domanda only.
+    func chooseModel(forward: Bool) {
+        let current = chipRoute ?? Route(family: nil, model: nil, effort: nil, reason: .unclassified)
+        chipChoice = current.choosingModel(forward: forward, in: catalog)
+    }
+
+    /// Picks a stronger effort in the chip (⌥↑), or a weaker one (⌥↓); `false` when the model has no other level,
+    /// and the key keeps its usual meaning.
+    @discardableResult
+    func chooseEffort(stronger: Bool) -> Bool {
+        guard let route = chipRoute?.choosingEffort(stronger: stronger, in: catalog) else { return false }
+        chipChoice = route
+        return true
+    }
+
+    /// Hands the next Domanda back to the router (Esc); `false` when the router already chooses.
+    @discardableResult
+    func returnToRouter() -> Bool {
+        guard chipChoice != nil else { return false }
+        chipChoice = nil
+        return true
+    }
+
+    /// Asks the router again for the prompt, once typing pauses; the chip goes away with an empty prompt, and with it
+    /// the user's choice.
+    private func updateForecast() {
+        forecasting?.cancel()
+        let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else {
+            forecast = nil
+            chipChoice = nil
+            return
+        }
+        forecasting = Task {
+            try? await Task.sleep(for: Self.forecastDelay)
+            guard !Task.isCancelled else { return }
+            let route = await intake.forecastRoute(for: Richiesta(text: text), catalog: catalog)
+            guard !Task.isCancelled else { return }
+            forecast = route
+        }
+    }
+
     /// The step of the Scala above the last answer's, for "Rifai più forte"; `nil` while answering, before the first
     /// answer and at the top, where the command is off.
     ///
@@ -196,6 +257,8 @@ final class QuestionModel {
     private func ask(speaksAnswer: Bool) {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        // Push-to-talk shows no chip, so only a typed or dictated prompt takes the user's choice.
+        let choice = speaksAnswer ? nil : chipChoice
         prompt = ""
         // No Domanda, no token: the Orb plays the Orbite and the last answer stays.
         if Orbite.isPlayed(by: text) {
@@ -205,7 +268,7 @@ final class QuestionModel {
         lastPrompt = text
         declinedEndpoints = []
         question = UUID()
-        start(text, speaksAnswer: speaksAnswer)
+        start(text, route: choice, speaksAnswer: speaksAnswer)
     }
 
     /// Asks the last prompt again.

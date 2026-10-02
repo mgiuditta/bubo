@@ -92,6 +92,18 @@ final class IntakePipeline {
         return Submission(id: id, classification: classification, route: route)
     }
 
+    /// The router's decision for `richiesta` while it is typed, for the chip in the prompt: the same classification
+    /// and measure as `submit`, without moving the Orb.
+    ///
+    /// - Parameter catalog: The Claude models the account offers, for the router; `nil` when not read yet.
+    func forecastRoute(for richiesta: Richiesta, catalog: ModelCatalog? = nil) async -> Route {
+        guard let classifier else { return router.route(for: nil, in: catalog) }
+        async let measured = onDevice.fit(of: richiesta.onDeviceContent)
+        let classification = await classifier.classification(of: richiesta.classifierInput)
+        return router.route(for: classification, fit: await measured, hasAttachments: !richiesta.attachments.isEmpty,
+                            in: catalog)
+    }
+
     /// Gives the Orb `provider`'s Tinta: `submission`'s answer moved to it, after Apple Foundation Models failed.
     func answer(_ submission: Submission, movedTo provider: Provider?) {
         guard submission.id == latest else { return }
