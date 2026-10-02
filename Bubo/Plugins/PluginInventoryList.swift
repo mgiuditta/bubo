@@ -4,10 +4,12 @@ import SwiftUI
 struct PluginInventoryList: View {
     let inventory: PluginInventory
     let isInstalled: Bool
+    /// The heading in place of "Cosa installa" or "Componenti installati".
+    var title: Text?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
-            Text(isInstalled ? "Componenti installati" : "Cosa installa")
+            (title ?? Text(isInstalled ? "Componenti installati" : "Cosa installa"))
                 .font(Typography.body(size: 13, weight: .semibold))
                 .foregroundStyle(Palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
