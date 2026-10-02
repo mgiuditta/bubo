@@ -8,8 +8,10 @@ nonisolated struct SessionDraft: Equatable, Sendable {
     var question = ""
     /// What arrived of the Domanda's answer; empty when there is none.
     var answer = ""
-    /// The Cronologia CLI conversation the Sessione continues as a fork, if any.
+    /// The conversation the Sessione continues as a fork, if any: from the Cronologia CLI, or a Sessione's turn.
     var conversation: CLIConversation?
+    /// The message of `conversation` the fork stops at, included: Continua da qui. `nil` for all of it.
+    var upToMessage: String?
 
     /// Whether the Sessione continues a Domanda that got an answer.
     var continuesQuestion: Bool { !answer.isEmpty }

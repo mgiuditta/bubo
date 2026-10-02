@@ -4,6 +4,8 @@ import SwiftUI
 /// The right column of the Cronologia window: the conversation read only, on the message found and highlighted.
 struct ConversationReaderView: View {
     @Bindable var reader: ConversationReader
+    /// Riprendi and Continua da qui; `nil` offers neither.
+    var actions: ResumeActions?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -51,6 +53,20 @@ struct ConversationReaderView: View {
                 .keyboardShortcut("g")
                 .disabled(matches.isEmpty)
                 .help(Text("Vai al punto successivo (⌘G)"))
+            if let actions {
+                // Gone from both sources, or not read yet: nothing to resume.
+                let isAvailable = reader.content == .available
+                Button("Riprendi", systemImage: "arrow.uturn.forward") { actions.resume(reader.result) }
+                    .keyboardShortcut(.return, modifiers: .option)
+                    .disabled(!isAvailable || !actions.canResume(reader.result))
+                    .help(Text("Riprendi la conversazione (⌥↩)"))
+                Button("Continua da qui", systemImage: "arrow.branch") {
+                    actions.continueFrom(reader.result, upTo: reader.currentMessage)
+                }
+                .keyboardShortcut(.return, modifiers: .command)
+                .disabled(!isAvailable || reader.currentMessage == nil)
+                .help(Text("Nuova Sessione con la conversazione fino al messaggio evidenziato (⌘↩)"))
+            }
         }
     }
 
@@ -110,13 +126,20 @@ struct ConversationReaderView: View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: Spacing.small) {
                 ForEach(reader.lines) { line in
-                    TranscriptLineView(line: line, words: reader.words, isCurrent: line.id == reader.current)
+                    TranscriptLineView(line: line, words: reader.words, isCurrent: line.id == reader.current,
+                                       continueFromHere: continueFromHere(line))
                 }
             }
             .scrollTargetLayout()
         }
         // Set without animation: the reader jumps to the message, with or without Riduci movimento.
         .scrollPosition(id: $reader.position, anchor: .center)
+    }
+
+    /// Continua da qui on `line`: only with a message id, in a conversation that can still be resumed.
+    private func continueFromHere(_ line: TranscriptLine) -> (() -> Void)? {
+        guard let actions, reader.content == .available, let message = line.message.id else { return nil }
+        return { [result = reader.result] in actions.continueFrom(result, upTo: message) }
     }
 
     /// Fonte · Progetto · when.

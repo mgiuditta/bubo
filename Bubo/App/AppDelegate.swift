@@ -74,20 +74,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// What starts once the HUD is interactive: the only place for work after launch.
     private(set) lazy var launch = makeLaunchSequence()
     /// The Palette, opened with ⌘K: the past conversations, searched in the Indice.
-    private(set) lazy var palette: PaletteWindow = PaletteWindow { [weak self] in
+    private(set) lazy var palette: PaletteWindow = PaletteWindow(search: { [weak self] in
         ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
                            history: self?.sessions?.lastHistory ?? [])
-    } open: { [weak self] result in
+    }, actions: resumeActions) { [weak self] result in
         self?.history.show(result, searching: self?.palette.searchedText ?? "")
     }
     /// The Cronologia window: the past conversations, read only on the message found.
-    private(set) lazy var history: HistoryWindow = HistoryWindow { [weak self] in
+    private(set) lazy var history: HistoryWindow = HistoryWindow(search: { [weak self] in
         ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
                            history: self?.sessions?.lastHistory ?? [])
-    } read: { [sessions] conversation in
+    }, read: { [sessions] conversation in
         guard let sessions else { throw CocoaError(.fileReadUnknown) }
         return try await sessions.transcript(ofConversation: conversation)
-    }
+    }, actions: resumeActions)
+    /// Riprendi and Continua da qui, from the Palette and the Cronologia window.
+    private(set) lazy var resumeActions = ResumeActions(sessions: { [weak self] in self?.sessions }, hud: hud)
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press() } release: { [pushToTalk] in pushToTalk.release() }
     /// The global shortcut held down: dictation into the Domanda, sent at release.

@@ -258,6 +258,74 @@ struct SessionTests {
         #expect(sessions.map(\.continuedConversation) == ["c-1"])
     }
 
+    /// The `prompt` and `upTo` of each `ask` in `log`, in order.
+    static func prompts(in log: URL) throws -> [(prompt: String?, upTo: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["prompt"] as? String, command?["upTo"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func riprendiAfterQuittingAsksThePromptOfTheInterruptedTurn() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let id = try store.start("Primo", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Rimando", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+        #expect(store.sessions.first?.turnPrompt == "Rimando")
+
+        // Bubo quits during the rimando: the saved Sessione was still in Lavora.
+        var saved = try #require(store.sessions.first)
+        saved.activity = .lavora
+        try JSONEncoder().encode([saved]).write(to: file)
+        let relaunched = SessionStore(file: file,
+                                      worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) { bridge }
+        relaunched.resume(id)
+        try await Self.wait { relaunched.sessions.first?.conversations.count == 3 }
+        try await Self.wait { relaunched.sessions.first?.activity == .ferma }
+
+        #expect(try Self.prompts(in: log).map(\.prompt) == ["Primo", "Rimando", "Rimando"])
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func continuaDaQuiCutsOnlyTheConversationItForks() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation, upTo: "m-2")
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Ancora", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+
+        let session = try #require(store.sessions.first)
+        #expect(try Self.prompts(in: log).map(\.upTo) == ["m-2", nil])
+        #expect(try Self.asks(in: log).map(\.resume) == ["c-1", session.conversations[0]])
+        #expect(session.forkedUpTo == "m-2")
+    }
+
     @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
         let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
                                                                lastModified: .now))

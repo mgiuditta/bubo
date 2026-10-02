@@ -60,10 +60,15 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var prompt: String?
     /// Whether Bubo quit while the Sessione was in Lavora: it waits for Riprendi.
     var isInterrupted = false
+    /// The prompt of the latest turn that started, which Riprendi asks again after Bubo's quitting interrupted it:
+    /// the first prompt, a rimando from the revisione or the request of a later turn. `nil` before the first turn.
+    var turnPrompt: String?
     /// Whether the Sessione works on the Progetto's checkout instead of its own copy: at most one per Progetto.
     var isOnCheckout = false
     /// The Cronologia CLI conversation the Sessione continues as a fork: `claude` resumes it, never in place.
     var forkedFrom: String?
+    /// The message of ``forkedFrom`` the fork stops at, included: Continua da qui. `nil` for the whole conversation.
+    var forkedUpTo: String?
     /// The ids of the agent's conversations, one per turn, oldest first: Bubo keeps a copy of each (ADR 0006).
     var conversations: [String] = []
     /// The conversation the next turn resumes as a fork, so that the agent sees the turns before: the latest turn's
@@ -153,7 +158,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
-    /// Richiamato, its Riassunto, its pull request and its chain of conversations were kept.
+    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut and its turn's prompt were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -172,6 +177,8 @@ nonisolated extension Session {
         isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false
         forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
+        forkedUpTo = try container.decodeIfPresent(String.self, forKey: .forkedUpTo)
+        turnPrompt = try container.decodeIfPresent(String.self, forKey: .turnPrompt)
         conversations = try container.decodeIfPresent([String].self, forKey: .conversations) ?? []
         // Before the chain each turn started alone: the next one resumes what the Sessione forked, if anything.
         continuedConversation = try container.decodeIfPresent(String.self, forKey: .continuedConversation) ?? forkedFrom

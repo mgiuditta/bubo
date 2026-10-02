@@ -103,6 +103,7 @@ final class AgentBridge {
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
     ///   - conversation: The id of a conversation to continue as a fork, leaving it untouched: from the Cronologia CLI,
     ///     or the previous turn of a Sessione.
+    ///   - message: The message of `conversation` the fork stops at, included: Continua da qui. `nil` for all of it.
     ///   - kept: The id, a UUID, to give the agent's conversation so that Bubo keeps a copy of it (ADR 0006);
     ///     `nil` writes nothing of it.
     ///   - isSandboxed: Whether the commands of `claude` run in the Sandbox; if it cannot start, neither does the
@@ -123,7 +124,8 @@ final class AgentBridge {
     ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5, so that it asks even when the
     ///     Sandbox or the Modalità autonoma would let it run; `nil` counts every call as dangerous.
     func ask(_ prompt: String, in directory: URL, model: String? = nil, effort: Effort? = nil, environment: [String: String] = [:],
-             forkingFrom conversation: String? = nil, keeping kept: String? = nil, isSandboxed: Bool = false,
+             forkingFrom conversation: String? = nil, upTo message: String? = nil, keeping kept: String? = nil,
+             isSandboxed: Bool = false,
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
              rosa: [Variante] = Catalogo.bundled?.rosa() ?? [],
@@ -153,7 +155,7 @@ final class AgentBridge {
                                             projectConfigRoot: TrustGate.mainCheckout(ofWorktree: directory)
                                                 .map { URL(filePath: $0, directoryHint: .isDirectory) },
                                             model: model, environment: environment, resuming: conversation,
-                                            keeping: kept,
+                                            resumingAt: message, keeping: kept,
                                             sandbox: isSandboxed ? sandbox(for: environment, allowances: sandboxAllowances) : nil,
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),

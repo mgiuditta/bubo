@@ -15,7 +15,8 @@ enum BridgeCommand: Equatable {
     /// When `directory` is a worktree, `projectConfigRoot` is its main checkout, where `claude` reads the
     /// Progetto's settings, `.mcp.json` and `.claude/`. `model` is an alias of `claude`, such as `sonnet`;
     /// without it, the model the user chose in `claude` answers. `environment` adds to the one `claude` gets.
-    /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork.
+    /// `resuming` is a conversation of the Cronologia CLI the answer continues, always as a fork; `resumingAt` is the
+    /// message of `resuming` the fork stops at, included (Continua da qui); without it, the whole conversation.
     /// `keeping` is the id of the agent's conversation, given by Bubo, to copy in Bubo's database (ADR 0006);
     /// without it nothing of the conversation is written. `sandbox` runs the commands of `claude` in the Sandbox;
     /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
@@ -26,8 +27,8 @@ enum BridgeCommand: Equatable {
     /// `rosa` names the Varianti the agent may give the Orb with `⟦orb:nome⟧`; without it, the agent gets no
     /// instruction and the Orb follows only its tools.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
-             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, keeping: String? = nil,
-             sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
+             model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
+             keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
              remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [])
     /// Interrupts the conversation `id`.
     case cancel(id: String)
@@ -72,13 +73,14 @@ enum BridgeCommand: Equatable {
     func line() throws -> Data {
         var object: [String: Any]
         switch self {
-        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, keeping,
-                      sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa):
+        case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
+                      keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
             if !environment.isEmpty { object["env"] = environment }
             object["resume"] = resuming
+            if resuming != nil { object["upTo"] = resumingAt }
             object["keep"] = keeping
             object["sandbox"] = sandbox?.jsonObject
             if offersPreview { object["preview"] = true }

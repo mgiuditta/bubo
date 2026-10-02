@@ -33,7 +33,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -280,6 +280,7 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // fork, con un id nuovo. `claude` la riprende dal transcript in ~/.claude: lo store resta solo la copia, perché un
 // `resume` letto dallo store gira con una cartella di configurazione temporanea, senza memoria automatica, skill né
 // CLAUDE.md dell'utente. Dallo store solo se ~/.claude non l'ha più.
+// `upTo` è il messaggio di `resume` a cui il fork si ferma, incluso (Continua da qui, #159): `resumeSessionAt`.
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
 // e l'SDK lo copia nello store, se c'è. Senza `keep`, come per le Domande, `claude` non scrive nulla.
@@ -293,7 +294,7 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // di sistema, che senza resta quello vuoto dell'SDK. Il tag non arriva mai a Bubo come testo, diventa `variante`.
 // Il cancello (`gate.ts`) passa prima di ogni strumento: con la Sandbox accesa o in Modalità autonoma.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
+                   model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
                    permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = []) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
@@ -327,6 +328,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
+      ...(resume !== undefined && upTo !== undefined ? { resumeSessionAt: upTo } : {}),
       sandbox,
       permissionMode,
       ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
@@ -662,9 +664,10 @@ lines.on("line", (line) => {
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       const resume = typeof command.resume === "string" ? command.resume : undefined;
+      const upTo = typeof command.upTo === "string" ? command.upTo : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
                command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb));
       break;

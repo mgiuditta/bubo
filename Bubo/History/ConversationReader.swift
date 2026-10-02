@@ -57,6 +57,11 @@ final class ConversationReader {
         resumeID.map { "claude --resume \($0)" }
     }
 
+    /// The id of the message shown now, where Continua da qui cuts; `nil` when the bridge gave it no id.
+    var currentMessage: String? {
+        lines.first { $0.id == current }?.message.id
+    }
+
     /// The points that answer the search, in order: the message found and every message with a searched word.
     var matches: [TranscriptLine.ID] {
         let found = result.best?.message?.id
