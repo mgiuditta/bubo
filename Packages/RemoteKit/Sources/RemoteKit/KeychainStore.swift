@@ -23,6 +23,12 @@ public actor KeychainStore<Item: Codable & Sendable & Identifiable> where Item.I
 
     /// Every item; one that does not decode, from another version, is skipped.
     public func items() throws(KeychainFailure) -> [Item] {
+        try itemsBlocking()
+    }
+
+    /// Every item, read on the caller's thread: only for code already off the main actor that cannot wait, such as
+    /// the iPhone's notification extension.
+    public nonisolated func itemsBlocking() throws(KeychainFailure) -> [Item] {
         var query = baseQuery
         query[kSecReturnData] = true
         query[kSecMatchLimit] = kSecMatchLimitAll
@@ -69,7 +75,7 @@ public actor KeychainStore<Item: Codable & Sendable & Identifiable> where Item.I
         return query
     }
 
-    private var baseQuery: [CFString: Any] {
+    private nonisolated var baseQuery: [CFString: Any] {
         [
             kSecClass: kSecClassGenericPassword,
             kSecAttrService: service,
