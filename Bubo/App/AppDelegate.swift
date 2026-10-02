@@ -95,7 +95,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud.show()
     } dictate: { [questions] text, isFinal in
         questions.prompt = text
-        if isFinal { questions.ask() }
+        if isFinal { questions.askByVoice() }
     }
 
     /// Shows the standard About panel, with Bubo's one line of credits.

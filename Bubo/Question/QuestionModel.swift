@@ -23,6 +23,11 @@ final class QuestionModel {
     private(set) var routedAnswer: RoutedAnswer?
     /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
     private(set) var savedNote: URL?
+    /// The Sintesi parlata while Bubo says it, as subtitles; `nil` when Bubo is silent.
+    private(set) var subtitle: String?
+    /// Whether to invite the user to download a better voice: Bubo spoke with a basic-quality one, and the user did not
+    /// close the invitation yet.
+    private(set) var invitesBetterVoice = false
     /// The endpoints the user left out of "Rifai con…" for this Domanda, by not giving their consent.
     private(set) var declinedEndpoints: Set<String> = []
     /// The road every Domanda takes to `claude`, moving the Orb on the way.
@@ -43,13 +48,15 @@ final class QuestionModel {
     ///   - endpoints: The OpenAI-compatible endpoints and their consents.
     ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
     ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
+    ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [], defaults: UserDefaults = .standard,
          apiKey: (() async throws -> String?)? = nil, endpoints: EndpointSettings = .shared,
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
-         endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil) {
+         endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
+         speaker: (any VoiceSpeaker)? = nil) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
@@ -64,6 +71,7 @@ final class QuestionModel {
         self.endpoints = endpoints
         self.endpointClient = endpointClient
         self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
+        self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
     }
 
     /// The task answering the last Domanda, or waiting to ask it again.
@@ -78,6 +86,11 @@ final class QuestionModel {
     @ObservationIgnored private let apiKey: () async throws -> String?
     @ObservationIgnored private let endpointClient: OpenAICompatibleClient
     @ObservationIgnored private let endpointKey: (OpenAICompatibleEndpoint) async throws -> String?
+    @ObservationIgnored private let makeSpeaker: () -> any VoiceSpeaker
+    /// The voice, made at the first Domanda asked by voice.
+    @ObservationIgnored private lazy var speaker = makeSpeaker()
+    /// The Sintesi parlata being said.
+    @ObservationIgnored private(set) var speaking: Task<Void, Never>?
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
@@ -145,6 +158,23 @@ final class QuestionModel {
 
     /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
+        ask(speaksAnswer: false)
+    }
+
+    /// Asks the prompt said with push-to-talk, like `ask()`, and says the Sintesi parlata of the answer.
+    func askByVoice() {
+        ask(speaksAnswer: true)
+    }
+
+    /// Hides the invitation to download a better voice, for good.
+    func dismissBetterVoice() {
+        invitesBetterVoice = false
+        defaults.set(true, forKey: Self.betterVoiceDismissedKey)
+    }
+
+    private static let betterVoiceDismissedKey = "voice.betterVoiceDismissed"
+
+    private func ask(speaksAnswer: Bool) {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
         prompt = ""
@@ -155,7 +185,7 @@ final class QuestionModel {
         }
         lastPrompt = text
         declinedEndpoints = []
-        start(text)
+        start(text, speaksAnswer: speaksAnswer)
     }
 
     /// Asks the last prompt again.
@@ -177,7 +207,14 @@ final class QuestionModel {
     /// Stops the answer in progress, keeping what arrived, or stops waiting for a reset.
     func stop() {
         answering?.cancel()
+        stopSpeaking()
         resumesAt = nil
+    }
+
+    private func stopSpeaking() {
+        speaking?.cancel()
+        speaking = nil
+        subtitle = nil
     }
 
     /// Stops the Domanda and hands it to a new Sessione: what is typed, and the last prompt with what arrived of its
@@ -258,8 +295,11 @@ final class QuestionModel {
     /// - Parameters:
     ///   - route: The user's choice for this turn; `nil` for the router's.
     ///   - endpoint: The OpenAI-compatible endpoint that answers instead of `claude`, picked in "Rifai con…".
-    private func start(_ text: String, route: Route? = nil, endpoint: OpenAICompatibleEndpoint? = nil) {
+    ///   - speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata of the answer.
+    private func start(_ text: String, route: Route? = nil, endpoint: OpenAICompatibleEndpoint? = nil,
+                       speaksAnswer: Bool = false) {
         answering?.cancel()
+        stopSpeaking()
         answer = ""
         failure = nil
         resumesAt = nil
@@ -270,7 +310,7 @@ final class QuestionModel {
             if let endpoint {
                 await stream(text, from: endpoint)
             } else {
-                await stream(text, route: route)
+                await stream(text, route: route, speaksAnswer: speaksAnswer)
             }
         }
     }
@@ -312,7 +352,7 @@ final class QuestionModel {
         }
     }
 
-    private func stream(_ text: String, route chosen: Route?) async {
+    private func stream(_ text: String, route chosen: Route?, speaksAnswer: Bool) async {
         defer { isAnswering = false }
         let signpostID = Signposts.signposter.makeSignpostID()
         var waitingForFirstToken: OSSignpostIntervalState? =
@@ -337,7 +377,9 @@ final class QuestionModel {
             let bridge = try await readyBridge()
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
-            let stream = bridge.ask(text, in: try Self.directory(), model: route.model, effort: route.effort,
+            // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
+            let asked = speaksAnswer ? text + SpokenSummary.instruction : text
+            let stream = bridge.ask(asked, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     progress: { [orb] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
@@ -347,6 +389,8 @@ final class QuestionModel {
                                         self?.routedAnswer?.answeringModel = $0
                                         self?.learnEffortCap(asked: route, answeredBy: $0)
                                     })
+            var summary = speaksAnswer ? SpokenSummary() : nil
+            var firstAudio: OSSignpostIntervalState?
             for try await chunk in stream {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
@@ -355,8 +399,17 @@ final class QuestionModel {
                         firstTokens[RetryAlternative(target: .claude(step)).id] = ContinuousClock.now - started
                     }
                     intake.beginWorking(on: submission)
+                    if speaksAnswer { firstAudio = Signposts.beginInterval(.voiceFirstAudio) }
                 }
-                answer += chunk
+                answer += summary?.read(chunk) ?? chunk
+                if let line = summary?.line {
+                    summary = nil
+                    say(line, for: submission, firstAudio: firstAudio)
+                }
+            }
+            if var summary {
+                answer += summary.finish()
+                if let line = summary.line { say(line, for: submission, firstAudio: firstAudio) }
             }
         } catch is CancellationError {
         } catch let failure as QuestionFailure {
@@ -372,6 +425,28 @@ final class QuestionModel {
         } catch {
             Logger.agent.error("Domanda failed: \(error)")
             failure = .unexpected
+        }
+    }
+
+    /// Says `line`, the Sintesi parlata of `submission`'s answer, with the Orb in Parla and the line as subtitles.
+    ///
+    /// - Parameter firstAudio: The interval from the first text of the answer, which the first audio ends.
+    private func say(_ line: String, for submission: IntakePipeline.Submission, firstAudio: OSSignpostIntervalState?) {
+        speaking?.cancel()
+        subtitle = line
+        intake.beginSpeaking(on: submission)
+        if speaker.hasOnlyDefaultVoices, !defaults.bool(forKey: Self.betterVoiceDismissedKey) { invitesBetterVoice = true }
+        speaking = Task { [speaker, orb, intake] in
+            var firstAudio = firstAudio
+            await speaker.speak(line) { level in
+                if let state = firstAudio {
+                    Signposts.endInterval(.voiceFirstAudio, state)
+                    firstAudio = nil
+                }
+                orb.voiceLevel = level
+            }
+            intake.endSpeaking(on: submission)
+            if !Task.isCancelled { subtitle = nil }
         }
     }
 

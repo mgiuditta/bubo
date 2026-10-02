@@ -51,6 +51,19 @@ struct QuestionView: View {
                 VoiceNotice(failure: failure, dismiss: voice.dismissFailure)
             }
 
+            // The Sintesi parlata as subtitles, while Bubo says it.
+            if let subtitle = model.subtitle {
+                Text(verbatim: subtitle)
+                    .font(Typography.body(size: 14, weight: .medium))
+                    .foregroundStyle(Palette.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("question.subtitle")
+            }
+
+            if model.invitesBetterVoice {
+                BetterVoiceInvitation(dismiss: model.dismissBetterVoice)
+            }
+
             if let resumesAt = model.resumesAt {
                 HStack(spacing: Spacing.small) {
                     Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")

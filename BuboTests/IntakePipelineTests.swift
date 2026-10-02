@@ -54,6 +54,30 @@ struct IntakePipelineTests {
                                           reason: .type(.webSearch, runnerUp: nil)))
     }
 
+    @Test func parlaOutlastsTheAnswerAndThenGivesTheOrbBack() async {
+        let intake = pipeline()
+        let submission = await intake.submit(Richiesta(text: "Che ore sono a Lima?"), to: .anthropic)
+        intake.beginWorking(on: submission)
+        intake.beginSpeaking(on: submission)
+        #expect(orb.questionState == .speaking)
+        intake.beginWorking(on: submission)
+        #expect(orb.questionState == .speaking)
+        intake.finish(submission)
+        #expect(orb.questionState == .speaking)
+        orb.voiceLevel = 0.5
+        intake.endSpeaking(on: submission)
+        #expect(orb.questionState == nil)
+        #expect(orb.voiceLevel == nil)
+    }
+
+    @Test func aShortSintesiParlataGoesBackToWork() async {
+        let intake = pipeline()
+        let submission = await intake.submit(Richiesta(text: "Che ore sono a Lima?"), to: .anthropic)
+        intake.beginSpeaking(on: submission)
+        intake.endSpeaking(on: submission)
+        #expect(orb.questionState == .working)
+    }
+
     @Test func theFirstTokenTurnsTheOrbToWorkAndTheEndGivesItBack() async {
         orb.state = .listening
         let intake = pipeline()
