@@ -4,6 +4,23 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@\n\nFile del Progetto da guardare:\n%@" : {
+      "comment" : "First prompt of a Sessione from a Domanda's files: the request, then their paths in the Progetto, one per line",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@\n\nProject files to look at:\n%2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@\n\nFile del Progetto da guardare:\n%2$@"
+          }
+        }
+      }
+    },
     "%@ (da compilare)" : {
       "localizations" : {
         "en" : {
@@ -920,6 +937,32 @@
         }
       }
     },
+    "Allegati a «%@»: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attached to “%1$@”: %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Allegati a «%1$@»: %2$@"
+          }
+        }
+      }
+    },
+    "Allegati al prossimo turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attachments for the next turn"
+          }
+        }
+      }
+    },
     "Altra risposta" : {
       "localizations" : {
         "en" : {
@@ -1713,6 +1756,17 @@
         }
       }
     },
+    "Apri come Progetto e crea Sessione" : {
+      "comment" : "Button: the dropped folder is a git repo with no Sessioni yet",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open as Project and create Session"
+          }
+        }
+      }
+    },
     "Apri i Costi" : {
       "localizations" : {
         "en" : {
@@ -2048,6 +2102,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start server"
+          }
+        }
+      }
+    },
+    "Avvia una Sessione di Claude su un Progetto. Bubo lavora senza aprire l'HUD." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts a Claude Session on a Project. Bubo works without opening the HUD."
           }
         }
       }
@@ -2783,6 +2847,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Untrusted Certificate"
+          }
+        }
+      }
+    },
+    "Che cosa deve fare Claude?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What should Claude do?"
           }
         }
       }
@@ -4638,6 +4712,16 @@
         }
       }
     },
+    "File da guardare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Files to look at"
+          }
+        }
+      }
+    },
     "Filtra Sessioni e Cronologia CLI" : {
       "localizations" : {
         "en" : {
@@ -5276,6 +5360,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ignored"
+          }
+        }
+      }
+    },
+    "Il Progetto «%@» non c'è più: è stato spostato o cancellato. Scegline un altro." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project “%@” is gone: it was moved or deleted. Choose another one."
           }
         }
       }
@@ -5948,6 +6042,37 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Interrupted"
+          }
+        }
+      }
+    },
+    "Nuova Sessione su ${project}: ${text}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session on ${project}: ${text}"
+          }
+        }
+      }
+    },
+    "Sessione non creata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session not created"
+          }
+        }
+      }
+    },
+    "Trasforma in Sessione su %@" : {
+      "comment" : "Button: turns the Domanda into a Sessione on the Progetto its files belong to",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn into Session on %@"
           }
         }
       }

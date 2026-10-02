@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "it",
   "strings" : {
+    "Avvia una Sessione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a Session in ${applicationName}"
+          }
+        }
+      }
+    },
     "Chiedi a ${applicationName}" : {
       "localizations" : {
         "en" : {
@@ -17,6 +27,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ask ${applicationName} a question"
+          }
+        }
+      }
+    },
+    "Nuova Sessione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session in ${applicationName}"
           }
         }
       }

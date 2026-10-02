@@ -51,6 +51,12 @@ struct NewSessionSheet: View {
                         }
                     }
                 }
+                if !draft.files.isEmpty {
+                    LabeledContent("File da guardare") {
+                        Text(verbatim: draft.files.map(\.lastPathComponent).formatted(.list(type: .and)))
+                            .lineLimit(2)
+                    }
+                }
                 if draft.continuesQuestion {
                     LabeledContent("Continua la Domanda") {
                         Text(verbatim: draft.question)
@@ -87,7 +93,7 @@ struct NewSessionSheet: View {
         .padding(Spacing.medium)
         .frame(width: 520)
         .onAppear {
-            project = project ?? draft.conversation?.folder ?? store.projects.first
+            project = project ?? draft.project ?? draft.conversation?.folder ?? store.projects.first
             if draft.continuesQuestion { title = Session.proposedTitle(for: draft.question) }
             if let conversation = draft.conversation { title = Session.proposedTitle(for: conversation.title) }
             prompt = draft.prompt

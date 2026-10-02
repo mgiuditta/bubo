@@ -378,6 +378,22 @@ final class SessionStore {
         }
     }
 
+    /// Attaches `allegati` to the open Sessione `id`, after those already there: they go with its next turn
+    /// (spec 09, regola "Sessione davanti"). Nothing for a Sessione that is not open.
+    func attach(_ allegati: [Allegato], to id: UUID) {
+        guard sessions.first(where: { $0.id == id })?.isLive == true else { return }
+        update(id) { session in
+            for allegato in allegati where !session.attachments.contains(allegato) {
+                session.attachments.append(allegato)
+            }
+        }
+    }
+
+    /// Takes `allegato` off the Sessione `id`, before its next turn.
+    func detach(_ allegato: Allegato, from id: UUID) {
+        update(id) { $0.attachments.removeAll { $0 == allegato } }
+    }
+
     /// The open Sessione that works on the checkout of `project`, if any.
     func checkoutSession(of project: URL) -> Session? {
         sessions.first { session in
@@ -956,8 +972,14 @@ final class SessionStore {
     private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil,
                      unattended: UnattendedTurn? = nil) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
+        // The Allegati dropped on the Sessione go with this turn, and only with it.
+        let attachments = session.attachments
+        let prompt = QuestionModel.prompt(prompt, attachments: attachments)
         // Kept from the start, also before the copy is ready: Riprendi asks this turn again if Bubo quits.
-        update(id) { $0.turnPrompt = prompt }
+        update(id) { session in
+            session.turnPrompt = prompt
+            session.attachments = []
+        }
         let environment = session.portEnvironment
         var conversation: String?
         var hasAnswered = false
@@ -1025,7 +1047,8 @@ final class SessionStore {
                                    forkingFrom: resumed, upTo: cut, keeping: kept,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
-                                   offersPreview: hasServer, unattended: unattended) { [weak self] progress in
+                                   offersPreview: hasServer, unattended: unattended,
+                                   readableDirectories: QuestionModel.readableDirectories(for: attachments)) { [weak self] progress in
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .variante(nome): self?.orb?.showWork(nome)

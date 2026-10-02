@@ -60,8 +60,11 @@ struct PanelBubbleView: View {
                 if !model.attachments.isEmpty {
                     AttachmentChips(attachments: model.attachments, remove: model.detach)
                 }
+                SessionProposalButton(model: model, hud: hud)
                 prompt
-                if let failure = model.failure {
+                if let notice = bubble.notice {
+                    ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
+                } else if let failure = model.failure {
                     QuestionNotice(failure: failure, model: model, pickRetry: hud.show)
                 } else if model.isAnswering && model.answer.isEmpty {
                     LoadingLabel("Chiedo a Claude…")

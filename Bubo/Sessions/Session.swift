@@ -58,6 +58,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var mergedAt: Date?
     /// The prompt the Sessione started with; `nil` in Sessioni saved before it was kept.
     var prompt: String?
+    /// What was dropped on the Sessione in the HUD, for its next turn; empty once that turn starts.
+    var attachments: [Allegato] = []
     /// Whether Bubo quit while the Sessione was in Lavora: it waits for Riprendi.
     var isInterrupted = false
     /// The prompt of the latest turn that started, which Riprendi asks again after Bubo's quitting interrupted it:
@@ -164,8 +166,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
-    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut, its turn's prompt and its
-    /// Automazione were kept.
+    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut, its turn's prompt, its
+    /// Automazione and its Allegati were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -202,5 +204,6 @@ nonisolated extension Session {
         automation = try container.decodeIfPresent(AutomationMark.self, forKey: .automation)
         denials = try container.decodeIfPresent([Denial].self, forKey: .denials) ?? []
         effectiveMode = try container.decodeIfPresent(String.self, forKey: .effectiveMode)
+        attachments = try container.decodeIfPresent([Allegato].self, forKey: .attachments) ?? []
     }
 }

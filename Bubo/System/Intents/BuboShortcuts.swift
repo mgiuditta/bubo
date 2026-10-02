@@ -7,5 +7,9 @@ struct BuboShortcuts: AppShortcutsProvider {
                     phrases: ["Chiedi a \(.applicationName)", "Fai una domanda a \(.applicationName)"],
                     shortTitle: "Chiedi a Bubo",
                     systemImageName: "questionmark.bubble")
+        AppShortcut(intent: NewSessionIntent(),
+                    phrases: ["Nuova Sessione in \(.applicationName)", "Avvia una Sessione in \(.applicationName)"],
+                    shortTitle: "Nuova Sessione",
+                    systemImageName: "arrow.triangle.branch")
     }
 }
