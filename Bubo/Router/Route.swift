@@ -38,6 +38,8 @@ nonisolated struct Route: Equatable, Sendable {
         case localServerOff(String)
         /// The preferred server on the Mac, called so, answers but no longer has the model.
         case localModelMissing(String)
+        /// The Budget of the preferred provider, called so as the CostLedger names it, is past its threshold.
+        case overBudget(String)
     }
 
     /// Why the router chose what it chose.
@@ -75,6 +77,9 @@ nonisolated struct Route: Equatable, Sendable {
     var onDeviceFallback: OnDeviceFallback?
     /// Why the user's preference for the Tipo did not answer; `nil` without one, or when it did.
     var pausedPreference: PausedPreference?
+    /// The provider the route avoids, as the CostLedger names it, because its Budget is past the threshold; `nil` when
+    /// it avoided none, and for a preference that went to its default, which `pausedPreference` says.
+    var avoidedBudget: String?
 
     /// The route of a Domanda of `type` that Apple Foundation Models answers on the Mac.
     static func onDevice(_ type: RequestType, runnerUp: RequestType?) -> Route {

@@ -76,6 +76,17 @@ struct QuestionNotice: View {
         case .unexpectedResponse:
             ErrorNotice("Risposta non riconosciuta", remedy: "Il server non parla il formato di OpenAI Chat Completions.",
                         actionTitle: "Rifai con…") { pickRetry() }
+        case .providerLimit(.keyLimit):
+            ErrorNotice("Limite della chiave raggiunto",
+                        remedy: "La chiave di OpenRouter ha raggiunto il limite di spesa che le hai dato su openrouter.ai.",
+                        actionTitle: "Rifai con…") { pickRetry() }
+        case .providerLimit(.credits):
+            ErrorNotice("Crediti OpenRouter finiti", remedy: "Ricarica i crediti su openrouter.ai, poi riprova.",
+                        actionTitle: "Rifai con…") { pickRetry() }
+        case .providerLimit(.inFlightBudget):
+            ErrorNotice("Limite della chiave quasi raggiunto",
+                        remedy: "Le richieste in corso su OpenRouter riempiono già il limite della chiave: riprova quando finiscono.",
+                        actionTitle: "Rifai con…") { pickRetry() }
         }
     }
 }
