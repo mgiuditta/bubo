@@ -21,6 +21,26 @@
         }
       }
     },
+    "Cerca nella cronologia di ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the history in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Cerca nelle conversazioni di ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search conversations in ${applicationName}"
+          }
+        }
+      }
+    },
     "Chiedi a ${applicationName}" : {
       "localizations" : {
         "en" : {

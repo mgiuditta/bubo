@@ -184,6 +184,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         AskBuboIntent.questions = questions
         // "Apri Galassia" opens the Galassia windows; with one in focus, the Orb follows its filtered Sessione.
         OpenGalaxyIntent.galaxies = galaxies
+        // "Cerca nella cronologia" opens the Palette, as ⌘K does.
+        SearchHistoryIntent.palette = self
         galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
         hud.showInGalaxy = { [galaxies] session in galaxies.show(session) }
         // "Nuova Sessione" starts its Sessioni in the HUD's store; the Domanda proposes them on the same Progetti.
@@ -298,6 +300,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// ⌘K: shows the Palette, or closes it. The first time, the Cronologia CLI is read for its titles.
     func togglePalette() {
         palette.toggle()
+        readCLIHistoryIfNeeded()
+    }
+
+    /// Reads the Cronologia CLI for its titles when the Palette is shown and it was never read.
+    private func readCLIHistoryIfNeeded() {
         if let sessions, sessions.lastHistory.isEmpty, palette.isShown {
             Task { [palette] in
                 _ = try? await sessions.history(isComplete: true)
@@ -350,5 +357,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { hud.show() }
         return true
+    }
+}
+
+extension AppDelegate: HistorySearching {
+    /// Shows the Palette on the recent conversations, for "Cerca nella cronologia".
+    func searchHistory() {
+        palette.show()
+        readCLIHistoryIfNeeded()
     }
 }
