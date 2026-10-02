@@ -1,18 +1,21 @@
 import Foundation
 import Security
 
-/// The user's optional Anthropic API key, kept in the data protection keychain.
+/// One of the user's API keys, kept in the data protection keychain: the optional Anthropic key, or the key of an
+/// OpenAI-compatible endpoint.
 ///
 /// Readable only while the Mac is unlocked and never synced to iCloud. All
 /// `SecItem` calls run on this actor, off the main actor.
 actor APIKeyStore {
     /// The keychain service; tests pass their own to stay isolated.
     let service: String
-    private let account = "anthropic-api-key"
+    /// The item's account: one per provider, so each key is saved and removed on its own.
+    let account: String
 
-    /// Creates a store for the items of `service`.
-    init(service: String = "com.mgiuditta.bubo.api-key") {
+    /// Creates a store for the key `account` names among the items of `service`.
+    init(service: String = "com.mgiuditta.bubo.api-key", account: String = "anthropic-api-key") {
         self.service = service
+        self.account = account
     }
 
     /// Saves `key`, replacing any key already saved.

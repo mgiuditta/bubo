@@ -7,6 +7,10 @@ struct QuestionView: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openURL
     @Environment(HUDPresenter.self) private var hud
+    @State private var isPickingRetry = false
+    /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
+    @State private var askingConsent: RetryAlternative?
+    @State private var isAskingConsent = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -77,6 +81,15 @@ struct QuestionView: View {
                             .disabled(model.strongerRoute == nil || !model.prompt.isEmpty)
                             .help("Rifai con un modello o uno sforzo più forte (⌘↑)")
                             .accessibilityIdentifier("question.retryStronger")
+                        Button("Rifai con…", systemImage: "arrow.triangle.swap") { isPickingRetry = true }
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Palette.textSecondary)
+                            .keyboardShortcut(.upArrow, modifiers: [.command, .shift])
+                            .disabled(model.retryAlternatives.isEmpty && model.excludedEndpoints.isEmpty
+                                      || !model.prompt.isEmpty)
+                            .help("Rifai con un altro modello (⌘⇧↑)")
+                            .accessibilityIdentifier("question.retryWith")
                     }
                 }
             }
@@ -92,6 +105,41 @@ struct QuestionView: View {
                 }
             }
         }
+        // On the whole field, not on the button: a failed answer offers "Rifai con…" too, without the reason line.
+        .popover(isPresented: $isPickingRetry, arrowEdge: .bottom) {
+            RetryWithList(alternatives: model.retryAlternatives, excluded: model.excludedEndpoints,
+                          usesAPIKey: model.usesAPIKey, pick: pick)
+        }
+        .confirmationDialog(consentTitle, isPresented: $isAskingConsent, presenting: askingConsent) { alternative in
+            Button("Consenti e invia") {
+                if case let .endpoint(endpoint) = alternative.target { model.endpoints.grantConsent(to: endpoint) }
+                model.retry(with: alternative)
+            }
+            Button("Non ora", role: .cancel) {
+                if case let .endpoint(endpoint) = alternative.target { model.decline(endpoint) }
+            }
+        } message: { alternative in
+            if case let .endpoint(endpoint) = alternative.target {
+                Text("\(endpoint.name) riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
+            }
+        }
+    }
+
+    /// Asks again with `alternative`, or first asks the user's consent when it is a cloud that never had it.
+    private func pick(_ alternative: RetryAlternative) {
+        isPickingRetry = false
+        if model.needsConsent(for: alternative) {
+            askingConsent = alternative
+            isAskingConsent = true
+        } else {
+            model.retry(with: alternative)
+        }
+    }
+
+    private var consentTitle: String {
+        guard case let .endpoint(endpoint)? = askingConsent?.target else { return "" }
+        return String(localized: "Mandare la Domanda a \(endpoint.name)?",
+                      comment: "Consent asked the first time a Domanda would go to a cloud provider other than Claude.")
     }
 
     @ViewBuilder
@@ -124,9 +172,41 @@ struct QuestionView: View {
         case .offline:
             ErrorNotice("Sei offline", remedy: "Bubo non passa da solo alla API key: riprova quando torna la rete.",
                         actionTitle: "Riprova", action: model.retry)
+        case .endpoint(let error):
+            endpointNotice(for: error)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
                         actionTitle: "Apri Impostazioni") { openSettings() }
+        }
+    }
+
+    @ViewBuilder
+    private func endpointNotice(for error: OpenAICompatibleError) -> some View {
+        switch error {
+        case .consentMissing:
+            ErrorNotice("Domanda non inviata", remedy: "Serve il tuo consenso per mandarla a quel fornitore.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .billingUnconfirmed:
+            ErrorNotice("Domanda non inviata a Gemini",
+                        remedy: "Conferma in Impostazioni › Modelli che il progetto della chiave ha la fatturazione attiva: senza, Google usa le Domande per addestrare i suoi modelli e in Europa non è ammesso.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .modelMissing:
+            ErrorNotice("Manca il modello", remedy: "Scrivi quale modello usare in Impostazioni › Modelli.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .keyMissing:
+            ErrorNotice("Manca la chiave", remedy: "Aggiungila in Impostazioni › Modelli, poi riprova.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .keyRefused:
+            ErrorNotice("Chiave rifiutata", remedy: "Il fornitore non l'ha accettata: controllala in Impostazioni › Modelli.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .failed(let message):
+            ErrorNotice("Il modello non ha risposto", remedy: "\(message)", actionTitle: "Rifai con…") { isPickingRetry = true }
+        case .unreachable:
+            ErrorNotice("Il server non risponde", remedy: "Controlla che sia acceso e che l'indirizzo sia giusto.",
+                        actionTitle: "Rifai con…") { isPickingRetry = true }
+        case .unexpectedResponse:
+            ErrorNotice("Risposta non riconosciuta", remedy: "Il server non parla il formato di OpenAI Chat Completions.",
+                        actionTitle: "Rifai con…") { isPickingRetry = true }
         }
     }
 }

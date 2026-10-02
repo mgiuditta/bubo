@@ -23,8 +23,12 @@ final class QuestionModel {
     private(set) var routedAnswer: RoutedAnswer?
     /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
     private(set) var savedNote: URL?
+    /// The endpoints the user left out of "Rifai con…" for this Domanda, by not giving their consent.
+    private(set) var declinedEndpoints: Set<String> = []
     /// The road every Domanda takes to `claude`, moving the Orb on the way.
     let intake: IntakePipeline
+    /// The OpenAI-compatible endpoints "Rifai con…" offers, and the clouds allowed to receive Domande.
+    let endpoints: EndpointSettings
 
     /// Creates a model that finds `claude` with `cli`, answers its `cerca` tool with `index` and its `ricorda` tool
     /// with `secondBrain`.
@@ -36,11 +40,16 @@ final class QuestionModel {
     ///   - bridgeArguments: The arguments of `bridgeExecutable`.
     ///   - defaults: Where the last Quota is kept between launches.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
+    ///   - endpoints: The OpenAI-compatible endpoints and their consents.
+    ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
+    ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [], defaults: UserDefaults = .standard,
-         apiKey: (() async throws -> String?)? = nil) {
+         apiKey: (() async throws -> String?)? = nil, endpoints: EndpointSettings = .shared,
+         endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
+         endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
@@ -52,6 +61,9 @@ final class QuestionModel {
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
         self.apiKey = apiKey ?? { try await store.key() }
+        self.endpoints = endpoints
+        self.endpointClient = endpointClient
+        self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
     }
 
     /// The task answering the last Domanda, or waiting to ask it again.
@@ -64,6 +76,10 @@ final class QuestionModel {
     @ObservationIgnored private let bridgeArguments: [String]
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let apiKey: () async throws -> String?
+    @ObservationIgnored private let endpointClient: OpenAICompatibleClient
+    @ObservationIgnored private let endpointKey: (OpenAICompatibleEndpoint) async throws -> String?
+    /// How long the first token took, the last time each choice of "Rifai con…" answered.
+    @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
     /// Whether the Quota was asked for, or reported by `claude`, since launch.
@@ -86,6 +102,47 @@ final class QuestionModel {
         return .stronger(step)
     }
 
+    /// The choices of "Rifai con…" near the last answer, without the endpoints the user left out for this Domanda;
+    /// empty while answering and before the first Domanda.
+    var retryAlternatives: [RetryAlternative] {
+        guard !isAnswering, !lastPrompt.isEmpty, let routedAnswer else { return [] }
+        let current = routedAnswer.endpoint == nil ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
+        return RetryAlternative.alternatives(around: current, on: Scala(catalog: catalog, effortCaps: effortCaps),
+                                             endpoints: endpoints.ready.filter { !declinedEndpoints.contains($0.id) },
+                                             answeredBy: routedAnswer.endpoint?.id)
+            .map { alternative in
+                var alternative = alternative
+                alternative.firstToken = firstTokens[alternative.id]
+                return alternative
+            }
+    }
+
+    /// The endpoints with a model that the user left out of "Rifai con…" for this Domanda.
+    var excludedEndpoints: [OpenAICompatibleEndpoint] {
+        endpoints.ready.filter { declinedEndpoints.contains($0.id) }
+    }
+
+    /// Whether picking `alternative` must first ask the user's consent: a cloud that is not Claude, never allowed.
+    func needsConsent(for alternative: RetryAlternative) -> Bool {
+        guard case let .endpoint(endpoint) = alternative.target else { return false }
+        return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
+    }
+
+    /// Asks the last prompt again with `alternative`, for this turn only: the router's default does not change.
+    ///
+    /// A cloud that is not Claude without the user's consent receives nothing: the client refuses before sending.
+    func retry(with alternative: RetryAlternative) {
+        switch alternative.target {
+        case let .claude(step): start(lastPrompt, route: .retried(step))
+        case let .endpoint(endpoint): start(lastPrompt, endpoint: endpoint)
+        }
+    }
+
+    /// Remembers that the user did not allow `endpoint`: it leaves "Rifai con…" until the next Domanda.
+    func decline(_ endpoint: OpenAICompatibleEndpoint) {
+        declinedEndpoints.insert(endpoint.id)
+    }
+
     /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -97,6 +154,7 @@ final class QuestionModel {
             return
         }
         lastPrompt = text
+        declinedEndpoints = []
         start(text)
     }
 
@@ -197,8 +255,10 @@ final class QuestionModel {
         }
     }
 
-    /// - Parameter route: The user's choice for this turn; `nil` for the router's.
-    private func start(_ text: String, route: Route? = nil) {
+    /// - Parameters:
+    ///   - route: The user's choice for this turn; `nil` for the router's.
+    ///   - endpoint: The OpenAI-compatible endpoint that answers instead of `claude`, picked in "Rifai con…".
+    private func start(_ text: String, route: Route? = nil, endpoint: OpenAICompatibleEndpoint? = nil) {
         answering?.cancel()
         answer = ""
         failure = nil
@@ -206,7 +266,50 @@ final class QuestionModel {
         savedNote = nil
         routedAnswer = nil
         isAnswering = true
-        answering = Task { await stream(text, route: route) }
+        answering = Task {
+            if let endpoint {
+                await stream(text, from: endpoint)
+            } else {
+                await stream(text, route: route)
+            }
+        }
+    }
+
+    /// Streams `endpoint`'s answer: the Domanda's text only, straight from the Mac.
+    private func stream(_ text: String, from endpoint: OpenAICompatibleEndpoint) async {
+        defer { isAnswering = false }
+        let submission = await intake.submit(Richiesta(text: text), to: endpoint.provider, catalog: catalog)
+        defer { intake.finish(submission) }
+        guard !Task.isCancelled else { return }
+        var routedAnswer = RoutedAnswer(route: .retriedElsewhere, provider: endpoint.provider, endpoint: endpoint)
+        routedAnswer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
+        self.routedAnswer = routedAnswer
+        let start = ContinuousClock.now
+        var waitingForFirstToken = true
+        do {
+            // The key is read only now that this endpoint answers, and goes only into its request.
+            let key = try await endpointKey(endpoint)
+            for try await event in endpointClient.answer(text, from: endpoint, consents: endpoints.consents, key: key) {
+                switch event {
+                case let .text(chunk):
+                    if waitingForFirstToken {
+                        waitingForFirstToken = false
+                        firstTokens[RetryAlternative(target: .endpoint(endpoint)).id] = ContinuousClock.now - start
+                        intake.beginWorking(on: submission)
+                    }
+                    answer += chunk
+                case let .usage(input, output):
+                    self.routedAnswer?.endpointTokens = input + output
+                }
+            }
+        } catch is CancellationError {
+        } catch let error as OpenAICompatibleError {
+            Logger.agent.error("Endpoint \(endpoint.id, privacy: .public) failed: \(String(describing: error), privacy: .public)")
+            failure = .endpoint(error)
+        } catch {
+            Logger.agent.error("Endpoint key not read: \(String(describing: error), privacy: .public)")
+            failure = .unexpected
+        }
     }
 
     private func stream(_ text: String, route chosen: Route?) async {
@@ -219,6 +322,7 @@ final class QuestionModel {
         let submission = await intake.submit(Richiesta(text: text), to: .anthropic, catalog: catalog)
         defer { intake.finish(submission) }
         let route = chosen ?? submission.route
+        let started = ContinuousClock.now
         let windowBefore = quotaReports > 0 ? quota.fiveHour : nil
         let reportsBefore = quotaReports
         // A Domanda replaced while it was classified leaves the line to the newer one.
@@ -247,6 +351,9 @@ final class QuestionModel {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
                     waitingForFirstToken = nil
+                    if let step = route.step(answeredBy: nil) {
+                        firstTokens[RetryAlternative(target: .claude(step)).id] = ContinuousClock.now - started
+                    }
                     intake.beginWorking(on: submission)
                 }
                 answer += chunk

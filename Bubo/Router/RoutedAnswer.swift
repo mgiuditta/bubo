@@ -10,6 +10,10 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
         case listValue(Decimal)
         /// Claude with the API key: the Spesa.
         case spesa(Decimal)
+        /// A model on the Mac: nothing to pay.
+        case free
+        /// An endpoint in another cloud, paid on the user's key at a price Bubo does not know: the tokens it counted.
+        case tokens(Int)
     }
 
     let route: Route
@@ -21,10 +25,15 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
     var usage: TurnUsage?
     /// The share of the 5-hour window used during the turn, when `claude` reported the window before and after it.
     var fiveHourShare: Double?
+    /// The OpenAI-compatible endpoint that answered instead of `claude`, if one did.
+    let endpoint: OpenAICompatibleEndpoint?
+    /// The tokens the endpoint counted for the turn, input and output together.
+    var endpointTokens: Int?
 
-    init(route: Route, provider: Provider?) {
+    init(route: Route, provider: Provider?, endpoint: OpenAICompatibleEndpoint? = nil) {
         self.route = route
         self.provider = provider
+        self.endpoint = endpoint
     }
 
     /// The cost the line shows; `nil` when nothing is known of it.
@@ -32,6 +41,10 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
     /// With the subscription the window's share comes first: it is what the user runs out of. A share that did not
     /// move (the window not reported, or under its precision) falls back to the Valore a listino.
     var cost: Cost? {
+        if let endpoint {
+            if endpoint.isOnMac { return .free }
+            return endpointTokens.map(Cost.tokens)
+        }
         if usage?.mode != .apiKey, let fiveHourShare, fiveHourShare > 0 { return .fiveHourShare(fiveHourShare) }
         guard let usage, let figure = usage.cost else { return nil }
         return usage.mode == .apiKey ? .spesa(figure) : .listValue(figure)

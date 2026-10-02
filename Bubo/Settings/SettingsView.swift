@@ -14,6 +14,9 @@ struct SettingsView: View {
             Tab("Account", systemImage: "person.crop.circle") {
                 AccountSettingsView()
             }
+            Tab("Modelli", systemImage: "cpu") {
+                ModelsSettingsView()
+            }
             Tab("Scorciatoie", systemImage: "keyboard") {
                 ShortcutSettingsView()
             }
