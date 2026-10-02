@@ -86,7 +86,9 @@ nonisolated final class OnboardingPerfTests: XCTestCase {
         let pill = app.staticTexts.matching(NSPredicate(format: "value BEGINSWITH 'claude '")).firstMatch
         XCTAssertTrue(pill.exists, "La pastiglia di claude non c'è.")
         project.click()
-        app.buttons[Self.suggestion].click()
+        let suggestion = app.buttons[Self.suggestion]
+        XCTAssertTrue(suggestion.waitForExistence(timeout: 10), "La domanda suggerita non c'è.")
+        suggestion.click()
         app.textFields["onboarding.prompt"].typeKey(.return, modifierFlags: [])
 
         let deadline = launched + .seconds(60)
