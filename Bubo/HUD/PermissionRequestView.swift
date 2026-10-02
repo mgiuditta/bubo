@@ -74,7 +74,11 @@ struct PermissionRequestView: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(2)
             }
-            if request.isFromSubagent {
+            if let agent = request.agent {
+                Text("La chiede il subagente «\(agent)».")
+                    .font(Typography.body(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+            } else if request.isFromSubagent {
                 Text("La chiede un subagente.")
                     .font(Typography.body(size: 11))
                     .foregroundStyle(Palette.textSecondary)

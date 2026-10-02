@@ -1,7 +1,7 @@
 import type { PermissionRequestHookInput, PreToolUseHookInput, SDKPermissionDeniedMessage } from "@anthropic-ai/claude-agent-sdk";
 import { expect, test } from "bun:test";
 import { teamRuleOptions, teamRules } from "./teamRules";
-import { Denials, suggestedRules, unattendedOf, unattendedOptions } from "./unattended";
+import { Denials, MainAgent, suggestedRules, unattendedOf, unattendedOptions, wrongAgent } from "./unattended";
 
 // Criterio 1: 0 Esecuzioni in attesa di una Richiesta di permesso oltre la fine del turno.
 test("senza nessuno davanti la query ha permissionPrompts none e nessun canUseTool", () => {
@@ -42,7 +42,7 @@ const base = { session_id: "s", transcript_path: "/t", cwd: "/" };
 
 test("i dinieghi delle quattro fonti si uniscono, uno per tool_use_id, con i suggestions della Richiesta", () => {
   const denials = new Denials();
-  denials.gate({ ...base, hook_event_name: "PreToolUse", tool_name: "Bash", tool_input: { command: "rm -rf ~" }, tool_use_id: "g1",
+  denials.gate({ ...base, hook_event_name: "PreToolUse", tool_name: "Bash", tool_input: { command: "rm -rf ~" }, tool_use_id: "g1", agent_id: "a1",
                  agent_type: "revisore" } as PreToolUseHookInput);
   denials.requested({ ...base, hook_event_name: "PermissionRequest", tool_name: "Bash", tool_input: { description: "x", command: "npm test" },
                       permission_suggestions: [{ type: "addRules", rules: [{ toolName: "Bash", ruleContent: "npm test" }], behavior: "allow", destination: "session" }] } as PermissionRequestHookInput);
@@ -58,4 +58,38 @@ test("i dinieghi delle quattro fonti si uniscono, uno per tool_use_id, con i sug
     { toolUseID: "s1", tool: "Bash", command: "npm test", path: undefined, url: undefined, suggestions: ["Bash(npm test)"], source: "sdk" },
     { toolUseID: "s2", tool: "WebFetch", suggestions: [], source: "sdk" },
   ]);
+});
+
+// #174: l'Esecuzione gira come l'agente scelto, con `Options.agent`.
+test("l'agente dell'Automazione arriva come Options.agent; un nome storto non arriva", () => {
+  expect(unattendedOf({ rules: [], agent: "revisore" })).toEqual({ rules: [], agent: "revisore" });
+  expect(unattendedOf({ rules: [], agent: "plugin:sub:revisore" })?.agent).toBe("plugin:sub:revisore");
+  for (const agent of ["", "--model", "a b", "x\n", 3]) expect(unattendedOf({ agent })?.agent).toBeUndefined();
+  expect(unattendedOptions({}, { rules: [], agent: "revisore" }).agent).toBe("revisore");
+  expect("agent" in unattendedOptions({}, { rules: [] })).toBe(false);
+});
+
+test("il primo hook del filo principale verifica l'agente: un altro, o nessuno, ferma il turno", async () => {
+  const hook = (extra: object) => ({ ...base, hook_event_name: "UserPromptSubmit", prompt: "x", ...extra }) as never;
+  const right = new MainAgent("revisore");
+  // Un subagent non conta: ha `agent_id`.
+  expect(await right.hook(hook({ agent_id: "a1", agent_type: "altro" }))).toEqual({});
+  expect(await right.hook(hook({ agent_type: "revisore" }))).toEqual({});
+  expect(right.isWrong).toBe(false);
+  const missing = new MainAgent("revisore");
+  expect(await missing.hook(hook({}))).toEqual({ continue: false, stopReason: wrongAgent });
+  expect(missing.isWrong).toBe(true);
+  // Una volta deciso, resta: un hook più tardi non rimette in moto il turno.
+  expect(await missing.hook(hook({ agent_type: "revisore" }))).toEqual({ continue: false, stopReason: wrongAgent });
+});
+
+test("i dinieghi del filo principale non hanno agente; quelli di un subagent sì, anche da permission_denied", () => {
+  const denials = new Denials();
+  denials.gate({ ...base, hook_event_name: "PreToolUse", tool_name: "Bash", tool_input: { command: "rm -rf ~" }, tool_use_id: "g1",
+                 agent_type: "revisore" } as PreToolUseHookInput);
+  denials.denied({ type: "system", subtype: "permission_denied", tool_name: "Bash", tool_use_id: "s1", agent_id: "a1" } as SDKPermissionDeniedMessage,
+                 "esploratore");
+  const found = denials.result([{ tool_name: "Bash", tool_use_id: "s1", tool_input: { command: "npm test" } }]);
+  expect(found.find((denial) => denial.toolUseID === "g1")?.agent).toBeUndefined();
+  expect(found.find((denial) => denial.toolUseID === "s1")?.agent).toBe("esploratore");
 });
