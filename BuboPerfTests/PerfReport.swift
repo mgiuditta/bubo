@@ -33,8 +33,13 @@ extension XCTestCase {
     /// - Throws: `XCTSkip` with `reason` when there is no usable Metal device.
     @MainActor func skipWithoutMetal(reportedAs id: BudgetID, because reason: String) throws {
         if let device = MTLCreateSystemDefaultDevice(), !device.name.localizedStandardContains("Paravirtual") { return }
-        attach(PerfMeasurement(skipping: id, because: reason))
+        recordSkipping(id, because: reason)
         throw XCTSkip(reason)
+    }
+
+    /// Leaves `id` in the report of `scripts/perf.sh` as not measured, for `reason`.
+    @MainActor func recordSkipping(_ id: BudgetID, because reason: String) {
+        attach(PerfMeasurement(skipping: id, because: reason))
     }
 
     @MainActor private func attach(_ measurement: PerfMeasurement) {

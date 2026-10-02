@@ -144,6 +144,8 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 | Avvio caldo | **≤ 500 ms** fino all'HUD interattivo | `XCTApplicationLaunchMetric(waitUntilResponsive: true)` + signpost `HUD interattivo` | 25 | 2× |
 | Avvio freddo | **≤ 1 s** fino all'HUD interattivo | `perf.sh` dopo riavvio del Mac | 25 | perf.sh |
 | `claude` all'avvio | **0** processi | albero dei processi figli dopo l'avvio | 25 | invariante |
+| `claude` all'avvio a onboarding completo | **0** esecuzioni nei primi 7 s | `claude` finto che registra ogni esecuzione (`OnboardingPerfTests`) | 26 | invariante |
+| Onboarding, parte macchina | **≤ 10 s p95** dal lancio al primo token, con clic automatici | `OnboardingPerfTests`: `claude` finto in CI, vero con `perf.sh --live` | 26 | 2× |
 | Sessione pronta | **≤ 1 s** dall'apertura (misurati ~0,5 s) | signpost `Sessione pronta` | 25, 04 | perf.sh |
 | `init` con configurazione completa | **≤ 1 s** | messaggio `init` | 04 | feature |
 | Sessione in worktree con 1 GB di dipendenze | **< 2 s** | tempo di creazione | 01 | feature |

@@ -13,8 +13,13 @@ final class ExecutionRunner {
     /// Esecuzione Senza modifiche.
     static let nothingToReport = String(localized: "Niente da segnalare.")
 
+    /// How many Esecuzioni hold an activity now, against App Nap and idle sleep: none once they end or the Mac sleeps.
+    var heldActivities: Int { activities.count }
+
     private let automations: AutomationStore
     private let sessions: SessionStore
+    /// The activity of each Esecuzione at work, by its Sessione.
+    private var activities: [UUID: any NSObjectProtocol] = [:]
 
     /// Starts an Esecuzione of the Automazione `id` now, and records it in its history; or records it Saltata
     /// (sovrapposta) while the same Automazione is still at work, or, outside git, another Sessione works in its
@@ -43,6 +48,11 @@ final class ExecutionRunner {
         }
         automations.record(Execution(startedAt: date, scheduledAt: scheduledAt, session: session, outcome: .inCorso),
                            for: id)
+        // The finish may already have released it, if the turn ended at once.
+        if automations[id]?.lastExecution?.outcome == .inCorso {
+            activities[session] = ProcessInfo.processInfo.beginActivity(
+                options: [.userInitiated, .idleSystemSleepDisabled], reason: "Esecuzione di un'Automazione")
+        }
         Logger.automations.notice("Esecuzione started")
         return session
     }
@@ -56,6 +66,27 @@ final class ExecutionRunner {
             execution.outcome = .interrotta
             automations.record(execution, for: automation.id)
         }
+    }
+
+    /// The Mac is going to sleep: every Esecuzione at work is interrupted and becomes Interrotta, waiting for Riprendi
+    /// in its Sessione, and its activity is released.
+    func interruptAll() {
+        for automation in automations.automations {
+            guard var execution = automation.lastExecution, execution.outcome == .inCorso,
+                  let session = execution.session
+            else { continue }
+            sessions.interrupt(session)
+            release(session)
+            execution.outcome = .interrotta
+            automations.record(execution, for: automation.id)
+            Logger.automations.notice("Esecuzione interrupted by sleep")
+        }
+    }
+
+    /// Ends the activity of the Esecuzione in `session`, if it holds one.
+    private func release(_ session: UUID) {
+        guard let activity = activities.removeValue(forKey: session) else { return }
+        ProcessInfo.processInfo.endActivity(activity)
     }
 
     /// The prompt of an Esecuzione: the Automazione's request, and a line with its name and when it was due and
@@ -86,15 +117,20 @@ final class ExecutionRunner {
 
     /// Records how the Esecuzione in `session` ended, with its denials. Senza modifiche when its turn left no changes,
     /// no denials and ``nothingToReport`` as its last message: its Sessione is archived and its worktree gone first.
+    /// Interrotta when the Mac's sleep interrupted it.
     private func finish(_ session: UUID, of id: Automation.ID, startedAt: Date, scheduledAt: Date?,
                         succeeded: Bool) async {
+        release(session)
         let found = sessions.sessions.first { $0.id == session }
         let denials = found?.denials.count ?? 0
         var outcome = succeeded ? Execution.Outcome.fatta : .errore
-        // Outside git the changes cannot be read: the Esecuzione stays Fatta, to be looked at.
-        if succeeded, denials == 0,
-           found?.summary?.trimmingCharacters(in: .whitespacesAndNewlines) == Self.nothingToReport,
-           let changes = try? await sessions.changes(of: session), changes.isEmpty {
+        if found?.isInterrupted == true {
+            // The Mac went to sleep while it worked: Interrotta, with its worktree kept for Riprendi.
+            outcome = .interrotta
+        } else if succeeded, denials == 0,
+                  found?.summary?.trimmingCharacters(in: .whitespacesAndNewlines) == Self.nothingToReport,
+                  let changes = try? await sessions.changes(of: session), changes.isEmpty {
+            // Outside a repo the changes cannot be read: the Esecuzione stays Fatta, to be looked at.
             outcome = .senzaModifiche
             await sessions.archiveUnchanged(session)
         }

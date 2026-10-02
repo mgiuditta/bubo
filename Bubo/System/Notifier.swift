@@ -77,6 +77,20 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// Announces that the recovery started an Esecuzione of `automation` for the time it missed, `scheduledAt`.
+    func announceRecovery(of automation: Automation, scheduledAt: Date) async {
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            content.title = automation.name
+            content.body = String(localized: "Recupero dell'Esecuzione prevista \(scheduledAt.formatted(date: .abbreviated, time: .shortened)): era persa mentre il Mac dormiva o Bubo era chiuso.")
+            content.threadIdentifier = automation.id.uuidString
+            try await center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        } catch {
+            Logger.automations.error("Recovery notification not posted: \(error)")
+        }
+    }
+
     /// Removes the notification of the Sessione `id`, which no longer waits.
     func withdraw(_ id: UUID) {
         center.removeDeliveredNotifications(withIdentifiers: [id.uuidString])

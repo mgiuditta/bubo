@@ -52,6 +52,16 @@ nonisolated enum PerfBudgets {
     // ponytail: a fixed margin of 3 s before the spare; check the spare by name if launches get slower.
     static let settleAfterLaunch: TimeInterval = 7
 
+    /// From launch to the first token of the onboarding's first Sessione, with automatic clicks, p95: the machine's
+    /// part of the 60 seconds (spec 26). A fake `claude` in CI, the user's with `perf.sh --live`.
+    static let onboardingFirstToken = Measurement(value: 10, unit: UnitDuration.seconds)
+
+    /// Onboardings measured for `onboardingFirstToken`, each in a new home.
+    static let onboardingIterations = 5
+
+    /// Runs of `claude` in the first `settleAfterLaunch` of a launch once the onboarding is over: an invariant (spec 26).
+    static let claudeRunsAfterOnboarding = 0
+
     /// The Orb's GPU time per frame, p95, over `orbFrames` Morph frames.
     static let orbGPUTime = Measurement(value: 4, unit: UnitDuration.milliseconds)
 
@@ -84,6 +94,8 @@ nonisolated enum PerfBudgets {
                        gate: .referenceMac),
         ReportedBudget(.claudeAfterLaunch, area: "Processi claude all'avvio",
                        count: claudeProcessesAfterLaunch),
+        ReportedBudget(.claudeAfterOnboarding, area: "Esecuzioni di claude all'avvio, a onboarding completo",
+                       count: claudeRunsAfterOnboarding),
         ReportedBudget(.sessionReady, area: "Sessione pronta", limit: sessionReady.converted(to: .milliseconds),
                        gate: .referenceMac),
         ReportedBudget(.sessionResume, area: "Ripresa dopo sospensione",
@@ -105,6 +117,8 @@ nonisolated enum PerfBudgets {
                        limit: mainThreadInterval, gate: .doubled),
         ReportedBudget(.hitchTimeRatio, area: "Hitch dell'HUD, ms al secondo", limit: hitchTimeRatio,
                        gate: .doubled),
+        ReportedBudget(.onboardingFirstToken, area: "Onboarding, dal lancio al primo token, p95",
+                       limit: onboardingFirstToken, gate: .doubled),
     ]
 }
 
@@ -113,6 +127,7 @@ nonisolated enum BudgetID: String, Codable, CaseIterable, Sendable {
     case warmLaunch = "avvio-caldo"
     case coldLaunch = "avvio-freddo"
     case claudeAfterLaunch = "claude-all-avvio"
+    case claudeAfterOnboarding = "claude-dopo-onboarding"
     case sessionReady = "sessione-pronta"
     case sessionResume = "ripresa-sessione"
     case idleMemory = "memoria-a-riposo"
@@ -126,6 +141,7 @@ nonisolated enum BudgetID: String, Codable, CaseIterable, Sendable {
     case galaxyFramesWhileStill = "galassia-ferma"
     case mainThreadInterval = "intervallo-main-thread"
     case hitchTimeRatio = "hitch-hud"
+    case onboardingFirstToken = "onboarding-primo-token"
 }
 
 /// A budget as the report shows it: a limit in one unit, and how the budget gates a change.

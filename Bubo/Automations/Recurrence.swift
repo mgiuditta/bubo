@@ -42,6 +42,17 @@ nonisolated enum Recurrence: Codable, Hashable, Sendable {
         }
     }
 
+    /// The times strictly after `start` and up to `end`, oldest first, in the local time of `calendar`.
+    func dates(after start: Date, through end: Date, in calendar: Calendar) -> [Date] {
+        var dates: [Date] = []
+        var date = start
+        while let next = nextDate(after: date, in: calendar), next <= end {
+            dates.append(next)
+            date = next
+        }
+        return dates
+    }
+
     private static func next(_ components: DateComponents, after date: Date, in calendar: Calendar) -> Date? {
         calendar.nextDate(after: date, matching: components, matchingPolicy: .nextTime, repeatedTimePolicy: .first,
                           direction: .forward)
