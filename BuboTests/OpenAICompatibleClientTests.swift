@@ -27,7 +27,7 @@ struct OpenAICompatibleClientTests {
 
         let events = try await Self.collect(client.answer("Saluta", from: endpoint, consents: [endpoint.id], key: "k"))
 
-        #expect(events == [.text("Ciao"), .text(", "), .text("mondo"), .usage(input: 7, output: 3)])
+        #expect(events == [.text("Ciao"), .text(", "), .text("mondo"), .usage(.init(input: 7, output: 3))])
     }
 
     // Acceptance of #92: the body carries the Domanda's text and nothing else.

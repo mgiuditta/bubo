@@ -11,6 +11,7 @@ nonisolated final class FakeChatServer: URLProtocol {
         var body: String
         /// Fails as with no network instead of replying.
         var isOffline = false
+        var headers: [String: String] = [:]
     }
 
     /// A request as the server received it.
@@ -74,7 +75,7 @@ nonisolated final class FakeChatServer: URLProtocol {
             return
         }
         client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: reply.status, httpVersion: "HTTP/1.1",
-                                                              headerFields: ["Content-Type": "text/event-stream"])!,
+                                                              headerFields: reply.headers.merging(["Content-Type": "text/event-stream"]) { kept, _ in kept })!,
                             cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: Data(reply.body.utf8))
         client?.urlProtocolDidFinishLoading(self)

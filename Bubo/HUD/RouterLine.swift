@@ -122,6 +122,13 @@ struct RouterLine: View {
         case let .spesa(value)?:
             return String(localized: "Spesa: \(SessionCostTotal.formatted(value))",
                           comment: "Cost of an answer paid with the API key.")
+        case let .estimate(value, date)?:
+            let estimate = String(localized: "circa \(SessionCostTotal.formatted(value)) sulla tua chiave",
+                                  comment: "Cost of an answer from another provider, paid on the user's own key: tokens times the provider's list prices.")
+            // Prices older than 30 days say which day they are from.
+            guard Date.now.timeIntervalSince(date) > 30 * 24 * 60 * 60 else { return estimate }
+            return String(localized: "\(estimate) · prezzi del \(date.formatted(.dateTime.day().month(.wide)))",
+                          comment: "Cost of an answer, then the day of the price table it was estimated with, such as «prezzi del 12 agosto».")
         case .free?:
             return String(localized: "gratis, sul Mac", comment: "Cost of an answer from a model running on this Mac.")
         case let .tokens(count)?:
@@ -141,6 +148,10 @@ struct RouterLine: View {
             return LocalizedStringResource("Il modello gira su questo Mac: la Domanda non lo lascia.")
         case .tokens?:
             return LocalizedStringResource("Token contati dal fornitore, che li addebita sulla tua chiave. Bubo non conosce il prezzo.")
+        case let .estimate(_, date)?:
+            return LocalizedStringResource("Token contati dal fornitore per i prezzi di models.dev del \(date.formatted(date: .long, time: .omitted)): una stima, non una fattura.")
+        case .spesa? where answer.endpoint != nil:
+            return LocalizedStringResource("Cifra riportata dal fornitore nella risposta.")
         default:
             break
         }
@@ -176,6 +187,15 @@ struct RouterLine: View {
             var answer = RoutedAnswer(route: .retriedElsewhere, provider: .openAI, endpoint: endpoint)
             answer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
             answer.endpointTokens = 1_234
+            return answer
+        }())
+        RouterLine(answer: {
+            var endpoint = OpenAICompatibleEndpoint.known[0]
+            endpoint.model = "gpt-5-mini"
+            var answer = RoutedAnswer(route: .retriedElsewhere, provider: .openAI, endpoint: endpoint)
+            answer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
+            answer.usage = TurnUsage(mode: .apiKey, cost: 0.0042, basis: .list, isComplete: true, models: [],
+                                     origin: .priceTable, priceDate: .now.addingTimeInterval(-45 * 24 * 60 * 60))
             return answer
         }())
     }

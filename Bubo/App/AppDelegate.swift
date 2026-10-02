@@ -21,14 +21,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var semanticSearch = SemanticSearch(index: searchIndex, store: try? TextEmbeddingModelStore.makeDefault())
     /// The folder of notes the Indice follows, chosen in the settings.
     private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
+    /// The record of every turn, of the Sessioni and of the Domande; in memory only when Application Support is
+    /// unavailable.
+    let ledger: CostLedger = {
+        do {
+            return try CostLedger.makeDefault()
+        } catch {
+            Logger.costs.error("Costi kept in memory: \(error)")
+            return CostLedger()
+        }
+    }()
     /// The Domanda of the HUD, answered through the agent bridge.
-    private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain)
+    private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
+    /// Refreshes the PriceTable, at most once a day.
+    private var priceUpdates: Task<Void, Never>?
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {
             let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
                                        withdraw: notifier.withdraw)
-            return try SessionStore.makeDefault(alerts: alerts, index: searchIndex) { [questions] in try await questions.readyBridge() }
+            return try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")
             return nil
@@ -164,6 +176,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sessions?.onFileActivity = { [weak self] id, progress in self?.galaxies.record(progress, by: id) }
         // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
         summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
+        // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
+        priceUpdates = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                await PriceTable.shared.updateIfDue()
+                try? await Task.sleep(for: .seconds(6 * 60 * 60))
+            }
+        }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
             Task { await self?.questions.readQuotaIfNeeded() }

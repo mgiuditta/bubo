@@ -8,8 +8,10 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
         case fiveHourShare(Double)
         /// Claude with the subscription, when the window did not move or was not reported: the Valore a listino.
         case listValue(Decimal)
-        /// Claude with the API key: the Spesa.
+        /// Claude with the API key, or another provider that reported it: the Spesa.
         case spesa(Decimal)
+        /// Another provider on the user's key: the Spesa estimated with the PriceTable's prices of `pricesOf`.
+        case estimate(Decimal, pricesOf: Date)
         /// A model on the Mac: nothing to pay.
         case free
         /// An endpoint in another cloud, paid on the user's key at a price Bubo does not know: the tokens it counted.
@@ -44,6 +46,10 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
         if route.destination == .onDevice { return .free }
         if let endpoint {
             if endpoint.isOnMac { return .free }
+            if let usage, let figure = usage.cost {
+                if usage.origin == .priceTable, let date = usage.priceDate { return .estimate(figure, pricesOf: date) }
+                return .spesa(figure)
+            }
             return endpointTokens.map(Cost.tokens)
         }
         if usage?.mode != .apiKey, let fiveHourShare, fiveHourShare > 0 { return .fiveHourShare(fiveHourShare) }

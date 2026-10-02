@@ -11,7 +11,20 @@ nonisolated struct OpenAICompatibleClient: Sendable {
         /// The next piece of the answer's text.
         case text(String)
         /// The tokens the turn used, as the endpoint counted them; it comes last, when it comes.
-        case usage(input: Int, output: Int)
+        case usage(Usage)
+    }
+
+    /// The tokens of a turn, and its figure when the provider reports one.
+    struct Usage: Equatable, Sendable {
+        /// The prompt's tokens, `cachedInput` included.
+        var input: Int
+        /// The answer's tokens, `reasoning` included.
+        var output: Int
+        /// The prompt's tokens read from the provider's cache.
+        var cachedInput = 0
+        var reasoning = 0
+        /// In US dollars: OpenRouter's `usage.cost`; `nil` for the providers that report none.
+        var cost: Decimal?
     }
 
     /// Creates a client that talks through `session`; tests pass one served by a stand-in server.
@@ -98,7 +111,12 @@ nonisolated struct OpenAICompatibleClient: Sendable {
         }
         if let message = chunk.error?.message { throw .failed(message) }
         var events = (chunk.choices ?? []).compactMap { $0.delta?.content }.filter { !$0.isEmpty }.map(Event.text)
-        if let usage = chunk.usage { events.append(.usage(input: usage.promptTokens, output: usage.completionTokens)) }
+        if let usage = chunk.usage {
+            events.append(.usage(Usage(input: usage.promptTokens, output: usage.completionTokens,
+                                       cachedInput: usage.promptTokensDetails?.cachedTokens ?? 0,
+                                       reasoning: usage.completionTokensDetails?.reasoningTokens ?? 0,
+                                       cost: usage.cost)))
+        }
         return events
     }
 
@@ -137,12 +155,35 @@ nonisolated struct OpenAICompatibleClient: Sendable {
         }
 
         struct Usage: Decodable {
+            struct PromptDetails: Decodable {
+                let cachedTokens: Int?
+
+                enum CodingKeys: String, CodingKey {
+                    case cachedTokens = "cached_tokens"
+                }
+            }
+
+            struct CompletionDetails: Decodable {
+                let reasoningTokens: Int?
+
+                enum CodingKeys: String, CodingKey {
+                    case reasoningTokens = "reasoning_tokens"
+                }
+            }
+
             let promptTokens: Int
             let completionTokens: Int
+            let promptTokensDetails: PromptDetails?
+            let completionTokensDetails: CompletionDetails?
+            /// OpenRouter only: what the turn cost, in its credits, which are dollars.
+            let cost: Decimal?
 
             enum CodingKeys: String, CodingKey {
                 case promptTokens = "prompt_tokens"
                 case completionTokens = "completion_tokens"
+                case promptTokensDetails = "prompt_tokens_details"
+                case completionTokensDetails = "completion_tokens_details"
+                case cost
             }
         }
 

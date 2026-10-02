@@ -51,6 +51,8 @@ final class QuestionModel {
     ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
     ///   - onDevice: Apple's model on the Mac, which `intake` measures with when it is `nil`.
     ///   - onDeviceAnswerer: Answers the Domande the router keeps on the Mac; Foundation Models on `onDevice` when `nil`.
+    ///   - ledger: Where each turn's tokens and figure are recorded, in the group "Domande"; none when `nil`.
+    ///   - prices: The prices the turns of other providers are estimated with.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -59,7 +61,8 @@ final class QuestionModel {
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
          endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
          speaker: (any VoiceSpeaker)? = nil,
-         onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil) {
+         onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
+         ledger: CostLedger? = nil, prices: PriceTable = .shared) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
@@ -68,6 +71,9 @@ final class QuestionModel {
         self.orb = orb
         self.intake = intake ?? IntakePipeline(orb: orb, onDevice: onDevice)
         self.onDeviceAnswerer = onDeviceAnswerer ?? FoundationModelsAnswerer(model: onDevice)
+        self.onDevice = onDevice
+        self.ledger = ledger
+        self.prices = prices
         self.bridgeExecutable = bridgeExecutable
         self.bridgeArguments = bridgeArguments
         let store = APIKeyStore()
@@ -96,6 +102,11 @@ final class QuestionModel {
     /// The Sintesi parlata being said.
     @ObservationIgnored private(set) var speaking: Task<Void, Never>?
     @ObservationIgnored private let onDeviceAnswerer: any OnDeviceAnswering
+    @ObservationIgnored private let onDevice: OnDeviceModel
+    @ObservationIgnored private let ledger: CostLedger?
+    @ObservationIgnored private let prices: PriceTable
+    /// The Domanda in the CostLedger: one per prompt, its retries included.
+    @ObservationIgnored private var question = UUID()
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
@@ -193,6 +204,7 @@ final class QuestionModel {
         }
         lastPrompt = text
         declinedEndpoints = []
+        question = UUID()
         start(text, speaksAnswer: speaksAnswer)
     }
 
@@ -338,6 +350,7 @@ final class QuestionModel {
         self.routedAnswer = routedAnswer
         let start = ContinuousClock.now
         var waitingForFirstToken = true
+        let turn = UUID().uuidString, question = question
         do {
             // The key is read only now that this endpoint answers, and goes only into its request.
             let key = try await endpointKey(endpoint)
@@ -350,8 +363,11 @@ final class QuestionModel {
                         intake.beginWorking(on: submission)
                     }
                     answer += chunk
-                case let .usage(input, output):
-                    self.routedAnswer?.endpointTokens = input + output
+                case let .usage(usage):
+                    self.routedAnswer?.endpointTokens = usage.input + usage.output
+                    let reading = UsageReader.turn(usage, from: endpoint, prices: prices.snapshot)
+                    self.routedAnswer?.usage = reading
+                    ledger?.record(reading, turn: turn, question: question, provider: endpoint.name)
                 }
             }
         } catch is CancellationError {
@@ -401,6 +417,9 @@ final class QuestionModel {
                     if let line = summary.line { say(line, for: submission, firstAudio: firstAudio) }
                 }
                 Logger.agent.info("Domanda answered on the Mac")
+                // Counted after the answer, off its way: the line does not wait for it.
+                let read = ([asked] + richiesta.attachments.map(\.text)).joined(separator: "\n\n")
+                Task { [answer, question] in await recordOnDevice(read: read, answer: answer, question: question) }
                 return
             } catch is CancellationError {
                 return
@@ -424,6 +443,7 @@ final class QuestionModel {
         let reportsBefore = quotaReports
         // A Domanda replaced while it was classified leaves the line to the newer one.
         if !Task.isCancelled { routedAnswer = RoutedAnswer(route: route, provider: .anthropic) }
+        let turn = UUID().uuidString, question = question
         defer {
             // Only a window `claude` reported both before and during the turn says what the turn used.
             if !Task.isCancelled, quotaReports > reportsBefore {
@@ -439,7 +459,11 @@ final class QuestionModel {
                                     progress: { [orb] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                     },
-                                    usage: { [weak self] in self?.routedAnswer?.usage = $0 },
+                                    usage: { [weak self] usage in
+                                        guard let self else { return }
+                                        routedAnswer?.usage = usage
+                                        ledger?.record(usage, turn: turn, question: question, provider: "Anthropic")
+                                    },
                                     answeredBy: { [weak self] in
                                         self?.routedAnswer?.answeringModel = $0
                                         self?.learnEffortCap(asked: route, answeredBy: $0)
@@ -481,6 +505,15 @@ final class QuestionModel {
             Logger.agent.error("Domanda failed: \(error)")
             failure = .unexpected
         }
+    }
+
+    /// Records the turn Apple FM answered: gratis, with the tokens the model counts of what it read and wrote.
+    private func recordOnDevice(read: String, answer: String, question: UUID) async {
+        guard let ledger else { return }
+        async let input = onDevice.tokenCount(of: read)
+        async let output = onDevice.tokenCount(of: answer)
+        let usage = await UsageReader.onDevice(input: input, output: output)
+        ledger.record(usage, turn: UUID().uuidString, question: question, provider: "Apple FM")
     }
 
     /// Says `line`, the Sintesi parlata of `submission`'s answer, with the Orb in Parla and the line as subtitles.
