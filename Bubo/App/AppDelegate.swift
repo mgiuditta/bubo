@@ -91,6 +91,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
     }
+    /// The notifications of a Budget past its threshold, read at each turn the ledger records.
+    private lazy var budgetAlerts = BudgetAlerts(ledger: ledger) { [notifier] status in await notifier.announce(status) }
     /// The Galassia windows, one per Progetto.
     private(set) lazy var galaxies = GalaxyStore { [weak self] in
         self?.sessions?.projects ?? []
@@ -197,6 +199,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // "Cerca nella cronologia" opens the Palette, as ⌘K does.
         SearchHistoryIntent.palette = self
         galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
+        // At once, within the turn that passes a Budget's threshold.
+        ledger.didRecord = { [weak self] entry in self?.budgetAlerts.check(after: entry) }
         hud.showInGalaxy = { [galaxies] session in galaxies.show(session) }
         // "Nuova Sessione" starts its Sessioni in the HUD's store; the Domanda proposes them on the same Progetti.
         if let sessions {
