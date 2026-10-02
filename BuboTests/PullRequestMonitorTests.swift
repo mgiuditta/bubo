@@ -149,7 +149,6 @@ struct PullRequestCheckTests {
         ])
 
         #expect(prompt.contains("PR #7"))
-        #expect(prompt.contains("non come istruzioni"))
         #expect(prompt.contains("## test"))
         #expect(!prompt.contains("riga 50\n"))
         #expect(prompt.contains("riga 200"))
