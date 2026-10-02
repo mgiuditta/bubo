@@ -23,6 +23,16 @@ nonisolated struct ConversationMessage: Equatable, Sendable {
     var date: Date
 }
 
+/// Which rankings of the Indice's fusion found a fragment: its words, its meaning, or both.
+nonisolated struct SearchMatch: OptionSet, Hashable, Sendable {
+    let rawValue: Int
+
+    /// Found by the words searched, with FTS5.
+    static let words = SearchMatch(rawValue: 1 << 0)
+    /// Found by meaning, with the vectors of the embedding model.
+    static let meaning = SearchMatch(rawValue: 1 << 1)
+}
+
 /// A fragment of a file in the Indice that matches a search.
 nonisolated struct SearchHit: Equatable, Sendable {
     /// The file the fragment comes from, or the id of its conversation.
@@ -36,6 +46,11 @@ nonisolated struct SearchHit: Equatable, Sendable {
     var text: String
     /// Who wrote the message and when, for a conversation; `nil` for a file.
     var message: ConversationMessage?
+    /// Which rankings found the fragment; only `.meaning` when no searched word is in it.
+    var match: SearchMatch = .words
+
+    /// Whether only its meaning found the fragment, none of the words searched.
+    var isFoundByMeaningOnly: Bool { !match.contains(.words) }
 }
 
 /// The Indice: a rebuildable SQLite copy of the Memoria di Progetto of every Progetto, of the
@@ -142,8 +157,9 @@ actor SearchIndex {
             }
         }
         let needed = (searched.count + 1) / 2
-        var rankings = searched.isEmpty ? [] : [try rowIDs(byWords, match: match(searched), project: project, source: source)
-            .filter { found[$0, default: 0] >= needed }]
+        let byStrongWords = try searched.isEmpty ? [] : rowIDs(byWords, match: match(searched), project: project,
+                                                               source: source).filter { found[$0, default: 0] >= needed }
+        var rankings = [byStrongWords]
         do {
             let query = try await embedder.vectors(for: [text], as: .query)[0]
             // Read after the wait: the fragments may have changed meanwhile.
@@ -153,11 +169,18 @@ actor SearchIndex {
         } catch {
             Logger.index.error("Search by meaning failed, by strong word matches only: \(error)")
         }
-        return try fragments(ReciprocalRankFusion.fuse(rankings).prefix(limit))
+        let wordMatches = Set(byStrongWords), meaningMatches = Set(rankings.dropFirst().joined())
+        return try fragments(ReciprocalRankFusion.fuse(rankings).prefix(limit)) { rowID in
+            SearchMatch().union(wordMatches.contains(rowID) ? .words : []).union(meaningMatches.contains(rowID) ? .meaning : [])
+        }
     }
 
-    /// The fragments `rowIDs`, in order, skipping the ones gone.
-    private func fragments(_ rowIDs: some Sequence<Int64>) throws -> [SearchHit] {
+    /// Whether a search also goes by meaning: a model is in use and some fragments have their vectors.
+    var searchesByMeaning: Bool { embedder != nil && matrix?.count ?? 0 > 0 }
+
+    /// The fragments `rowIDs`, in order, skipping the ones gone, each with what found it.
+    private func fragments(_ rowIDs: some Sequence<Int64>,
+                           foundBy match: (Int64) -> SearchMatch = { _ in .words }) throws -> [SearchHit] {
         let statement = try prepare("SELECT path, project, source, text, message, author, date FROM fragments WHERE rowid = ?1")
         defer { sqlite3_finalize(statement) }
         var hits: [SearchHit] = []
@@ -165,7 +188,9 @@ actor SearchIndex {
             sqlite3_reset(statement)
             sqlite3_bind_int64(statement, 1, rowID)
             guard sqlite3_step(statement) == SQLITE_ROW else { continue }
-            hits.append(hit(at: statement))
+            var hit = hit(at: statement)
+            hit.match = match(rowID)
+            hits.append(hit)
         }
         return hits
     }

@@ -15,6 +15,8 @@ final class PaletteModel {
     private(set) var preview: [SearchHit] = []
     /// Whether the last search failed in the Indice.
     private(set) var hasFailed = false
+    /// Whether the Indice also searched by meaning, or only by words: no embedding model, or its vectors not ready yet.
+    private(set) var searchesByMeaning = false
 
     /// Makes the search over the current Sessioni and Cronologia CLI.
     @ObservationIgnored private let makeSearch: () -> ConversationSearch
@@ -62,6 +64,7 @@ final class PaletteModel {
             : CommandCatalog.commands(allCommands, matching: text)
         do {
             let search = makeSearch()
+            searchesByMeaning = await search.index?.searchesByMeaning ?? false
             let conversations = query.shows(.conversations) ? try await search.groups(for: query) : []
             let notes = query.shows(.secondBrain) ? try await search.notes(for: query) : []
             guard !Task.isCancelled else { return }

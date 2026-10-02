@@ -51,7 +51,8 @@ struct PalettePreview: View {
                     .textCase(.uppercase)
                     .foregroundStyle(Palette.textSecondary)
             }
-            HighlightedText(text: String(hit.text.prefix(1_200)), words: isFound ? words : [])
+            HighlightedText(text: String(hit.text.prefix(1_200)), words: isFound ? words : [],
+                            isFoundByMeaning: isFound && found?.isFoundByMeaningOnly == true)
                 .font(Typography.body(size: 12))
                 .foregroundStyle(isFound ? Palette.textPrimary : Palette.textSecondary)
         }
