@@ -9,7 +9,7 @@ final class EndpointSettings {
     /// The one shared by the HUD and the settings window.
     static let shared = EndpointSettings()
 
-    /// The four known endpoints first, then the custom ones in the order they were added.
+    /// The known endpoints first, then the custom ones in the order they were added.
     private(set) var endpoints: [OpenAICompatibleEndpoint]
     /// The ids of the endpoints in a cloud that is not Claude that the user allowed to receive Domande; revocable.
     private(set) var consents: Set<String>

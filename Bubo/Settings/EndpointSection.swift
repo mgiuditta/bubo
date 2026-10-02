@@ -9,16 +9,20 @@ struct EndpointSection: View {
     @State private var hasKey: Bool?
     @State private var isEnteringKey = false
     @State private var keyFailure: String?
+    @State private var connecting: Task<Void, Never>?
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Section {
             TextField("Modello", text: $model)
                 .onSubmit(saveFields)
-            if endpoint.kind != .openAI && endpoint.kind != .gemini {
+            if ![.openAI, .gemini, .openRouter].contains(endpoint.kind) {
                 TextField("Indirizzo", text: $address)
                     .onSubmit(saveFields)
             }
-            if !endpoint.isOnMac {
+            if endpoint.kind == .openRouter {
+                openRouterRow
+            } else if !endpoint.isOnMac {
                 keyRow
             }
             if endpoint.kind == .gemini {
@@ -47,7 +51,10 @@ struct EndpointSection: View {
             address = endpoint.baseURL.absoluteString
             await refreshKey()
         }
-        .onDisappear(perform: saveFields)
+        .onDisappear {
+            saveFields()
+            connecting?.cancel()
+        }
         .sheet(isPresented: $isEnteringKey) {
             APIKeySheet(placeholder: keyPlaceholder) { key in
                 Task { await saveKey(key) }
@@ -73,6 +80,37 @@ struct EndpointSection: View {
                 .font(.callout)
                 .foregroundStyle(Palette.danger)
         }
+    }
+
+    /// OpenRouter gives its key through the browser (OAuth PKCE), so there is nothing to paste; it has no API to
+    /// revoke it, so disconnecting forgets it and links to OpenRouter's keys page (preflight of #95).
+    @ViewBuilder
+    private var openRouterRow: some View {
+        switch hasKey {
+        case true?:
+            LabeledContent("Collegato, chiave nel Portachiavi") {
+                Button("Scollega") { Task { await removeKey() } }
+            }
+            Link("Revoca la chiave «Bubo» su OpenRouter", destination: URL(string: "https://openrouter.ai/settings/keys")!)
+        case false? where connecting != nil:
+            LabeledContent {
+                Button("Annulla") { connecting?.cancel() }
+            } label: {
+                LoadingLabel("Autorizza Bubo nel browser…")
+            }
+        case false?:
+            Button("Collega OpenRouter…", action: connectOpenRouter)
+        case nil:
+            EmptyView()
+        }
+        if let keyFailure {
+            Text(keyFailure)
+                .font(.callout)
+                .foregroundStyle(Palette.danger)
+        }
+        Text("Si paga con i tuoi crediti OpenRouter. Se su OpenRouter usi anche chiavi tue (BYOK), attiva «Never use shared capacity» su ciascuna: altrimenti, quando una fallisce, OpenRouter ripiega da solo sui suoi crediti.")
+            .font(.callout)
+            .foregroundStyle(.secondary)
     }
 
     @ViewBuilder
@@ -102,7 +140,7 @@ struct EndpointSection: View {
         switch endpoint.kind {
         case .openAI: "sk-…"
         case .gemini: "AIza…"
-        case .ollama, .lmStudio, .custom: ""
+        case .openRouter, .ollama, .lmStudio, .custom: ""
         }
     }
 
@@ -133,6 +171,24 @@ struct EndpointSection: View {
             hasKey = true
         } catch {
             keyFailure = error.localizedDescription
+        }
+    }
+
+    private func connectOpenRouter() {
+        keyFailure = nil
+        connecting = Task {
+            defer { connecting = nil }
+            do {
+                try await OpenRouterAuthorization.connect(open: { openURL($0) }) { key in
+                    try await keys.save(key)
+                }
+                hasKey = true
+            } catch is CancellationError {
+            } catch OAuthCallbackServer.Failure.timedOut {
+                keyFailure = String(localized: "Il collegamento è scaduto: riprova e autorizza Bubo entro 10 minuti.")
+            } catch {
+                keyFailure = String(localized: "OpenRouter non ha dato la chiave: riprova.")
+            }
         }
     }
 
