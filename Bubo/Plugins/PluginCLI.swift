@@ -54,7 +54,7 @@ nonisolated struct PluginCLI: Sendable {
                 return try await group.next()!
             }
             switch command {
-            case .prune:
+            case .prune, .updateMarketplaces:
                 return PluginCommandResult(succeeded: output.exitCode == 0)
             case .addMarketplace:
                 let listed = output.exitCode == 0 ? try await Self.marketplaceNames(run: run, in: folder) : nil

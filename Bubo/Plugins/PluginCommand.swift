@@ -20,10 +20,21 @@ nonisolated enum PluginCommand: Sendable, Equatable {
     /// Saves `values` of the `userConfig` of `plugin`; the ones left out keep theirs. The values go on standard
     /// input, never in the arguments.
     case configure(PluginID, values: PluginOptionValues)
+    /// Updates `plugin` in `scope` to the version its Marketplace offers, running the command the CLI showed when
+    /// `accepting` is not `nil`.
+    case update(PluginID, scope: PluginScope, accepting: PluginShownCommand? = nil)
+    /// Downloads again the catalog of every Marketplace: it changes no plugin.
+    case updateMarketplaces
 
     /// The arguments after `claude`.
     var arguments: [String] {
         switch self {
+        case let .update(plugin, scope, accepted):
+            ["plugin", "update", plugin.description, "--scope", scope.rawValue, "--json"]
+                + (accepted.map { ["--accept-command", $0.sha256] } ?? [])
+        // No `--json`: the exit code, like the other Marketplace commands.
+        case .updateMarketplaces:
+            ["plugin", "marketplace", "update"]
         case let .install(plugin, scope, accepted):
             ["plugin", "install", plugin.description, "--scope", scope.rawValue, "--json"]
                 + (accepted.map { ["--accept-command", $0.sha256] } ?? [])
@@ -51,11 +62,11 @@ nonisolated enum PluginCommand: Sendable, Equatable {
         if case let .configure(_, values) = self { values.json } else { nil }
     }
 
-    /// How long `claude` may take: 120 s to install, since the CLI already allows 60 s for `npm ci`, and to clone a
-    /// Marketplace; 60 s otherwise.
+    /// How long `claude` may take: 120 s to install and update, since the CLI already allows 60 s for `npm ci`, and
+    /// to clone or fetch the Marketplaces; 60 s otherwise.
     var timeout: Duration {
         switch self {
-        case .install, .addMarketplace: .seconds(120)
+        case .install, .update, .addMarketplace, .updateMarketplaces: .seconds(120)
         default: .seconds(60)
         }
     }
@@ -64,8 +75,8 @@ nonisolated enum PluginCommand: Sendable, Equatable {
     var plugin: PluginID? {
         switch self {
         case let .install(plugin, _, _), let .enable(plugin, _), let .disable(plugin, _), let .uninstall(plugin, _, _),
-             let .configure(plugin, _): plugin
-        case .prune, .addMarketplace, .removeMarketplace: nil
+             let .configure(plugin, _), let .update(plugin, _, _): plugin
+        case .prune, .addMarketplace, .removeMarketplace, .updateMarketplaces: nil
         }
     }
 }

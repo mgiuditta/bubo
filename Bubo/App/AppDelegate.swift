@@ -39,6 +39,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
     /// Refreshes the PriceTable, at most once a day.
     private var priceUpdates: Task<Void, Never>?
+    /// Checks the updates of every Marketplace's plugins, once a day, with the Plugin window closed too.
+    private let pluginUpdates = PluginUpdateScheduler(checker: .live())
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {
@@ -217,6 +219,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 try? await Task.sleep(for: .seconds(6 * 60 * 60))
             }
         }
+        pluginUpdates.start()
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
             Task { await self?.questions.readQuotaIfNeeded() }

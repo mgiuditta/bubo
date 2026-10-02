@@ -10,6 +10,8 @@ nonisolated struct PluginEntry: Identifiable, Sendable, Equatable {
     var source: PluginSource
     /// The version the Marketplace entry declares.
     var version: String?
+    /// The commit the entry's git source is pinned to (`sha`), and the branch or tag it follows (`ref`).
+    var revision: PluginRevision
     /// The components the Marketplace entry declares inline (`mcpServers`, `lspServers`, `hooks`), with no file.
     var declaredComponents: [PluginComponent]
     /// Where it is installed: none, or one per scope and Progetto.
@@ -19,7 +21,8 @@ nonisolated struct PluginEntry: Identifiable, Sendable, Equatable {
 
     /// Creates an entry with only its identifier, for a plugin no Marketplace file describes.
     init(id: PluginID, displayName: String? = nil, summary: String = "", category: String? = nil, tags: [String] = [],
-         source: PluginSource = .unknown, version: String? = nil, declaredComponents: [PluginComponent] = [],
+         source: PluginSource = .unknown, version: String? = nil, revision: PluginRevision = PluginRevision(),
+         declaredComponents: [PluginComponent] = [],
          installations: [PluginInstallation] = [], installCount: Int? = nil) {
         self.id = id
         self.displayName = displayName ?? id.name
@@ -28,6 +31,7 @@ nonisolated struct PluginEntry: Identifiable, Sendable, Equatable {
         self.tags = tags
         self.source = source
         self.version = version
+        self.revision = revision
         self.declaredComponents = declaredComponents
         self.installations = installations
         self.installCount = installCount
