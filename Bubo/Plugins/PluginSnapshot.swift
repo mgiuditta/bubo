@@ -130,6 +130,7 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
                            tags: (item["tags"] as? [String] ?? []) + (item["keywords"] as? [String] ?? []),
                            source: PluginSource(json: item["source"]),
                            version: item["version"] as? String,
+                           revision: PluginRevision(json: item["source"]),
                            declaredComponents: declared)
     }
 
@@ -213,6 +214,12 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
         problems.removeAll { if case let .missingProjectPlugin(id, _) = $0 { entries[id]?.isInstalled == true } else { false } }
         return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems,
                               everyInstalled: everyInstalled.union(installed.map(\.id)))
+    }
+
+    /// The snapshot with `problems` added, such as the new code on the Mac of an update Claude Code made.
+    func adding(_ problems: [PluginProblem]) -> PluginSnapshot {
+        PluginSnapshot(marketplaces: marketplaces, plugins: plugins, problems: self.problems + problems,
+                       everyInstalled: everyInstalled)
     }
 
     // MARK: Merging the Sessioni

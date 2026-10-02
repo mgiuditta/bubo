@@ -40,7 +40,8 @@ struct PluginsWindow: View {
             configuration = { project in try await store.currentConfiguration(of: project) }
         }
         _catalog = State(initialValue: PluginCatalog(reconnect: { store?.reconnectMCPServer(named: $0) },
-                                                     configuration: configuration))
+                                                     configuration: configuration, updateStore: .standard,
+                                                     updateChecker: .live()))
     }
 
     /// What the plugins are read for: the Progetto, and Riprova.
@@ -58,6 +59,7 @@ struct PluginsWindow: View {
         NavigationSplitView {
             PluginSidebar(snapshot: catalog.snapshot, project: project,
                           serversNeedingAuthentication: catalog.serversNeedingAuthentication.count,
+                          updates: catalog.updates,
                           selection: chosenSelection, addingSource: addingSource) {
                 isChoosingFolder = true
             } add: { source in
@@ -154,7 +156,7 @@ struct PluginsWindow: View {
             serverList(waiting)
         } else {
             PluginEntryList(sections: sections,
-                            emptyTitle: selection == .installed || selection == nil ? "Nessun plugin installato" : "Nessun plugin",
+                            emptyTitle: emptyTitle,
                             isLoading: catalog.snapshot == nil, isSearching: !query.isEmpty,
                             isListingUnavailable: catalog.isListingUnavailable, failing: failing,
                             marketplaces: catalog.snapshot?.marketplaces ?? [],
@@ -169,6 +171,15 @@ struct PluginsWindow: View {
                         .padding(Spacing.small)
                 }
             }
+        }
+    }
+
+    /// What the list says when it is empty.
+    private var emptyTitle: LocalizedStringKey {
+        switch selection {
+        case .installed, nil: "Nessun plugin installato"
+        case .updates: "Tutti i plugin sono aggiornati"
+        default: "Nessun plugin"
         }
     }
 

@@ -612,6 +612,16 @@
         }
       }
     },
+    "%lld aggiornamenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld updates"
+          }
+        }
+      }
+    },
     "%lld blocchi di ragionamento" : {
       "localizations" : {
         "en" : {
@@ -1102,6 +1112,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agent"
+          }
+        }
+      }
+    },
+    "Aggiorna" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "Aggiorna %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update %@"
+          }
+        }
+      }
+    },
+    "Aggiornamenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates"
+          }
+        }
+      }
+    },
+    "Aggiornamenti disponibili" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates available"
+          }
+        }
+      }
+    },
+    "Aggiornamento disponibile: versione %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update available: version %@"
+          }
+        }
+      }
+    },
+    "Aggiorno…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
           }
         }
       }
@@ -3039,6 +3109,16 @@
         }
       }
     },
+    "Componenti nuovi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New components"
+          }
+        }
+      }
+    },
     "Con un altro account i %lld blocchi di ragionamento non si riprendono: %@ vede messaggi, strumenti e ramo." : {
       "localizations" : {
         "en" : {
@@ -3181,12 +3261,32 @@
         }
       }
     },
+    "Forse c'è un aggiornamento: il repository è passato a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There may be an update: the repository moved to %@"
+          }
+        }
+      }
+    },
     "Grande (%@): Messaggi potrebbe non mandarla. Usa AirDrop o Salva sul disco." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Large (%@): Messages may not send it. Use AirDrop or Save to disk."
+          }
+        }
+      }
+    },
+    "Ho visto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seen"
           }
         }
       }
@@ -3221,6 +3321,16 @@
         }
       }
     },
+    "L'autore non ha cambiato versione: questa è già l'ultima che pubblica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The author hasn't changed the version: this is already the latest they publish."
+          }
+        }
+      }
+    },
     "La Consegna non si scrive. Riprova." : {
       "localizations" : {
         "en" : {
@@ -3247,6 +3357,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo's copy of the conversations can't be read."
+          }
+        }
+      }
+    },
+    "La nuova versione porta codice che gira sul Mac, fuori dalla sandbox." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new version brings code that runs on the Mac, outside the sandbox."
           }
         }
       }
@@ -3347,6 +3467,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't be chosen until you compare the new code in Settings › Deliveries."
+          }
+        }
+      }
+    },
+    "Nuovo codice eseguibile dall'ultimo aggiornamento: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Per aggiornarlo, claude esegue questo comando sul Mac:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To update it, claude runs this command on the Mac:"
           }
         }
       }
@@ -3509,6 +3649,16 @@
         }
       }
     },
+    "Tutti i plugin sono aggiornati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All plugins are up to date"
+          }
+        }
+      }
+    },
     "Un segreto da togliere è anche nelle modifiche non salvate: toglilo dal file e riapri, oppure scegli Lascia." : {
       "localizations" : {
         "en" : {
@@ -3525,6 +3675,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Once delivered, it's theirs."
+          }
+        }
+      }
+    },
+    "aggiornamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "update"
           }
         }
       }
@@ -7470,6 +7630,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turn into Session on %@"
+          }
+        }
+      }
+    },
+    "claude non ha accettato il comando confermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude didn't accept the confirmed command."
           }
         }
       }

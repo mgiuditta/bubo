@@ -9,6 +9,8 @@ struct PluginSidebar: View {
     let project: URL?
     /// How many MCP servers wait for a login: they count in Da sistemare.
     let serversNeedingAuthentication: Int
+    /// The installed plugins with a newer version.
+    let updates: [PluginID: PluginUpdate]
     @Binding var selection: PluginSidebarItem?
     /// The source of the Marketplace being added from a row, while `claude` works.
     let addingSource: String?
@@ -30,12 +32,16 @@ struct PluginSidebar: View {
                 PluginSidebarLabel("Da sistemare", systemImage: "wrench.adjustable", count: toFix)
                     .tag(PluginSidebarItem.toFix)
             }
+            PluginSidebarLabel("Aggiornamenti", systemImage: "arrow.down.circle", count: updates.isEmpty ? nil : updates.count,
+                               countLabel: Text("\(updates.count) aggiornamenti"))
+                .tag(PluginSidebarItem.updates)
             PluginSidebarLabel("Server MCP", systemImage: "server.rack")
                 .tag(PluginSidebarItem.mcpServers)
             if let snapshot {
                 Section("Marketplace") {
                     ForEach(snapshot.marketplaces) { marketplace in
-                        PluginSidebarLabel(verbatim: marketplace.name, systemImage: "storefront")
+                        PluginSidebarLabel(verbatim: marketplace.name, systemImage: "storefront",
+                                           hasUpdates: updates.keys.contains { $0.marketplace == marketplace.name })
                             .tag(PluginSidebarItem.marketplace(marketplace.name))
                             .contextMenu {
                                 if marketplace.isRemovable {
