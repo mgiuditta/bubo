@@ -59,6 +59,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         animation.state = controls.displayedState
         animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
+        animation.voiceLevel = controls.voiceLevel
         animation.advance(by: now - lastFrameTime)
         lastFrameTime = now
         uniforms.apply(animation)

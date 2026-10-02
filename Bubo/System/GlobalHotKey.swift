@@ -13,13 +13,15 @@ final class GlobalHotKey {
         case failed(OSStatus)
     }
 
-    private let action: () -> Void
+    private let press: () -> Void
+    private let release: () -> Void
     private var hotKey: EventHotKeyRef?
     private var handler: EventHandlerRef?
 
-    /// Creates an unregistered hot key that runs `action` on the main thread when pressed.
-    init(action: @escaping () -> Void) {
-        self.action = action
+    /// Creates an unregistered hot key that runs `press` on the main thread when pressed, and `release` when let go.
+    init(press: @escaping () -> Void, release: @escaping () -> Void = {}) {
+        self.press = press
+        self.release = release
     }
 
     /// Registers `shortcut`, replacing any shortcut this instance held before.
@@ -44,16 +46,21 @@ final class GlobalHotKey {
 
     private func installHandlerIfNeeded() throws(RegistrationError) {
         guard handler == nil else { return }
-        var spec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
+        var specs = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased)),
+        ]
         let context = Unmanaged.passUnretained(self).toOpaque()
-        let status = InstallEventHandler(GetApplicationEventTarget(), { _, _, context in
-            guard let context else { return OSStatus(eventNotHandledErr) }
+        let status = InstallEventHandler(GetApplicationEventTarget(), { _, event, context in
+            guard let context, let event else { return OSStatus(eventNotHandledErr) }
+            let isPress = GetEventKind(event) == UInt32(kEventHotKeyPressed)
             // Carbon delivers application events on the main thread.
             MainActor.assumeIsolated {
-                Unmanaged<GlobalHotKey>.fromOpaque(context).takeUnretainedValue().action()
+                let hotKey = Unmanaged<GlobalHotKey>.fromOpaque(context).takeUnretainedValue()
+                isPress ? hotKey.press() : hotKey.release()
             }
             return noErr
-        }, 1, &spec, context, &handler)
+        }, specs.count, &specs, context, &handler)
         guard status == noErr else { throw .failed(status) }
     }
 

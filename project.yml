@@ -82,6 +82,8 @@ targets:
       properties:
         keychain-access-groups:
           - $(AppIdentifierPrefix)com.mgiuditta.bubo
+        # Il runtime rinforzato nega il microfono senza questa eccezione (push-to-talk, spec 08).
+        com.apple.security.device.audio-input: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
@@ -92,6 +94,8 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Bubo ascolta solo mentre tieni premuta la scorciatoia e trascrive sul Mac."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Bubo trascrive sul Mac quello che dici mentre tieni premuta la scorciatoia."
     postBuildScripts:
       - name: Ponte agente
         shell: /bin/zsh
