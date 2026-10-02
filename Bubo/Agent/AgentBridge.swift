@@ -101,7 +101,8 @@ final class AgentBridge {
     ///   - model: A `claude` model alias, such as `sonnet`; `nil` for the user's own choice.
     ///   - effort: The effort to ask for; `nil` for the model's default.
     ///   - environment: Variables added to the environment of `claude`, such as a Sessione's ports.
-    ///   - conversation: The id of a Cronologia CLI conversation to continue as a fork, leaving it untouched.
+    ///   - conversation: The id of a conversation to continue as a fork, leaving it untouched: from the Cronologia CLI,
+    ///     or the previous turn of a Sessione.
     ///   - kept: The id, a UUID, to give the agent's conversation so that Bubo keeps a copy of it (ADR 0006);
     ///     `nil` writes nothing of it.
     ///   - isSandboxed: Whether the commands of `claude` run in the Sandbox; if it cannot start, neither does the

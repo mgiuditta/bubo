@@ -110,3 +110,9 @@ export class ConversationStore implements SessionStore {
     this.db.run("VACUUM");
   }
 }
+
+// Lo store come lo vede un `query()`: copia ciò che `claude` scrive, ma non dà nulla da riprendere. Così `resume` legge
+// il transcript in ~/.claude e `claude` resta nella cartella di configurazione dell'utente (#412).
+export function mirrorOnly(store: SessionStore): SessionStore {
+  return { append: (key, entries) => store.append(key, entries), load: async () => null };
+}

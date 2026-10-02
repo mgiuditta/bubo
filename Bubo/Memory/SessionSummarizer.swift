@@ -84,9 +84,14 @@ final class SessionSummarizer {
     /// - Throws: `Failure` when the Sessione is gone or no engine wrote a summary.
     func summary(of id: UUID) async throws -> SessionSummary {
         guard let session = sessions.sessions.first(where: { $0.id == id }) else { throw Failure.unknownSession }
+        // Each turn resumes the one before, so its conversation repeats the earlier ones: a message counts once.
         var messages: [CLIConversation.Message] = []
+        var seen: Set<[String]> = []
         for conversation in session.conversations {
-            messages += (try? await transcript(conversation)) ?? []
+            for message in (try? await transcript(conversation)) ?? []
+            where seen.insert([message.isFromUser ? "user" : "assistant", message.text]).inserted {
+                messages.append(message)
+            }
         }
         let input = SummaryInput(session: id, title: session.title, projectName: session.project.lastPathComponent,
                                  branch: session.workspace?.branch, messages: messages).redacted(by: filter)

@@ -25,7 +25,7 @@ import { blockedLine, blocksOf, type SandboxBlock } from "./violations";
 import { settingSources } from "./settingSources";
 import { summarize, summaryOptions } from "./summary";
 import { SpareSlot, type SpareKey } from "./spare";
-import { ConversationStore } from "./store";
+import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
@@ -276,10 +276,13 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `effort` è lo sforzo scelto dal router; senza, vale il default del modello. Prima di `done` il ponte dice chi ha
 // risposto (`answeredBy`): il modello e lo sforzo effettivo, che l'SDK può aver declassato in silenzio.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
-// `resume` è una conversazione della Cronologia CLI: si riprende sempre come fork, con un id nuovo.
+// `resume` è una conversazione della Cronologia CLI, o il turno prima di una Sessione (#412): si riprende sempre come
+// fork, con un id nuovo. `claude` la riprende dal transcript in ~/.claude: lo store resta solo la copia, perché un
+// `resume` letto dallo store gira con una cartella di configurazione temporanea, senza memoria automatica, skill né
+// CLAUDE.md dell'utente. Dallo store solo se ~/.claude non l'ha più.
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
-// e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
+// e l'SDK lo copia nello store, se c'è. Senza `keep`, come per le Domande, `claude` non scrive nulla.
 // `keep` dice anche che il turno è di una Sessione: solo lì la memoria automatica è accesa.
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
@@ -293,8 +296,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
                    model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
                    permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = []) {
-  const mirrored = keep !== undefined && store !== undefined;
-  const restored = resume === undefined ? undefined : await restoredOf(resume);
+  const resumed = resume === undefined ? undefined : await transcriptOf(resume);
+  const restored = resumed?.restored;
+  const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
   const stopped = new AbortController();
   let servers: Promise<McpServerStatus[]> | undefined;
   const gate = sandboxGate({
@@ -326,7 +330,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       sandbox,
       permissionMode,
       ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
-      ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
+      ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
       canUseTool: askBubo(id, sandbox !== undefined),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
@@ -429,9 +433,10 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   }
 }
 
-// Il totale che `resume` ripristina dal transcript di `session` (`cost-state`), da togliere al turno: quei turni sono
-// della Cronologia CLI. Dalla copia se la CLI l'ha già cancellato; senza `cost-state` `resume` non ripristina nulla.
-async function restoredOf(session: string): Promise<Restored | undefined> {
+// Se il transcript di `session` è ancora in ~/.claude, e il totale che `resume` ne ripristina (`cost-state`), da togliere
+// al turno: quei turni sono già contati, della Cronologia CLI o dei turni prima della Sessione. Dalla copia se la CLI
+// l'ha già cancellato; senza `cost-state` `resume` non ripristina nulla.
+async function transcriptOf(session: string): Promise<{ isLocal: boolean; restored?: Restored }> {
   const entries: SessionStoreEntry[] = [];
   try {
     await importSessionToStore(session, {
@@ -441,8 +446,9 @@ async function restoredOf(session: string): Promise<Restored | undefined> {
   } catch (error) {
     console.error("Transcript da riprendere non letto:", error instanceof Error ? error.message : error);
   }
-  if (!entries.length && store) entries.push(...store.entries(session));
-  return restoredFrom(entries);
+  const isLocal = entries.length > 0;
+  if (!isLocal && store) entries.push(...store.entries(session));
+  return { isLocal, restored: restoredFrom(entries) };
 }
 
 async function repair(session: string) {
