@@ -194,6 +194,13 @@ targets:
       - path: BuboRemote
     dependencies:
       - package: RemoteKit
+      - target: RemoteNotificationService
+    # Il portachiavi dei Mac accoppiati è condiviso con l'estensione delle notifiche, che decifra le Richieste.
+    entitlements:
+      path: BuboRemote/BuboRemote.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.mgiuditta.bubo.remote
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote
@@ -207,6 +214,37 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
         INFOPLIST_KEY_NSCameraUsageDescription: "Bubo usa la fotocamera solo per leggere il QR di accoppiamento del Mac."
         INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID protegge la chiave con cui il Telecomando firma le tue decisioni."
+  # Scrive il testo delle notifiche delle Richieste dal record cifrato (spec 21).
+  RemoteNotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: RemoteNotificationService
+        excludes:
+          - "*.entitlements"
+      - path: BuboRemote/Shared
+    dependencies:
+      - package: RemoteKit
+    entitlements:
+      path: RemoteNotificationService/RemoteNotificationService.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.mgiuditta.bubo.remote
+    info:
+      path: RemoteNotificationService/Info.plist
+      properties:
+        CFBundleDisplayName: Bubo
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote.notifications
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
   BuboTests:
     type: bundle.unit-test
     platform: macOS

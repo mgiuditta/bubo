@@ -1,0 +1,42 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "Bubo: una Sessione aspetta una decisione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo: a Session is waiting for a decision"
+          }
+        }
+      }
+    },
+    "Già risolta sul Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already resolved on the Mac"
+          }
+        }
+      }
+    },
+    "Livello %lld · scade tra %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %1$lld · expires in %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Livello %1$lld · scade tra %2$@"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -1,6 +1,62 @@
 {
   "sourceLanguage" : "it",
   "strings" : {
+    "%@. %@. %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@. %2$@. %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@. %2$@. %3$@"
+          }
+        }
+      }
+    },
+    "%lld Sessioni lavorano" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Session working"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessions working"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessione lavora"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessioni lavorano"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld file" : {
       "localizations" : {
         "en" : {
@@ -19,6 +75,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%lld in attesa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld waiting"
           }
         }
       }
@@ -83,12 +149,42 @@
         }
       }
     },
+    "Apri per decidere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open to decide"
+          }
+        }
+      }
+    },
+    "Attende te" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for you"
+          }
+        }
+      }
+    },
     "Attività" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activity"
+          }
+        }
+      }
+    },
+    "Chiudi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
           }
         }
       }
@@ -123,6 +219,26 @@
         }
       }
     },
+    "Consenti per questa Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow for this Session"
+          }
+        }
+      }
+    },
+    "Consenti solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow just this once"
+          }
+        }
+      }
+    },
     "Cosa arriva sull'iPhone" : {
       "localizations" : {
         "en" : {
@@ -139,6 +255,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Data from %@, may be out of date"
+          }
+        }
+      }
+    },
+    "Decisione non firmata. Riprova; se hai cambiato Face ID, accoppia di nuovo questo iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decision not signed. Try again; if you changed Face ID, pair this iPhone again."
+          }
+        }
+      }
+    },
+    "Decisione non inviata. Controlla la connessione e riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decision not sent. Check the connection and try again."
           }
         }
       }
@@ -179,6 +315,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Done"
+          }
+        }
+      }
+    },
+    "Firma la tua decisione per il Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign your decision for the Mac"
           }
         }
       }
@@ -233,6 +379,42 @@
         }
       }
     },
+    "Livello %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld"
+          }
+        }
+      }
+    },
+    "Livello %lld · scade tra %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %1$lld · expires in %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Livello %1$lld · scade tra %2$@"
+          }
+        }
+      }
+    },
+    "Livello %lld · scaduta: rispondi dal Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level %lld · expired: answer from the Mac"
+          }
+        }
+      }
+    },
     "Mac" : {
       "localizations" : {
         "en" : {
@@ -283,12 +465,52 @@
         }
       }
     },
+    "Niente da decidere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to decide"
+          }
+        }
+      }
+    },
+    "No" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No"
+          }
+        }
+      }
+    },
     "Per inquadrare il QR, consenti a Bubo di usare la fotocamera in Impostazioni." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "To scan the QR code, allow Bubo to use the camera in Settings."
+          }
+        }
+      }
+    },
+    "Per questa Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this Session"
+          }
+        }
+      }
+    },
+    "Questo Mac non è più accoppiato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac is no longer paired."
           }
         }
       }
@@ -343,6 +565,36 @@
         }
       }
     },
+    "Rivedi e decidi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review and decide"
+          }
+        }
+      }
+    },
+    "Scaduta: rispondi dal Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expired: answer from the Mac."
+          }
+        }
+      }
+    },
+    "Sempre in questo Progetto: solo dal Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always in this Project: only from the Mac."
+          }
+        }
+      }
+    },
     "Serve lo stesso Account Apple su Mac e iPhone." : {
       "localizations" : {
         "en" : {
@@ -369,6 +621,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sessions"
+          }
+        }
+      }
+    },
+    "Solo ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just this once"
+          }
+        }
+      }
+    },
+    "Strumento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tool"
           }
         }
       }

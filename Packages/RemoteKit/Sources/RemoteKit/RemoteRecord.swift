@@ -21,15 +21,20 @@ public struct RemoteRecord: Codable, Sendable, Equatable, Identifiable {
     public let expiresAt: Date
     /// The payload, sealed by ``RecordSealer`` with the pair's key.
     public let payload: Data
+    /// The notification category of a Request record, which picks the notification's actions; `nil` for no
+    /// notification, such as while the user is at the Mac.
+    public let category: String?
 
     /// Creates a record from its parts.
-    public init(id: String = UUID().uuidString, kind: Kind, macID: UUID, deviceID: UUID, expiresAt: Date, payload: Data) {
+    public init(id: String = UUID().uuidString, kind: Kind, macID: UUID, deviceID: UUID, expiresAt: Date, payload: Data,
+                category: String? = nil) {
         self.id = id
         self.kind = kind
         self.macID = macID
         self.deviceID = deviceID
         self.expiresAt = expiresAt
         self.payload = payload
+        self.category = category
     }
 }
 
