@@ -27,6 +27,10 @@ final class HUDPresenter {
     /// The Sessione whose Apri PR sheet the HUD shows, opened from the menu or the Palette; `nil` for none.
     var pullRequestSession: Session?
 
+    /// The Sessione the HUD brings into view once it is in front, chosen from the menu bar; the Vista that shows it
+    /// sets it back to `nil`.
+    var revealedSession: Session.ID?
+
     /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
     @ObservationIgnored var searchConversations: ((String) -> Void)?
 
@@ -81,6 +85,12 @@ final class HUDPresenter {
     /// Brings the HUD to the front with the Apri PR sheet of `session`.
     func openPullRequest(of session: Session) {
         pullRequestSession = session
+        show()
+    }
+
+    /// Brings the HUD to the front on the Sessione `id`.
+    func show(session id: Session.ID) {
+        revealedSession = id
         show()
     }
 

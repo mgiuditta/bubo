@@ -197,7 +197,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
-        let menu = NSHostingMenu(rootView: MenuBarContent()
+        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions)
             .environment(hud)
             .environment(hotKeys)
             .environment(panel))
