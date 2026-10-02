@@ -4,7 +4,6 @@ import SwiftUI
 // ponytail: plain text answer; Markdown rendering comes with the HUD bubbles of phase 3.
 struct QuestionView: View {
     @Bindable var model: QuestionModel
-    @Environment(\.openSettings) private var openSettings
     @Environment(\.openURL) private var openURL
     @Environment(HUDPresenter.self) private var hud
     @State private var isPickingRetry = false
@@ -81,45 +80,11 @@ struct QuestionView: View {
                     Button("Annulla", action: model.stop)
                 }
             } else if let failure = model.failure {
-                notice(for: failure)
+                QuestionNotice(failure: failure, model: model) { isPickingRetry = true }
             } else if model.isAnswering && model.answer.isEmpty {
                 LoadingLabel("Chiedo a Claude…")
             } else if !model.answer.isEmpty {
-                ScrollView {
-                    Text(verbatim: model.answer)
-                        .font(Typography.body(size: 14))
-                        .foregroundStyle(Palette.textPrimary)
-                        .textSelection(.enabled)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .frame(maxHeight: 220)
-                .defaultScrollAnchor(.bottom)
-                .accessibilityLabel("Risposta di Claude")
-                .accessibilityIdentifier("question.answer")
-                // Under every answer, once it is complete or stopped: who answered it, why, and at what cost.
-                if !model.isAnswering, let routedAnswer = model.routedAnswer {
-                    HStack(spacing: Spacing.xSmall) {
-                        RouterLine(answer: routedAnswer)
-                        // ⌘↑ only with the prompt empty: while typing it stays the text field's "go to the start".
-                        Button("Rifai più forte", systemImage: "arrow.up", action: model.retryStronger)
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.plain)
-                            .foregroundStyle(Palette.textSecondary)
-                            .keyboardShortcut(.upArrow, modifiers: .command)
-                            .disabled(model.strongerRoute == nil || !model.prompt.isEmpty)
-                            .help("Rifai con un modello o uno sforzo più forte (⌘↑)")
-                            .accessibilityIdentifier("question.retryStronger")
-                        Button("Rifai con…", systemImage: "arrow.triangle.swap") { isPickingRetry = true }
-                            .labelStyle(.iconOnly)
-                            .buttonStyle(.plain)
-                            .foregroundStyle(Palette.textSecondary)
-                            .keyboardShortcut(.upArrow, modifiers: [.command, .shift])
-                            .disabled(model.retryAlternatives.isEmpty && model.excludedEndpoints.isEmpty
-                                      || !model.prompt.isEmpty)
-                            .help("Rifai con un altro modello (⌘⇧↑)")
-                            .accessibilityIdentifier("question.retryWith")
-                    }
-                }
+                QuestionAnswer(model: model) { isPickingRetry = true }
             }
 
             if let savedNote = model.savedNote {
@@ -196,74 +161,6 @@ struct QuestionView: View {
         guard case let .endpoint(endpoint)? = askingConsent?.target else { return "" }
         return String(localized: "Mandare la Domanda a \(endpoint.name)?",
                       comment: "Consent asked the first time a Domanda would go to a cloud provider other than Claude.")
-    }
-
-    @ViewBuilder
-    private func notice(for failure: QuestionFailure) -> some View {
-        switch failure {
-        case .claudeMissing:
-            ErrorNotice("Claude Code non trovato", remedy: "Installa la CLI claude, poi riprova.",
-                        actionTitle: "Riprova", action: model.retry)
-        case .bridge(.failed(let message)):
-            ErrorNotice("Claude non ha risposto", remedy: "\(message)", actionTitle: "Riprova", action: model.retry)
-        case .bridge(.turnFailed(let failure)):
-            ErrorNotice("Claude non ha risposto", remedy: "\(failure.message)", actionTitle: "Riprova", action: model.retry)
-        // A Domanda never runs in the Sandbox: `sandboxUnavailable` cannot reach it.
-        case .bridge(.bridgeExited), .bridge(.spawnFailed), .bridge(.sandboxUnavailable), .unexpected:
-            ErrorNotice("Il collegamento con Claude si è interrotto", remedy: "Riprova: Bubo lo riavvia.",
-                        actionTitle: "Riprova", action: model.retry)
-        case .bridge(.unsupportedVersion):
-            ErrorNotice("Il collegamento con Claude non è aggiornato", remedy: "Reinstalla Bubo, poi riprova.",
-                        actionTitle: "Riprova", action: model.retry)
-        case .bridge(.claudeOutdated):
-            ErrorNotice("Aggiorna Claude Code", remedy: "Questa versione è troppo vecchia per Bubo. Aggiornala nel Terminale, poi riprova.",
-                        actionTitle: "Riprova", action: model.retry)
-        case .bridge(.limitReached(let limit)):
-            LimitNotice(limit: limit, resume: model.resumeAfterReset,
-                        switchModel: { model.retry(model: limit.otherModel) },
-                        useAPIKey: { Task { await model.useAPIKey() } })
-        case .bridge(.signInRequired):
-            ErrorNotice("L'accesso a Claude è scaduto", remedy: "Accedi di nuovo in Impostazioni › Account.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .offline:
-            ErrorNotice("Sei offline", remedy: "Bubo non passa da solo alla API key: riprova quando torna la rete.",
-                        actionTitle: "Riprova", action: model.retry)
-        case .endpoint(let error):
-            endpointNotice(for: error)
-        case .apiKeyMissing:
-            ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        }
-    }
-
-    @ViewBuilder
-    private func endpointNotice(for error: OpenAICompatibleError) -> some View {
-        switch error {
-        case .consentMissing:
-            ErrorNotice("Domanda non inviata", remedy: "Serve il tuo consenso per mandarla a quel fornitore.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .billingUnconfirmed:
-            ErrorNotice("Domanda non inviata a Gemini",
-                        remedy: "Conferma in Impostazioni › Modelli che il progetto della chiave ha la fatturazione attiva: senza, Google usa le Domande per addestrare i suoi modelli e in Europa non è ammesso.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .modelMissing:
-            ErrorNotice("Manca il modello", remedy: "Scrivi quale modello usare in Impostazioni › Modelli.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .keyMissing:
-            ErrorNotice("Manca la chiave", remedy: "Aggiungila in Impostazioni › Modelli, poi riprova.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .keyRefused:
-            ErrorNotice("Chiave rifiutata", remedy: "Il fornitore non l'ha accettata: controllala in Impostazioni › Modelli.",
-                        actionTitle: "Apri Impostazioni") { openSettings() }
-        case .failed(let message):
-            ErrorNotice("Il modello non ha risposto", remedy: "\(message)", actionTitle: "Rifai con…") { isPickingRetry = true }
-        case .unreachable:
-            ErrorNotice("Il server non risponde", remedy: "Controlla che sia acceso e che l'indirizzo sia giusto.",
-                        actionTitle: "Rifai con…") { isPickingRetry = true }
-        case .unexpectedResponse:
-            ErrorNotice("Risposta non riconosciuta", remedy: "Il server non parla il formato di OpenAI Chat Completions.",
-                        actionTitle: "Rifai con…") { isPickingRetry = true }
-        }
     }
 }
 

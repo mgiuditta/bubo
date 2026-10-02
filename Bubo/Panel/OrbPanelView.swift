@@ -2,10 +2,12 @@ import MetalKit
 
 /// The Metal view inside the Panel: a click opens the HUD, a drag moves the Panel, a right click opens the menu.
 ///
-/// Reads as a button to VoiceOver, with the same menu as its secondary action.
+/// Reads as a button to VoiceOver, with the same menu as its secondary action and "Chiedi nel Panel" among its actions.
 final class OrbPanelView: MTKView {
     /// Called when the Orb is clicked or pressed by VoiceOver.
     var onPress: () -> Void = {}
+    /// Called by the VoiceOver action "Chiedi nel Panel", to open the bubble.
+    var onAsk: () -> Void = {}
     /// Called when a drag of the Panel ends, to snap it to the grid.
     var onDragEnd: () -> Void = {}
     /// Called when the pointer moves over the Panel or leaves it, to update the click circle.
@@ -62,6 +64,13 @@ final class OrbPanelView: MTKView {
     override func accessibilityPerformPress() -> Bool {
         onPress()
         return true
+    }
+
+    override func accessibilityCustomActions() -> [NSAccessibilityCustomAction]? {
+        [NSAccessibilityCustomAction(name: String(localized: "Chiedi nel Panel")) { [weak self] in
+            self?.onAsk()
+            return true
+        }]
     }
 
     override func accessibilityPerformShowMenu() -> Bool {

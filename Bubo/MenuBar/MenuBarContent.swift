@@ -50,6 +50,8 @@ struct MenuBarContent: View {
             .disabled(sessions == nil)
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra Panel", isOn: $panel.isShown)
+        Button("Chiedi nel Panel", action: panel.askInPanel)
+            .disabled(!panel.isShown)
         #if DEBUG
         Button("Debug Orb…") { openWindow(id: OrbDebugView.windowID) }
         #endif

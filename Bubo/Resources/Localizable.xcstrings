@@ -2679,6 +2679,16 @@
         }
       }
     },
+    "Chiedi nel Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask in the Panel"
+          }
+        }
+      }
+    },
     "Chiedi qualcosa a Claude" : {
       "localizations" : {
         "en" : {
@@ -3928,6 +3938,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Question"
+          }
+        }
+      }
+    },
+    "Domanda nel Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question in the Panel"
           }
         }
       }
@@ -9194,6 +9214,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unrecognized response"
+          }
+        }
+      }
+    },
+    "Risposta pronta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer ready"
           }
         }
       }
