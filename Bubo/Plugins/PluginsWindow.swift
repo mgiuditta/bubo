@@ -71,6 +71,8 @@ struct PluginsWindow: View {
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }
         }
+        .font(Typography.body(size: 13))
+        // The Notte direction's graphite, like the Agenti window (ADR 0004).
         .containerBackground(Palette.ink, for: .window)
         .preferredColorScheme(.dark)
         // Last, so everything inside gets it: selection is lightness, not the system blue (design system).

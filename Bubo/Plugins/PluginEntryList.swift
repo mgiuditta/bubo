@@ -57,10 +57,15 @@ struct PluginEntryList: View {
                     } header: {
                         if let marketplace = section.marketplace {
                             Text(verbatim: marketplace)
+                                .font(Typography.mono(size: 10, weight: .medium))
+                                .textCase(.uppercase)
+                                .foregroundStyle(Palette.textSecondary)
                         }
                     }
+                    .listRowSeparatorTint(Palette.line)
                 }
             }
+            .scrollContentBackground(.hidden)
         }
     }
 }
