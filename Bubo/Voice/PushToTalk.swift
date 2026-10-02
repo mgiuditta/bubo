@@ -122,7 +122,7 @@ final class PushToTalk {
 
     private func openMicrophone() {
         let previous = closing
-        starting = Task {
+        starting = Task { [weak self, listener] in
             await previous?.value
             do throws(VoiceFailure) {
                 try await listener.start(partial: { [weak self] in self?.heard($0) },

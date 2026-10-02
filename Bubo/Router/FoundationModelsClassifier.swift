@@ -41,7 +41,7 @@ nonisolated struct FoundationModelsClassifier: ClassificationEngine {
         let content: GeneratedContent
         do {
             content = try await session.respond(to: Self.prompt(for: input), schema: schema,
-                                                options: GenerationOptions(sampling: .greedy)).content
+                                                options: Self.greedy).content
         } catch LanguageModelSession.GenerationError.unsupportedLanguageOrLocale,
                 LanguageModelSession.GenerationError.assetsUnavailable {
             throw RequestClassification.Fallback.unavailable
@@ -70,6 +70,15 @@ nonisolated struct FoundationModelsClassifier: ClassificationEngine {
     }
 
     // MARK: Prompt
+
+    /// Greedy sampling, so the same request gets the same verdict; Xcode 27 renamed its parameter.
+    private static var greedy: GenerationOptions {
+        #if compiler(>=6.4)
+        GenerationOptions(samplingMode: .greedy)
+        #else
+        GenerationOptions(sampling: .greedy)
+        #endif
+    }
 
     private static func prompt(for input: ClassifierInput) -> String {
         guard !input.attachmentNames.isEmpty else { return input.text }
