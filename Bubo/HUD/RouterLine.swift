@@ -15,7 +15,7 @@ struct RouterLine: View {
                     .foregroundStyle(Palette.textPrimary)
                     .accessibilityLabel(model.spoken)
             }
-            Text(reason)
+            Text(Self.reason(for: answer.route))
                 .foregroundStyle(Palette.textSecondary)
                 .truncationMode(.tail)
                 .layoutPriority(-1)
@@ -60,14 +60,15 @@ struct RouterLine: View {
     }
 
     /// Apple Foundation Models as the line names it; a brand, so it is never translated.
-    private static let appleFM = "Apple FM"
+    static let appleFM = "Apple FM"
 
-    private var reason: LocalizedStringResource {
-        let family = answer.route.destination == .onDevice ? Self.appleFM : answer.route.family?.name ?? ""
-        if case let .type(type, _) = answer.route.reason, let fallback = answer.route.onDeviceFallback {
-            return Self.reason(String(localized: type.label), family, fallback)
+    /// Why the router chose `route`, as the line and the chip in the prompt say it.
+    static func reason(for route: Route) -> LocalizedStringResource {
+        let family = route.destination == .onDevice ? appleFM : route.family?.name ?? ""
+        if case let .type(type, _) = route.reason, let fallback = route.onDeviceFallback {
+            return reason(String(localized: type.label), family, fallback)
         }
-        switch answer.route.reason {
+        switch route.reason {
         case let .type(type, nil):
             return LocalizedStringResource("\(String(localized: type.label)) → \(family)", comment: Self.comment)
         case let .type(type, runnerUp?):

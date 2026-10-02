@@ -73,6 +73,54 @@ nonisolated struct Route: Equatable, Sendable {
     /// The route of a Domanda an OpenAI-compatible endpoint answers, picked in "Rifai con…": not `claude`'s.
     static let retriedElsewhere = Route(family: nil, model: nil, effort: nil, reason: .retried)
 
+    /// The effort levels the chip in the prompt offers for this route's model, weakest first: the catalog's, without
+    /// `max`, which is only for Sessioni; empty for a model without effort, and for Apple Foundation Models.
+    ///
+    /// Without a catalog, Haiku has none and the others go from low to very high: the SDK lowers what a model lacks.
+    func effortLevels(in catalog: ModelCatalog?) -> [Effort] {
+        guard let family else { return [] }
+        if let catalog {
+            return (catalog.entry(for: family.alias)?.supportedEffortLevels ?? []).filter { $0 < .max }.sorted()
+        }
+        return family == .haiku ? [] : [.low, .medium, .high, .xhigh]
+    }
+
+    /// The route the user picks with Tab (`forward`) or ⇧Tab from this one in the chip: the next Claude family of
+    /// `catalog`, wrapping around, at the nearest effort it accepts.
+    ///
+    /// From Apple Foundation Models, or from `claude`'s default, Tab starts at the weakest family and ⇧Tab at the
+    /// strongest.
+    func choosingModel(forward: Bool, in catalog: ModelCatalog?) -> Route {
+        let families = ModelFamily.allCases.filter { family in
+            catalog.map { $0.entry(for: family.alias) != nil } ?? (family != .fable)
+        }
+        guard !families.isEmpty else { return self }
+        let next: ModelFamily
+        if let family, let index = families.firstIndex(of: family) {
+            next = families[(index + (forward ? 1 : families.count - 1)) % families.count]
+        } else {
+            next = forward ? families[0] : families[families.count - 1]
+        }
+        let model = catalog?.entry(for: next.alias)?.value ?? next.alias
+        let levels = Route(family: next, model: model, effort: nil, reason: .chosenByUser).effortLevels(in: catalog)
+        let wanted = effort ?? .medium
+        return Route(family: next, model: model, effort: levels.last { $0 <= wanted } ?? levels.first,
+                     reason: .chosenByUser)
+    }
+
+    /// The route the user picks with ⌥↑ (`stronger`) or ⌥↓ in the chip: the same model one effort level away;
+    /// `nil` for a model without effort, and past the strongest or the weakest level.
+    func choosingEffort(stronger: Bool, in catalog: ModelCatalog?) -> Route? {
+        let levels = effortLevels(in: catalog)
+        guard !levels.isEmpty else { return nil }
+        let next = if let effort {
+            stronger ? levels.first { $0 > effort } : levels.last { $0 < effort }
+        } else {
+            levels.last { $0 <= .medium } ?? levels.first
+        }
+        return next.map { Route(family: family, model: model, effort: $0, reason: .chosenByUser) }
+    }
+
     /// The step of the Scala this route ran on, as `answeringModel` says when known: the model that answered and its
     /// effective effort; `nil` when not even the family is known.
     func step(answeredBy answeringModel: AnsweringModel?) -> Scala.Step? {
