@@ -50,8 +50,10 @@ struct AutomationsWindow: View {
     private var content: some View {
         if let store, !store.automations.automations.isEmpty {
             List {
+                ReadinessCard()
+                    .listRowSeparator(.hidden)
                 ForEach(store.automations.automations) { automation in
-                    AutomationRow(automation: automation) {
+                    AutomationRow(automation: automation, resume: resumeAction(for: automation, in: store)) {
                         runner?.run(automation.id)
                     } togglePause: {
                         if automation.isPaused {
@@ -72,6 +74,17 @@ struct AutomationsWindow: View {
             ContentUnavailableView("Automazioni", systemImage: "clock.arrow.circlepath",
                                    description: Text("Nessuna Automazione. Creane una con Nuova Automazione."))
         }
+    }
+
+    /// Riprendi of the latest Esecuzione of `automation`, when the Mac's sleep or Bubo's quitting interrupted it and its
+    /// Sessione still waits: the agent's Conversazione resumes there.
+    private func resumeAction(for automation: Automation, in store: SessionStore) -> (() -> Void)? {
+        guard let execution = automation.lastExecution, execution.outcome == .interrotta,
+              let id = execution.session,
+              let session = store.sessions.first(where: { $0.id == id }),
+              session.isInterrupted, session.activity == .ferma
+        else { return nil }
+        return { store.resume(id) }
     }
 }
 

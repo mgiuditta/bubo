@@ -4,6 +4,8 @@ import SwiftUI
 /// Esecuzione, [Avvia ora] and Pausa/Riprendi, Modifica and Elimina.
 struct AutomationRow: View {
     let automation: Automation
+    /// Riprendi of its latest Esecuzione, Interrotta; `nil` when there is none to resume.
+    var resume: (() -> Void)?
     /// [Avvia ora].
     let run: () -> Void
     /// Pausa, or Riprendi when in pausa.
@@ -41,6 +43,10 @@ struct AutomationRow: View {
             }
             .accessibilityElement(children: .combine)
             Spacer()
+            if let resume {
+                Button("Riprendi", action: resume)
+                    .help("Riprende la Sessione dell'Esecuzione interrotta")
+            }
             Button("Avvia ora", action: run)
                 .buttonStyle(.borderedProminent)
             Menu("Azioni", systemImage: "ellipsis.circle") {
