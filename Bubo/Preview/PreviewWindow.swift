@@ -13,10 +13,11 @@ final class PreviewWindow {
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
                           backing: .buffered, defer: true)
         window.contentViewController = NSHostingController(rootView: PreviewPanel(store: store, isInWindow: true)
-            // The graphite of the HUD the panel comes from; the window keeps the system's appearance, which the page
-            // reads as its color scheme.
+            // The graphite of the HUD the panel comes from.
             .background(Palette.ink))
         window.titlebarAppearsTransparent = true
+        // Dark like the HUD; the page still gets the system's scheme, which PreviewPanel reads from the system.
+        window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
         if !window.setFrameUsingName("Anteprima") { window.center() }
         window.setFrameAutosaveName("Anteprima")

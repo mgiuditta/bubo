@@ -85,7 +85,7 @@ struct AgentsWindow: View {
     private var notices: some View {
         if configurationFailed {
             HStack(alignment: .firstTextBaseline) {
-                notice("Non riesco a chiedere a claude quali agenti carica: mostro solo i file.")
+                AgentNotice("Non riesco a chiedere a claude quali agenti carica: mostro solo i file.", kind: .error)
                 Button("Riprova") { attempt += 1 }
             }
         }
@@ -94,27 +94,17 @@ struct AgentsWindow: View {
                 .foregroundStyle(Palette.textSecondary)
         }
         if let catalog, catalog.exceedsDescriptionBudget {
-            notice("""
+            AgentNotice("""
                 Le descrizioni degli agenti sono circa \(catalog.descriptionTokens.formatted()) token: oltre \
                 \(AgentCatalog.descriptionTokenBudget.formatted()) claude avvisa all'avvio. Accorciale o togli gli \
                 agenti che non usi.
-                """)
+                """, kind: .warning)
         }
         if !newFolders.isEmpty, store?.sessions.contains(where: { $0.project == project && $0.isRunning }) == true {
             ForEach(newFolders, id: \.self) { folder in
-                notice("La cartella \(folder.path) è nuova: le Sessioni al lavoro adesso la vedranno dal prossimo turno.")
+                AgentNotice("La cartella \(folder.path) è nuova: le Sessioni al lavoro adesso la vedranno dal prossimo turno.",
+                            kind: .information)
             }
-        }
-    }
-
-    private func notice(_ text: LocalizedStringKey) -> some View {
-        Label {
-            Text(text)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(Palette.danger)
-                .accessibilityLabel("Avviso")
         }
     }
 

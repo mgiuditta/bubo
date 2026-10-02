@@ -63,21 +63,13 @@ struct AgentRow: View {
                 .font(Typography.body(size: 12))
                 .foregroundStyle(Palette.textSecondary)
         } else if entry.isUndecided {
-            warning("Stesso nome nella stessa cartella: claude ne carica uno secondo l'ordine di lettura, senza una regola.")
+            AgentNotice("Stesso nome nella stessa cartella: claude ne carica uno secondo l'ordine di lettura, senza una regola.",
+                        kind: .warning)
+                .font(Typography.body(size: 12))
         } else if isLoadedKnown, entry.loaded == nil {
-            warning("Non caricato da claude: controlla il frontmatter del file.")
+            AgentNotice("Non caricato da claude: controlla il frontmatter del file.", kind: .error)
+                .font(Typography.body(size: 12))
         }
-    }
-
-    /// A problem with the agent: the triangle in the danger color, the text readable (ADR 0004).
-    private func warning(_ text: LocalizedStringKey) -> some View {
-        Label {
-            Text(text)
-        } icon: {
-            Image(systemName: "exclamationmark.triangle.fill")
-                .foregroundStyle(Palette.danger)
-        }
-        .font(Typography.body(size: 12))
     }
 
     /// A file of the agent: whether it wins, its path and "Apri nell'editor".
