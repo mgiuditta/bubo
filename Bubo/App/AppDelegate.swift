@@ -61,7 +61,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
-    private(set) lazy var executions: ExecutionRunner? = sessions.map { ExecutionRunner(automations: $0.automations, sessions: $0) }
+    private(set) lazy var executions: ExecutionRunner? = sessions.map { sessions in
+        let runner = ExecutionRunner(automations: sessions.automations, sessions: sessions)
+        runner.onFinish = { [notifier] automation, execution in
+            Task { await notifier.announceResult(of: execution, from: automation) }
+        }
+        return runner
+    }
     /// Starts the Esecuzioni at the times of their Ripetizioni; `nil` without the Sessioni.
     private lazy var scheduler: AutomationScheduler? = sessions.flatMap { sessions in
         executions.map { runner in
@@ -94,7 +100,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return flow
     }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.
-    private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
+    private lazy var notifier = Notifier { [hud] session in
+        if let session { hud.show(session: session) } else { hud.show() }
+    } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
     }
     /// The notifications of a Budget past its threshold, read at each turn the ledger records.
