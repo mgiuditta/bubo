@@ -55,7 +55,7 @@ struct MarketplaceTests {
 
     @Test func theCLIAsksTheListAfterAnAddThatEnded() async throws {
         let calls = Mutex<[[String]]>([])
-        let cli = PluginCLI(run: { arguments, _ in
+        let cli = PluginCLI(run: { arguments, _, _ in
             calls.withLock { $0.append(arguments) }
             if arguments.contains("list") {
                 return ProcessOutput(exitCode: 0, standardOutput: #"[{"name":"prova","source":"github","repo":"a/prova"}]"#)

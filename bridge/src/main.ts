@@ -41,6 +41,7 @@ type Command =
   | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "warm"; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "cool" }
+  | { v: number; type: "reconnect"; server?: unknown }
   | { v: number; type: "history"; id: string; all?: unknown }
   | { v: number; type: "transcript"; id: string; conversation: string; all?: unknown }
   | { v: number; type: "keep"; id: string }
@@ -720,6 +721,12 @@ lines.on("line", (line) => {
       break;
     }
     case "cool": spares.cool(); break;
+    case "reconnect":
+      // Dopo un `claude mcp login`: i turni in corso si ricollegano, i successivi lo fanno da soli.
+      if (typeof command.server === "string") {
+        for (const conversation of running.values()) void conversation.reconnectMcpServer(command.server).catch(() => {});
+      }
+      break;
     case "history": void history(command.id, command.all === true); break;
     case "transcript": void transcript(command.id, command.conversation, command.all === true); break;
     case "keep": void keepHistory(command.id); break;

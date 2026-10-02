@@ -16,12 +16,18 @@ import os
     private(set) var officialCache: OfficialCatalogCache?
     /// The plugins with a command running or waiting its turn.
     private(set) var pending: Set<PluginID> = []
+    /// The MCP servers `claude` loads in the Progetto followed, as last seen; empty without Sessioni.
+    private(set) var servers: [ClaudeConfiguration.MCPServer] = []
 
     @ObservationIgnored let folders: PluginFolders
     @ObservationIgnored private let listing: PluginListing
     @ObservationIgnored private let cli: PluginCLI
-    /// Reads the `plugin_errors` of a Sessione's `system/init` in a folder; `nil` without Sessioni.
-    @ObservationIgnored private let sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])?
+    /// Reads the configuration `claude` loads in a folder, for the `plugin_errors` of its `system/init` and the
+    /// status of its MCP servers; `nil` without Sessioni.
+    @ObservationIgnored private let configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)?
+    @ObservationIgnored private let login: MCPLogin
+    /// Has the turns in progress connect again to an MCP server, after a login.
+    @ObservationIgnored private let reconnect: @MainActor (String) -> Void
     /// The last `plugin_errors` read, merged into every later reading of the files.
     @ObservationIgnored private var errors: [ClaudeConfiguration.PluginError] = []
     /// The main checkout of the Progetto followed, which the commands run in.
@@ -33,15 +39,27 @@ import os
     /// The readings started, so an older one never replaces a newer one.
     @ObservationIgnored private var readings = 0
 
-    /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` that
-    /// `sessionErrors` reads, and changed by `cli`.
+    /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` and MCP
+    /// servers of the `configuration` of `claude`, and changed by `cli`; `login` logs in to an MCP server, after
+    /// which `reconnect` tells the turns in progress.
     init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live(),
-         sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])? = nil) {
+         login: MCPLogin = .live(), reconnect: @escaping @MainActor (String) -> Void = { _ in },
+         configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)? = nil) {
         self.folders = folders
         self.listing = listing
         self.cli = cli
-        self.sessionErrors = sessionErrors
+        self.login = login
+        self.reconnect = reconnect
+        self.configuration = configuration
     }
+
+    /// The MCP servers waiting for a login, which only `claude mcp login` can give.
+    var serversNeedingAuthentication: [ClaudeConfiguration.MCPServer] {
+        servers.filter(\.needsAuthentication)
+    }
+
+    /// The Progetto followed, as the commands see it: its main checkout.
+    var followedProject: URL? { project }
 
     /// Draws from the files, then asks `claude` in background, then reads again at each FSEvents change of
     /// `installed_plugins.json`, `known_marketplaces.json`, the Marketplaces' `marketplace.json` and the three
@@ -54,13 +72,14 @@ import os
         snapshot = nil
         list = nil
         errors = []
+        servers = []
         isListingUnavailable = false
         let state = Signposts.beginInterval(.pluginsFirstDraw)
         await reload(project)
         Signposts.endInterval(.pluginsFirstDraw, state)
         await withDiscardingTaskGroup { group in
             group.addTask { await self.refreshListing(project) }
-            group.addTask { await self.refreshSessionErrors(project) }
+            group.addTask { await self.refreshConfiguration(project) }
             group.addTask { await self.loadOfficialCache() }
             group.addTask { await self.watch(project) }
         }
@@ -112,7 +131,7 @@ import os
         }
         await refreshListing(project)
         // A Sessione reads its errors only at its start, so they are read again, without holding up the window.
-        Task { await refreshSessionErrors(project) }
+        Task { await refreshConfiguration(project) }
         return result
     }
 
@@ -127,6 +146,33 @@ import os
             guard result.succeeded else { break }
         }
         return result
+    }
+
+    /// The `userConfig` of `plugin` for the Progetto followed.
+    ///
+    /// - Throws: `PluginCLIError`, or `CancellationError`.
+    func options(of plugin: PluginID) async throws -> PluginOptions {
+        try await cli.options(of: plugin, project: project)
+    }
+
+    // MARK: MCP servers
+
+    /// Reads again the status of the MCP servers, as "Controlla" asks.
+    func checkServers() async {
+        await refreshConfiguration(project)
+    }
+
+    /// Runs `claude mcp login` for `server`; when it succeeds, the turns in progress connect again and the status is
+    /// read again.
+    ///
+    /// - Returns: Whether the login succeeded; when it did not, the window shows the command to copy.
+    /// - Throws: `CancellationError`.
+    func logIn(to server: String) async throws -> Bool {
+        let project = project
+        guard try await login.logIn(to: server, in: cli.workingFolder(for: project)) else { return false }
+        reconnect(server)
+        await refreshConfiguration(project)
+        return true
     }
 
     // MARK: Reading
@@ -156,13 +202,14 @@ import os
         }
     }
 
-    private func refreshSessionErrors(_ project: URL?) async {
-        guard let project, let sessionErrors else { return }
+    private func refreshConfiguration(_ project: URL?) async {
+        guard let project, let configuration else { return }
         do {
-            let read = try await sessionErrors(project)
+            let read = try await configuration(project)
             // The window may have moved to another Progetto meanwhile.
             guard project == self.project else { return }
-            errors = read
+            errors = read.pluginErrors
+            servers = read.mcpServers
             await reload(project)
         } catch is CancellationError {
             return

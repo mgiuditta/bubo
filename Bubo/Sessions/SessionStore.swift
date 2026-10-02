@@ -172,6 +172,37 @@ final class SessionStore {
         try await configurationSpare.configuration(of: project) { try await bridge().configuration(of: $0) }
     }
 
+    /// The configuration `claude` loads in `project` now, never from the `claude` kept ready: one started before an
+    /// MCP login would still say the server needs it.
+    func currentConfiguration(of project: URL) async throws -> ClaudeConfiguration {
+        try await bridge().configuration(of: project)
+    }
+
+    /// Has every turn in progress connect again to the MCP server `name`, after a login; the next turns connect by
+    /// themselves, each with a `claude` of its own.
+    func reconnectMCPServer(named name: String) {
+        var told = Set<ObjectIdentifier>()
+        for agent in turns.values where told.insert(ObjectIdentifier(agent)).inserted {
+            do {
+                try agent.reconnectMCPServer(named: name)
+            } catch {
+                Logger.sessions.notice("MCP server not reconnected: \(String(describing: error), privacy: .public)")
+            }
+        }
+    }
+
+    /// Logs in to the MCP server `name` of `project` with `claude mcp login`; once it succeeded, the turns in progress
+    /// connect again.
+    ///
+    /// - Returns: The configuration of `project` read again after the login; `nil` when the login failed.
+    /// - Throws: `CancellationError`, or what reading the configuration throws.
+    func logIn(toMCPServer name: String, in project: URL, login: MCPLogin = .live()) async throws -> ClaudeConfiguration? {
+        guard try await login.logIn(to: name, in: URL(filePath: TrustGate.root(of: project), directoryHint: .isDirectory))
+        else { return nil }
+        reconnectMCPServer(named: name)
+        return try await currentConfiguration(of: project)
+    }
+
     /// The Regole di permesso of `claude` in `project` that widen its Sandbox.
     func sandboxRules(of project: URL) async throws -> [SandboxWideningRule] {
         try await bridge().sandboxRules(in: project)

@@ -34,11 +34,13 @@ struct PluginsWindow: View {
     init(store: SessionStore?) {
         self.store = store
         _project = State(initialValue: store?.projects.first)
-        var sessionErrors: (@MainActor (URL) async throws -> [ClaudeConfiguration.PluginError])?
+        var configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)?
         if let store {
-            sessionErrors = { project in try await store.configuration(of: project).pluginErrors }
+            // Never from the `claude` kept ready: started before a login, it would still say the server needs it.
+            configuration = { project in try await store.currentConfiguration(of: project) }
         }
-        _catalog = State(initialValue: PluginCatalog(sessionErrors: sessionErrors))
+        _catalog = State(initialValue: PluginCatalog(reconnect: { store?.reconnectMCPServer(named: $0) },
+                                                     configuration: configuration))
     }
 
     /// What the plugins are read for: the Progetto, and Riprova.
@@ -54,7 +56,9 @@ struct PluginsWindow: View {
 
     var body: some View {
         NavigationSplitView {
-            PluginSidebar(snapshot: catalog.snapshot, project: project, selection: chosenSelection, addingSource: addingSource) {
+            PluginSidebar(snapshot: catalog.snapshot, project: project,
+                          serversNeedingAuthentication: catalog.serversNeedingAuthentication.count,
+                          selection: chosenSelection, addingSource: addingSource) {
                 isChoosingFolder = true
             } add: { source in
                 add(source)
@@ -65,14 +69,12 @@ struct PluginsWindow: View {
             }
             .navigationSplitViewColumnWidth(min: 190, ideal: 220)
         } content: {
-            PluginEntryList(sections: catalog.entries(in: selection ?? .installed, matching: query),
-                       emptyTitle: selection == .installed || selection == nil ? "Nessun plugin installato" : "Nessun plugin",
-                       isLoading: catalog.snapshot == nil, isSearching: !query.isEmpty,
-                       isListingUnavailable: catalog.isListingUnavailable, failing: failing, marketplaces: catalog.snapshot?.marketplaces ?? [],
-                       officialCache: catalog.officialCache, selection: $plugin) { entry in
-                installing = entry
-            } retry: {
-                attempt += 1
+            Group {
+                if selection == .mcpServers, query.isEmpty {
+                    serverList(catalog.servers)
+                } else {
+                    pluginList
+                }
             }
             .navigationSplitViewColumnWidth(min: 300, ideal: 380)
         } detail: {
@@ -92,7 +94,9 @@ struct PluginsWindow: View {
         .searchable(text: $query, placement: .toolbar, prompt: "Cerca plugin")
         .frame(minWidth: 820, idealWidth: 1000, minHeight: 480, idealHeight: 640)
         .task(id: LoadKey(project: project, attempt: attempt)) { await catalog.follow(project: project) }
-        .onChange(of: catalog.snapshot.map { PluginSidebarItem.initialSelection(in: $0) }) { _, initial in
+        .onChange(of: catalog.snapshot.map {
+            PluginSidebarItem.initialSelection(in: $0, serversNeedingAuthentication: catalog.serversNeedingAuthentication.count)
+        }) { _, initial in
             // The errors of `claude` and of the Sessioni arrive after the files: Da sistemare until the user chooses.
             if let initial, !hasChosen, selection == nil || initial == .toFix {
                 selection = initial
@@ -138,6 +142,53 @@ struct PluginsWindow: View {
         .preferredColorScheme(.dark)
         // Last, so everything inside gets it: selection is lightness, not the system blue (design system).
         .tint(Palette.accent)
+    }
+
+    /// The plugins of the sidebar item, or the search results; in Da sistemare, the MCP servers waiting for a login
+    /// come first.
+    @ViewBuilder
+    private var pluginList: some View {
+        let sections = catalog.entries(in: selection ?? .installed, matching: query)
+        let waiting = selection == .toFix && query.isEmpty ? catalog.serversNeedingAuthentication : []
+        if sections.isEmpty, !waiting.isEmpty {
+            serverList(waiting)
+        } else {
+            PluginEntryList(sections: sections,
+                            emptyTitle: selection == .installed || selection == nil ? "Nessun plugin installato" : "Nessun plugin",
+                            isLoading: catalog.snapshot == nil, isSearching: !query.isEmpty,
+                            isListingUnavailable: catalog.isListingUnavailable, failing: failing,
+                            marketplaces: catalog.snapshot?.marketplaces ?? [],
+                            officialCache: catalog.officialCache, selection: $plugin) { entry in
+                installing = entry
+            } retry: {
+                attempt += 1
+            }
+            .safeAreaInset(edge: .top) {
+                if !waiting.isEmpty {
+                    MCPServerList(servers: waiting, catalog: catalog)
+                        .padding(Spacing.small)
+                }
+            }
+        }
+    }
+
+    /// `servers`, or what the window says without them.
+    @ViewBuilder
+    private func serverList(_ servers: [ClaudeConfiguration.MCPServer]) -> some View {
+        if servers.isEmpty {
+            ContentUnavailableView {
+                Label("Nessun server MCP", systemImage: "server.rack")
+            } description: {
+                Text(store == nil || project == nil
+                     ? "Scegli un Progetto per vedere i server MCP che Claude carica."
+                     : "Claude non carica server MCP in questo Progetto.")
+            }
+        } else {
+            ScrollView {
+                MCPServerList(servers: servers, catalog: catalog)
+                    .padding(Spacing.medium)
+            }
+        }
     }
 
     /// The sidebar's selection, remembering that the user chose.

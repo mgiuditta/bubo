@@ -78,6 +78,21 @@ nonisolated struct PluginCommandResult: Sendable, Equatable {
         return nil
     }
 
+    /// Reads `configure --values-stdin --json`, which prints one JSON object over many lines: `saved` when it saved,
+    /// `refused` with the CLI's message when an option is unknown or a value does not fit; `nil` without the object.
+    init?(configureOutput output: String) {
+        guard let start = output.firstIndex(of: "{"),
+              let object = try? JSONSerialization.jsonObject(with: Data(output[start...].utf8)) as? [String: Any]
+        else { return nil }
+        if object["saved"] != nil {
+            self.init(succeeded: true)
+        } else if let refused = object["refused"] as? [String: Any] {
+            self.init(succeeded: false, failureCode: "refused", message: refused["message"] as? String ?? "")
+        } else {
+            return nil
+        }
+    }
+
     /// Whether git had no credentials for the Marketplace's repository.
     var isAccessDenied: Bool { failureCode == "access_denied" }
 

@@ -18,6 +18,11 @@ struct PluginDetail: View {
     @State private var inventory: PluginInventory?
     @State private var hasReadInventory = false
     @State private var failure: Text?
+    /// Whether the installed plugin declares a `userConfig`, so it has Impostazioni.
+    @State private var hasOptions = false
+    /// The required options with no value saved.
+    @State private var missingOptions: [PluginOptions.Option] = []
+    @State private var isConfiguring = false
 
     /// What the inventory is read for: the entry, and whether the official cache has arrived.
     private struct InventoryKey: Equatable {
@@ -31,6 +36,7 @@ struct PluginDetail: View {
                 header
                 labels
                 if !problems.isEmpty { problemList }
+                if !missingOptions.isEmpty { missingOptionsBox }
                 if !entry.summary.isEmpty {
                     Text(verbatim: entry.summary)
                         .font(Typography.body(size: 13))
@@ -60,6 +66,44 @@ struct PluginDetail: View {
             inventory = read
             hasReadInventory = true
         }
+        // Read again when the Impostazioni sheet closes.
+        .task(id: isConfiguring) {
+            guard !isConfiguring else { return }
+            await readOptions()
+        }
+        .sheet(isPresented: $isConfiguring) {
+            UserConfigForm(entry: entry, catalog: catalog)
+        }
+    }
+
+    /// Whether the plugin has Impostazioni, and which required ones have no value; nothing when `claude` cannot say.
+    private func readOptions() async {
+        guard entry.isInstalled,
+              await PluginOptions.areDeclared(at: entry.installations.first { $0.installPath != nil }?.installPath)
+        else { return }
+        hasOptions = true
+        missingOptions = (try? await catalog.options(of: entry.id))?.missingRequired ?? []
+    }
+
+    /// The box of the required Impostazioni with no value, with Configura….
+    private var missingOptionsBox: some View {
+        VStack(alignment: .leading, spacing: Spacing.xSmall) {
+            Label {
+                Text("Impostazioni da compilare: \(missingOptions.map(\.title).formatted(.list(type: .and)))")
+                    .foregroundStyle(Palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle")
+                    .foregroundStyle(Palette.danger)
+                    .accessibilityLabel(Text("Errore"))
+            }
+            Button("Configura…") { isConfiguring = true }
+                .buttonStyle(.borderedProminent)
+        }
+        .font(Typography.body(size: 12))
+        .padding(Spacing.small)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Palette.surface, in: .rect(cornerRadius: 8))
     }
 
     private var header: some View {
@@ -114,6 +158,9 @@ struct PluginDetail: View {
                         toggle(in: scope)
                     }
                     .buttonStyle(.borderedProminent)
+                    if hasOptions {
+                        Button("Impostazioni…") { isConfiguring = true }
+                    }
                     Button("Disinstalla…", action: uninstall)
                         .foregroundStyle(Palette.danger)
                 }
