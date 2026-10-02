@@ -226,22 +226,42 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
-    /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. A link never starts a
-    /// Sessione: anyone can write one.
+    /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. `bubo://sessione`
+    /// shows its Sessione. A link never starts a Sessione: anyone can write one.
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let sessions else { return }
+        var madeDrafts = false
         for url in urls {
-            if let link = LinearLink(url) {
+            if let link = SessionLink(url) {
+                show(link, among: sessions.sessions)
+            } else if let link = LinearLink(url) {
                 receive(link, in: sessions)
-                continue
-            }
-            guard let link = DraftLink(url) else {
+                madeDrafts = true
+            } else if let link = DraftLink(url) {
+                sessions.receive(link)
+                madeDrafts = true
+            } else {
                 Logger.sessions.error("Link not valid: \(url.absoluteString, privacy: .private)")
-                continue
             }
-            sessions.receive(link)
         }
-        hud.showDrafts()
+        if madeDrafts { hud.showDrafts() }
+    }
+
+    /// A Sessione's link: the HUD on it while it lives, else the Cronologia window on its latest conversation.
+    private func show(_ link: SessionLink, among sessions: [Session]) {
+        switch link.destination(among: sessions) {
+        case .hud(let id):
+            hud.show(session: id)
+        case .history(let result):
+            history.show(result, searching: "")
+        case .unavailable:
+            Logger.sessions.error("Link to a Sessione Bubo does not have: \(link.id, privacy: .private)")
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Sessione non più disponibile")
+            alert.informativeText = String(localized: "La Sessione di questo link è stata cancellata o non si trova su questo Mac.")
+            NSApp.activate()
+            alert.runModal()
+        }
     }
 
     /// A Linear issue: a Bozza on the Progetto of the folder chosen in Linear, else on the one chosen before for its

@@ -6216,6 +6216,16 @@
         }
       }
     },
+    "La Sessione di questo link è stata cancellata o non si trova su questo Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session in this link was deleted or isn't on this Mac."
+          }
+        }
+      }
+    },
     "La Sessione ha modifiche che la PR non ha." : {
       "localizations" : {
         "en" : {
@@ -10728,6 +10738,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session from GitHub Issue…"
+          }
+        }
+      }
+    },
+    "Sessione non più disponibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session no longer available"
           }
         }
       }
