@@ -28,11 +28,13 @@ enum BridgeCommand: Equatable {
     /// instruction and the Orb follows only its tools. `unattended` makes it a turn with nobody in front of it, the one
     /// of an Esecuzione: no Richiesta di permesso, its rules as session rules, and a `denial` for each action denied.
     /// `readableDirectories` are folders `claude` reads besides `directory`, as `--add-dir`: those of the Allegati.
+    /// `maxBudget` is what the tightest Budget has left, in US dollars, with the API key: `claude` stops there
+    /// (`maxBudgetUsd`); without it, no cap.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
              keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
              remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [],
-             unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [])
+             unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [], maxBudget: Decimal? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -83,7 +85,7 @@ enum BridgeCommand: Equatable {
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
                       keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended,
-                      readableDirectories):
+                      readableDirectories, maxBudget):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -106,6 +108,7 @@ enum BridgeCommand: Equatable {
                 object["unattended"] = turn
             }
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
+            object["maxBudget"] = maxBudget.map { NSDecimalNumber(decimal: $0) }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -185,6 +188,8 @@ enum BridgeEvent: Equatable, Decodable {
     case limit(id: String, reached: Quota.Limit)
     /// The conversation `id` stopped because the login of `claude` is no longer valid.
     case signInRequired(id: String)
+    /// The conversation `id` stopped at the cap of its Budget (`error_max_budget_usd`).
+    case budgetExhausted(id: String)
     /// The conversation `id` did not start: its Sandbox could not, for `reason`, as `claude` wrote it.
     case sandboxUnavailable(id: String, reason: String)
     /// The `claude` of the conversation `id`, from its `init`: its version and the capabilities Bubo knows.
@@ -292,6 +297,7 @@ enum BridgeEvent: Equatable, Decodable {
                                                         resetsAt: try container.decodeIfPresent(Double.self, forKey: .resetsAt)
                                                             .map(Date.init(timeIntervalSince1970:))))
         case "signInRequired": self = .signInRequired(id: try container.decode(String.self, forKey: .id))
+        case "budgetExhausted": self = .budgetExhausted(id: try container.decode(String.self, forKey: .id))
         case "sandboxUnavailable": self = .sandboxUnavailable(id: try container.decode(String.self, forKey: .id),
                                                               reason: try container.decode(String.self, forKey: .reason))
         case "claude": self = .claude(id: try container.decode(String.self, forKey: .id),

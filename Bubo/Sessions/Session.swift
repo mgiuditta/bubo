@@ -84,8 +84,11 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var resolution: ConflictResolution?
     /// The issue the Sessione was started from with ⌘I; `nil` for the others.
     var issue: IssueLink?
-    /// The prompt of the turn that did not start because its Sandbox could not, for Riprova; `nil` otherwise.
+    /// The prompt of the turn that did not start because its Sandbox could not, for Riprova, or that a spent Budget
+    /// stopped; `nil` otherwise.
     var unstartedPrompt: String?
+    /// The Budget spent that stopped the Sessione's turn, which waits for the user's choice (spec 18); `nil` otherwise.
+    var budgetStop: BudgetGuard.Scope?
     /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
     var isAutonomous = false
     /// The model · sforzo the user chose for the Sessione's turns, from the next one, without restarting it (spec 10,
@@ -199,6 +202,7 @@ nonisolated extension Session {
         resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
+        budgetStop = try container.decodeIfPresent(BudgetGuard.Scope.self, forKey: .budgetStop)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
         model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []

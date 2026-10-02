@@ -43,10 +43,28 @@ struct QuestionNotice: View {
         case .attachmentsHeld:
             ErrorNotice("Allegati non inviati", remedy: "Non sono partiti: conferma ogni allegato, o chiedi a Claude.",
                         actionTitle: "Chiedi a Claude", action: model.askClaude)
+        case .budgetExhausted(let stop):
+            budgetNotice(for: stop)
+        // The model turns it into `budgetExhausted`, with what to ask again.
+        case .bridge(.budgetExhausted):
+            ErrorNotice("Budget esaurito", remedy: "Aumentalo in Impostazioni › Budget, poi riprova.",
+                        actionTitle: "Riprova", action: model.retry)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
                         actionTitle: "Apri Impostazioni") { openSettings() }
         }
+    }
+
+    private func budgetNotice(for stop: QuestionBudgetStop) -> BudgetStopNotice {
+        let local = model.endpoints.localModel
+        let offersLocal = local != nil && stop.endpoint?.id != local?.id
+        let offersSubscription = stop.isClaude && model.usesAPIKey
+        let model = model
+        let subscription: (() -> Void)? = offersSubscription ? { model.askWithSubscriptionOverBudget() } : nil
+        let onMac: (() -> Void)? = offersLocal ? { model.askLocalModelOverBudget() } : nil
+        return BudgetStopNotice(scope: stop.scope, detail: "Bubo non manda la Domanda senza una tua scelta.",
+                                retry: { model.retry() }, continueOnce: { model.continueOverBudget() },
+                                switchToSubscription: subscription, switchToLocalModel: onMac)
     }
 
     @ViewBuilder
