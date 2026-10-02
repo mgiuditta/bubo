@@ -19,6 +19,9 @@ struct SettingsView: View {
             Tab("Modelli", systemImage: "cpu") {
                 ModelsSettingsView()
             }
+            Tab("Macchine", systemImage: "server.rack") {
+                MachinesSettingsView()
+            }
             Tab("Voce", systemImage: "waveform") {
                 VoiceSettingsView()
             }

@@ -12136,6 +12136,362 @@
           }
         }
       }
+    },
+    "%@, %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@, %2$@"
+          }
+        }
+      }
+    },
+    "Attesa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expected"
+          }
+        }
+      }
+    },
+    "Bloccata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blocked"
+          }
+        }
+      }
+    },
+    "Bubo chiude le connessioni e dimentica la Macchina. La chiave resta in ~/.ssh/known_hosts." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo closes the connections and forgets the Machine. The key stays in ~/.ssh/known_hosts."
+          }
+        }
+      }
+    },
+    "Bubo usa ssh e ~/.ssh/config del Mac e non conserva chiavi né password." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo uses the Mac's ssh and ~/.ssh/config and keeps no keys or passwords."
+          }
+        }
+      }
+    },
+    "Connessa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        }
+      }
+    },
+    "Connessione a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting to %@"
+          }
+        }
+      }
+    },
+    "Connessione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connecting…"
+          }
+        }
+      }
+    },
+    "Connetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect"
+          }
+        }
+      }
+    },
+    "Continua" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "Copia comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Command"
+          }
+        }
+      }
+    },
+    "Da ~/.ssh/config" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From ~/.ssh/config"
+          }
+        }
+      }
+    },
+    "Dettagli…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Details…"
+          }
+        }
+      }
+    },
+    "Dopo aver tolto la chiave vecchia da known_hosts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After removing the old key from known_hosts"
+          }
+        }
+      }
+    },
+    "Impronta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fingerprint"
+          }
+        }
+      }
+    },
+    "Irraggiungibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unreachable"
+          }
+        }
+      }
+    },
+    "La chiave dell'host è cambiata: Bubo non si connette." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The host key changed: Bubo won't connect."
+          }
+        }
+      }
+    },
+    "La chiave di %@ è cambiata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key of %@ changed"
+          }
+        }
+      }
+    },
+    "Macchine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Machines"
+          }
+        }
+      }
+    },
+    "Mi fido, connetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trust and Connect"
+          }
+        }
+      }
+    },
+    "Nessun host in ~/.ssh/config. Aggiungine uno, poi torna qui." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hosts in ~/.ssh/config. Add one, then come back here."
+          }
+        }
+      }
+    },
+    "Non trovata in known_hosts" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not found in known_hosts"
+          }
+        }
+      }
+    },
+    "Per verificarla, sull'host" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To check it, on the host"
+          }
+        }
+      }
+    },
+    "Poi torna qui e verifica di nuovo: Bubo chiederà di confermare la chiave nuova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Then come back and check again: Bubo will ask you to confirm the new key."
+          }
+        }
+      }
+    },
+    "Prima connessione a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First connection to %@"
+          }
+        }
+      }
+    },
+    "Può essere un attacco. Bubo non si connette finché la chiave vecchia resta in known_hosts." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This could be an attack. Bubo won't connect while the old key stays in known_hosts."
+          }
+        }
+      }
+    },
+    "Ricevuta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Received"
+          }
+        }
+      }
+    },
+    "Rimuovere %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@?"
+          }
+        }
+      }
+    },
+    "Rimuovi Macchina" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Machine"
+          }
+        }
+      }
+    },
+    "Rimuovi Macchina…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Machine…"
+          }
+        }
+      }
+    },
+    "Se hai cambiato tu la chiave, nel Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If you changed the key yourself, in Terminal"
+          }
+        }
+      }
+    },
+    "Se l'impronta coincide, la chiave va in ~/.ssh/known_hosts, come con ssh dal Terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If the fingerprint matches, the key goes in ~/.ssh/known_hosts, as with ssh in Terminal."
+          }
+        }
+      }
+    },
+    "Va solo a ssh: Bubo non la conserva." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It goes only to ssh: Bubo doesn't keep it."
+          }
+        }
+      }
+    },
+    "Verifica di nuovo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Again"
+          }
+        }
+      }
+    },
+    "nuova" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "new"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
