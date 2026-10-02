@@ -10,6 +10,8 @@ nonisolated struct Route: Equatable, Sendable {
         case unclassified
         /// The user picked the model for this turn.
         case chosenByUser
+        /// "Rifai più forte": one step up the Scala, for this turn only.
+        case stronger
     }
 
     /// The family the router asked for; `nil` when `claude` picks.
@@ -23,5 +25,17 @@ nonisolated struct Route: Equatable, Sendable {
     /// The route of a turn whose model the user picked, such as `sonnet` after a limit: no effort, `claude`'s default.
     static func chosen(_ model: String) -> Route {
         Route(family: ModelFamily(rawValue: model), model: model, effort: nil, reason: .chosenByUser)
+    }
+
+    /// The route of `step`, one step up the Scala after "Rifai più forte".
+    static func stronger(_ step: Scala.Step) -> Route {
+        Route(family: step.family, model: step.family.alias, effort: step.effort, reason: .stronger)
+    }
+
+    /// The step of the Scala this route ran on, as `answeringModel` says when known: the model that answered and its
+    /// effective effort; `nil` when not even the family is known.
+    func step(answeredBy answeringModel: AnsweringModel?) -> Scala.Step? {
+        guard let answeringModel else { return family.map { Scala.Step(family: $0, effort: effort) } }
+        return ModelFamily(model: answeringModel.model).map { Scala.Step(family: $0, effort: answeringModel.effort) }
     }
 }
