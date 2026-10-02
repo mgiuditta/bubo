@@ -27,6 +27,7 @@ struct ShortcutStep: View {
         } else {
             Color.clear
                 .frame(width: 0, height: 0)
+                .accessibilityHidden(true)
                 .task {
                     let shortcuts = [hotKeys.shortcut] + [hotKeys.dictationShortcut].compactMap(\.self)
                     isShown = !ShortcutConflicts.report(for: shortcuts).isEmpty

@@ -61,4 +61,21 @@ struct ShortcutConflictsTests {
         #expect(center.shortcut == withShift)
         #expect(center.dictationShortcut == nil)
     }
+
+    @MainActor @Test func aRefusedChangeKeepsTheOldShortcutAndSaysWhy() throws {
+        let defaults = try #require(UserDefaults(suiteName: "ShortcutConflictsTests-\(UUID())"))
+        let shortcut = KeyShortcut(keyCode: UInt32(kVK_F18), carbonModifiers: UInt32(controlKey | optionKey), keyLabel: "F18")
+        let taken = KeyShortcut(keyCode: UInt32(kVK_F17), carbonModifiers: UInt32(controlKey | optionKey), keyLabel: "F17")
+        defaults.set(shortcut.rawValue, forKey: HotKeyCenter.defaultsKey)
+        let other = GlobalHotKey { }
+        try other.register(taken)
+        let center = HotKeyCenter(defaults: defaults) { _ in }
+
+        center.change(to: taken)
+
+        #expect(center.shortcut == shortcut)
+        #expect(center.dictationShortcut == shortcut.dictationVariant)
+        #expect(center.problem != nil)
+        other.unregister()
+    }
 }

@@ -41,7 +41,10 @@ final class HotKeyCenter {
             shortcut = newShortcut
             defaults.set(newShortcut.rawValue, forKey: Self.defaultsKey)
         } else {
+            // Restoring the old shortcut must not hide why the new one failed.
+            let failure = problem
             apply(previous)
+            problem = failure
         }
     }
 
