@@ -18,6 +18,8 @@ import os
     private(set) var pending: Set<PluginID> = []
     /// The MCP servers `claude` loads in the Progetto followed, as last seen; empty without Sessioni.
     private(set) var servers: [ClaudeConfiguration.MCPServer] = []
+    /// The installed plugins with a newer version in their Marketplace, by plugin.
+    private(set) var updates: [PluginID: PluginUpdate] = [:]
 
     @ObservationIgnored let folders: PluginFolders
     @ObservationIgnored private let listing: PluginListing
@@ -38,14 +40,23 @@ import os
     @ObservationIgnored private var list: PluginList?
     /// The readings started, so an older one never replaces a newer one.
     @ObservationIgnored private var readings = 0
+    /// What Bubo remembers about updates: the versions left as they were, the code on the Mac seen.
+    @ObservationIgnored let updateStore: PluginUpdateStore
+    /// The daily check, run when the window opens and the last one is more than a day old; `nil` for none.
+    @ObservationIgnored private let updateChecker: PluginUpdateChecker?
+    /// The plugins whose code on the Mac the user approved while their command runs: remembered, never Da sistemare.
+    @ObservationIgnored private var approved: Set<PluginID> = []
 
     /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` and MCP
     /// servers of the `configuration` of `claude`, and changed by `cli`; `login` logs in to an MCP server, after
     /// which `reconnect` tells the turns in progress.
     init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live(),
          login: MCPLogin = .live(), reconnect: @escaping @MainActor (String) -> Void = { _ in },
-         configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)? = nil) {
+         configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)? = nil,
+         updateStore: PluginUpdateStore = .inMemory(), updateChecker: PluginUpdateChecker? = nil) {
         self.folders = folders
+        self.updateStore = updateStore
+        self.updateChecker = updateChecker
         self.listing = listing
         self.cli = cli
         self.login = login
@@ -73,6 +84,7 @@ import os
         list = nil
         errors = []
         servers = []
+        updates = [:]
         isListingUnavailable = false
         let state = Signposts.beginInterval(.pluginsFirstDraw)
         await reload(project)
@@ -82,6 +94,7 @@ import os
             group.addTask { await self.refreshConfiguration(project) }
             group.addTask { await self.loadOfficialCache() }
             group.addTask { await self.watch(project) }
+            group.addTask { await self.checkUpdatesIfDue(project) }
         }
     }
 
@@ -105,7 +118,9 @@ import os
             snapshot.plugins.filter { withProblems.contains($0.id) }
         case let .marketplace(name):
             snapshot.plugins.filter { $0.id.marketplace == name }
-        case .updates, .mcpServers:
+        case .updates:
+            snapshot.plugins.filter { updates[$0.id] != nil }
+        case .mcpServers:
             []
         }
         return entries.isEmpty ? [] : [PluginSection(marketplace: nil, entries: entries)]
@@ -155,6 +170,49 @@ import os
         try await cli.options(of: plugin, project: project)
     }
 
+    // MARK: Updates
+
+    /// Updates the plugin of `update`, accepting the command the CLI showed when `accepting` is not `nil`.
+    ///
+    /// The code on the Mac of the new version counts as seen: the user approved it, in one click when it brought
+    /// none, or in the Aggiorna sheet. When `claude` leaves the installed version as it was, the author did not change
+    /// it: the update is not offered again until the Marketplace offers another version.
+    ///
+    /// - Throws: `PluginCLIError`, or `CancellationError`.
+    func apply(_ update: PluginUpdate, accepting shown: PluginShownCommand? = nil) async throws -> PluginUpdateOutcome {
+        let plugin = update.plugin
+        let before = installedVersion(of: plugin, in: update.scope)
+        approved.insert(plugin)
+        defer { approved.remove(plugin) }
+        let result = try await perform(.update(plugin, scope: update.scope, accepting: shown))
+        if result.needsCommandConfirmation, let shown = result.shownCommand { return .needsConfirmation(shown) }
+        guard result.succeeded else { return .failed(result) }
+        await reload(project)
+        let after = installedVersion(of: plugin, in: update.scope)
+        let isUnchanged = after == before || result.message.contains("already at the latest version")
+        updateStore.change { $0.dismissed[plugin.description] = isUnchanged ? update.version : nil }
+        await reload(project)
+        return isUnchanged ? .unchanged : .updated
+    }
+
+    /// Remembers the code on the Mac `plugin` has now as seen, as Ho visto asks: it leaves Da sistemare.
+    func acknowledgeNewCode(of plugin: PluginID) async {
+        approved.insert(plugin)
+        defer { approved.remove(plugin) }
+        await reload(project)
+    }
+
+    /// The version and commit of `plugin` installed in `scope`, as the files say.
+    private func installedVersion(of plugin: PluginID, in scope: PluginScope) -> [String?] {
+        let installation = snapshot?.plugins.first { $0.id == plugin }?.installations.first { $0.scope == scope }
+        return [installation?.version, installation?.gitCommitSha]
+    }
+
+    private func checkUpdatesIfDue(_ project: URL?) async {
+        guard let updateChecker, await updateChecker.checkIfDue() else { return }
+        await reload(project)
+    }
+
     // MARK: MCP servers
 
     /// Reads again the status of the MCP servers, as "Controlla" asks.
@@ -183,9 +241,16 @@ import os
         var next = await PluginSnapshot.read(from: folders, project: project)
         if let list { next = next.merging(list, project: project) }
         if !errors.isEmpty { next = next.merging(errors) }
+        let review = await PluginUpdateChecker.review(next, state: updateStore.current, approving: approved)
+        if !review.newCode.isEmpty { next = next.adding(review.newCode) }
+        // What the files hold, also when a newer reading replaces this one: approvals must not get lost.
+        if !review.seen.isEmpty {
+            updateStore.change { $0.seenExecutables.merge(review.seen) { $1 } }
+        }
         let search = await PluginSearch.indexing(next.plugins)
         guard reading == readings, !Task.isCancelled else { return }
         self.search = search
+        updates = review.updates
         snapshot = next
     }
 

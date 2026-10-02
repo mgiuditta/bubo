@@ -10,6 +10,8 @@ nonisolated enum PluginRemedy: Sendable, Equatable {
     case disable(PluginID, scope: PluginScope)
     /// Nothing `claude plugin` can do from here, such as for a plugin the organization manages: the message to copy.
     case copyMessage(String)
+    /// Remembers the plugin's code on the Mac as seen: no `claude` command.
+    case acknowledge(PluginID)
 
     /// The action for `problem` of `entry`, knowing the plugins of `snapshot`.
     ///
@@ -19,6 +21,14 @@ nonisolated enum PluginRemedy: Sendable, Equatable {
         switch problem {
         case let .missingProjectPlugin(id, source):
             self = .installForProject(id, marketplaceSource: source)
+            return
+        case let .newExecutableCode(id, _):
+            // Turned off it runs nothing; Ho visto sits next to it in the box.
+            if let entry, entry.isEnabled, let scope = entry.switchScope {
+                self = .disable(id, scope: scope)
+            } else {
+                self = .acknowledge(id)
+            }
             return
         case let .loadFailed(id, type, message):
             if PluginProblem.dependencyTypes.contains(type ?? ""), let dependency = Self.dependency(in: message, of: id) {
@@ -41,7 +51,7 @@ nonisolated enum PluginRemedy: Sendable, Equatable {
         }
     }
 
-    /// The commands, in order; empty for ``copyMessage(_:)``.
+    /// The commands, in order; empty for ``copyMessage(_:)`` and ``acknowledge(_:)``.
     var commands: [PluginCommand] {
         switch self {
         case let .installForProject(id, source):
@@ -49,7 +59,7 @@ nonisolated enum PluginRemedy: Sendable, Equatable {
         case let .installDependency(id, scope): [.install(id, scope: scope)]
         case let .enableDependency(id, scope): [.enable(id, scope: scope)]
         case let .disable(id, scope): [.disable(id, scope: scope)]
-        case .copyMessage: []
+        case .copyMessage, .acknowledge: []
         }
     }
 

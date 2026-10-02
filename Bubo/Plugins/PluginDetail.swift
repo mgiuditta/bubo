@@ -23,6 +23,8 @@ struct PluginDetail: View {
     /// The required options with no value saved.
     @State private var missingOptions: [PluginOptions.Option] = []
     @State private var isConfiguring = false
+    /// What Aggiorna said when `claude` left the version as it was.
+    @State private var updateNotice: Text?
 
     /// What the inventory is read for: the entry, and whether the official cache has arrived.
     private struct InventoryKey: Equatable {
@@ -37,6 +39,19 @@ struct PluginDetail: View {
                 labels
                 if !problems.isEmpty { problemList }
                 if !missingOptions.isEmpty { missingOptionsBox }
+                if let update = catalog.updates[entry.id] {
+                    PluginUpdateBox(entry: entry, update: update, marketplace: marketplace, officialCache: officialCache,
+                                    catalog: catalog, notice: $updateNotice)
+                }
+                if let updateNotice {
+                    Label { updateNotice } icon: {
+                        Image(systemName: "info.circle")
+                            .accessibilityHidden(true)
+                    }
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
                 if !entry.summary.isEmpty {
                     Text(verbatim: entry.summary)
                         .font(Typography.body(size: 13))
@@ -136,6 +151,9 @@ struct PluginDetail: View {
                 }
                 if inventory?.runsOutsideSandbox == true {
                     OutsideSandboxLabel()
+                }
+                if catalog.updates[entry.id] != nil {
+                    Text("aggiornamento")
                 }
             } else if hasReadInventory {
                 PluginTrustLabel(trust: PluginInventory.trust(of: inventory))
