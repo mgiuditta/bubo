@@ -215,6 +215,15 @@ targets:
     platform: macOS
     sources:
       - path: BuboPerfTests
+        excludes:
+          - "*.entitlements"
+    # The runner is sandboxed: the homes of OnboardingPerfTests go in /tmp, where the `claude` Bubo starts can read
+    # them, not in the runner's container, which macOS hides from other apps.
+    entitlements:
+      path: BuboPerfTests/BuboPerfTests.entitlements
+      properties:
+        com.apple.security.temporary-exception.files.absolute-path.read-write:
+          - /private/tmp/
     dependencies:
       - target: Bubo
     settings:
