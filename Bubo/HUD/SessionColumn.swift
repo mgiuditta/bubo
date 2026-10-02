@@ -224,7 +224,7 @@ struct SessionRow: View {
     /// The servers of the Sessione's `.claude/launch.json`, for Avvia server.
     @State private var launchServers: [LaunchConfig] = []
 
-    private var isArchived: Bool { session.phase != .aperta }
+    private var isArchived: Bool { !session.isLive }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
@@ -321,7 +321,7 @@ struct SessionRow: View {
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
             }
-            Text(verbatim: [session.issue?.label, session.project.lastPathComponent,
+            Text(verbatim: [session.issue?.label, session.pullRequest?.label, session.project.lastPathComponent,
                             session.isOnCheckout ? String(localized: "sul checkout") : session.workspace?.branch,
                             String(localized: session.phase.title)]
                 .compactMap(\.self).joined(separator: " · "))

@@ -27,7 +27,7 @@ nonisolated enum ServerAttribution {
         /// The open Sessioni with a folder.
         static func of(_ sessions: [Session]) -> [Owner] {
             sessions.compactMap { session in
-                guard session.phase == .aperta, let folder = session.workspace?.folder else { return nil }
+                guard session.isLive, let folder = session.workspace?.folder else { return nil }
                 return Owner(id: session.id, folder: folder, ports: session.ports)
             }
         }

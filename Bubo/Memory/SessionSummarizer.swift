@@ -105,6 +105,32 @@ final class SessionSummarizer {
         throw Failure.noEngine
     }
 
+    /// The title and the description Apri PR proposes for the Sessione `id`, written by the first model that can from
+    /// its summary, made as ``summary(of:)`` makes it without writing the note, and from the perché of its blocchi;
+    /// without a model, its title, its summary if any and the perché. Filtered of secrets.
+    func pullRequestText(of id: UUID) async -> PullRequestText? {
+        guard let session = sessions.sessions.first(where: { $0.id == id }) else { return nil }
+        let summary = try? await self.summary(of: id)
+        let title = filter.redacting(session.title)
+        let reasons = session.edits.map { filter.redacting($0.why) }
+        let prompt = PullRequestText.prompt(title: title, summary: summary, reasons: reasons)
+        var online: Bool?
+        for engine in engines {
+            if engine.needsNetwork {
+                if online == nil { online = await isOnline() }
+                guard online == true else { continue }
+            }
+            do {
+                let answer = try await engine.shortText(for: prompt, following: PullRequestText.instructions,
+                                                        session: id)
+                if let text = PullRequestText(answer: filter.redacting(answer)) { return text }
+            } catch {
+                Logger.memory.error("Pull request text not written: \(String(describing: error), privacy: .private)")
+            }
+        }
+        return PullRequestText(title: title, summary: summary, reasons: reasons)
+    }
+
     /// Summarizes the Sessione `id` and writes its note; one summary at a time per Sessione, a request during it
     /// summarizes once more at the end.
     func summarize(_ id: UUID) async {

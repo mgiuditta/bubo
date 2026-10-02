@@ -289,7 +289,7 @@ final class SessionStore {
 
     /// Asks `claude` `prompt` in the open Sessione `id`, once the turn in progress, if any, is interrupted.
     private func restart(_ id: UUID, prompt: String) {
-        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta else { return }
+        guard let session = sessions.first(where: { $0.id == id }), session.isLive else { return }
         let interrupted = turnTasks[id]
         interrupted?.cancel()
         turnTasks[id] = Task {
@@ -308,7 +308,7 @@ final class SessionStore {
     /// The open Sessione that works on the checkout of `project`, if any.
     func checkoutSession(of project: URL) -> Session? {
         sessions.first { session in
-            session.isOnCheckout && session.phase == .aperta
+            session.isOnCheckout && session.isLive
                 && session.project.standardizedFileURL.path == project.standardizedFileURL.path
         }
     }
@@ -329,7 +329,7 @@ final class SessionStore {
     /// Riprova on a Sessione whose turn did not start, because its Sandbox could not or `claude` was too old: the same
     /// turn again, with the Sandbox as the Progetto has it now. Nothing for any other Sessione.
     func retry(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
+        guard let session = sessions.first(where: { $0.id == id }), session.isLive,
               session.activity == .errore, let prompt = session.unstartedPrompt
         else { return }
         update(id) { session in
@@ -407,7 +407,7 @@ final class SessionStore {
     /// The accepted blocchi among `current` stay approved; the other decisions go, since the agent changes
     /// those blocchi. Nothing while the Sessione works or is archived.
     func sendBack(_ feedback: String, to id: UUID, keepingAcceptedAmong current: [String]) {
-        guard let session = sessions.first(where: { $0.id == id }), !session.isRunning, session.phase == .aperta,
+        guard let session = sessions.first(where: { $0.id == id }), !session.isRunning, session.isLive,
               session.workspace != nil
         else { return }
         let current = Set(current)
@@ -487,6 +487,53 @@ final class SessionStore {
             self?.finishMerge(id)
         }
         merges[id] = (merge, finishing)
+    }
+
+    /// Where Apri PR would open the pull request of the Sessione `id`, and how many of its blocchi are rejected and
+    /// were not sent back to the agent; asks GitHub only the default branch, and pushes nothing.
+    ///
+    /// - Throws: `PullRequestError.noBranch` for a Sessione without a branch of its own; `GitHubCLIError` when `gh`
+    ///   is missing, not logged in, or the Progetto has no remote on GitHub; `WorktreeError` when git fails.
+    func pullRequestTarget(of id: UUID, with cli: GitHubCLI) async throws
+        -> (target: PullRequestFlow.Target, rejectedCount: Int) {
+        guard let session = sessions.first(where: { $0.id == id }), let workspace = session.workspace
+        else { throw PullRequestError.noBranch }
+        let target = try await PullRequestFlow(cli: cli, worktrees: worktrees)
+            .target(of: workspace, in: session.project)
+        let hunks = try await worktrees.changes(in: workspace).flatMap(\.hunks)
+        let decisions = sessions.first { $0.id == id }?.decisions ?? [:]
+        return (target, hunks.count { if case .rejected = decisions[$0.id] { true } else { false } })
+    }
+
+    /// What `gh pr create --dry-run` prints for the pull request of the Sessione `id`: nothing is pushed.
+    ///
+    /// - Throws: `GitHubCLIError`.
+    func previewPullRequest(of id: UUID, _ text: PullRequestText, isDraft: Bool, to target: PullRequestFlow.Target,
+                            with cli: GitHubCLI) async throws -> String {
+        let issue = sessions.first { $0.id == id }?.issue
+        return try await PullRequestFlow(cli: cli, worktrees: worktrees)
+            .preview(text, closing: issue, isDraft: isDraft, to: target)
+    }
+
+    /// Crea PR: the work of the Sessione `id` in one commit on its branch, the branch pushed, the pull request opened
+    /// into `target`, with the line that closes its issue; then the Sessione is In revisione. Only from Aperta, with
+    /// the agent still.
+    ///
+    /// - Throws: `PullRequestError`, `GitHubCLIError` or `WorktreeError`; the Sessione stays Aperta.
+    func openPullRequest(of id: UUID, _ text: PullRequestText, isDraft: Bool, to target: PullRequestFlow.Target,
+                         with cli: GitHubCLI) async throws {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning,
+              session.resolution == nil, let workspace = session.workspace, workspace.branch != nil,
+              merging.insert(id).inserted
+        else { return }
+        defer { merging.remove(id) }
+        let link = try await PullRequestFlow(cli: cli, worktrees: worktrees)
+            .open(text, closing: session.issue, isDraft: isDraft, from: workspace, to: target)
+        Logger.sessions.notice("Pull request opened: \(link.number, privacy: .public)")
+        update(id) { session in
+            session.phase = .inRevisione
+            session.pullRequest = link
+        }
     }
 
     /// Brings the branch of the Progetto's checkout into the Sessione `id`, in its worktree, and asks the agent to
@@ -601,7 +648,7 @@ final class SessionStore {
 
     /// Archives a Sessione: its worktree goes in the background, its branch stays, its ports are free again.
     func archive(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta, !session.isRunning
+        guard let session = sessions.first(where: { $0.id == id }), session.isLive, !session.isRunning
         else { return }
         update(id) { session in
             session.phase = .archiviata
@@ -661,7 +708,7 @@ final class SessionStore {
 
     /// Why an open Sessione cannot work any more: its Progetto or its worktree is gone.
     private static func missingFolder(of session: Session) -> String? {
-        guard session.phase == .aperta else { return nil }
+        guard session.isLive else { return nil }
         if !FileManager.default.fileExists(atPath: session.project.path) {
             return String(localized: "Il Progetto non è più in \(session.project.path). Riporta lì la cartella o cancella la Sessione.")
         }
@@ -983,7 +1030,7 @@ extension OrbState {
     /// Lavora while one works; Riposo otherwise.
     // ponytail: the HUD has no Sessione in front of the user yet; then the Stato follows that one alone.
     init(following sessions: [Session]) {
-        let open = sessions.filter { $0.phase == .aperta }
+        let open = sessions.filter { $0.isLive }
         if open.contains(where: { $0.activity == .attende }) {
             self = .listening
         } else if open.contains(where: { $0.activity == .lavora }) {

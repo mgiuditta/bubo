@@ -5,7 +5,7 @@ struct SessionStrip: View {
     let store: SessionStore
 
     private var sessions: [Session] {
-        Session.inActivityOrder(store.sessions.reversed().filter { $0.phase == .aperta })
+        Session.inActivityOrder(store.sessions.reversed().filter { $0.isLive })
     }
 
     var body: some View {

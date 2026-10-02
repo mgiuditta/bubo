@@ -19,15 +19,16 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
     /// Where a Sessione is in its life.
     ///
-    /// Fusa lasts as long as the merge can be undone; then the Sessione is Archiviata.
-    // ponytail: In revisione comes when the revisione has a Fase of its own.
+    /// In revisione once Apri PR opened its pull request; Fusa lasts as long as the merge can be undone, then the
+    /// Sessione is Archiviata.
     enum Phase: String, Codable, Sendable {
-        case aperta, fusa, archiviata
+        case aperta, inRevisione, fusa, archiviata
 
         /// The Fase's name in the HUD.
         var title: LocalizedStringResource {
             switch self {
             case .aperta: LocalizedStringResource("fase.aperta", defaultValue: "Aperta")
+            case .inRevisione: LocalizedStringResource("fase.inRevisione", defaultValue: "In revisione")
             case .fusa: LocalizedStringResource("fase.fusa", defaultValue: "Fusa")
             case .archiviata: LocalizedStringResource("fase.archiviata", defaultValue: "Archiviata")
             }
@@ -84,12 +85,17 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Whether the Riassunto di Sessione waits to be written: no model could write it, or the Secondo cervello could
     /// not be reached.
     var isSummaryPending = false
+    /// The pull request Apri PR opened on GitHub; `nil` until then.
+    var pullRequest: PullRequestLink?
 
     /// The lines Ricordato and Richiamato a Sessione keeps.
     static let memoryLineLimit = 3
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
+
+    /// Whether the Sessione still has its copy and can work: Aperta, or In revisione with its pull request open.
+    var isLive: Bool { phase == .aperta || phase == .inRevisione }
 
     /// Whether the Modalità autonoma is possible: only in the Sessione's own worktree, never on the checkout nor
     /// outside git.
@@ -101,7 +107,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Where the Sessione's terminal starts: its worktree, or the Progetto's folder outside git. `nil` on the
     /// checkout, once the Sessione is no longer Aperta, and while its copy is being prepared.
     var terminalFolder: URL? {
-        guard phase == .aperta, !isOnCheckout else { return nil }
+        guard isLive, !isOnCheckout else { return nil }
         return workspace?.folder
     }
 
@@ -144,7 +150,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
-    /// Richiamato and its Riassunto were kept.
+    /// Richiamato, its Riassunto and its pull request were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -173,5 +179,6 @@ nonisolated extension Session {
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
+        pullRequest = try container.decodeIfPresent(PullRequestLink.self, forKey: .pullRequest)
     }
 }
