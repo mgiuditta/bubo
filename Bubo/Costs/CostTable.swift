@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// The rows of the period: one per group, unit and origin, with Spesa and Valore a listino in columns of their own.
+/// The rows of the period: one per group, unit and origin, with Spesa, Valore a listino and the command line's
+/// estimate in columns of their own.
 struct CostTable: View {
     let history: CostHistory
     let grouping: CostHistory.Grouping
@@ -18,6 +19,8 @@ struct CostTable: View {
             TableColumn("Spesa") { row in figure(of: row, in: .spesa) }
                 .width(min: 80, ideal: 100)
             TableColumn("Valore a listino") { row in figure(of: row, in: .valoreListino) }
+                .width(min: 80, ideal: 110)
+            TableColumn("Riga di comando") { row in figure(of: row, in: .rigaDiComando) }
                 .width(min: 80, ideal: 110)
             TableColumn("Token") { row in
                 Text(row.tokens.total, format: .number)

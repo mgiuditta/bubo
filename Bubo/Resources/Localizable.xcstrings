@@ -3921,12 +3921,12 @@
         }
       }
     },
-    "Contano i turni passati da Bubo. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori." : {
+    "Contano i turni passati da Bubo e la Cronologia CLI di Claude. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only turns that went through Bubo count. Other command-line tools, such as Codex and Gemini CLI, are left out."
+            "value" : "Turns that went through Bubo count, and so does Claude's CLI history. Other command-line tools, such as Codex and Gemini CLI, are left out."
           }
         }
       }
@@ -6428,12 +6428,42 @@
         }
       }
     },
+    "La copia della Cronologia CLI è spenta: qui c'è solo ciò che la riga di comando conserva ancora, di solito gli ultimi 30 giorni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The CLI history copy is off: only what the command line still keeps is shown here, usually the last 30 days."
+          }
+        }
+      }
+    },
+    "La riga di comando è una stima a listino: il transcript non dice se il turno era in abbonamento o con la chiave API. Resta fuori dai Budget." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The command line is a list-price estimate: the transcript doesn't say whether a turn used the subscription or the API key. It stays out of Budgets."
+          }
+        }
+      }
+    },
     "Leggetevi il codice a voce o in chiamata. Deve essere uguale sul Mac di %@." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Read the code to each other aloud or on a call. It must be the same on %@’s Mac."
+          }
+        }
+      }
+    },
+    "Leggo la Cronologia CLI…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the CLI history…"
           }
         }
       }
@@ -6544,6 +6574,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This Mac has no Secure Enclave: it can’t send or receive Deliveries."
+          }
+        }
+      }
+    },
+    "Riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line"
+          }
+        }
+      }
+    },
+    "Riga di comando %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line %@"
+          }
+        }
+      }
+    },
+    "Riga di comando, a listino" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line, list price"
           }
         }
       }
@@ -9816,6 +9876,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When Claude should use it"
+          }
+        }
+      }
+    },
+    "Questa Sessione ha righe che Bubo non sa ancora ripulire." : {
+      "comment" : "Error of the Consegna: the transcript has a line type the cleaner does not know yet (another version of claude).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Session has lines Bubo doesn't know how to clean yet."
           }
         }
       }
@@ -14278,6 +14349,121 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Always use for «%@»"
+          }
+        }
+      }
+    },
+    "%@ → %@, %@ non ha più il modello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, %3$@ no longer has the model"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, %3$@ non ha più il modello"
+          }
+        }
+      }
+    },
+    "%@ → %@, %@ non risponde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, %3$@ isn't responding"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, %3$@ non risponde"
+          }
+        }
+      }
+    },
+    "%@ → %@, senza rete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, offline"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, senza rete"
+          }
+        }
+      }
+    },
+    "Hai %@ con %@: usarlo per %@ e %@?" : {
+      "comment" : "Proposal of the Modello locale: the server (Ollama, LM Studio), the model id, then the two Tipi di richiesta.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have %1$@ with %2$@: use it for %3$@ and %4$@?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hai %1$@ con %2$@: usarlo per %3$@ e %4$@?"
+          }
+        }
+      }
+    },
+    "Modello locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local model"
+          }
+        }
+      }
+    },
+    "No, grazie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, thanks"
+          }
+        }
+      }
+    },
+    "Risponde sul Mac, gratis, anche senza rete. Lo cambi in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It answers on your Mac, for free, even offline. You can change it in Settings › Models."
+          }
+        }
+      }
+    },
+    "Senza rete le Domande vanno al Modello locale invece che a Claude; se non risponde, ad Apple FM. In nessun altro caso Bubo lo sceglie da solo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're offline, Questions go to the local model instead of Claude; if it doesn't respond, to Apple FM. Bubo never picks it on its own otherwise."
+          }
+        }
+      }
+    },
+    "Usalo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use It"
           }
         }
       }

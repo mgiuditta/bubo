@@ -11,6 +11,12 @@ nonisolated struct ModelRouter {
         var choices: [RequestType: TypePreference] = [:]
         /// The endpoints with a model that may receive a Domanda: on the Mac, or in a cloud with the user's consent.
         var endpoints: [OpenAICompatibleEndpoint] = []
+        /// The Modello locale the user set, which answers without a network; `nil` without one.
+        var localModel: OpenAICompatibleEndpoint?
+        /// The servers on the Mac, by endpoint id, found unable to answer just now; one not here is taken on trust.
+        var localOutages: [String: LocalModelDetector.Availability] = [:]
+        /// Whether the Mac has no network: the Domande go to the Modello locale, or else to Apple Foundation Models.
+        var isOffline = false
 
         /// No preference: every Tipo takes its default.
         static let none = Self()
@@ -31,6 +37,11 @@ nonisolated struct ModelRouter {
                in catalog: ModelCatalog?) -> Route {
         guard let classification else { return Route(family: nil, model: nil, effort: nil, reason: .unclassified) }
         let type = classification.type
+        if preferences.isOffline,
+           let route = Self.offlineRoute(for: type, fit: fit, hasAttachments: hasAttachments,
+                                         readsOnDevice: readsOnDevice, preferences: preferences) {
+            return route
+        }
         guard let choice = preferences.choices[type] else {
             return Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
                                      readsOnDevice: readsOnDevice, in: catalog)
@@ -78,8 +89,30 @@ nonisolated struct ModelRouter {
             return .notInCatalog(step.family)
         case let .endpoint(id):
             if hasAttachments { return .attachments }
-            return preferences.endpoints.contains { $0.id == id } ? nil : .endpointUnavailable
+            guard let endpoint = preferences.endpoints.first(where: { $0.id == id }) else { return .endpointUnavailable }
+            switch preferences.localOutages[id] {
+            case .serverOff?: return .localServerOff(endpoint.name)
+            case .modelMissing?: return .localModelMissing(endpoint.name)
+            case .available?, nil: return nil
+            }
         }
+    }
+
+    /// Who answers `type` without a network: the Modello locale when it answers and nothing leaves the Mac with it,
+    /// or else Apple Foundation Models when the Domanda fits; `nil` when neither can, and the usual route goes on.
+    private static func offlineRoute(for type: RequestType, fit: OnDeviceFit, hasAttachments: Bool,
+                                     readsOnDevice: Bool, preferences: Preferences) -> Route? {
+        if let local = preferences.localModel, !hasAttachments,
+           preferences.localOutages[local.id] ?? .available == .available {
+            return Route(family: nil, model: nil, effort: nil, reason: .offline(type), destination: .endpoint(local))
+        }
+        let fitsOnDevice = switch fit {
+        case .fits: true
+        case .notMeasurable: !hasAttachments
+        case .tooLong, .unavailable: false
+        }
+        guard readsOnDevice, fitsOnDevice else { return nil }
+        return Route(family: nil, model: nil, effort: nil, reason: .offline(type), destination: .onDevice)
     }
 
     /// The route of `choice`, the user's preference for `type`, once `pause(of:)` found nothing in its way.
