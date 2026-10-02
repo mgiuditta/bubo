@@ -30,7 +30,7 @@ private struct DottedRing: View {
             let center = CGPoint(x: size.width / 2, y: size.height / 2)
             canvas.stroke(
                 Path(ellipseIn: CGRect(x: center.x - radius, y: center.y - radius, width: radius * 2, height: radius * 2)),
-                with: .color(Palette.accentStrong.opacity(0.16)),
+                with: .color(Palette.lineStrong),
                 style: StrokeStyle(lineWidth: 0.8, dash: [1, 5])
             )
         }
@@ -52,7 +52,7 @@ private struct TickedRing: View {
                 ticks.addLine(to: CGPoint(x: center.x + direction.x * (radius - length),
                                           y: center.y + direction.y * (radius - length)))
             }
-            canvas.stroke(ticks, with: .color(Palette.accentStrong.opacity(0.22)), lineWidth: 0.8)
+            canvas.stroke(ticks, with: .color(Palette.lineStrong), lineWidth: 0.8)
         }
     }
 }

@@ -12,7 +12,7 @@ struct ShortcutSettingsView: View {
             if let problem = hotKeys.problem {
                 Text(problem)
                     .font(.callout)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Palette.danger)
             }
         }
         .formStyle(.grouped)

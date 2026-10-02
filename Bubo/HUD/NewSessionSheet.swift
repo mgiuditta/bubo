@@ -61,6 +61,7 @@ struct NewSessionSheet: View {
                          ?? String(localized: "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto."))
                         .foregroundStyle(checkoutTaken == nil ? Color.secondary : Palette.danger)
                 }
+                .tint(Palette.switchTrack)
                 if !isOnCheckout {
                     TextField("Branch", text: $branch)
                         .font(.body.monospaced())

@@ -20,7 +20,7 @@ struct SandboxBlockRow: View {
                     .fixedSize(horizontal: false, vertical: true)
             } icon: {
                 Image(systemName: "lock.shield")
-                    .foregroundStyle(Palette.attention)
+                    .foregroundStyle(Palette.textSecondary)
                     .accessibilityHidden(true)
             }
             if block.allowance != nil {

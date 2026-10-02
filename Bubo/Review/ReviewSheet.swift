@@ -198,7 +198,7 @@ struct ReviewSheet: View {
             }
             Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente")
                 .font(Typography.mono(size: 10.5))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
         }
     }
 

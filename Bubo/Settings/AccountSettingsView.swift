@@ -22,7 +22,7 @@ struct AccountSettingsView: View {
                 if let failure = account.failure {
                     Text(failure)
                         .font(.callout)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Palette.danger)
                 }
             } header: {
                 Text("Claude")
@@ -113,7 +113,7 @@ struct AccountSettingsView: View {
             if let failure = account.apiKeyFailure {
                 Text(failure)
                     .font(.callout)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(Palette.danger)
             }
         } header: {
             Text("API key")

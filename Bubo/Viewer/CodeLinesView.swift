@@ -44,7 +44,7 @@ private struct CodeLineRow: View {
         }
         .font(Typography.mono(size: 12))
         .padding(.horizontal, Spacing.small)
-        .background(isTarget ? Palette.accent.opacity(0.16) : .clear)
+        .background(isTarget ? Palette.accent.opacity(0.08) : .clear)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("Riga \(number): \(line.text)"))
         .accessibilityAddTraits(isTarget ? .isSelected : [])

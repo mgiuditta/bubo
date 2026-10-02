@@ -14,6 +14,8 @@ final class TerminalWindow {
                           backing: .buffered, defer: true)
         window.contentViewController = NSHostingController(rootView: TerminalPanel(store: store, isInWindow: true))
         window.titlebarAppearsTransparent = true
+        // Dark like the HUD it comes from, whatever the system appearance; the terminal's own colors are explicit.
+        window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
         if !window.setFrameUsingName("Terminale") { window.center() }
         window.setFrameAutosaveName("Terminale")

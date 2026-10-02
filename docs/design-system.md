@@ -71,8 +71,16 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 - Il contenitore si muove poco e in fretta (150–250 ms); l'Orb è l'unica cosa che respira.
 - `prefers-reduced-motion` / Riduci movimento: anelli fermi, Morph in dissolvenza.
 
+## Nel codice
+
+- I token sono in `Bubo/Design/Palette.swift`; `PaletteContrastTests` controlla il contrasto AA di ogni testo su `ink`, su `surface` e sul foglio di sistema (`#212527`).
+- **Solo scuro**: l'HUD forza lo schema scuro (fogli compresi); HUD, Agenti e Impostazioni danno ai controlli `tint(Palette.accent)`, quindi pulsante predefinito, pieno e segmentati sono color luna con testo in `ink`. Gli interruttori e le caselle hanno `tint(Palette.switchTrack)` (= `textSecondary`): su una traccia color luna il pomello bianco di sistema sparirebbe. Galassia, Visore, Cronologia, Palette ⌘K e Terminale staccato hanno `darkAqua`.
+- **Anteprima**: la pagina web è dell'utente, non di Bubo. Incorporata nell'HUD o staccata, riceve lo schema del sistema (`prefers-color-scheme`), non quello scuro forzato dell'HUD: lo legge da `AppleInterfaceStyle` e da `AppleInterfaceThemeChangedNotification`, non da `NSApp`, che lo schema forzato può cambiare.
+- L'Orb dell'HUD e il radiale del fondo prendono la Tinta del fornitore attivo; il segno accanto a BUBO è color luna (`markLight`, `markDark`).
+- Visore: parole chiave in grassetto, commenti in corsivo, stringhe e commenti in `textSecondary`; niente `success`, che è delle aggiunte.
+- `reference/bubo.html` è superato nei colori (lo dice in testa): la struttura resta di riferimento.
+
 ## Da fare
 
-- Aggiornare `Bubo/Design/Palette.swift` e i punti che usano `accent` come tinta (HUDBackground, HUDHeader, HUDRings, OrbPlaceholder).
-- `reference/bubo.html` è ancora nella palette vecchia: la struttura resta di riferimento, i colori no.
+- Restano nell'accento di sistema, perché `tint` non li cambia: la selezione delle liste (i file della Galassia), gli anelli di focus, la scheda scelta nella barra delle Impostazioni e i link. Servirebbe una selezione disegnata da Bubo.
 - Marchio definitivo e logotipo (ora c'è la proposta provvisoria sopra).

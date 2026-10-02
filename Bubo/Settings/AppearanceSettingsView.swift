@@ -18,6 +18,7 @@ struct AppearanceSettingsView: View {
                 .foregroundStyle(.secondary)
             // The system's setting wins: the switch shows it on and cannot turn it off.
             Toggle("Riduci movimento", isOn: systemReducesMotion ? .constant(true) : $reducesMotion)
+                .tint(Palette.switchTrack)
                 .disabled(systemReducesMotion)
             Group {
                 if systemReducesMotion {

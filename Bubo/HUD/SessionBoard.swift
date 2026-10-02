@@ -173,7 +173,7 @@ struct SessionBoard: View {
             Spacer()
             Text(count, format: .number)
                 .font(Typography.mono(size: 11))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
         }
         .padding(.horizontal, Spacing.xxSmall)
         .accessibilityElement(children: .combine)
@@ -214,7 +214,7 @@ struct SessionBoard: View {
         return VStack(alignment: .leading, spacing: Spacing.xxSmall) {
             (draft.issue.map { Text(verbatim: "\($0.source.title) \($0.label)") } ?? Text("Bozza"))
                 .font(Typography.mono(size: 10))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
             Text(verbatim: draft.title)
                 .font(Typography.body(size: 13, weight: .semibold))
                 .lineLimit(2)
