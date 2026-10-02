@@ -14,6 +14,11 @@ final class GalaxyStore {
     private var windows: [URL: GalaxyWindow] = [:]
     /// What the agents read and wrote since launch, for the windows open now and those opened later.
     private(set) var activity = GalaxyActivity()
+    /// Called with the Sessione the Orb's Stato should follow: the filtered one of the Galassia in focus, `nil` when
+    /// no Galassia is in focus or it shows every Sessione.
+    var focusOrb: (UUID?) -> Void = { _ in }
+    /// The Progetto of the Galassia window in focus.
+    private(set) var focusedProject: URL?
 
     /// Creates the store, offering `projects`, showing the comets of `sessions`, opening files in the visore
     /// `viewer` gives and reading diffs from the store `sessionStore` gives.
@@ -43,18 +48,52 @@ final class GalaxyStore {
 
     /// Shows the Galassia of `project`, in its window if it has one, else in a new one.
     func show(_ project: URL) {
+        show(project, following: nil)
+    }
+
+    /// Shows the Galassia of `session`'s Progetto filtered on it, with the camera following its comet: "Mostra nella
+    /// Galassia".
+    func show(_ session: Session) {
+        show(session.project, following: session.id)
+    }
+
+    /// Shows the Galassia of `project`, in its window if it has one, else in a new one; filtered on the Sessione `id`
+    /// and following its comet, when there is one.
+    private func show(_ project: URL, following id: UUID?) {
         let project = project.standardizedFileURL
-        if let window = windows[project] {
-            window.show()
-            return
-        }
+        let window = windows[project] ?? makeWindow(for: project)
+        if let id { window.model.follow(id) }
+        window.show()
+    }
+
+    private func makeWindow(for project: URL) -> GalaxyWindow {
         let model = GalaxyModel(project: project)
         model.update(activity: activity)
-        let window = GalaxyWindow(model: model, store: self) { [weak self] in
+        let window = GalaxyWindow(model: model, store: self) { [weak self] isKey in
+            self?.focusChanged(to: isKey, in: project)
+        } onClose: { [weak self] in
+            self?.focusChanged(to: false, in: project)
             self?.windows[project] = nil
         }
         windows[project] = window
-        window.show()
+        return window
+    }
+
+    /// Records whether the window of `project` is in focus, and gives the Orb the Sessione it should follow.
+    func focusChanged(to isKey: Bool, in project: URL) {
+        if isKey {
+            focusedProject = project
+            focusOrb(windows[project]?.model.filter)
+        } else if focusedProject == project {
+            focusedProject = nil
+            focusOrb(nil)
+        }
+    }
+
+    /// Gives the Orb the Sessione `model` filters on, when its window is in focus.
+    func filterChanged(in model: GalaxyModel) {
+        guard focusedProject == model.project else { return }
+        focusOrb(model.filter)
     }
 
     /// Asks for a folder and shows its Galassia.

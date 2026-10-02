@@ -6,7 +6,7 @@ final class GalaxyWindow {
     /// The Galassia shown.
     let model: GalaxyModel
     private let window: NSWindow
-    private var closing: (any NSObjectProtocol)?
+    private var observers: [any NSObjectProtocol] = []
 
     /// The size of the window the first time it opens.
     nonisolated static let defaultSize = CGSize(width: 1100, height: 720)
@@ -15,8 +15,10 @@ final class GalaxyWindow {
     /// The name the window's frame is saved under, so it opens where it was left.
     private static let frameName = "Galassia"
 
-    /// Creates the window of `model`, calling `onClose` when it closes.
-    init(model: GalaxyModel, store: GalaxyStore, onClose: @escaping @MainActor () -> Void) {
+    /// Creates the window of `model`, calling `onFocus` when it comes into focus or leaves it, and `onClose` when it
+    /// closes.
+    init(model: GalaxyModel, store: GalaxyStore, onFocus: @escaping @MainActor (_ isKey: Bool) -> Void,
+         onClose: @escaping @MainActor () -> Void) {
         self.model = model
         window = NSWindow(contentRect: NSRect(origin: .zero, size: Self.defaultSize),
                           styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
@@ -41,14 +43,22 @@ final class GalaxyWindow {
             window.setContentSize(Self.defaultSize)
             window.center()
         }
-        closing = NotificationCenter.default.addObserver(forName: NSWindow.willCloseNotification, object: window,
-                                                         queue: .main) { _ in
-            MainActor.assumeIsolated { onClose() }
-        }
+        let center = NotificationCenter.default
+        observers = [
+            center.addObserver(forName: NSWindow.willCloseNotification, object: window, queue: .main) { _ in
+                MainActor.assumeIsolated { onClose() }
+            },
+            center.addObserver(forName: NSWindow.didBecomeKeyNotification, object: window, queue: .main) { _ in
+                MainActor.assumeIsolated { onFocus(true) }
+            },
+            center.addObserver(forName: NSWindow.didResignKeyNotification, object: window, queue: .main) { _ in
+                MainActor.assumeIsolated { onFocus(false) }
+            },
+        ]
     }
 
     isolated deinit {
-        if let closing { NotificationCenter.default.removeObserver(closing) }
+        for observer in observers { NotificationCenter.default.removeObserver(observer) }
     }
 
     /// Brings the window forward.

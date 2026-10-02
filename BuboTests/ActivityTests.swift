@@ -112,6 +112,13 @@ struct ActivityTests {
         #expect(OrbState(following: sessions) == state)
     }
 
+    @Test func withAFocusTheOrbFollowsThatSessioneAlone() {
+        let waiting = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .attende)
+        let working = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .lavora)
+        #expect(OrbState(following: [waiting, working], focus: working.id) == .working)
+        #expect(OrbState(following: [waiting, working], focus: UUID()) == .listening)
+    }
+
     @Test func anArchivedSessioneDoesNotMoveTheOrb() {
         var archived = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .attende)
         archived.phase = .archiviata
