@@ -5,7 +5,8 @@ import os
 /// The Plugin window's state, owned by the window, so nothing runs while it is closed (spec 20).
 ///
 /// Draws from the files first, so the first draw never waits for `claude`; then merges what
-/// `claude plugin list --json --available` adds. Only reads: Bubo never writes in `~/.claude`.
+/// `claude plugin list --json --available` adds. Bubo never writes in `~/.claude`: every change is a `claude plugin …`
+/// command, after which the list is asked again, so the window shows what `claude` sees.
 @MainActor @Observable final class PluginCatalog {
     /// What the window shows; `nil` until the files are read.
     private(set) var snapshot: PluginSnapshot?
@@ -13,9 +14,14 @@ import os
     private(set) var isListingUnavailable = false
     /// The official Marketplace's components, when Claude Code's cache has them in a known format.
     private(set) var officialCache: OfficialCatalogCache?
+    /// The plugins with a command running or waiting its turn.
+    private(set) var pending: Set<PluginID> = []
 
     @ObservationIgnored let folders: PluginFolders
     @ObservationIgnored private let listing: PluginListing
+    @ObservationIgnored private let cli: PluginCLI
+    /// The main checkout of the Progetto followed, which the commands run in.
+    @ObservationIgnored private var project: URL?
     /// The words of `snapshot`'s plugins, replaced with it.
     @ObservationIgnored private var search = PluginSearch([])
     /// The last list from `claude`, merged into every later reading of the files.
@@ -23,16 +29,21 @@ import os
     /// The readings started, so an older one never replaces a newer one.
     @ObservationIgnored private var readings = 0
 
-    /// Creates a catalog of the plugins in `folders`, completed by `listing`.
-    init(folders: PluginFolders = .current(), listing: PluginListing = .live()) {
+    /// Creates a catalog of the plugins in `folders`, completed by `listing` and changed by `cli`.
+    init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live()) {
         self.folders = folders
         self.listing = listing
+        self.cli = cli
     }
 
     /// Draws from the files, then asks `claude` in background, then reads again at each FSEvents change of
     /// `installed_plugins.json`, `known_marketplaces.json`, the Marketplaces' `marketplace.json` and the three
     /// settings, until the task is cancelled. Emits `pluginsFirstDraw` around the first snapshot.
+    ///
+    /// A worktree counts as its main checkout, where `claude` records the installations of the Progetto.
     func follow(project: URL?) async {
+        let project = project.map { cli.workingFolder(for: $0) }
+        self.project = project
         snapshot = nil
         list = nil
         isListingUnavailable = false
@@ -72,6 +83,28 @@ import os
         return entries.isEmpty ? [] : [PluginSection(marketplace: nil, entries: entries)]
     }
 
+    // MARK: Writing
+
+    /// Runs `command` with `claude` for the Progetto followed, then asks for the list again, whatever the outcome.
+    ///
+    /// - Returns: How it ended; a refusal of the CLI is a result, not an error.
+    /// - Throws: `PluginCLIError`, or `CancellationError`.
+    func perform(_ command: PluginCommand) async throws -> PluginCommandResult {
+        let plugin = command.plugin
+        if let plugin { pending.insert(plugin) }
+        defer { if let plugin { pending.remove(plugin) } }
+        let project = project
+        let result: PluginCommandResult
+        do {
+            result = try await cli.perform(command, project: project)
+        } catch {
+            await refreshListing(project)
+            throw error
+        }
+        await refreshListing(project)
+        return result
+    }
+
     // MARK: Reading
 
     private func reload(_ project: URL?) async {
@@ -87,7 +120,7 @@ import os
 
     private func refreshListing(_ project: URL?) async {
         do {
-            list = try await listing.list()
+            list = try await listing.list(project)
             isListingUnavailable = false
             await reload(project)
         } catch is CancellationError {

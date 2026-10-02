@@ -1,14 +1,20 @@
 import SwiftUI
 
-/// The detail of a plugin: name, Marketplace, version, state, what needs attention and its components. Read only:
-/// the actions arrive with the next steps of spec 20.
+/// The detail of a plugin: name, Marketplace, version, state, what needs attention, its components, and at the
+/// bottom Attiva or Disattiva (primary) and Disinstalla… (secondary), or Installa… when it is not installed.
 struct PluginDetail: View {
     let entry: PluginEntry
     let problems: [PluginProblem]
     let marketplace: Marketplace?
     let officialCache: OfficialCatalogCache?
+    let catalog: PluginCatalog
+    /// Opens the Installa sheet.
+    let install: () -> Void
+    /// Opens the Disinstalla sheet.
+    let uninstall: () -> Void
     @State private var inventory: PluginInventory?
     @State private var hasReadInventory = false
+    @State private var failure: Text?
 
     /// What the inventory is read for: the entry, and whether the official cache has arrived.
     private struct InventoryKey: Equatable {
@@ -41,6 +47,7 @@ struct PluginDetail: View {
                             .background(Palette.surface, in: .rect(cornerRadius: 8))
                     }
                 }
+                actions
             }
             .padding(Spacing.large)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -89,6 +96,61 @@ struct PluginDetail: View {
         }
         .font(Typography.body(size: 11))
         .foregroundStyle(Palette.textSecondary)
+    }
+
+    @ViewBuilder
+    private var actions: some View {
+        let isPending = catalog.pending.contains(entry.id)
+        VStack(alignment: .leading, spacing: Spacing.xSmall) {
+            HStack(spacing: Spacing.small) {
+                if !entry.isInstalled {
+                    Button("Installa…", action: install)
+                        .buttonStyle(.borderedProminent)
+                } else if let scope = entry.switchScope {
+                    Button(entry.isEnabled ? "Disattiva" : "Attiva") {
+                        toggle(in: scope)
+                    }
+                    .buttonStyle(.borderedProminent)
+                    Button("Disinstalla…", action: uninstall)
+                        .foregroundStyle(Palette.danger)
+                }
+                if isPending {
+                    LoadingLabel("Aspetto claude…")
+                }
+            }
+            .disabled(isPending)
+            if entry.isInstalled, entry.switchScope == nil {
+                Text("Gestito dall'organizzazione")
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            if let failure {
+                failure
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.danger)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.top, Spacing.small)
+    }
+
+    /// Turns the plugin off, or on, in `scope`, and says why when `claude` refuses.
+    private func toggle(in scope: PluginScope) {
+        let command: PluginCommand = entry.isEnabled ? .disable(entry.id, scope: scope) : .enable(entry.id, scope: scope)
+        failure = nil
+        Task {
+            do {
+                let result = try await catalog.perform(command)
+                if !result.succeeded { failure = Text(verbatim: result.message) }
+            } catch is CancellationError {
+                return
+            } catch let error as PluginCLIError {
+                failure = Text(error.message)
+            } catch {
+                failure = Text(verbatim: error.localizedDescription)
+            }
+        }
     }
 
     private var problemList: some View {

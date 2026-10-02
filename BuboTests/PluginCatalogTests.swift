@@ -46,7 +46,7 @@ struct PluginCatalogTests {
         try await waitForCondition { catalog.snapshot?.plugins.first?.installCount == 7 }
         following.cancel()
 
-        let failing = PluginCatalog(folders: home.folders, listing: PluginListing { throw PluginListingError.claudeMissing })
+        let failing = PluginCatalog(folders: home.folders, listing: PluginListing { _ in throw PluginListingError.claudeMissing })
         let failingTask = Task { await failing.follow(project: nil) }
         defer { failingTask.cancel() }
         try await waitForCondition { failing.isListingUnavailable }
@@ -97,18 +97,18 @@ struct PluginCatalogTests {
         let home = try PluginHome()
         let claude = home.home.appending(path: ".local/bin/claude")
         let calls = Calls()
-        let runner = ProcessRunner { executable, arguments in
+        let runner = { @Sendable (_: URL?) in ProcessRunner { executable, arguments in
             #expect(executable == claude)
             calls.arguments.withLock { $0.append(arguments) }
             return ProcessOutput(exitCode: 0, standardOutput: #"{"installed": [], "available": []}"#)
-        }
+        } }
         let listing = PluginListing.live(locator: ClaudeLocator(home: home.home, isExecutable: { $0 == claude }), runner: runner)
-        #expect(try await listing.list() == PluginList())
+        #expect(try await listing.list(nil) == PluginList())
         #expect(calls.arguments.withLock { $0 } == [["plugin", "list", "--json", "--available"]])
 
         let failing = PluginListing.live(locator: ClaudeLocator(home: home.home, isExecutable: { $0 == claude }),
-                                         runner: ProcessRunner { _, _ in ProcessOutput(exitCode: 1, standardOutput: "") })
-        await #expect(throws: PluginListingError.failed(exitCode: 1)) { try await failing.list() }
+                                         runner: { _ in ProcessRunner { _, _ in ProcessOutput(exitCode: 1, standardOutput: "") } })
+        await #expect(throws: PluginListingError.failed(exitCode: 1)) { try await failing.list(nil) }
     }
 
     @Test func gitNeverAsksForAPassword() {

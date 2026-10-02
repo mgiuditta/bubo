@@ -1,12 +1,15 @@
 import SwiftUI
 
-/// A row of the Plugin window's list: status dot, name, description, and the trust label of an entry not installed.
+/// A row of the Plugin window's list: status dot, name, description, and for an entry not installed its trust label
+/// and Installa….
 struct PluginRow: View {
     let entry: PluginEntry
     /// Whether `claude` failed to load it.
     let failed: Bool
     let marketplace: Marketplace?
     let officialCache: OfficialCatalogCache?
+    /// Opens the Installa sheet of the entry.
+    let install: () -> Void
     @State private var trust: PluginTrust?
     @Environment(\.backgroundProminence) private var prominence
 
@@ -33,6 +36,12 @@ struct PluginRow: View {
                     PluginTrustLabel(trust: trust)
                         .foregroundStyle(isSelected ? Palette.ink : Palette.textSecondary)
                 }
+            }
+            if !entry.isInstalled {
+                Spacer(minLength: Spacing.xSmall)
+                Button("Installa…", action: install)
+                    .controlSize(.small)
+                    .accessibilityLabel(Text("Installa \(entry.displayName)…"))
             }
         }
         .padding(.vertical, 2)

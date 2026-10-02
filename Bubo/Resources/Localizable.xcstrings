@@ -1344,12 +1344,32 @@
         }
       }
     },
+    "Aspetto claude…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for claude…"
+          }
+        }
+      }
+    },
     "Attende da %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting on you for %@"
+          }
+        }
+      }
+    },
+    "Attiva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn On"
           }
         }
       }
@@ -2868,6 +2888,16 @@
         }
       }
     },
+    "Da dove" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From"
+          }
+        }
+      }
+    },
     "Da guardare" : {
       "localizations" : {
         "en" : {
@@ -2968,12 +2998,72 @@
         }
       }
     },
+    "Disattiva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn Off"
+          }
+        }
+      }
+    },
     "Disattivato" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Off"
+          }
+        }
+      }
+    },
+    "Disinstalla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall"
+          }
+        }
+      }
+    },
+    "Disinstallare %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall %@?"
+          }
+        }
+      }
+    },
+    "Disinstallato, ma non sono riuscito a togliere le dipendenze rimaste." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstalled, but the leftover dependencies couldn’t be removed."
+          }
+        }
+      }
+    },
+    "Disinstalla…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstall…"
+          }
+        }
+      }
+    },
+    "Disinstallo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uninstalling…"
           }
         }
       }
@@ -3534,6 +3624,16 @@
         }
       }
     },
+    "Gli altri lo installano dal proprio Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everyone else installs it from their own Mac."
+          }
+        }
+      }
+    },
     "Guarda…" : {
       "localizations" : {
         "en" : {
@@ -3630,6 +3730,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You wrote: %@"
+          }
+        }
+      }
+    },
+    "Ho letto il comando e mi fido" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I’ve read the command and I trust it"
           }
         }
       }
@@ -4030,6 +4140,16 @@
         }
       }
     },
+    "Impronta sha256" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SHA-256 fingerprint"
+          }
+        }
+      }
+    },
     "In attesa del primo frame del Panel." : {
       "localizations" : {
         "en" : {
@@ -4110,6 +4230,36 @@
         }
       }
     },
+    "Installa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install"
+          }
+        }
+      }
+    },
+    "Installa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install %@"
+          }
+        }
+      }
+    },
+    "Installa %@…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install %@…"
+          }
+        }
+      }
+    },
     "Installa la CLI claude, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -4136,6 +4286,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Installed"
+          }
+        }
+      }
+    },
+    "Installa…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install…"
+          }
+        }
+      }
+    },
+    "Installo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installing…"
           }
         }
       }
@@ -5952,6 +6122,16 @@
         }
       }
     },
+    "Non trovo claude su questo Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can’t find claude on this Mac."
+          }
+        }
+      }
+    },
     "Non trovo la CLI claude." : {
       "localizations" : {
         "en" : {
@@ -6293,12 +6473,32 @@
         }
       }
     },
+    "Per chi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For"
+          }
+        }
+      }
+    },
     "Per chi disegna orbite." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "For the one who draws orbits."
+          }
+        }
+      }
+    },
+    "Per installarlo, claude esegue questo comando sul Mac:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To install it, claude runs this command on your Mac:"
           }
         }
       }
@@ -6349,6 +6549,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To resume it from Terminal:"
+          }
+        }
+      }
+    },
+    "Per spegnerlo e basta, usa Disattiva." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To just turn it off, use Turn Off."
           }
         }
       }
@@ -6449,6 +6659,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Preparing the PR…"
+          }
+        }
+      }
+    },
+    "Prima di eseguirlo ti mostro il comando come lo vede claude, con la sua impronta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Before it runs, you’ll see the command as claude sees it, with its fingerprint."
           }
         }
       }
@@ -7847,6 +8067,16 @@
         }
       }
     },
+    "Si installa eseguendo un comando sul Mac:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It installs by running a command on your Mac:"
+          }
+        }
+      }
+    },
     "Si riprende dalla copia di Bubo, ma le modifiche ai file non si possono riavvolgere." : {
       "localizations" : {
         "en" : {
@@ -7893,6 +8123,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only Me in This Project"
+          }
+        }
+      }
+    },
+    "Solo io qui" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just Me Here"
           }
         }
       }
@@ -8148,6 +8388,16 @@
         }
       }
     },
+    "Tieni i dati del plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the plugin’s data"
+          }
+        }
+      }
+    },
     "Tieni premuto: Solo ora" : {
       "localizations" : {
         "en" : {
@@ -8194,6 +8444,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove the filter"
+          }
+        }
+      }
+    },
+    "Toglie anche le dipendenze che nessun plugin usa più." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also removes dependencies no plugin uses anymore."
           }
         }
       }
@@ -9030,6 +9290,16 @@
         }
       }
     },
+    "claude non ha risposto in tempo: il comando è stato fermato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude didn’t answer in time, so the command was stopped."
+          }
+        }
+      }
+    },
     "claude non trovata" : {
       "localizations" : {
         "en" : {
@@ -9046,6 +9316,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "claude stopped with code %d."
+          }
+        }
+      }
+    },
+    "claude si è fermato senza dire com'è andata (codice %d)." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude stopped without saying how it went (code %d)."
           }
         }
       }
