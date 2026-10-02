@@ -20,6 +20,14 @@ extension SessionStore {
         })
     }
 
+    /// The Sessione Consegna… in the menu opens the foglio di Consegna for: among the live ones with a conversation
+    /// of the agent, the one whose terminal is shown, else the one that changed Attività last (spec 24).
+    var deliverySessionToOpen: Session? {
+        current(among: sessions.filter { session in
+            session.isLive && !session.conversations.isEmpty && session.workspace != nil
+        })
+    }
+
     private func current(among candidates: [Session]) -> Session? {
         if let shown = terminals.session, let session = candidates.first(where: { $0.id == shown.id }) {
             return session
