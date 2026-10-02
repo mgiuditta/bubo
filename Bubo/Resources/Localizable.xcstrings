@@ -3447,6 +3447,26 @@
         }
       }
     },
+    "In pausa: l'agente «%@» non c'è più. Ripristina il file o scegli un altro agente in Modifica, poi Riprendi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: the agent “%@” is gone. Restore its file or pick another agent in Edit, then Resume."
+          }
+        }
+      }
+    },
+    "L'agente «%@» non c'è più in questo Progetto: l'Automazione andrebbe in pausa. Scegline un altro." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The agent “%@” is no longer in this project: the automation would be paused. Pick another one."
+          }
+        }
+      }
+    },
     "L'autore non ha cambiato versione: questa è già l'ultima che pubblica." : {
       "localizations" : {
         "en" : {
@@ -3463,6 +3483,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Delivery couldn't be written. Try again."
+          }
+        }
+      }
+    },
+    "La chiede il subagente «%@»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requested by the subagent “%@”."
           }
         }
       }

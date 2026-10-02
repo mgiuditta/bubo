@@ -9,4 +9,6 @@ nonisolated struct UnattendedTurn: Equatable, Sendable {
     var rules: [String] = []
     /// The `claude` alias that answers; `nil` for the user's own choice.
     var model: String?
+    /// The agent the turn runs as, as `Options.agent`; `nil` for the ordinary Sessione.
+    var agent: String?
 }

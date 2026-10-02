@@ -45,7 +45,8 @@ struct ExecutionRunnerTests {
         let bridge = Self.executionBridge(log: log)
         store = SessionStore(file: repos.base.appending(path: "Sessioni.json"), worktrees: repos.manager,
                              automations: automations) { bridge }
-        runner = ExecutionRunner(automations: automations, sessions: store)
+        runner = ExecutionRunner(automations: automations, sessions: store,
+                                 agentsUser: repos.base.appending(path: "home-claude", directoryHint: .isDirectory))
     }
 
     /// The `ask` commands the bridge received, oldest first.
@@ -82,6 +83,42 @@ struct ExecutionRunnerTests {
         let ask = try #require(try asks().first)
         #expect((ask["unattended"] as? [String: Any])?["rules"] as? [String] == [])
         #expect(ask["permissionMode"] as? String == "auto")
+    }
+
+    // #174, criterio 1: l'Esecuzione chiede al ponte di girare come l'agente scelto.
+    @Test(.timeLimit(.minutes(1)))
+    func anExecutionRunsAsItsAgent() async throws {
+        defer { try? FileManager.default.removeItem(at: repos.base) }
+        let agents = repo.appending(path: ".claude/agents", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: agents, withIntermediateDirectories: true)
+        try "---\nname: revisore\ndescription: Rivede il codice\n---\nRivedi.\n"
+            .write(to: agents.appending(path: "revisore.md"), atomically: true, encoding: .utf8)
+        var automation = addAutomation()
+        automation.agent = "revisore"
+        automations.update(automation)
+
+        try #require(runner.run(automation.id) != nil)
+        try await waitForTheExecution(of: automation.id)
+
+        let ask = try #require(try asks().first)
+        #expect((ask["unattended"] as? [String: Any])?["agent"] as? String == "revisore")
+        #expect(automations[automation.id]?.isPaused == false)
+    }
+
+    // #174, criterio 2: agente sparito, l'Automazione va in pausa e nessuna Esecuzione parte senza.
+    @Test func anAutomationWhoseAgentIsGoneIsPausedAndRunsNothing() throws {
+        defer { try? FileManager.default.removeItem(at: repos.base) }
+        var automation = addAutomation()
+        automation.agent = "revisore"
+        automations.update(automation)
+
+        #expect(runner.run(automation.id) == nil)
+
+        #expect(automations[automation.id]?.isPaused == true)
+        #expect(automations[automation.id]?.pauseReason == .agentMissing)
+        #expect(automations[automation.id]?.executions.isEmpty == true)
+        #expect(store.sessions.isEmpty)
+        #expect(!FileManager.default.fileExists(atPath: log.path))
     }
 
     // Criterio 3: ogni diniego arriva nel resoconto con il suo livello; nessun pulsante per i livelli 4–5.

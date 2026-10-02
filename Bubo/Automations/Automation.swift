@@ -23,6 +23,9 @@ nonisolated struct Automation: Codable, Identifiable, Equatable, Sendable {
     /// What the agent is asked at each Esecuzione.
     var request: String
     var model = ModelChoice.router
+    /// The agent each Esecuzione runs as, by the name Claude delegates by, as `Options.agent`; `nil` for the ordinary
+    /// Sessione. When its file is gone, no Esecuzione starts and the Automazione goes in pausa (spec 19).
+    var agent: String?
     /// Whether the Esecuzioni run in the Modalità autonoma; on by default, it counts only where the Sessione has a
     /// worktree of its own, never outside git.
     var isAutonomous = true
@@ -42,6 +45,8 @@ nonisolated struct Automation: Codable, Identifiable, Equatable, Sendable {
     enum PauseReason: String, Codable, Sendable {
         /// Its Progetto's folder is gone: moved, or on a disk not attached.
         case projectMissing
+        /// Its agent's file is gone, deleted or renamed: an Esecuzione without it would not be the one asked for.
+        case agentMissing
     }
 
     /// The Esecuzioni an Automazione keeps: a week of one per hour, and some more.
@@ -83,6 +88,7 @@ nonisolated extension Automation {
         project = try container.decode(URL.self, forKey: .project)
         request = try container.decode(String.self, forKey: .request)
         model = try container.decodeIfPresent(ModelChoice.self, forKey: .model) ?? .router
+        agent = try container.decodeIfPresent(String.self, forKey: .agent)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? true
         rules = try container.decodeIfPresent([String].self, forKey: .rules) ?? []
         recurrence = try container.decodeIfPresent(Recurrence.self, forKey: .recurrence)

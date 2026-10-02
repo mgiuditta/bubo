@@ -5,6 +5,9 @@ import Foundation
 /// Kept whole in the keychain, because the record key is a secret; the signing key is only its opaque blob,
 /// usable by this Secure Enclave alone.
 nonisolated struct PairedMac: Codable, Identifiable, Sendable, Equatable {
+    /// The keychain service of the paired Macs, shared with the notification extension through the keychain group.
+    static let keychainService = "com.mgiuditta.bubo.remote.mac"
+
     /// The random identifier of the Mac.
     let id: UUID
     /// The Mac's name, from the QR.

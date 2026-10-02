@@ -29,6 +29,8 @@ nonisolated struct PermissionRequest: Identifiable, Equatable, Hashable, Sendabl
     var mcpSource: String?
     /// Whether a subagent asks, not the Sessione's main thread.
     var isFromSubagent = false
+    /// The name of the subagent that asks, as `SubagentStart` gave it; `nil` for the main thread, or when unknown.
+    var agent: String?
     /// Whether `claude` says a single keystroke must not approve it.
     var defaultsToNo = false
     /// Whether `claude` says no lasting permission may come from it.
@@ -37,7 +39,7 @@ nonisolated struct PermissionRequest: Identifiable, Equatable, Hashable, Sendabl
     var isOutsideSandbox = false
 
     private enum CodingKeys: String, CodingKey {
-        case request, tool, command, path, url, host, title, description, blockedPath, mcpSource, fromSubagent, defaultToNo,
+        case request, tool, command, path, url, host, title, description, blockedPath, mcpSource, fromSubagent, agent, defaultToNo,
              suppressAlwaysAllowRule, outsideSandbox
     }
 
@@ -66,6 +68,7 @@ nonisolated struct PermissionRequest: Identifiable, Equatable, Hashable, Sendabl
         blockedPath = try container.decodeIfPresent(String.self, forKey: .blockedPath)
         mcpSource = try container.decodeIfPresent(String.self, forKey: .mcpSource)
         isFromSubagent = try container.decodeIfPresent(Bool.self, forKey: .fromSubagent) ?? false
+        agent = try container.decodeIfPresent(String.self, forKey: .agent)
         defaultsToNo = try container.decodeIfPresent(Bool.self, forKey: .defaultToNo) ?? false
         suppressesRule = try container.decodeIfPresent(Bool.self, forKey: .suppressAlwaysAllowRule) ?? false
         isOutsideSandbox = try container.decodeIfPresent(Bool.self, forKey: .outsideSandbox) ?? false
