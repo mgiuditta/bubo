@@ -36,6 +36,12 @@ struct PluginProblemBox: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(isWorking)
+                if case .disable = remedy, case let .newExecutableCode(id, _) = problem {
+                    Button("Ho visto") {
+                        Task { await catalog.acknowledgeNewCode(of: id) }
+                    }
+                    .disabled(isWorking)
+                }
                 if isWorking {
                     LoadingLabel("Aspetto claude…")
                 } else if !remedy.commands.isEmpty {
@@ -63,6 +69,8 @@ struct PluginProblemBox: View {
         switch problem {
         case .missingProjectPlugin: Text("Plugin di Progetto non installato su questo Mac")
         case let .loadFailed(_, _, message): Text(verbatim: message)
+        case let .newExecutableCode(_, components):
+            Text("Nuovo codice eseguibile dall'ultimo aggiornamento: \(components.map(\.name).formatted(.list(type: .and)))")
         }
     }
 
@@ -73,6 +81,7 @@ struct PluginProblemBox: View {
         case let .enableDependency(id, _): Text("Attiva \(id.name)")
         case .disable: Text("Disattiva")
         case .copyMessage: didCopy ? Text("Copiato") : Text("Copia l'errore")
+        case .acknowledge: Text("Ho visto")
         }
     }
 
@@ -95,7 +104,10 @@ struct PluginProblemBox: View {
             defer { isWorking = false }
             do {
                 let result = try await catalog.fix(with: remedy)
-                if result.needsCommandConfirmation {
+                if result.succeeded, case let .newExecutableCode(id, _) = problem {
+                    // Turned off or seen: either way the person has looked at it.
+                    await catalog.acknowledgeNewCode(of: id)
+                } else if result.needsCommandConfirmation {
                     install()
                 } else if !result.succeeded {
                     failure = Text(marketplaceFailure: result)

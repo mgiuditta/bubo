@@ -6,18 +6,22 @@ nonisolated enum PluginProblem: Sendable, Equatable {
     /// Enabled in `.claude/settings.json` of the Progetto and not installed here. `marketplaceSource` is what
     /// `claude plugin marketplace add` takes when its Marketplace is missing too, as the settings declare it.
     case missingProjectPlugin(PluginID, marketplaceSource: String? = nil)
+    /// Code on the Mac the installed plugin did not have when Bubo last saw it: an update Claude Code made on its
+    /// own, with no confirmation in Bubo.
+    case newExecutableCode(PluginID, components: [PluginComponent])
 
     /// The plugin with the problem.
     var plugin: PluginID {
         switch self {
-        case let .loadFailed(plugin, _, _), let .missingProjectPlugin(plugin, _): plugin
+        case let .loadFailed(plugin, _, _), let .missingProjectPlugin(plugin, _), let .newExecutableCode(plugin, _): plugin
         }
     }
 
-    /// The order of the boxes, lowest first: a missing plugin of the Progetto, an unmet dependency, any other error.
+    /// The order of the boxes, lowest first: new code on the Mac or a missing plugin of the Progetto, an unmet
+    /// dependency, any other error.
     var gravity: Int {
         switch self {
-        case .missingProjectPlugin: 0
+        case .newExecutableCode, .missingProjectPlugin: 0
         case let .loadFailed(_, type, _): Self.dependencyTypes.contains(type ?? "") ? 1 : 2
         }
     }

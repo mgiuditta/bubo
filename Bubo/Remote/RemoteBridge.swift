@@ -95,7 +95,7 @@ final class RemoteBridge {
             // Turned off: what went out is withdrawn. A new iPhone gets every card; a gone one was revoked, and the
             // revocation deleted its records.
             if devices.isEmpty {
-                await delete(named: written.keys.map(Self.cardName) + [Self.heartbeatName], for: paired)
+                _ = await delete(named: written.keys.map(Self.cardName) + [Self.heartbeatName], for: paired)
             }
             written = [:]
             writtenDevices = Set(devices.map(\.id))

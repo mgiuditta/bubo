@@ -48,6 +48,15 @@ nonisolated struct PluginInventory: Sendable, Equatable {
         return nil
     }
 
+    /// The inventory of the version `entry`'s Marketplace offers now, never of the installed one: its relative source
+    /// in `marketplace`'s clone, then the official cache; `nil` when nothing says, and the new code is unknown.
+    @concurrent static func latestInventory(of entry: PluginEntry, marketplace: Marketplace?,
+                                            officialCache: OfficialCatalogCache?) async -> PluginInventory? {
+        var latest = entry
+        latest.installations = []
+        return await inventory(of: latest, marketplace: marketplace, officialCache: officialCache)
+    }
+
     /// Reads a plugin folder: `plugin.json` with custom paths, `skills/`, `commands/`, `agents/`, `hooks/hooks.json`,
     /// `.mcp.json`, `.lsp.json`, `bin/`, `monitors/monitors.json`. A missing or broken file adds nothing.
     static func reading(pluginAt folder: URL) -> PluginInventory {
