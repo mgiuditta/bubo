@@ -24,6 +24,15 @@ nonisolated struct ConversationResult: Identifiable, Equatable, Sendable {
     var otherMatches = 0
 }
 
+nonisolated extension ConversationResult {
+    /// The latest conversation of `session`, with nothing searched; `nil` before its first turn.
+    init?(latestOf session: Session) {
+        guard let last = session.conversations.last else { return nil }
+        self.init(id: session.id.uuidString, title: session.title, source: .session, project: session.project,
+                  conversation: last, date: session.activitySince ?? .distantPast)
+    }
+}
+
 /// One row of the Palette's Secondo cervello group: a note, with the section that answers the search best.
 nonisolated struct NoteResult: Identifiable, Equatable, Sendable {
     /// The note's file.
@@ -154,13 +163,7 @@ nonisolated struct ConversationSearch: Sendable {
 
     /// The conversations that changed last, newest first, grouped by age.
     func recentGroups(filters: [PaletteFilter], at now: Date) -> [ConversationGroup] {
-        let own = sessions.compactMap { session in
-            session.conversations.last.map { last in
-                ConversationResult(id: session.id.uuidString, title: session.title, source: .session,
-                                   project: session.project, conversation: last,
-                                   date: session.activitySince ?? .distantPast)
-            }
-        }
+        let own = sessions.compactMap(ConversationResult.init(latestOf:))
         let theirs = history.map { conversation in
             ConversationResult(id: conversation.id, title: conversation.title, source: .cli, project: conversation.folder,
                                conversation: conversation.id, date: conversation.lastModified)
