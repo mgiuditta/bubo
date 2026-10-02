@@ -23,6 +23,7 @@ nonisolated final class FakeChatServer: URLProtocol {
 
     private static let replies = Mutex<[String: Reply]>([:])
     private static let received = Mutex<[String: [Received]]>([:])
+    private static let pathReplies = Mutex<[String: Reply]>([:])
 
     /// A session whose requests all reach this server.
     static let session: URLSession = {
@@ -37,6 +38,11 @@ nonisolated final class FakeChatServer: URLProtocol {
                         : URL(string: "https://fake-\(UUID().uuidString.lowercased()).test/v1")!
         replies.withLock { $0[key(url)] = reply }
         return url
+    }
+
+    /// Serves `reply` at `path` of the address `url` was served at, such as `/api/tags`, instead of its usual reply.
+    static func serve(_ reply: Reply, at path: String, of url: URL) {
+        pathReplies.withLock { $0[key(url) + path] = reply }
     }
 
     /// The requests received at the address `url` was served at.
@@ -69,7 +75,8 @@ nonisolated final class FakeChatServer: URLProtocol {
             $0[key, default: []].append(Received(url: url, headers: request.allHTTPHeaderFields ?? [:],
                                                  body: Self.body(of: request)))
         }
-        let reply = Self.replies.withLock { $0[key] } ?? Reply(status: 404, body: "")
+        let reply = Self.pathReplies.withLock { $0[key + url.path()] } ?? Self.replies.withLock { $0[key] }
+            ?? Reply(status: 404, body: "")
         if reply.isOffline {
             client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
             return

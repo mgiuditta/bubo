@@ -17,6 +17,16 @@ struct ModelsSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             TypePreferencesSection(preferences: preferences, settings: settings)
+            Section {
+                Picker("Modello locale", selection: localModelBinding) {
+                    Text("Nessuno").tag(String?.none)
+                    ForEach(settings.ready.filter(\.isOnMac)) { endpoint in
+                        Text(verbatim: "\(endpoint.name) · \(endpoint.model)").tag(Optional(endpoint.id))
+                    }
+                }
+            } footer: {
+                Text("Senza rete le Domande vanno al Modello locale invece che a Claude; se non risponde, ad Apple FM. In nessun altro caso Bubo lo sceglie da solo.")
+            }
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
             }
@@ -37,6 +47,14 @@ struct ModelsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var localModelBinding: Binding<String?> {
+        Binding {
+            settings.localModel?.id
+        } set: { id in
+            settings.setLocalModel(settings.ready.first { $0.id == id })
+        }
     }
 
     private var newEndpointURL: URL? {

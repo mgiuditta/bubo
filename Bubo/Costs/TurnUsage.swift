@@ -5,9 +5,10 @@ import Foundation
 ///
 /// The figure is an estimate made on the Mac, never a bill, unless the provider reported it; `origin` says which.
 nonisolated struct TurnUsage: Codable, Equatable, Sendable {
-    /// How the turn was paid: `claude`'s subscription or API key (ADR 0003), or the user's key at another provider.
+    /// How the turn was paid: `claude`'s subscription or API key (ADR 0003), or the user's key at another provider;
+    /// `commandLine` for a turn of the Cronologia CLI, whose transcript does not say.
     enum Mode: String, Codable, Sendable {
-        case subscription, apiKey
+        case subscription, apiKey, commandLine
     }
 
     /// Which price table the SDK estimated with; `unknown` prices an unknown model at the default model's rate.
@@ -40,10 +41,15 @@ nonisolated struct TurnUsage: Codable, Equatable, Sendable {
     /// The day of the PriceTable's prices, for a figure priced with it: the price of the turn's time, never redone.
     var priceDate: Date?
 
-    /// Gratis on the Mac; otherwise Spesa per use, Valore a listino with the subscription.
+    /// Gratis on the Mac; the command line's own list estimate for the Cronologia CLI; otherwise Spesa per use,
+    /// Valore a listino with the subscription.
     var unit: CostUnit {
         if origin == .free { return .gratis }
-        return mode == .apiKey ? .spesa : .valoreListino
+        return switch mode {
+        case .apiKey: .spesa
+        case .subscription: .valoreListino
+        case .commandLine: .rigaDiComando
+        }
     }
 
     private enum CodingKeys: String, CodingKey {

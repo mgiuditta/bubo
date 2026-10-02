@@ -79,6 +79,11 @@ struct QuestionView: View {
                     .accessibilityIdentifier("question.subtitle")
             }
 
+            if let offer = model.localModelOffer {
+                LocalModelInvitation(offer: offer, accept: model.acceptLocalModel,
+                                     dismiss: model.dismissLocalModelOffer)
+            }
+
             if model.invitesBetterVoice {
                 BetterVoiceInvitation(dismiss: model.dismissBetterVoice)
             }
@@ -121,6 +126,12 @@ struct QuestionView: View {
         // "Usa sempre per «Tipo»" starts off every time "Rifai con…" opens.
         .onChange(of: isPickingRetry) {
             if isPickingRetry { alwaysUse = false }
+        }
+        // Ollama or LM Studio found on the Mac: proposed once, the first time the HUD opens after.
+        // Not in the app that hosts the tests: it shares the user's defaults, and the proposal is made only once.
+        .task {
+            guard ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil else { return }
+            await model.lookForLocalModel()
         }
         // A new answer under way leaves the Allegati's question behind.
         .onChange(of: model.isAnswering) {
