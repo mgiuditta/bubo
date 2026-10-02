@@ -110,4 +110,18 @@ struct RecurrenceTests {
         #expect(automation.executions.map(\.session) == [session])
         #expect(automation.lastExecution?.outcome == .fatta)
     }
+
+    @Test func theMissedTimesAreTheOnesBetweenTwoInstantsOldestFirst() throws {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = try #require(TimeZone(identifier: "Europe/Rome"))
+        let start = try Date("2026-10-23T09:00:00+02:00", strategy: .iso8601)
+        let end = try Date("2026-10-26T09:00:00+01:00", strategy: .iso8601)
+
+        let dates = Recurrence.daily(hour: 9, minute: 0).dates(after: start, through: end, in: calendar)
+
+        #expect(dates == [try Date("2026-10-24T09:00:00+02:00", strategy: .iso8601),
+                          try Date("2026-10-25T09:00:00+01:00", strategy: .iso8601),
+                          end])
+        #expect(Recurrence.once(start).dates(after: start, through: end, in: calendar).isEmpty)
+    }
 }

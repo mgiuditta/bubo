@@ -122,6 +122,7 @@ nonisolated struct Execution: Codable, Equatable, Sendable {
         case .fatta: String(localized: "Fatta")
         case .senzaModifiche: String(localized: "Senza modifiche")
         case .saltata where skipReason == .sovrapposta: String(localized: "Saltata (sovrapposta)")
+        case .saltata where skipReason == .assente: String(localized: "Saltata (Mac spento o Bubo chiuso)")
         case .saltata: String(localized: "Saltata")
         case .interrotta: String(localized: "Interrotta")
         case .errore: String(localized: "Errore")
@@ -132,6 +133,8 @@ nonisolated struct Execution: Codable, Equatable, Sendable {
     enum SkipReason: String, Codable, Sendable {
         /// The same Automazione was still at work, or, outside git, another Sessione worked in the Progetto's folder.
         case sovrapposta
+        /// Its time passed while the Mac slept or was off, or Bubo was closed; the recovery started a later one.
+        case assente
     }
 
     /// When it started, or for a Saltata when it should have.
