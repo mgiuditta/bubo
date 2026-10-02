@@ -17,6 +17,9 @@ struct SettingsView: View {
             Tab("Modelli", systemImage: "cpu") {
                 ModelsSettingsView()
             }
+            Tab("Voce", systemImage: "waveform") {
+                VoiceSettingsView()
+            }
             Tab("Scorciatoie", systemImage: "keyboard") {
                 ShortcutSettingsView()
             }

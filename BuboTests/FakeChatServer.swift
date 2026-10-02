@@ -9,6 +9,8 @@ nonisolated final class FakeChatServer: URLProtocol {
     struct Reply: Sendable {
         var status = 200
         var body: String
+        /// Fails as with no network instead of replying.
+        var isOffline = false
     }
 
     /// A request as the server received it.
@@ -67,6 +69,10 @@ nonisolated final class FakeChatServer: URLProtocol {
                                                  body: Self.body(of: request)))
         }
         let reply = Self.replies.withLock { $0[key] } ?? Reply(status: 404, body: "")
+        if reply.isOffline {
+            client?.urlProtocol(self, didFailWithError: URLError(.notConnectedToInternet))
+            return
+        }
         client?.urlProtocol(self, didReceive: HTTPURLResponse(url: url, statusCode: reply.status, httpVersion: "HTTP/1.1",
                                                               headerFields: ["Content-Type": "text/event-stream"])!,
                             cacheStoragePolicy: .notAllowed)

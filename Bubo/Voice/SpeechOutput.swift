@@ -4,6 +4,9 @@ import OSLog
 /// Says the Sintesi parlata with the voices of the Mac: `AVSpeechSynthesizer` writes the audio and an
 /// `AVAudioPlayerNode` plays it, so nothing goes to the network.
 ///
+/// When the user turned on OpenAI's voice in Impostazioni › Voce and its key is in the keychain, the same player plays
+/// OpenAI's audio instead; if it fails before its first audio, offline included, the Mac's voice says it.
+///
 /// The engine is the output's only: the microphone stays closed while Bubo speaks, and the orange dot with it. The voice
 /// processing for the echo comes with the barge-in by voice, once its spike passes (spec 08).
 ///
@@ -21,14 +24,25 @@ final class SpeechOutput: VoiceSpeaker {
     private var buffers: AsyncStream<AVAudioPCMBuffer>.Continuation?
     /// Esc, registered only while the voice plays.
     private lazy var escape = GlobalHotKey { [weak self] in self?.stop() }
+    /// Where the switch of OpenAI's voice is kept.
+    private let defaults: UserDefaults
+    private let openAI: OpenAIVoice
+    /// Hands OpenAI's audio to the player, while it plays.
+    private var relaying: Task<Void, Never>?
 
     /// Creates the output, silent until the first `speak`.
-    init() {
+    ///
+    /// - Parameters:
+    ///   - defaults: Where the switch of OpenAI's voice is kept.
+    ///   - openAI: OpenAI's voice, used only when the switch is on.
+    init(defaults: UserDefaults = .standard, openAI: OpenAIVoice = OpenAIVoice()) {
+        self.defaults = defaults
+        self.openAI = openAI
         engine.attach(player)
     }
 
     var hasOnlyDefaultVoices: Bool {
-        Self.voice()?.quality ?? .default == .default
+        !defaults.bool(forKey: OpenAIVoice.isOnKey) && Self.voice()?.quality ?? .default == .default
     }
 
     func speak(_ text: String, level: @escaping (Float) -> Void) async {
@@ -47,14 +61,44 @@ final class SpeechOutput: VoiceSpeaker {
             levelInput.finish()
             if utterance == utterances { silence() }
         }
-        synthesizer.write(spoken, toBufferCallback: Self.collect(into: input))
         await withTaskCancellationHandler {
+            if defaults.bool(forKey: OpenAIVoice.isOnKey), let audio = await openAIAudio(of: text) {
+                guard utterance == utterances else { return }
+                relay(audio, into: input)
+            } else {
+                guard utterance == utterances else { return }
+                synthesizer.write(spoken, toBufferCallback: Self.collect(into: input))
+            }
             await play(buffers, of: utterance, levels: levelInput)
         } onCancel: {
             input.finish()
             Task { @MainActor in
                 if utterance == self.utterances { self.stop() }
             }
+        }
+    }
+
+    /// OpenAI's audio of `text`, or `nil` without a key or when it failed before its first audio.
+    private func openAIAudio(of text: String) async -> AsyncStream<Data>? {
+        let key: String?
+        do {
+            key = try await APIKeyStore(account: OpenAIVoice.keychainAccount).key()
+        } catch {
+            Logger.voice.error("OpenAI key unreadable: \(String(describing: error), privacy: .public)")
+            return nil
+        }
+        guard let key else { return nil }
+        return await openAI.startedAudio(of: text, key: key)
+    }
+
+    /// Hands the pieces of `audio` to `input` as buffers the player plays, and ends it with them.
+    private func relay(_ audio: AsyncStream<Data>, into input: AsyncStream<AVAudioPCMBuffer>.Continuation) {
+        relaying = Task {
+            for await piece in audio {
+                guard let buffer = OpenAIVoice.buffer(of: piece) else { continue }
+                input.yield(buffer)
+            }
+            input.finish()
         }
     }
 
@@ -120,6 +164,8 @@ final class SpeechOutput: VoiceSpeaker {
     private func silence() {
         buffers?.finish()
         buffers = nil
+        relaying?.cancel()
+        relaying = nil
         escape.unregister()
         synthesizer.stopSpeaking(at: .immediate)
         player.stop()
