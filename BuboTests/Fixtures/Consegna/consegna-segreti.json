@@ -1,0 +1,46 @@
+{
+ "nota": "Corpus finto della Consegna (spec 24): nessun dato reale. I segreti sono finti; § li spezza per la scansione di GitHub e il test lo toglie.",
+ "mittente": {
+  "worktree": "/Users/ada/dev/telaio/.claude/worktrees/stampa",
+  "home": "/Users/ada",
+  "email": "ada.lovelace@example.com",
+  "organizzazione": "Analytical Engines Ltd",
+  "idOrganizzazione": "0b6a4e1c-7d2f-4c3a-9e58-1f2a3b4c5d6e",
+  "sessionId": "6f1e2d3c-4b5a-4968-8776-655443322110"
+ },
+ "segreti": {
+  "anthropic-api-key": "sk-§ant-api03-VizOIJaWs_HzOUXdxRyc3ecBX36GvH9Slj-ELbZNi6s2GrZGo-m78E6h-_eXsyd5WLdn1Vu64IKwDBztF5OCpQ5Em6el3AA",
+  "github-pat": "gh§p_Mj7LwDWN9j7QVe2FeUYxAjYeWXrycWO8YNyx",
+  "aws-access-token": "AK§IAK2JPHI5PAZMNHX2M",
+  "jwt": "ey§JhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZWxhaW8iLCJpYXQiOjE3MDAwMDAwMDB9.tkDIOD1PXDb6VdRzXqjaiw7Yh1GRqEcee1Vfbpz_DOX",
+  "generic-api-key": "q8Zr3vK1mPx7Lw2Nf5Tb",
+  "env:DATABASE_PASSWORD": "tramonto-rosso-42",
+  "env:SESSION_SECRET": "ri1IK1t2OyEfwgc3nbcWmyXmPEmHjZUzbAgNkckQ",
+  "private-key": "-----BEGIN EC PRIV§ATE KEY-----\nD3jr92PvlsKfGqSTyyh1ASfrNPXTb8ckIoeUQEluV6gKxhtkjYYGEz4argeQt9Hh\n2YWSlNYoE4LRIyzcbxEKTo2S9qlQGIig71ogVR9AdR+OIUiEFkTVFfrHcAQLq8ZT\ncOX/H2VPd4kOe20D8JfhLYTtph3KzIEJLl4pN1KKnLc2gw5kO5zTpp1riBGvZIf0\n-----END EC PRIVATE KEY-----"
+ },
+ "mancati": {
+  "password a bassa entropia senza prefisso": "tramonto"
+ },
+ "domande": [
+  {
+   "domanda": "Quante sono le chiamate a stampa()?",
+   "risposta": "3"
+  },
+  {
+   "domanda": "Di che colore è la coda notturna?",
+   "risposta": "viola"
+  },
+  {
+   "domanda": "Qual è il numero magico della coda?",
+   "risposta": "7341"
+  },
+  {
+   "domanda": "Come si intitola la issue TEL-42?",
+   "risposta": "Stampa doppia sulla coda notturna"
+  },
+  {
+   "domanda": "Su che porta ascolta il server?",
+   "risposta": "8080"
+  }
+ ]
+}

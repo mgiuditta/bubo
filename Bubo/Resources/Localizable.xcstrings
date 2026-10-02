@@ -9562,6 +9562,17 @@
         }
       }
     },
+    "Questa Sessione ha righe che Bubo non sa ancora ripulire." : {
+      "comment" : "Error of the Consegna: the transcript has a line type the cleaner does not know yet (another version of claude).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Session has lines Bubo doesn't know how to clean yet."
+          }
+        }
+      }
+    },
     "Questa versione di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale." : {
       "localizations" : {
         "en" : {
