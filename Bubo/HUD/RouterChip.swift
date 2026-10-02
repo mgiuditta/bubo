@@ -23,7 +23,7 @@ struct RouterChip: View {
                 .foregroundStyle(Palette.textSecondary)
                 .truncationMode(.tail)
                 .layoutPriority(-1)
-            if route.destination == .onDevice {
+            if route.destination == .onDevice || route.endpoint?.isOnMac == true {
                 Text("gratis, sul Mac", comment: "Cost of an answer from a model running on this Mac.")
                     .font(Typography.mono(size: 11))
                     .foregroundStyle(Palette.textSecondary)
@@ -41,15 +41,24 @@ struct RouterChip: View {
         .accessibilityIdentifier("question.routerChip")
     }
 
-    /// Anthropic's Tinta for Claude, the neutral one for the Mac.
+    /// Anthropic's Tinta for Claude, the neutral one for the Mac, an endpoint's own.
     private var tint: Color {
-        let base = Tinta(for: route.destination == .onDevice ? nil : .anthropic).base
+        let provider: Provider? = switch route.destination {
+        case .claude: .anthropic
+        case .onDevice: nil
+        case let .endpoint(endpoint): endpoint.provider
+        }
+        let base = Tinta(for: provider).base
         return Color(.sRGB, red: Double(base.x), green: Double(base.y), blue: Double(base.z))
     }
 
     /// The model and its effort, as read and as VoiceOver says it; `nil` when `claude` picks its own default.
     private var model: (text: String, spoken: String)? {
         if route.destination == .onDevice { return (RouterLine.appleFM, RouterLine.appleFM) }
+        if let endpoint = route.endpoint {
+            let name = "\(endpoint.name) · \(endpoint.model)"
+            return (name, name)
+        }
         guard let name = route.family?.name else { return nil }
         guard let effort = route.effort else { return (name, name) }
         let level = String(localized: effort.label)

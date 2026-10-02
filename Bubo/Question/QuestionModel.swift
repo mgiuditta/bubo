@@ -45,6 +45,10 @@ final class QuestionModel {
     let intake: IntakePipeline
     /// The OpenAI-compatible endpoints "Rifai con…" offers, and the clouds allowed to receive Domande.
     let endpoints: EndpointSettings
+    /// What the user chose with "Usa sempre per «Tipo»".
+    let preferences: TypePreferences
+    /// The Tipo di richiesta of the last Domanda, for "Usa sempre per «Tipo»"; `nil` when it could not be decided.
+    private(set) var lastType: RequestType?
 
     /// Creates a model that finds `claude` with `cli`, answers its `cerca` tool with `index` and its `ricorda` tool
     /// with `secondBrain`.
@@ -57,6 +61,7 @@ final class QuestionModel {
     ///   - defaults: Where the last Quota is kept between launches.
     ///   - apiKey: Reads the saved API key, from `APIKeyStore` when `nil`; called only after the user chose it.
     ///   - endpoints: The OpenAI-compatible endpoints and their consents.
+    ///   - preferences: The user's preferences for each Tipo.
     ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
     ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
     ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
@@ -69,6 +74,7 @@ final class QuestionModel {
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
          bridgeArguments: [String] = [], defaults: UserDefaults = .standard,
          apiKey: (() async throws -> String?)? = nil, endpoints: EndpointSettings = .shared,
+         preferences: TypePreferences = .shared,
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
          endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
          speaker: (any VoiceSpeaker)? = nil,
@@ -90,6 +96,7 @@ final class QuestionModel {
         let store = APIKeyStore()
         self.apiKey = apiKey ?? { try await store.key() }
         self.endpoints = endpoints
+        self.preferences = preferences
         self.endpointClient = endpointClient
         self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
         self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
@@ -181,7 +188,7 @@ final class QuestionModel {
             try? await Task.sleep(for: Self.forecastDelay)
             guard !Task.isCancelled else { return }
             let route = await intake.forecastRoute(for: Richiesta(text: text, attachments: attachments),
-                                                   catalog: catalog)
+                                                   catalog: catalog, preferences: routerPreferences)
             guard !Task.isCancelled else { return }
             forecast = route
         }
@@ -228,10 +235,25 @@ final class QuestionModel {
         return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
     }
 
-    /// Asks the last prompt again with `alternative`, for this turn only: the router's default does not change.
+    /// What the router knows of the user's preferences: a cloud endpoint takes part only with its consent.
+    private var routerPreferences: ModelRouter.Preferences {
+        ModelRouter.Preferences(choices: preferences.choices, endpoints: endpoints.ready.filter {
+            $0.isOnMac || endpoints.consents.contains($0.id)
+        })
+    }
+
+    /// Asks the last prompt again with `alternative`, for this turn only unless `alwaysUse`: then it becomes the
+    /// preference of the last Domanda's Tipo, for all the Domande.
     ///
-    /// A cloud that is not Claude without the user's consent receives nothing: the client refuses before sending.
-    func retry(with alternative: RetryAlternative) {
+    /// A cloud that is not Claude without the user's consent receives nothing: the client refuses before sending, and
+    /// it never becomes a preference.
+    func retry(with alternative: RetryAlternative, alwaysUse: Bool = false) {
+        if alwaysUse, let lastType, !needsConsent(for: alternative) {
+            switch alternative.target {
+            case let .claude(step): preferences.set(.claude(step), for: lastType)
+            case let .endpoint(endpoint): preferences.set(.endpoint(id: endpoint.id), for: lastType)
+            }
+        }
         switch alternative.target {
         case let .claude(step): start(lastPrompt, route: .retried(step))
         case let .endpoint(endpoint): start(lastPrompt, endpoint: endpoint)
@@ -453,36 +475,58 @@ final class QuestionModel {
         }
     }
 
-    /// Streams `endpoint`'s answer: the Domanda's text only, straight from the Mac.
+    /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text only, straight from the Mac.
     private func stream(_ text: String, from endpoint: OpenAICompatibleEndpoint) async {
         defer { isAnswering = false }
+        // No preference: the Orb takes the Tinta of the endpoint the user picked, whatever the router would choose.
         let submission = await intake.submit(Richiesta(text: text), to: endpoint.provider, catalog: catalog)
         defer { intake.finish(submission) }
+        lastType = submission.classification?.type
         guard !Task.isCancelled else { return }
-        var routedAnswer = RoutedAnswer(route: .retriedElsewhere, provider: endpoint.provider, endpoint: endpoint)
+        await answer(text, from: endpoint, route: .retriedElsewhere, submission: submission, speaksAnswer: false)
+    }
+
+    /// Streams `endpoint`'s answer to `text` for `submission`, the reason line saying `route`.
+    ///
+    /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
+    private func answer(_ text: String, from endpoint: OpenAICompatibleEndpoint, route: Route,
+                        submission: IntakePipeline.Submission, speaksAnswer: Bool) async {
+        var routedAnswer = RoutedAnswer(route: route, provider: endpoint.provider, endpoint: endpoint)
         routedAnswer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
         self.routedAnswer = routedAnswer
         let start = ContinuousClock.now
         var waitingForFirstToken = true
         let turn = UUID().uuidString, question = question
+        let asked = speaksAnswer ? text + SpokenSummary.instruction : text
+        var summary = speaksAnswer ? SpokenSummary() : nil
+        var firstAudio: OSSignpostIntervalState?
         do {
             // The key is read only now that this endpoint answers, and goes only into its request.
             let key = try await endpointKey(endpoint)
-            for try await event in endpointClient.answer(text, from: endpoint, consents: endpoints.consents, key: key) {
+            for try await event in endpointClient.answer(asked, from: endpoint, consents: endpoints.consents, key: key) {
                 switch event {
                 case let .text(chunk):
                     if waitingForFirstToken {
                         waitingForFirstToken = false
                         firstTokens[RetryAlternative(target: .endpoint(endpoint)).id] = ContinuousClock.now - start
                         intake.beginWorking(on: submission)
+                        if speaksAnswer { firstAudio = Signposts.beginInterval(.voiceFirstAudio) }
                     }
-                    answer += chunk
+                    answer += summary?.read(chunk) ?? chunk
+                    if let line = summary?.line {
+                        summary = nil
+                        say(line, for: submission, firstAudio: firstAudio)
+                    }
                 case let .usage(usage):
                     self.routedAnswer?.endpointTokens = usage.input + usage.output
                     let reading = UsageReader.turn(usage, from: endpoint, prices: prices.snapshot)
                     self.routedAnswer?.usage = reading
                     ledger?.record(reading, turn: turn, question: question, provider: endpoint.name)
                 }
+            }
+            if var summary {
+                answer += summary.finish()
+                if let line = summary.line { say(line, for: submission, firstAudio: firstAudio) }
             }
         } catch is CancellationError {
         } catch let error as OpenAICompatibleError {
@@ -502,9 +546,17 @@ final class QuestionModel {
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
         let text = richiesta.text
-        let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog)
+        // The user's choice for this turn goes before any preference.
+        let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog,
+                                             preferences: chosen == nil ? routerPreferences : .none)
         defer { intake.finish(submission) }
+        lastType = submission.classification?.type
         var route = chosen ?? submission.route
+        if let endpoint = route.endpoint {
+            guard !Task.isCancelled else { return }
+            await answer(text, from: endpoint, route: route, submission: submission, speaksAnswer: speaksAnswer)
+            return
+        }
         // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
         let asked = speaksAnswer ? text + SpokenSummary.instruction : text
         if route.destination == .onDevice {

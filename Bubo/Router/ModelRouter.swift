@@ -4,6 +4,18 @@
 /// Haiku otherwise, saying why. It decides in microseconds and never waits for the catalog or a count: without one, `claude` gets the family's alias and the
 /// SDK downgrades an effort the model lacks, which the reason line then shows as the effective one.
 nonisolated struct ModelRouter {
+    /// What "Usa sempre per «Tipo»" asks of the router: the user's choice for each Tipo, and the endpoints that may
+    /// answer one.
+    struct Preferences: Equatable, Sendable {
+        /// Who answers each Tipo with a preference.
+        var choices: [RequestType: TypePreference] = [:]
+        /// The endpoints with a model that may receive a Domanda: on the Mac, or in a cloud with the user's consent.
+        var endpoints: [OpenAICompatibleEndpoint] = []
+
+        /// No preference: every Tipo takes its default.
+        static let none = Self()
+    }
+
     /// Routes the request `classification` describes; `nil` when no Tipo could be decided.
     ///
     /// - Parameters:
@@ -11,11 +23,17 @@ nonisolated struct ModelRouter {
     ///   - hasAttachments: Whether the Richiesta carries Allegati: without them, a Fatto breve that could not be
     ///     measured still goes on the Mac.
     ///   - readsOnDevice: Whether a model on the Mac may read every Allegato: not a folder, not an image.
+    ///   - preferences: The user's preferences, which replace the Tipo's default when they can answer.
     ///   - catalog: What `supportedModels()` listed, or `nil` when it was not read yet.
     func route(for classification: RequestClassification?, fit: OnDeviceFit = .unavailable,
-               hasAttachments: Bool = false, readsOnDevice: Bool = true, in catalog: ModelCatalog?) -> Route {
+               hasAttachments: Bool = false, readsOnDevice: Bool = true, preferences: Preferences = .none,
+               in catalog: ModelCatalog?) -> Route {
         guard let classification else { return Route(family: nil, model: nil, effort: nil, reason: .unclassified) }
         let type = classification.type
+        if let preferred = Self.preferredRoute(for: type, preferences: preferences, hasAttachments: hasAttachments,
+                                               in: catalog) {
+            return preferred
+        }
         let fallback = Self.onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments,
                                              readsOnDevice: readsOnDevice)
         if Self.onDeviceTypes.contains(type), fallback == nil {
@@ -31,6 +49,27 @@ nonisolated struct ModelRouter {
         }
         return Route(family: family, model: entry.value, effort: effort.flatMap { Self.effort($0, in: entry) },
                      reason: .type(type, runnerUp: classification.runnerUp), onDeviceFallback: fallback)
+    }
+
+    /// The route of the user's preference for `type`; `nil` without one, or when it cannot answer and the default
+    /// does: a Claude family not in the catalog, an endpoint without a model or consent, or one offered a Domanda
+    /// with Allegati, which go only to Claude or to the Mac (#101).
+    private static func preferredRoute(for type: RequestType, preferences: Preferences, hasAttachments: Bool,
+                                       in catalog: ModelCatalog?) -> Route? {
+        switch preferences.choices[type] {
+        case let .claude(step)?:
+            guard let catalog else {
+                return Route(family: step.family, model: step.family.alias, effort: step.effort, reason: .preferred(type))
+            }
+            guard let entry = catalog.entry(for: step.family.alias) else { return nil }
+            return Route(family: step.family, model: entry.value, effort: step.effort.flatMap { effort($0, in: entry) },
+                         reason: .preferred(type))
+        case let .endpoint(id)?:
+            guard !hasAttachments, let endpoint = preferences.endpoints.first(where: { $0.id == id }) else { return nil }
+            return Route(family: nil, model: nil, effort: nil, reason: .preferred(type), destination: .endpoint(endpoint))
+        case nil:
+            return nil
+        }
     }
 
     /// The Tipi Apple Foundation Models answers when they fit.

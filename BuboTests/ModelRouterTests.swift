@@ -195,3 +195,46 @@ struct RoutedAnswerTests {
         #expect(RoutedAnswer.fiveHourShare(from: nil, to: before) == nil)
     }
 }
+
+/// #409: the preferences of "Usa sempre per «Tipo»".
+extension ModelRouterTests {
+    // #409: "Usa sempre per «Tipo»" replaces the default, even of a Tipo answered on the Mac.
+    @Test func aClaudePreferenceReplacesTheDefault() {
+        let preferences = ModelRouter.Preferences(choices: [.shortFact: .claude(Scala.Step(family: .opus, effort: .high))])
+
+        let route = router.route(for: Self.classification(.shortFact), fit: .fits(tokens: 12), preferences: preferences,
+                                 in: Self.catalog)
+
+        #expect(route == Route(family: .opus, model: "opus", effort: .high, reason: .preferred(.shortFact)))
+    }
+
+    @Test func aPreferenceOutsideTheCatalogLeavesTheDefault() {
+        let preferences = ModelRouter.Preferences(choices: [.writing: .claude(Scala.Step(family: .fable, effort: nil))])
+
+        let route = router.route(for: Self.classification(.writing), preferences: preferences, in: Self.catalog)
+
+        #expect(route.reason == .type(.writing, runnerUp: nil))
+        #expect(route.family == .sonnet)
+    }
+
+    @Test func aPreferredEndpointAnswersWhenItMay() {
+        var endpoint = OpenAICompatibleEndpoint.known[0]
+        endpoint.model = "gpt-prova"
+        let choices: [RequestType: TypePreference] = [.writing: .endpoint(id: endpoint.id)]
+
+        let allowed = router.route(for: Self.classification(.writing),
+                                   preferences: ModelRouter.Preferences(choices: choices, endpoints: [endpoint]),
+                                   in: Self.catalog)
+        let withoutConsent = router.route(for: Self.classification(.writing),
+                                          preferences: ModelRouter.Preferences(choices: choices), in: Self.catalog)
+        let withAllegati = router.route(for: Self.classification(.writing), hasAttachments: true,
+                                        preferences: ModelRouter.Preferences(choices: choices, endpoints: [endpoint]),
+                                        in: Self.catalog)
+
+        #expect(allowed.endpoint == endpoint)
+        #expect(allowed.reason == .preferred(.writing))
+        #expect(withoutConsent.endpoint == nil)
+        #expect(withoutConsent.reason == .type(.writing, runnerUp: nil))
+        #expect(withAllegati.endpoint == nil)
+    }
+}

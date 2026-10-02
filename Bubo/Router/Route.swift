@@ -6,6 +6,8 @@ nonisolated struct Route: Equatable, Sendable {
         case claude
         /// Apple Foundation Models, on the Mac.
         case onDevice
+        /// An OpenAI-compatible endpoint the user prefers for the Tipo, with the model they set for it.
+        case endpoint(OpenAICompatibleEndpoint)
     }
 
     /// Why a Domanda that Apple Foundation Models could answer went to Claude instead.
@@ -38,6 +40,8 @@ nonisolated struct Route: Equatable, Sendable {
         case stronger
         /// "Rifai con…": the model the user picked among the near ones, for this turn only.
         case retried
+        /// "Usa sempre per «Tipo»": the user's preference for the Tipo, instead of its default.
+        case preferred(RequestType)
     }
 
     /// The family the router asked for; `nil` when `claude` picks.
@@ -47,7 +51,7 @@ nonisolated struct Route: Equatable, Sendable {
     /// The effort asked for; `nil` for the model's default, and always for a model without effort.
     let effort: Effort?
     let reason: Reason
-    /// Who answers; with `.onDevice`, `family`, `model` and `effort` are `nil`.
+    /// Who answers; with `.onDevice` and `.endpoint`, `family`, `model` and `effort` are `nil`.
     var destination: Destination = .claude
     /// Why Apple Foundation Models did not answer a Tipo it answers by default; `nil` when it did, or for other Tipi.
     var onDeviceFallback: OnDeviceFallback?
@@ -55,6 +59,12 @@ nonisolated struct Route: Equatable, Sendable {
     /// The route of a Domanda of `type` that Apple Foundation Models answers on the Mac.
     static func onDevice(_ type: RequestType, runnerUp: RequestType?) -> Route {
         Route(family: nil, model: nil, effort: nil, reason: .type(type, runnerUp: runnerUp), destination: .onDevice)
+    }
+
+    /// The endpoint that answers, when the user prefers one for the Tipo.
+    var endpoint: OpenAICompatibleEndpoint? {
+        if case let .endpoint(endpoint) = destination { return endpoint }
+        return nil
     }
 
     /// The route of a turn whose model the user picked, such as `sonnet` after a limit: no effort, `claude`'s default.

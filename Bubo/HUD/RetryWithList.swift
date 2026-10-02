@@ -8,6 +8,10 @@ struct RetryWithList: View {
     let excluded: [OpenAICompatibleEndpoint]
     /// Whether `claude` runs with the API key, paid per use, rather than the subscription.
     let usesAPIKey: Bool
+    /// The Tipo di richiesta of the Domanda, which "Usa sempre per «Tipo»" names; `nil` when it was not decided.
+    let type: RequestType?
+    /// Whether the model picked becomes the preference of `type`, for all the Domande.
+    @Binding var alwaysUse: Bool
     let pick: (RetryAlternative) -> Void
 
     var body: some View {
@@ -36,6 +40,13 @@ struct RetryWithList: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityElement(children: .combine)
+            }
+            if let type, !alternatives.isEmpty {
+                Toggle("Usa sempre per «\(String(localized: type.label))»", isOn: $alwaysUse)
+                    .toggleStyle(.checkbox)
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+                    .help("Le prossime Domande di \(String(localized: type.label)) vanno al modello che scegli qui. Puoi togliere la preferenza in Impostazioni › Modelli.")
             }
             ForEach(excluded) { endpoint in
                 Text("\(endpoint.name) è escluso per questa Domanda: non hai dato il consenso.")
@@ -93,6 +104,6 @@ struct RetryWithList: View {
         RetryAlternative(target: .claude(Scala.Step(family: .sonnet, effort: .low)), firstToken: .milliseconds(820)),
         RetryAlternative(target: .claude(Scala.Step(family: .opus, effort: .medium))),
         RetryAlternative(target: .endpoint(endpoint)),
-    ], excluded: [gemini], usesAPIKey: false) { _ in }
+    ], excluded: [gemini], usesAPIKey: false, type: .writing, alwaysUse: .constant(false)) { _ in }
     .background(Palette.ink)
 }
