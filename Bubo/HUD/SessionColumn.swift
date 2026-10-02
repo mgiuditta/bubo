@@ -226,6 +226,12 @@ struct SessionRow: View {
 
     private var isArchived: Bool { !session.isLive }
 
+    /// Whether the Esecuzione asked for the Modalità autonoma but `claude` chose another mode.
+    private var isAutonomyUnavailable: Bool {
+        session.automation != nil && session.permissionMode == .autonomous
+            && session.effectiveMode.map { $0 != PermissionMode.autonomous.rawValue } == true
+    }
+
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
 
@@ -282,6 +288,14 @@ struct SessionRow: View {
                 SandboxBlockList(blocks: blocks, project: session.project, sandbox: store.sandbox)
                     .padding([.horizontal, .bottom], Spacing.xSmall)
             }
+            // Outside the combined element too, so each Consenti stays a button of its own.
+            if let mark = session.automation, !isArchived, !session.denials.isEmpty || isAutonomyUnavailable {
+                DenialReport(denials: session.denials, isAutonomyUnavailable: isAutonomyUnavailable,
+                             rules: store.automations[mark.automation]?.rules) { denial in
+                    for rule in denial.suggestions { store.automations.allow(rule, in: mark.automation) }
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
         }
         // Read again each time the Sessione changes Attività: the agent may have written the file.
         .task(id: session.terminalFolder == nil ? nil : session.activitySince) {
@@ -320,6 +334,13 @@ struct SessionRow: View {
                 if let since = session.activitySince {
                     ActivityWait(since: since, isWaitingForUser: session.activity == .attende && !isArchived)
                 }
+            }
+            if let mark = session.automation {
+                Text("Automazione · \(mark.name) · \(mark.startedAt.formatted(date: .omitted, time: .shortened))")
+                    .font(Typography.mono(size: 10, weight: .medium))
+                    .textCase(.uppercase)
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
             }
             if let summary = session.summary {
                 Text(verbatim: summary)

@@ -114,6 +114,8 @@ final class AgentBridge {
     ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
     ///   - permissionMode: How `claude` approves the calls; `nil` lets `claude` pick.
     ///   - rosa: The Varianti the agent may give the Orb while it works, with the tag `⟦orb:nome⟧`.
+    ///   - unattended: Makes the turn one with nobody in front of it, an Esecuzione's: `claude` never asks, and a
+    ///     Richiesta that arrives anyway is refused at once. Its denials and mode reach `progress`.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
@@ -128,7 +130,7 @@ final class AgentBridge {
              isSandboxed: Bool = false,
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
-             rosa: [Variante] = Catalogo.bundled?.rosa() ?? [],
+             rosa: [Variante] = Catalogo.bundled?.rosa() ?? [], unattended: UnattendedTurn? = nil,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -144,7 +146,8 @@ final class AgentBridge {
             let process = try runningProcess()
             answers[id] = continuation
             progressHandlers[id] = progress
-            permissionHandlers[id] = permissions
+            // Nobody answers in an Esecuzione: without a handler, a Richiesta is refused as it arrives.
+            permissionHandlers[id] = unattended == nil ? permissions : nil
             usageHandlers[id] = usage
             answeringHandlers[id] = answeredBy
             previewHandlers[id] = preview
@@ -160,7 +163,7 @@ final class AgentBridge {
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
                                             remembers: remembers, permissionMode: permissionMode, effort: effort,
-                                            rosa: rosa.map(\.nome))
+                                            rosa: rosa.map(\.nome), unattended: unattended)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

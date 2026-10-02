@@ -624,6 +624,22 @@
         }
       }
     },
+    "(Esecuzione dell'Automazione «%@», prevista %@, partita %@. Nessuno può approvare le azioni: quelle negate finiscono in un resoconto per l'utente.)" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "(Esecuzione dell'Automazione «%1$@», prevista %2$@, partita %3$@. Nessuno può approvare le azioni: quelle negate finiscono in un resoconto per l'utente.)"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "(Run of the automation “%1$@”, due %2$@, started %3$@. Nobody can approve actions: the denied ones go into a report for the user.)"
+          }
+        }
+      }
+    },
     "+%lld altri messaggi" : {
       "localizations" : {
         "en" : {
@@ -1657,12 +1673,48 @@
         }
       }
     },
+    "Automazione · %@ · %@" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Automazione · %1$@ · %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automation · %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Automazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automations"
+          }
+        }
+      }
+    },
     "Avvia" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Start"
+          }
+        }
+      }
+    },
+    "Avvia ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run Now"
           }
         }
       }
@@ -1723,6 +1775,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allowed actions"
+          }
+        }
+      }
+    },
+    "Azioni negate · %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denied actions · %lld"
           }
         }
       }
@@ -2909,6 +2971,16 @@
         }
       }
     },
+    "Consenti per questa Automazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow for This Automation"
+          }
+        }
+      }
+    },
     "Consenti solo ora" : {
       "localizations" : {
         "en" : {
@@ -2935,6 +3007,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Allowed in this Project · %lld"
+          }
+        }
+      }
+    },
+    "Consentito in questa Automazione dalla prossima Esecuzione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed in this automation from the next run"
           }
         }
       }
@@ -3315,6 +3397,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "CLI History"
+          }
+        }
+      }
+    },
+    "Da %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %@"
           }
         }
       }
@@ -4401,6 +4493,16 @@
         }
       }
     },
+    "Il Progetto non è fidato: le sue Regole non valgono nelle Esecuzioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project isn't trusted: its rules don't apply to the runs."
+          }
+        }
+      }
+    },
     "Il Progetto non è più in %@. Riporta lì la cartella o cancella la Sessione." : {
       "localizations" : {
         "en" : {
@@ -4417,6 +4519,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Project is no longer at %@. Move the folder back or delete the Draft."
+          }
+        }
+      }
+    },
+    "Il Progetto non è un repo git: niente copia isolata, quindi niente Modalità autonoma. Decidono solo le Regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Project isn't a git repo: no isolated copy, so no Autonomous mode. Only the rules decide."
           }
         }
       }
@@ -5553,6 +5665,16 @@
         }
       }
     },
+    "Livello 4–5: fallo a mano riprendendo la Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Level 4–5: do it yourself by resuming the Session."
+          }
+        }
+      }
+    },
     "Lo script di setup non è finito in tempo ed è stato fermato." : {
       "localizations" : {
         "en" : {
@@ -5780,6 +5902,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Autonomous mode"
+          }
+        }
+      }
+    },
+    "Modalità autonoma non disponibile per questo modello o account: hanno deciso solo le Regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autonomous mode isn't available for this model or account: only the rules decided."
           }
         }
       }
@@ -6360,6 +6492,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No API key saved"
+          }
+        }
+      }
+    },
+    "Nessuna Automazione. Creane una con Nuova Automazione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No automations yet. Create one with New Automation."
           }
         }
       }
@@ -6960,6 +7102,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Note: %@"
+          }
+        }
+      }
+    },
+    "Nuova Automazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Automation"
           }
         }
       }
@@ -7943,6 +8095,16 @@
         }
       }
     },
+    "Richiesta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Request"
+          }
+        }
+      }
+    },
     "Richiesta di permesso" : {
       "localizations" : {
         "en" : {
@@ -8395,6 +8557,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Review Changes…"
+          }
+        }
+      }
+    },
+    "Router" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Router"
           }
         }
       }
@@ -9602,6 +9774,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Projects"
+          }
+        }
+      }
+    },
+    "Ultima Esecuzione: %@ · %lld negate" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ultima Esecuzione: %1$@ · %2$lld negate"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last run: %1$@ · %2$lld denied"
           }
         }
       }

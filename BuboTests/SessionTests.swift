@@ -351,3 +351,13 @@ struct SessionTests {
         #expect(sessions.map(\.isSummaryPending) == [false])
     }
 }
+
+extension SessionTests {
+    @Test func aSessionSavedBeforeAutomationsDecodesWithoutAMark() throws {
+        let saved = #"[{"id":"6A1F3C2E-0000-4000-8000-000000000001","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let session = try #require(try JSONDecoder().decode([Session].self, from: Data(saved.utf8)).first)
+        #expect(session.automation == nil)
+        #expect(session.denials.isEmpty)
+        #expect(session.effectiveMode == nil)
+    }
+}

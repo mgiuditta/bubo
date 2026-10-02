@@ -28,6 +28,10 @@ nonisolated struct Risk: Equatable, Sendable {
     /// working folder or a parent of it, an unresolved variable): never approvable.
     var isCritical = false
 
+    /// Whether Bubo's gate stops the call even where rules or the Modalità autonoma would let it run: level 4–5, or
+    /// critical.
+    var isDangerous: Bool { level.isDangerous || isCritical }
+
     /// A critical removal.
     static let critical = Risk(level: .irreversibile, isCritical: true)
 

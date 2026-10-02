@@ -110,6 +110,12 @@ struct BuboApp: App {
         }
         .defaultLaunchBehavior(.suppressed)
 
+        // In the Finestra menu, with no shortcut (spec 19).
+        Window("Automazioni", id: AutomationsWindow.windowID) {
+            AutomationsWindow(store: appDelegate.sessions, runner: appDelegate.executions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(appDelegate.sessions)

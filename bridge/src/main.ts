@@ -27,13 +27,14 @@ import { summarize, summaryOptions } from "./summary";
 import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
+import { Denials, unattendedOf, unattendedOptions, type Denial, type Unattended } from "./unattended";
 import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -85,7 +86,9 @@ type Event =
   | (RiskQuestion & { type: "risk"; id: string; request: string })
   | ({ type: "usage"; id: string } & TurnUsage)
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
-  | { type: "models"; models: CatalogEntry[] };
+  | { type: "models"; models: CatalogEntry[] }
+  | (Denial & { type: "denial"; id: string })
+  | { type: "mode"; id: string; permissionMode: PermissionMode };
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -293,15 +296,19 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `rosa` sono i nomi delle Varianti che l'agente può dare all'Orb con `⟦orb:nome⟧` (ADR 0002): vanno in coda al prompt
 // di sistema, che senza resta quello vuoto dell'SDK. Il tag non arriva mai a Bubo come testo, diventa `variante`.
 // Il cancello (`gate.ts`) passa prima di ogni strumento: con la Sandbox accesa o in Modalità autonoma.
+// `unattended` è il turno di un'Esecuzione, senza nessuno davanti: nessuna Richiesta di permesso, le Regole
+// dell'Automazione come regole di sessione, e prima di `done` un evento `denial` per ogni azione negata. Con `init`
+// arriva `mode`, la modalità che `claude` ha scelto davvero: `auto` può non essere disponibile.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
-                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = []) {
+                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
   const restored = resumed?.restored;
   const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
   const stopped = new AbortController();
   let servers: Promise<McpServerStatus[]> | undefined;
+  const denials = unattended ? new Denials() : undefined;
   const gate = sandboxGate({
     cwd,
     sandbox,
@@ -310,7 +317,16 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       servers ??= conversation.mcpServerStatus();
       return isLocal((await servers).find((server) => server.name === name));
     },
-  });
+    isUnattended: unattended !== undefined,
+  }, (input) => denials?.gate(input));
+  const ruleOptions = teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]);
+  // Una volta sola, prima della fine del turno: dopo `done` Bubo non ascolta più.
+  let reported = false;
+  const report = (found: Parameters<Denials["result"]>[0] = []) => {
+    if (!denials || reported) return;
+    reported = true;
+    for (const denial of denials.result(found)) send({ type: "denial", id, ...denial });
+  };
   const memory = keep === undefined ? undefined : memoryHooks(id);
   const witness = new AnswerWitness();
   const conversation = query({
@@ -324,7 +340,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
       mcpServers: turnServers(buboTools(id, remembers), preview ? previewTools(id, previewCalls) : undefined),
-      ...teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]),
+      ...ruleOptions,
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
@@ -333,7 +349,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       permissionMode,
       ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
       ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
-      canUseTool: askBubo(id, sandbox !== undefined),
+      ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined) }),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
       // Le scritture in memoria, solo nelle Sessioni: nelle Domande la memoria automatica è spenta.
@@ -343,6 +359,11 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
         Stop: [witness.stopHook],
+        // Con `'none'` la Richiesta non arriva a nessuno, ma l'hook scatta ancora con le regole che `claude` propone.
+        ...(denials ? { PermissionRequest: [{ hooks: [async (input: HookInput) => {
+          if (input.hook_event_name === "PermissionRequest") denials.requested(input);
+          return {};
+        }] }] } : {}),
       },
     },
   });
@@ -364,7 +385,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     for await (const message of conversation) {
       if (message.type === "system" && message.subtype === "init") {
         usage ??= new UsageReader(message.apiKeySource === "none" ? "subscription" : "apiKey", restored);
+        if (unattended) send({ type: "mode", id, permissionMode: message.permissionMode });
       }
+      if (message.type === "system" && message.subtype === "permission_denied") denials?.denied(message);
       // A ogni `init` il `claude` di questa Conversazione: si aggiorna anche con Bubo aperto. Sotto la minima di
       // Bubo, o rifiutato da Anthropic, la Conversazione si chiude prima del turno del modello.
       const claude = claudeInfo(message);
@@ -407,6 +430,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         const variante = orb.tools(message.message.content.flatMap((block) => (block.type === "tool_use" ? [block] : [])));
         if (variante) send({ type: "variante", id, nome: variante });
       } else if (message.type === "result") {
+        report(message.permission_denials);
         if (message.subtype === "success" && !message.is_error) succeeded = true;
         else if (limit) send({ type: "limit", id, ...limit });
         else if (failure === "authentication_failed") send({ type: "signInRequired", id });
@@ -415,6 +439,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       }
     }
     sendText(orb.flush());
+    report();
     const answeredBy = witness.answeredBy();
     if (answeredBy) send({ type: "answeredBy", id, ...answeredBy });
     if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
@@ -422,6 +447,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     else if (succeeded) send({ type: "done", id });
   } catch (error) {
     // Interrotto senza un `result` valido: i token visti finora, con la cifra segnata incompleta.
+    report();
     const turn = usage?.turn();
     if (turn && !turn.complete) send({ type: "usage", id, ...turn });
     const reason = sandbox ? sandboxUnavailableReason(error) : undefined;
@@ -669,7 +695,7 @@ lines.on("line", (line) => {
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb));
+               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended));
       break;
     }
     case "config": {

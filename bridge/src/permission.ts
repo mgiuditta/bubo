@@ -35,7 +35,7 @@ export function clean(value: unknown): string | undefined {
 // quindi l'utente deve poterlo vedere tutto. Bubo lo mostra con l'escape; oltre `subjectLength` si nega.
 export const subjectLength = 100_000;
 
-function raw(value: unknown): string | undefined {
+export function raw(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
