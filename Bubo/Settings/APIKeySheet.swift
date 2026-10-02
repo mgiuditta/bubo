@@ -2,6 +2,8 @@ import SwiftUI
 
 /// Asks for an API key; the key is typed in a secure field and never shown.
 struct APIKeySheet: View {
+    /// What the field shows while empty, the start of the provider's keys.
+    var placeholder = "sk-ant-…"
     /// Receives the trimmed key when the user saves.
     let save: (String) -> Void
     @Environment(\.dismiss) private var dismiss
@@ -13,7 +15,7 @@ struct APIKeySheet: View {
 
     var body: some View {
         Form {
-            SecureField("API key", text: $key, prompt: Text(verbatim: "sk-ant-…"))
+            SecureField("API key", text: $key, prompt: Text(verbatim: placeholder))
             Text("La chiave resta nel Portachiavi di questo Mac e non va su iCloud. Bubo non la usa mai da solo: si paga a consumo.")
                 .font(.callout)
                 .foregroundStyle(.secondary)

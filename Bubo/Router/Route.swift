@@ -12,6 +12,8 @@ nonisolated struct Route: Equatable, Sendable {
         case chosenByUser
         /// "Rifai più forte": one step up the Scala, for this turn only.
         case stronger
+        /// "Rifai con…": the model the user picked among the near ones, for this turn only.
+        case retried
     }
 
     /// The family the router asked for; `nil` when `claude` picks.
@@ -31,6 +33,14 @@ nonisolated struct Route: Equatable, Sendable {
     static func stronger(_ step: Scala.Step) -> Route {
         Route(family: step.family, model: step.family.alias, effort: step.effort, reason: .stronger)
     }
+
+    /// The route of `step` picked in "Rifai con…".
+    static func retried(_ step: Scala.Step) -> Route {
+        Route(family: step.family, model: step.family.alias, effort: step.effort, reason: .retried)
+    }
+
+    /// The route of a Domanda an OpenAI-compatible endpoint answers, picked in "Rifai con…": not `claude`'s.
+    static let retriedElsewhere = Route(family: nil, model: nil, effort: nil, reason: .retried)
 
     /// The step of the Scala this route ran on, as `answeringModel` says when known: the model that answered and its
     /// effective effort; `nil` when not even the family is known.

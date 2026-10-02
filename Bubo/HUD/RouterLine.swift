@@ -78,6 +78,8 @@ struct RouterLine: View {
             return LocalizedStringResource("Scelto da te", comment: Self.comment)
         case .stronger:
             return LocalizedStringResource("Rifai più forte → \(family)", comment: Self.comment)
+        case .retried:
+            return LocalizedStringResource("Rifatto da te", comment: Self.comment)
         }
     }
 
@@ -96,6 +98,11 @@ struct RouterLine: View {
         case let .spesa(value)?:
             return String(localized: "Spesa: \(SessionCostTotal.formatted(value))",
                           comment: "Cost of an answer paid with the API key.")
+        case .free?:
+            return String(localized: "gratis, sul Mac", comment: "Cost of an answer from a model running on this Mac.")
+        case let .tokens(count)?:
+            return String(localized: "\(count.formatted()) token sulla tua chiave",
+                          comment: "Cost of an answer from another provider, paid on the user's own key at a price Bubo does not know: the tokens used.")
         case nil:
             return nil
         }
@@ -103,8 +110,15 @@ struct RouterLine: View {
 
     /// Where the cost comes from: `claude`'s own window for a share, the SDK's estimate for a figure.
     private var costOrigin: LocalizedStringResource {
-        if case .fiveHourShare = answer.cost {
+        switch answer.cost {
+        case .fiveHourShare?:
             return LocalizedStringResource("Quota di 5 ore usata durante la risposta, come la riporta Claude.")
+        case .free?:
+            return LocalizedStringResource("Il modello gira su questo Mac: la Domanda non lo lascia.")
+        case .tokens?:
+            return LocalizedStringResource("Token contati dal fornitore, che li addebita sulla tua chiave. Bubo non conosce il prezzo.")
+        default:
+            break
         }
         return LocalizedStringResource("Stima calcolata sul Mac: non è una fattura.")
     }
@@ -128,6 +142,14 @@ struct RouterLine: View {
                                                      reason: .type(.reasoning, runnerUp: .writing)), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .chosen("sonnet"), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .stronger(Scala.Step(family: .opus, effort: .high)), provider: .anthropic))
+        RouterLine(answer: {
+            var endpoint = OpenAICompatibleEndpoint.known[0]
+            endpoint.model = "gpt-5-mini"
+            var answer = RoutedAnswer(route: .retriedElsewhere, provider: .openAI, endpoint: endpoint)
+            answer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
+            answer.endpointTokens = 1_234
+            return answer
+        }())
     }
     .frame(width: 560)
     .padding()

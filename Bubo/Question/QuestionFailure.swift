@@ -8,6 +8,8 @@ enum QuestionFailure: Error, Equatable {
     case offline
     /// The user chose the API key, but none is saved.
     case apiKeyMissing
+    /// The OpenAI-compatible endpoint picked in "Rifai con…" did not answer, or could not be asked.
+    case endpoint(OpenAICompatibleError)
     /// Anything else, such as the Domande folder not being writable.
     case unexpected
 }
