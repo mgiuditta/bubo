@@ -25,10 +25,12 @@ nonisolated extension ProcessRunner {
 
     /// Runs processes disclaimed (ADR 0005) with exactly `environment`, standard input closed, in `folder` when given.
     ///
-    /// Standard error goes to Bubo's own and is not collected.
-    static func disclaimed(environment: [String: String], in folder: URL? = nil) -> ProcessRunner {
+    /// Standard error goes to Bubo's own and is not collected, or, when `mergingErrors`, into the standard output,
+    /// for a command that tells why it failed only there.
+    static func disclaimed(environment: [String: String], in folder: URL? = nil, mergingErrors: Bool = false) -> ProcessRunner {
         ProcessRunner { executable, arguments in
-            try await runDisclaimed(executable, arguments: arguments, environment: environment, in: folder)
+            try await runDisclaimed(executable, arguments: arguments, environment: environment, in: folder,
+                                    mergingErrors: mergingErrors)
         }
     }
 }
@@ -65,8 +67,9 @@ private func runProcess(_ executable: URL, arguments: [String],
 
 @concurrent
 private func runDisclaimed(_ executable: URL, arguments: [String], environment: [String: String],
-                           in folder: URL?) async throws -> ProcessOutput {
-    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment, in: folder)
+                           in folder: URL?, mergingErrors: Bool) async throws -> ProcessOutput {
+    let process = try ProcessSpawner.spawn(executable, arguments: arguments, environment: environment, in: folder,
+                                           mergingErrors: mergingErrors)
     try process.input.close()
     return try await withTaskCancellationHandler {
         let standardOutput = try await readText(from: process.output)

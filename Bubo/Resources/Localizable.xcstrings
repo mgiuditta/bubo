@@ -744,6 +744,16 @@
         }
       }
     },
+    "Accesso al repository negato: configura una chiave SSH o un credential helper di git." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repository access denied: set up an SSH key or a git credential helper."
+          }
+        }
+      }
+    },
     "Accesso richiesto" : {
       "localizations" : {
         "en" : {
@@ -914,6 +924,26 @@
         }
       }
     },
+    "Aggiungi marketplace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Marketplace"
+          }
+        }
+      }
+    },
+    "Aggiungi marketplace…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Marketplace…"
+          }
+        }
+      }
+    },
     "Aggiungila in Impostazioni › Account, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -930,6 +960,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add it in Settings › Models, then try again."
+          }
+        }
+      }
+    },
+    "Aggiungo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adding…"
           }
         }
       }
@@ -2659,6 +2699,16 @@
         }
       }
     },
+    "Community" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Community"
+          }
+        }
+      }
+    },
     "Completa l'accesso nel browser." : {
       "localizations" : {
         "en" : {
@@ -3305,6 +3355,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Uninstall"
+          }
+        }
+      }
+    },
+    "Disinstalla anche questi plugin (%lld), in ogni Progetto, con le loro opzioni e i loro dati:" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also uninstalls these plugins (%lld), in every Project, with their options and data:"
           }
         }
       }
@@ -5484,6 +5544,16 @@
         }
       }
     },
+    "Marketplace ufficiale di Anthropic" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anthropic’s official Marketplace"
+          }
+        }
+      }
+    },
     "Memoria automatica" : {
       "localizations" : {
         "en" : {
@@ -6114,6 +6184,16 @@
         }
       }
     },
+    "Nessun plugin installato da questo marketplace." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No plugins installed from this Marketplace."
+          }
+        }
+      }
+    },
     "Nessun plugin." : {
       "localizations" : {
         "en" : {
@@ -6604,6 +6684,16 @@
         }
       }
     },
+    "Non riesco ad aggiungere il marketplace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn’t add the Marketplace"
+          }
+        }
+      }
+    },
     "Non salvarli" : {
       "localizations" : {
         "en" : {
@@ -6931,6 +7021,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Orbits"
+          }
+        }
+      }
+    },
+    "Ovunque" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everywhere"
           }
         }
       }
@@ -7487,6 +7587,16 @@
         }
       }
     },
+    "Resta dichiarato altrove: i suoi plugin restano installati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It stays declared elsewhere: its plugins stay installed."
+          }
+        }
+      }
+    },
     "Restano solo i frammenti salvati nell'Indice." : {
       "localizations" : {
         "en" : {
@@ -7883,6 +7993,16 @@
         }
       }
     },
+    "Rimuovere il marketplace %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the Marketplace %@?"
+          }
+        }
+      }
+    },
     "Rimuovi" : {
       "localizations" : {
         "en" : {
@@ -7903,12 +8023,32 @@
         }
       }
     },
+    "Rimuovi marketplace…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Marketplace…"
+          }
+        }
+      }
+    },
     "Rimuovi…" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove…"
+          }
+        }
+      }
+    },
+    "Rimuovo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removing…"
           }
         }
       }
@@ -8809,6 +8949,16 @@
         }
       }
     },
+    "Sorgente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source"
+          }
+        }
+      }
+    },
     "Spazio occupato" : {
       "localizations" : {
         "en" : {
@@ -9366,6 +9516,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A file of the model isn’t the expected one."
+          }
+        }
+      }
+    },
+    "Un repository GitHub (owner/repo), un URL git o una cartella sul Mac. Per i repository privati usa le credenziali git che hai già." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A GitHub repository (owner/repo), a git URL or a folder on the Mac. Private repositories use the git credentials you already have."
           }
         }
       }
@@ -9984,6 +10144,16 @@
         }
       }
     },
+    "claude ha finito senza errori, ma l'elenco dei marketplace non è cambiato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude finished without errors, but the Marketplace list didn’t change."
+          }
+        }
+      }
+    },
     "claude ha risposto in modo inatteso (codice %d)." : {
       "localizations" : {
         "en" : {
@@ -10040,6 +10210,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "claude stopped without saying how it went (code %d)."
+          }
+        }
+      }
+    },
+    "claude si è fermato senza dire com'è andata." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "claude stopped without saying how it went."
           }
         }
       }

@@ -8,9 +8,12 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
     var plugins: [PluginEntry]
     /// What puts a plugin in Da sistemare.
     var problems: [PluginProblem]
+    /// Every plugin installed, in any scope and any Progetto: what removing their Marketplace uninstalls.
+    var everyInstalled: Set<PluginID>
 
     /// Creates a snapshot of `marketplaces`, `plugins` and `problems`, sorting them as the window shows them.
-    init(marketplaces: [Marketplace] = [], plugins: [PluginEntry] = [], problems: [PluginProblem] = []) {
+    init(marketplaces: [Marketplace] = [], plugins: [PluginEntry] = [], problems: [PluginProblem] = [],
+         everyInstalled: Set<PluginID> = []) {
         self.marketplaces = marketplaces.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
         self.plugins = plugins.sorted { lhs, rhs in
             switch lhs.displayName.localizedStandardCompare(rhs.displayName) {
@@ -20,6 +23,12 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             }
         }
         self.problems = problems
+        self.everyInstalled = everyInstalled.union(self.plugins.filter(\.isInstalled).map(\.id))
+    }
+
+    /// The plugins `claude plugin marketplace remove` uninstalls with `marketplace`, by name.
+    func pluginsRemoved(with marketplace: Marketplace) -> [PluginID] {
+        everyInstalled.filter { $0.marketplace == marketplace.name }.sorted()
     }
 
     /// The Marketplace called `name`.
@@ -35,6 +44,11 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
     /// three settings with `enabledPlugins`.
     @concurrent static func read(from folders: PluginFolders, project: URL?) async -> PluginSnapshot {
         let known = json(at: folders.knownMarketplaces) as? [String: Any] ?? [:]
+        let settings = [folders.userSettings] + (project.map { [folders.projectSettings(of: $0).shared, folders.projectSettings(of: $0).local] } ?? [])
+        let settingsJSON = settings.map { json(at: $0) as? [String: Any] ?? [:] }
+        let declaring = zip([PluginScope.user, .project, .local], settingsJSON).map { scope, file in
+            (scope, Set((file["extraKnownMarketplaces"] as? [String: Any] ?? [:]).keys))
+        }
         var marketplaces: [Marketplace] = []
         var entries: [PluginID: PluginEntry] = [:]
         for (name, value) in known {
@@ -44,18 +58,19 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             let (folder, manifest) = location.pathExtension == "json"
                 ? (location.deletingLastPathComponent().deletingLastPathComponent(), location)
                 : (location, location.appending(path: ".claude-plugin/marketplace.json"))
-            marketplaces.append(Marketplace(name: name, installLocation: folder))
+            marketplaces.append(Marketplace(name: name, installLocation: folder,
+                                            declaredScopes: declaring.filter { $0.1.contains(name) }.map(\.0)))
             for item in (json(at: manifest) as? [String: Any])?["plugins"] as? [Any] ?? [] {
                 guard let entry = entry(from: item, marketplace: name) else { continue }
                 entries[entry.id] = entry
             }
         }
 
-        let settings = [folders.userSettings] + (project.map { [folders.projectSettings(of: $0).shared, folders.projectSettings(of: $0).local] } ?? [])
-        let enabled = settings.map(enabledPlugins(at:))
+        let enabled = settingsJSON.map(enabledPlugins(in:))
         let merged = enabled.reduce(into: [PluginID: Bool]()) { result, file in result.merge(file) { $1 } }
 
-        for (id, installations) in installations(at: folders.installedPlugins) {
+        let installed = installations(at: folders.installedPlugins)
+        for (id, installations) in installed {
             let counted = installations.filter { $0.counts(in: project) }.map { installation in
                 var installation = installation
                 installation.isEnabled = merged[id] ?? false
@@ -73,7 +88,8 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             }
         }
         return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values),
-                              problems: problems.sorted { $0.plugin < $1.plugin })
+                              problems: problems.sorted { $0.plugin < $1.plugin },
+                              everyInstalled: Set(installed.filter { !$0.value.isEmpty }.keys))
     }
 
     /// An entry of a `marketplace.json`; `nil` without a name.
@@ -114,8 +130,8 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
     }
 
     /// `enabledPlugins` of a settings file; empty when the file or the key is missing.
-    private static func enabledPlugins(at file: URL) -> [PluginID: Bool] {
-        let enabled = (json(at: file) as? [String: Any])?["enabledPlugins"] as? [String: Any] ?? [:]
+    private static func enabledPlugins(in settings: [String: Any]) -> [PluginID: Bool] {
+        let enabled = settings["enabledPlugins"] as? [String: Any] ?? [:]
         var result: [PluginID: Bool] = [:]
         for (key, value) in enabled {
             guard let id = PluginID(key), let isOn = value as? Bool else { continue }
@@ -169,6 +185,7 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
         }
         // A missing project plugin that `claude` reports installed after all.
         problems.removeAll { if case let .missingProjectPlugin(id) = $0 { entries[id]?.isInstalled == true } else { false } }
-        return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems)
+        return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems,
+                              everyInstalled: everyInstalled.union(installed.map(\.id)))
     }
 }

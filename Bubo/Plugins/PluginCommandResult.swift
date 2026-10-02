@@ -1,6 +1,7 @@
 import Foundation
 
-/// How a `claude plugin …` command ended: the last JSON line of `--json`, or the exit code for `prune`.
+/// How a `claude plugin …` command ended: the last JSON line of `--json`, or the exit code for `prune` and the
+/// Marketplaces.
 nonisolated struct PluginCommandResult: Sendable, Equatable {
     /// Whether the CLI reached the goal, also when it was already reached.
     let succeeded: Bool
@@ -41,6 +42,44 @@ nonisolated struct PluginCommandResult: Sendable, Equatable {
         }
         return nil
     }
+
+    /// Reads `marketplace add` or `marketplace remove`, which print text, not JSON: the exit code, checked against
+    /// `listed`, the names `marketplace list --json` gives after it, when the command named its Marketplace.
+    ///
+    /// A failure carries the CLI's line, or `access_denied` when git found no credentials for the repository.
+    init(marketplaceOutput output: ProcessOutput, removing name: String? = nil, listed: [String]?) {
+        let text = output.standardOutput + "\n" + output.standardError
+        guard output.exitCode == 0 else {
+            let lines = text.split(whereSeparator: \.isNewline).map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            // "Adding marketplace…✘ Failed to add marketplace: …": the words after the mark.
+            let message = lines.first { $0.contains("✘") }.map { $0.drop { $0 != "✘" }.dropFirst().trimmingCharacters(in: .whitespaces) }
+            let lowered = text.lowercased()
+            let isDenied = Self.accessDenied.contains { lowered.contains($0) }
+            self.init(succeeded: false, failureCode: isDenied ? "access_denied" : nil, message: message ?? lines.last ?? "")
+            return
+        }
+        let succeeded = switch (name, Self.addedName(in: text), listed) {
+        case let (name?, _, listed?): !listed.contains(name)
+        case let (nil, added?, listed?): listed.contains(added)
+        default: true
+        }
+        self.init(succeeded: succeeded, failureCode: succeeded ? nil : "not_listed")
+    }
+
+    /// What git prints when a repository needs credentials it does not have: SSH keys, a prompt it may not show.
+    private static let accessDenied = ["permission denied (publickey)", "ssh authentication failed", "authentication failed",
+                                       "unable to get password", "could not read username", "could not read password",
+                                       "terminal prompts disabled", "repository not found"]
+
+    /// The name in "Successfully added marketplace: NAME (…)" or "Marketplace 'NAME' already on disk".
+    private static func addedName(in text: String) -> String? {
+        if let match = text.firstMatch(of: /added marketplace: (\S+)/) { return String(match.1) }
+        if let match = text.firstMatch(of: /Marketplace '([^']+)' already on disk/) { return String(match.1) }
+        return nil
+    }
+
+    /// Whether git had no credentials for the Marketplace's repository.
+    var isAccessDenied: Bool { failureCode == "access_denied" }
 
     /// Whether the CLI refused to run a `command` source and showed the command to confirm.
     var needsCommandConfirmation: Bool { failureCode == "command_source_refused" && shownCommand != nil }

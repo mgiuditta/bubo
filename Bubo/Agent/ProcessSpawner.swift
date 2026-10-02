@@ -25,12 +25,12 @@ nonisolated enum ProcessSpawnerError: Error, Equatable {
 /// A disclaimed child is responsible for itself: it does not inherit Bubo's Microphone or
 /// other privacy permissions, and asks for Files and Folders in its own name.
 nonisolated enum ProcessSpawner {
-    /// Starts `executable` with `arguments` and exactly `environment`, standard error inherited, in `folder` when
-    /// given, otherwise in Bubo's own.
+    /// Starts `executable` with `arguments` and exactly `environment`, standard error inherited or, when
+    /// `mergingErrors`, in the same pipe as standard output, in `folder` when given, otherwise in Bubo's own.
     ///
     /// - Throws: ``ProcessSpawnerError`` if the process cannot start.
     static func spawn(_ executable: URL, arguments: [String] = [], environment: [String: String],
-                      in folder: URL? = nil) throws -> SpawnedProcess {
+                      in folder: URL? = nil, mergingErrors: Bool = false) throws -> SpawnedProcess {
         var input: [Int32] = [0, 0]
         var output: [Int32] = [0, 0]
         guard pipe(&input) == 0 else { throw ProcessSpawnerError.failed(errno: errno) }
@@ -48,7 +48,11 @@ nonisolated enum ProcessSpawner {
         defer { posix_spawn_file_actions_destroy(&actions) }
         posix_spawn_file_actions_adddup2(&actions, input[0], STDIN_FILENO)
         posix_spawn_file_actions_adddup2(&actions, output[1], STDOUT_FILENO)
-        posix_spawn_file_actions_addinherit_np(&actions, STDERR_FILENO)
+        if mergingErrors {
+            posix_spawn_file_actions_adddup2(&actions, output[1], STDERR_FILENO)
+        } else {
+            posix_spawn_file_actions_addinherit_np(&actions, STDERR_FILENO)
+        }
         if let folder { posix_spawn_file_actions_addchdir(&actions, folder.path) }
 
         let pid: pid_t
