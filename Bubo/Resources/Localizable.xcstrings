@@ -8853,6 +8853,16 @@
         }
       }
     },
+    "Serve la chiave di OpenAI: aggiungila in Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs your OpenAI key: add it in Models."
+          }
+        }
+      }
+    },
     "Serve una volta sola: riprova tra poco." : {
       "localizations" : {
         "en" : {
@@ -9720,6 +9730,16 @@
         }
       }
     },
+    "Una voce più naturale per la Sintesi parlata. OpenAI riceve solo il testo della Sintesi, con la tua chiave, e il costo va sul tuo account. Se OpenAI non risponde, Bubo parla con le voci del Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A more natural voice for the spoken summary. OpenAI gets only the summary's text, with your key, and the cost goes on your account. If OpenAI doesn't answer, Bubo speaks with the Mac's voices."
+          }
+        }
+      }
+    },
     "Unisce %@ in %@ con un commit locale, senza push. Si annulla solo nei %@ successivi, dalla card in Fusa." : {
       "localizations" : {
         "en" : {
@@ -10010,6 +10030,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sessions View"
+          }
+        }
+      }
+    },
+    "Voce" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voice"
+          }
+        }
+      }
+    },
+    "Voce di OpenAI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenAI voice"
           }
         }
       }
