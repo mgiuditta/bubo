@@ -205,6 +205,7 @@ private struct CLIConversationRow: View {
 /// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
 struct SessionRow: View {
     @Environment(HUDPresenter.self) private var hud
+    @Environment(SessionSummarizer.self) private var summarizer: SessionSummarizer?
     let session: Session
     let store: SessionStore
     /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
@@ -404,6 +405,10 @@ struct SessionRow: View {
                     .controlSize(.small)
                     .padding(.top, Spacing.xxSmall)
             }
+            if let summarizer, let notice = summarizer.notices[session.id] {
+                SummaryNoticeRow(notice: notice, summarizer: summarizer)
+                    .padding(.top, Spacing.xxSmall)
+            }
         }
         .padding(Spacing.xSmall)
         .opacity(isArchived ? 0.6 : 1)
@@ -418,6 +423,10 @@ struct SessionRow: View {
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
+            if summarizer != nil {
+                Button("Riassumi ora", action: summarize)
+                    .disabled(session.isRunning)
+            }
             if !isArchived {
                 Button("Archivia", action: archive)
                     .disabled(session.isRunning)
@@ -431,10 +440,17 @@ struct SessionRow: View {
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
             if !session.isRunning {
+                if summarizer != nil { Button("Riassumi ora", action: summarize) }
                 if !isArchived { Button("Archivia", action: archive) }
                 Button("Cancella…", action: confirmDeletion)
             }
         }
+    }
+
+    /// Riassumi ora: the Riassunto di Sessione in the Secondo cervello, whatever the Fase.
+    private func summarize() {
+        guard let summarizer else { return }
+        Task { await summarizer.summarize(session.id) }
     }
 
     /// Archivia, after a confirmation when something runs in the Sessione's terminal.

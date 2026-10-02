@@ -34,6 +34,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             return nil
         }
     }()
+    /// The Riassunti di Sessione, written in the Secondo cervello at Fondi and Archivia; `nil` without Sessioni.
+    private(set) lazy var summarizer: SessionSummarizer? = makeSummarizer()
+    /// Writes the pending Riassunti di Sessione each time the network returns.
+    private var summaryRetries: Task<Void, Never>?
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
         let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
@@ -99,6 +103,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 
+    private func makeSummarizer() -> SessionSummarizer? {
+        guard let sessions else { return nil }
+        let claude = ClaudeSummaryEngine(bridge: { [questions] in try await questions.readyBridge() },
+                                         usage: { usage, id, turn in
+            guard let project = sessions.sessions.first(where: { $0.id == id })?.project else { return }
+            sessions.ledger.record(usage, turn: turn, session: id, project: project)
+        })
+        let engines: [any SummaryEngine] = [claude, FoundationModelsSummaryEngine()]
+        return SessionSummarizer(sessions: sessions, secondBrain: secondBrain, index: searchIndex, engines: engines,
+                                 transcript: { conversation in try await sessions.transcript(ofConversation: conversation) })
+    }
+
     private func makeLaunchSequence() -> LaunchSequence {
         LaunchSequence { [questions] in
             await questions.startBridge()
@@ -133,6 +149,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Before any turn can start, so the first token reaches it.
         _ = onboarding
         sessions?.onFileActivity = { [weak self] id, progress in self?.galaxies.record(progress, by: id) }
+        // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
+        summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
             Task { await self?.questions.readQuotaIfNeeded() }

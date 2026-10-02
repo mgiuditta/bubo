@@ -115,6 +115,129 @@ struct NoteWriterTests {
 }
 
 @Suite(.timeLimit(.minutes(1)))
+struct SessionSummaryNoteTests {
+    let folder: NotesFolder
+    static let session = UUID(uuidString: "3F2504E0-4F89-11D3-9A0C-0305E82C3301")!
+
+    init() throws {
+        folder = try NotesFolder()
+    }
+
+    func writer(on day: Date = NoteWriterTests.day) -> NoteWriter {
+        NoteWriter(root: folder.notes, timeZone: NoteWriterTests.rome, now: { day })
+    }
+
+    func properties(_ phase: Session.Phase = .fusa) -> SummaryProperties {
+        SummaryProperties(title: "Riassunto: di Sessione", project: "bubo", branch: "bubo/riassunto", phase: phase,
+                          session: Self.session, related: ["Diario"])
+    }
+
+    func text(of note: SummaryNote) throws -> String {
+        try String(contentsOf: folder.notes.appending(path: note.relativePath), encoding: .utf8)
+    }
+
+    @Test func aSummaryGoesInBuboSessioniWithItsProperties() throws {
+        let note = try #require(try writer().writeSessionSummary("## Fatto\n\n- uno\n", properties: properties(),
+                                                                 replacing: nil))
+
+        #expect(note.relativePath == "Bubo/Sessioni/2026-10-01 Riassunto di Sessione.md")
+        #expect(note.createdOn == "2026-10-01")
+        #expect(!note.isEditedByHand)
+        #expect(try text(of: note) == """
+            ---
+            titolo: "Riassunto: di Sessione"
+            progetto: "bubo"
+            branch: "bubo/riassunto"
+            fase: fusa
+            creata: 2026-10-01
+            aggiornata: 2026-10-01
+            sessione: "bubo://sessione/3f2504e0-4f89-11d3-9a0c-0305e82c3301"
+            correlate: ["[[Diario]]"]
+            ---
+
+            ## Fatto
+
+            - uno
+
+            """)
+    }
+
+    @Test func anUnchangedSummaryIsReplacedInPlaceWithItsNewFase() throws {
+        let first = try #require(try writer().writeSessionSummary("primo", properties: properties(.fusa), replacing: nil))
+        let later = NoteWriterTests.day.addingTimeInterval(86_400)
+
+        let second = try #require(try writer(on: later).writeSessionSummary("secondo", properties: properties(.archiviata),
+                                                                            replacing: first))
+
+        #expect(second.relativePath == first.relativePath)
+        #expect(!second.isEditedByHand)
+        let text = try text(of: second)
+        #expect(text.contains("fase: archiviata"))
+        #expect(text.contains("creata: 2026-10-01"))
+        #expect(text.contains("aggiornata: 2026-10-02"))
+        #expect(text.contains("secondo"))
+        #expect(!text.contains("primo"))
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.notes.appending(path: "Bubo/Sessioni").path)
+            .count == 1)
+    }
+
+    @Test func aSummaryEditedByHandKeepsItsBytesAndGetsAnUpdateSectionAtTheEnd() throws {
+        let first = try #require(try writer().writeSessionSummary("primo", properties: properties(), replacing: nil))
+        let file = folder.notes.appending(path: first.relativePath)
+        let edited = try text(of: first) + "Una mia nota a mano.\n"
+        try edited.write(to: file, atomically: true, encoding: .utf8)
+
+        let second = try #require(try writer().writeSessionSummary("## Fatto\n\n- altro", properties: properties(),
+                                                                   replacing: first))
+
+        #expect(second.isEditedByHand)
+        let text = try text(of: second)
+        #expect(text.hasPrefix(edited))
+        #expect(text == edited + "\n## Aggiornamento 2026-10-01\n\n## Fatto\n\n- altro\n")
+    }
+
+    @Test func aSummaryEditedOnceIsNeverReplacedAgain() throws {
+        let first = try #require(try writer().writeSessionSummary("primo", properties: properties(), replacing: nil))
+        try (try text(of: first) + "a mano\n").write(to: folder.notes.appending(path: first.relativePath), atomically: true,
+                                                     encoding: .utf8)
+
+        let second = try #require(try writer().writeSessionSummary("secondo", properties: properties(), replacing: first))
+        let third = try #require(try writer().writeSessionSummary("terzo", properties: properties(), replacing: second))
+
+        let text = try text(of: third)
+        #expect(third.isEditedByHand)
+        #expect(text.contains("primo"))
+        #expect(text.contains("a mano"))
+        #expect(text.components(separatedBy: "## Aggiornamento").count == 3)
+        #expect(text.hasSuffix("terzo\n"))
+    }
+
+    @Test func aDeletedSummaryIsNotWrittenAgain() throws {
+        let first = try #require(try writer().writeSessionSummary("primo", properties: properties(), replacing: nil))
+        try FileManager.default.removeItem(at: folder.notes.appending(path: first.relativePath))
+
+        let second = try writer().writeSessionSummary("secondo", properties: properties(), replacing: first)
+
+        #expect(second == nil)
+        #expect(try FileManager.default.contentsOfDirectory(atPath: folder.notes.appending(path: "Bubo/Sessioni").path)
+            .isEmpty)
+    }
+
+    @Test func aSummaryNeverLeavesBuboSessioni() throws {
+        let elsewhere = folder.claude.folder.appending(path: "Altrove")
+        try FileManager.default.createDirectory(at: elsewhere, withIntermediateDirectories: true)
+        try FileManager.default.createDirectory(at: folder.notes.appending(path: "Bubo"), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: folder.notes.appending(path: "Bubo/Sessioni"),
+                                                   withDestinationURL: elsewhere)
+
+        #expect(throws: NoteWriter.Failure.outsideBubo) {
+            try writer().writeSessionSummary("testo", properties: properties(), replacing: nil)
+        }
+        #expect(try FileManager.default.contentsOfDirectory(atPath: elsewhere.path).isEmpty)
+    }
+}
+
+@Suite(.timeLimit(.minutes(1)))
 struct RememberToolTests {
     let folder: NotesFolder
     let defaults: UserDefaults

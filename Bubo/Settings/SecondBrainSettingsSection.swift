@@ -8,6 +8,7 @@ struct SecondBrainSettingsSection: View {
     @State private var isObsidianVault = false
     @State private var vaults: [URL] = []
     @State private var isChoosingFolder = false
+    @AppStorage(SessionSummarizer.defaultsKey) private var writesSummaries = true
 
     var body: some View {
         Section {
@@ -44,6 +45,7 @@ struct SecondBrainSettingsSection: View {
                 }
                 Button("Scegli una cartella…") { isChoosingFolder = true }
             }
+            Toggle("Scrivi un riassunto quando una Sessione è Fusa o Archiviata", isOn: $writesSummaries)
         } header: {
             Text("Secondo cervello")
         } footer: {

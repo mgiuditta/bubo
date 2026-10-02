@@ -1,0 +1,330 @@
+{
+  "nota": "I segreti sono finti; il carattere § li spezza per la scansione di GitHub e il test lo toglie.",
+  "trascrizioni": [
+    {
+      "titolo": "Configura il client Anthropic",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Usa questa chiave per i test: sk-§ant-api03-TOltgSxsXbtv4bMFG9MvKZHj0LRUG1a6nKiZ4493ysWYeN25dJ00Px4vWLDBfCmq21QPaXEfDae5j6pxAA"
+        },
+        {
+          "utente": false,
+          "testo": "Ho aggiunto la chiave a `.env.local`, che è in `.gitignore`."
+        }
+      ],
+      "segreti": [
+        "sk-§ant-api03-TOltgSxsXbtv4bMFG9MvKZHj0LRUG1a6nKiZ4493ysWYeN25dJ00Px4vWLDBfCmq21QPaXEfDae5j6pxAA"
+      ]
+    },
+    {
+      "titolo": "Migra a OpenAI",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "OPENAI_API_KEY=sk-§proj-zY2nkl2Xrrif93qGlX63nP5h9lM38H5mOWI3rkiKu9Di6WXA"
+        },
+        {
+          "utente": false,
+          "testo": "Ho letto la variabile in `Config.swift`."
+        }
+      ],
+      "segreti": [
+        "sk-§proj-zY2nkl2Xrrif93qGlX63nP5h9lM38H5mOWI3rkiKu9Di6WXA"
+      ]
+    },
+    {
+      "titolo": "Workflow di rilascio",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Il push fallisce."
+        },
+        {
+          "utente": false,
+          "testo": "Il remote usa il token https://x-access-token:gh§p_XV0gYI2oihj0XdVhW3Rkc9VCmQDOntSwvvYl@github.com/acme/app.git, lo tolgo."
+        }
+      ],
+      "segreti": [
+        "gh§p_XV0gYI2oihj0XdVhW3Rkc9VCmQDOntSwvvYl"
+      ]
+    },
+    {
+      "titolo": "Token per gh",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "export GH_TOKEN=github§_pat_VyjSKdoaLsSDcjFdta5X6P_EcBiLlUT1AuewFBUJxVyNPvLyMe3IxuhvHNHza59bjRISZyLO93OQh31rqj"
+        },
+        {
+          "utente": false,
+          "testo": "Ora `gh pr list` funziona."
+        }
+      ],
+      "segreti": [
+        "github§_pat_VyjSKdoaLsSDcjFdta5X6P_EcBiLlUT1AuewFBUJxVyNPvLyMe3IxuhvHNHza59bjRISZyLO93OQh31rqj"
+      ]
+    },
+    {
+      "titolo": "Bucket S3",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "aws_access_key_id = AK§IAPBGSI5TACG5IBJ63\naws_secret_access_key = 5o5SKagGWwsvT9HFzpbcjQDqDYvKI+vXb1LniKVr"
+        },
+        {
+          "utente": false,
+          "testo": "Ho configurato il profilo `deploy`."
+        }
+      ],
+      "segreti": [
+        "AK§IAPBGSI5TACG5IBJ63",
+        "5o5SKagGWwsvT9HFzpbcjQDqDYvKI+vXb1LniKVr"
+      ]
+    },
+    {
+      "titolo": "Notifiche Slack",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Il bot usa xo§xb-757511474885-1534615594589-7UJus82U2mdQZgpXfy5ybvXr"
+        },
+        {
+          "utente": false,
+          "testo": "Ho spostato il token nel portachiavi."
+        }
+      ],
+      "segreti": [
+        "xo§xb-757511474885-1534615594589-7UJus82U2mdQZgpXfy5ybvXr"
+      ]
+    },
+    {
+      "titolo": "Debug autenticazione",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "La risposta ha questo JWT: ey§JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hcmlvIn0.9BvFlChlFNBdDtflhQBFz4wBs4siNg6SZSONUYqKl8P"
+        },
+        {
+          "utente": false,
+          "testo": "Il campo `sub` è 1234567890, quindi l'utente è giusto."
+        }
+      ],
+      "segreti": [
+        "ey§JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hcmlvIn0.9BvFlChlFNBdDtflhQBFz4wBs4siNg6SZSONUYqKl8P"
+      ]
+    },
+    {
+      "titolo": "Chiamata API con curl",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Prova la chiamata."
+        },
+        {
+          "utente": false,
+          "testo": "curl -H 'Authorization: Bearer 6Q14tYlmpJNTUj..Qy9L506TV3aIRafRu4pYQnFP' https://api.example.com/v1/me"
+        }
+      ],
+      "segreti": [
+        "6Q14tYlmpJNTUj..Qy9L506TV3aIRafRu4pYQnFP"
+      ]
+    },
+    {
+      "titolo": "Database locale",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "La password del database è: 1wXhvvmZ3ca4l3"
+        },
+        {
+          "utente": false,
+          "testo": "Ho aggiornato `docker-compose.yml`."
+        }
+      ],
+      "segreti": [
+        "1wXhvvmZ3ca4l3"
+      ]
+    },
+    {
+      "titolo": "Connessione Postgres",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Non si connette."
+        },
+        {
+          "utente": false,
+          "testo": "DATABASE_URL=postgres://app:gvarAqDA1UWBM&@localhost:5432/app ora funziona."
+        }
+      ],
+      "segreti": [
+        "gvarAqDA1UWBM&"
+      ]
+    },
+    {
+      "titolo": "Chiave di deploy",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "Ecco la chiave:\n-----BEGIN RSA PRIVATE §KEY-----\ndBLMplUNpHZbKig8hcxjHnZIOWJ+vhBgMHGO6vdEUcbZ5zAslRq6GFZ8jZ0laRKc\nnDDFZUQnlRDBMnJb6+EScYtQAM06mx7ZKvba6K5L94A8r8cRYdsesVLyJP3u25lR\nGhrg2sLTrdo8T/evk9FU4CTNaPmwtW8lwAZM2LAFCE4o1sAIVJsNP/6SDh29yAnU\n7uTqyPJ/oKo2GV7sLRwmFMDcftjZbsv+p4k1uvN+7alt8XANnglJqR/dQxx9g1ng\n9gdGXor7oSyXYrpSGVvYsjHfNRIjZbJa2QMJND3dQ3gvC+Xv0J6HYUTmnSE3feRV\nPzBTEVsA4C8EIXImwTFLjbm370JXvlC7OXNVd59PFS0NHN0QwdchqJk+uR+jvyfe\n-----END RSA PRIVATE §KEY-----"
+        },
+        {
+          "utente": false,
+          "testo": "Ho salvato la chiave in `~/.ssh/deploy` con permessi 600."
+        }
+      ],
+      "segreti": [
+        "dBLMplUNpHZbKig8hcxjHnZIOWJ+vhBgMHGO6vdEUcbZ5zAslRq6GFZ8jZ0laRKc",
+        "Ghrg2sLTrdo8T/evk9FU4CTNaPmwtW8lwAZM2LAFCE4o1sAIVJsNP/6SDh29yAnU"
+      ]
+    },
+    {
+      "titolo": "Mappe nell'app",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "La chiave di Google Maps è AI§zaqWHfzo_ChWwcoat8vN5DiSxeG71-1j3QD9Q"
+        },
+        {
+          "utente": false,
+          "testo": "L'ho messa in `Info.plist` sotto `GMSApiKey`."
+        }
+      ],
+      "segreti": [
+        "AI§zaqWHfzo_ChWwcoat8vN5DiSxeG71-1j3QD9Q"
+      ]
+    },
+    {
+      "titolo": "Due chiavi",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "ANTHROPIC_API_KEY=sk-§ant-api03-Gmz8SDBu511WU3Z2BpHAAXPAmcZg3yZI1JwiTVcwq0ZPqjnTPNgssq3ipUXlrRHI16mFM9ICSLS3JIX8AA"
+        },
+        {
+          "utente": false,
+          "testo": "E per GitHub uso gh§p_HrnMnNqLQsfkkhPHOZjvLAhMcQkA2pxRgPRK."
+        }
+      ],
+      "segreti": [
+        "sk-§ant-api03-Gmz8SDBu511WU3Z2BpHAAXPAmcZg3yZI1JwiTVcwq0ZPqjnTPNgssq3ipUXlrRHI16mFM9ICSLS3JIX8AA",
+        "gh§p_HrnMnNqLQsfkkhPHOZjvLAhMcQkA2pxRgPRK"
+      ]
+    },
+    {
+      "titolo": "Segreto del webhook",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "WEBHOOK_SECRET=\"iBytZayqZcqkzw\""
+        },
+        {
+          "utente": false,
+          "testo": "Il webhook ora verifica la firma."
+        }
+      ],
+      "segreti": [
+        "iBytZayqZcqkzw"
+      ]
+    },
+    {
+      "titolo": "Login di staging",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "utente admin, password frvOmfdDqmdKte"
+        },
+        {
+          "utente": false,
+          "testo": "Entrato su staging."
+        }
+      ],
+      "segreti": [
+        "frvOmfdDqmdKte"
+      ]
+    },
+    {
+      "titolo": "Script Python",
+      "messaggi": [
+        {
+          "utente": false,
+          "testo": "Nel file `run.py` c'è `client = OpenAI(api_key=\"sk-§proj-YOYtHTlw7sgkwra2KHFUmuWvVLCIbrzZ5mMzry0u4p4BO3nm\")`: va spostata."
+        },
+        {
+          "utente": true,
+          "testo": "Spostala."
+        }
+      ],
+      "segreti": [
+        "sk-§proj-YOYtHTlw7sgkwra2KHFUmuWvVLCIbrzZ5mMzry0u4p4BO3nm"
+      ]
+    },
+    {
+      "titolo": "Redis",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "redis://default:PHsGsHhjxd6T35@cache.internal:6379"
+        },
+        {
+          "utente": false,
+          "testo": "Ho impostato la cache."
+        }
+      ],
+      "segreti": [
+        "PHsGsHhjxd6T35"
+      ]
+    },
+    {
+      "titolo": "Integrazioni",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "SLACK_BOT_TOKEN=xo§xb-791315381133-9121975152321-tkiHwlmGoeVRXBk0SDM9M9pg"
+        },
+        {
+          "utente": false,
+          "testo": "Il token di sessione era ey§JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hcmlvIn0.vaAlnUXDEdgOgvYMQZsUUTAkJdROs8WPKu8ATpL27bh"
+        }
+      ],
+      "segreti": [
+        "xo§xb-791315381133-9121975152321-tkiHwlmGoeVRXBk0SDM9M9pg",
+        "ey§JhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6Ik1hcmlvIn0.vaAlnUXDEdgOgvYMQZsUUTAkJdROs8WPKu8ATpL27bh"
+      ]
+    },
+    {
+      "titolo": "Log CloudTrail",
+      "messaggi": [
+        {
+          "utente": false,
+          "testo": "Nel log c'è la chiave AK§IARI4PU4RIEZJEO4WB usata alle 03:12."
+        },
+        {
+          "utente": true,
+          "testo": "Disattivala."
+        }
+      ],
+      "segreti": [
+        "AK§IARI4PU4RIEZJEO4WB"
+      ]
+    },
+    {
+      "titolo": "Client HTTP",
+      "messaggi": [
+        {
+          "utente": true,
+          "testo": "api_token: Puys3sah9en.OyWk7yv915a42ktM-LhPmnRJrJ2K"
+        },
+        {
+          "utente": false,
+          "testo": "E la private_key: H8xrGmRAOCesjV"
+        }
+      ],
+      "segreti": [
+        "Puys3sah9en.OyWk7yv915a42ktM-LhPmnRJrJ2K",
+        "H8xrGmRAOCesjV"
+      ]
+    }
+  ]
+}

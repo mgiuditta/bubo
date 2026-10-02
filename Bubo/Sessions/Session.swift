@@ -79,6 +79,11 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isAutonomous = false
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
+    /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
+    var summaryNote: SummaryNote?
+    /// Whether the Riassunto di Sessione waits to be written: no model could write it, or the Secondo cervello could
+    /// not be reached.
+    var isSummaryPending = false
 
     /// The lines Ricordato and Richiamato a Sessione keeps.
     static let memoryLineLimit = 3
@@ -138,8 +143,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
-    /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma and its lines Ricordato and
-    /// Richiamato were kept.
+    /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
+    /// Richiamato and its Riassunto were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -166,5 +171,7 @@ nonisolated extension Session {
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
+        summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
+        isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
     }
 }

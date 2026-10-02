@@ -51,23 +51,81 @@ nonisolated struct NoteWriter: Sendable {
         return try write(data, named: "\(day) \(name)", in: "Bubo/Note")
     }
 
-    /// Writes `data` as a new `.md` file named after `stem` in `folder`, a path under `Bubo/`.
-    private func write(_ data: Data, named stem: String, in folder: String) throws -> WrittenNote {
+    /// Writes the Riassunto di Sessione `body` in `Bubo/Sessioni/AAAA-MM-GG Titolo.md`, with `properties`.
+    ///
+    /// Without `previous` the note is a new file. With `previous` as Bubo wrote it, the note is replaced in place,
+    /// keeping its name and its creation day. With `previous` changed by hand, once or ever, its bytes stay as they
+    /// are and `## Aggiornamento AAAA-MM-GG` with `body` goes at its end. With `previous` deleted, nothing is written.
+    ///
+    /// - Returns: The note as written; `nil` when `previous` was deleted.
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/Sessioni` leads out of it; a file
+    ///   system error when the note cannot be written.
+    func writeSessionSummary(_ body: String, properties: SummaryProperties,
+                             replacing previous: SummaryNote?) throws -> SummaryNote? {
+        let day = now().formatted(Date.ISO8601FormatStyle(timeZone: timeZone).year().month().day())
+        let body = body.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let previous else {
+            let note = Data((properties.frontmatter(createdOn: day, updatedOn: day) + "\n" + body + "\n").utf8)
+            let stem = "\(day) \(Self.fileName(for: properties.title))"
+            let written = try write(note, named: stem, in: Self.summaryFolder)
+            return SummaryNote(relativePath: "\(Self.summaryFolder)/\(written.file.lastPathComponent)",
+                               hash: written.hash, createdOn: day)
+        }
+        let directory = try folder(Self.summaryFolder)
+        let name = (previous.relativePath as NSString).lastPathComponent
+        let file = directory.appending(path: name)
+        guard let current = try? Data(contentsOf: file) else { return nil }
+        let isEditedByHand = previous.isEditedByHand || Self.hash(of: current) != previous.hash
+        let note = if isEditedByHand {
+            current + Data(((current.last == UInt8(ascii: "\n") ? "" : "\n") + "\n## Aggiornamento \(day)\n\n" + body
+                            + "\n").utf8)
+        } else {
+            Data((properties.frontmatter(createdOn: previous.createdOn, updatedOn: day) + "\n" + body + "\n").utf8)
+        }
+        let temporary = try temporaryFile(holding: note, in: directory)
+        defer { try? FileManager.default.removeItem(at: temporary) }
+        // Atomic: the note is either the old one or the new one, never half written.
+        guard rename(temporary.path, file.path) == 0 else {
+            throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO)
+        }
+        return SummaryNote(relativePath: "\(Self.summaryFolder)/\(name)", hash: Self.hash(of: note),
+                           createdOn: previous.createdOn, isEditedByHand: isEditedByHand)
+    }
+
+    /// Where the Riassunti di Sessione go: excluded from the Indice, since the conversations already are in it.
+    static let summaryFolder = "Bubo/Sessioni"
+
+    /// The folder at `path` under `Bubo/`, created if needed.
+    ///
+    /// - Throws: `Failure.unreachable` when the Secondo cervello is not there; `Failure.outsideBubo` when a link takes
+    ///   the folder out of it.
+    private func folder(_ path: String) throws -> URL {
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
             throw Failure.unreachable
         }
         let realRoot = root.resolvingSymlinksInPath().standardizedFileURL.path
-        let directory = root.appending(path: folder, directoryHint: .isDirectory)
+        let directory = root.appending(path: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         // A link in place of `Bubo/` or of one of its folders would take the note out of the Secondo cervello.
         guard directory.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(realRoot + "/Bubo/") else {
             throw Failure.outsideBubo
         }
-        // Hidden, so the Indice never reads it half written.
+        return directory
+    }
+
+    /// A hidden file in `directory` holding `data`, so the Indice never reads a note half written.
+    private func temporaryFile(holding data: Data, in directory: URL) throws -> URL {
         let temporary = directory.appending(path: ".\(UUID().uuidString).tmp")
-        defer { try? FileManager.default.removeItem(at: temporary) }
         try data.write(to: temporary)
+        return temporary
+    }
+
+    /// Writes `data` as a new `.md` file named after `stem` in `folder`, a path under `Bubo/`.
+    private func write(_ data: Data, named stem: String, in folder: String) throws -> WrittenNote {
+        let directory = try self.folder(folder)
+        let temporary = try temporaryFile(holding: data, in: directory)
+        defer { try? FileManager.default.removeItem(at: temporary) }
         for number in 1...999 {
             let file = directory.appending(path: number == 1 ? "\(stem).md" : "\(stem) \(number).md")
             // Atomic, and refused when the name is taken: a note is never replaced.
