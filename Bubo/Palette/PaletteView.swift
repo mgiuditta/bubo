@@ -1,7 +1,8 @@
 import SwiftUI
 
 /// The Palette: one box, the gettoni of its filters, the commands, the conversations grouped by age and the notes of the
-/// Secondo cervello on the left, and the preview of the chosen one on the right; ↑↓ choose, ↩ opens or runs, esc closes.
+/// Secondo cervello on the left, and the preview of the chosen one on the right; ↑↓ choose, ↩ opens or runs, ⌥↩
+/// resumes, ⌘↩ continues from the message found, esc closes.
 struct PaletteView: View {
     @Bindable var model: PaletteModel
     @FocusState private var isFieldFocused: Bool
@@ -45,6 +46,11 @@ struct PaletteView: View {
                 .focused($isFieldFocused)
                 .onChange(of: model.query.text) { model.query.absorbFilters() }
                 .onSubmit { model.openSelection() }
+                .onKeyPress(keys: [.return]) { press in
+                    if press.modifiers.contains(.option) { return model.resumeSelection() ? .handled : .ignored }
+                    if press.modifiers.contains(.command) { return model.continueFromSelection() ? .handled : .ignored }
+                    return .ignored
+                }
                 .onKeyPress(.upArrow) {
                     model.moveSelection(by: -1)
                     return .handled
@@ -142,6 +148,8 @@ struct PaletteView: View {
         HStack(spacing: Spacing.medium) {
             Text("↑↓ scegli")
             Text("↩ apri o esegui")
+            Text("⌥↩ riprendi")
+            Text("⌘↩ continua da qui")
             Text("esc chiudi")
             Spacer()
             // Until the embedding model exists (#112) the Indice matches words only, and the Palette says so.

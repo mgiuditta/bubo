@@ -25,6 +25,8 @@ final class PaletteModel {
     @ObservationIgnored let open: (ConversationResult) -> Void
     /// Closes the Palette: esc.
     @ObservationIgnored var close: () -> Void = {}
+    /// Riprendi and Continua da qui on the chosen conversation; `nil` offers neither.
+    @ObservationIgnored var actions: ResumeActions?
 
     init(search: @escaping () -> ConversationSearch,
          commands: @escaping () -> [PaletteCommand] = { CommandCatalog.commands(in: NSApp.mainMenu) },
@@ -103,6 +105,26 @@ final class PaletteModel {
     func openSelection() {
         guard let selected else { return }
         activate(selected)
+    }
+
+    /// Riprendi on the chosen conversation, after closing the Palette: ⌥↩.
+    ///
+    /// - Returns: Whether it acted: only on a conversation that can be resumed.
+    func resumeSelection() -> Bool {
+        guard let result = selectedConversation, let actions, actions.canResume(result) else { return false }
+        close()
+        actions.resume(result)
+        return true
+    }
+
+    /// Continua da qui on the chosen conversation, up to the message found, after closing the Palette: ⌘↩.
+    ///
+    /// - Returns: Whether it acted: only on a conversation with a message found.
+    func continueFromSelection() -> Bool {
+        guard let result = selectedConversation, let message = result.best?.message?.id, let actions else { return false }
+        close()
+        actions.continueFrom(result, upTo: message)
+        return true
     }
 
     /// Opens the conversation or the note of `item`, or runs its command, after closing the Palette.

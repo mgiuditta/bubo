@@ -2849,6 +2849,16 @@
         }
       }
     },
+    "Continua da qui" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue from here"
+          }
+        }
+      }
+    },
     "Continua da qui, lavorando nel Progetto." : {
       "localizations" : {
         "en" : {
@@ -6794,6 +6804,26 @@
         }
       }
     },
+    "Nuova Sessione con la conversazione fino a questo messaggio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session with the conversation up to this message"
+          }
+        }
+      }
+    },
+    "Nuova Sessione con la conversazione fino al messaggio evidenziato (⌘↩)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session with the conversation up to the highlighted message (⌘↩)"
+          }
+        }
+      }
+    },
     "Nuova Sessione…" : {
       "localizations" : {
         "en" : {
@@ -7989,6 +8019,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resume After Reset"
+          }
+        }
+      }
+    },
+    "Riprendi la conversazione (⌥↩)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume the conversation (⌥↩)"
           }
         }
       }
@@ -10474,6 +10514,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "↳ to the agent: %@"
+          }
+        }
+      }
+    },
+    "⌘↩ continua da qui" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌘↩ continue from here"
+          }
+        }
+      }
+    },
+    "⌥↩ riprendi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⌥↩ resume"
           }
         }
       }

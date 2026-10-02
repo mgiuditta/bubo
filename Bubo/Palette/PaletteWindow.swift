@@ -14,8 +14,10 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
     ///
     /// - Parameters:
     ///   - search: Makes the search over the current Sessioni and Cronologia CLI.
+    ///   - actions: Riprendi (⌥↩) and Continua da qui (⌘↩) on the chosen conversation.
     ///   - open: Opens a conversation, read only, after the Palette closes.
-    init(search: @escaping () -> ConversationSearch, open: @escaping (ConversationResult) -> Void) {
+    init(search: @escaping () -> ConversationSearch, actions: ResumeActions,
+         open: @escaping (ConversationResult) -> Void) {
         var close: () -> Void = {}
         model = PaletteModel(search: search) { result in
             close()
@@ -24,6 +26,7 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
         super.init()
         close = { [weak self] in self?.close() }
         model.close = close
+        model.actions = actions
     }
 
     /// The words searched in the box, without the gettoni.

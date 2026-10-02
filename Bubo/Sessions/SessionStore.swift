@@ -243,16 +243,19 @@ final class SessionStore {
     /// - Parameters:
     ///   - onCheckout: Whether the Sessione works on the Progetto's checkout, with no copy of its own.
     ///   - conversation: The Cronologia CLI conversation the Sessione continues, as a fork.
+    ///   - message: The message of `conversation` the fork stops at, included: Continua da qui. `nil` for all of it.
     ///   - issue: The issue the Sessione starts from, with ⌘I.
     /// - Returns: The id of the new Sessione.
     /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
     @discardableResult
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
-               forkingFrom conversation: CLIConversation? = nil, issue: IssueLink? = nil) throws -> UUID {
+               forkingFrom conversation: CLIConversation? = nil, upTo message: String? = nil,
+               issue: IssueLink? = nil) throws -> UUID {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.prompt = prompt
         session.forkedFrom = conversation?.id
+        session.forkedUpTo = conversation == nil ? nil : message
         session.continuedConversation = conversation?.id
         session.issue = issue
         if onCheckout {
@@ -317,10 +320,11 @@ final class SessionStore {
         }
     }
 
-    /// Asks `claude` again, in the same worktree, the prompt of a Sessione that Bubo's quitting interrupted: in a new
+    /// Asks `claude` again, in the same worktree, the prompt of the turn that Bubo's quitting interrupted: in a new
     /// Conversazione that resumes the one before the interrupted turn, which never became the Sessione's.
     func resume(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.isInterrupted, let prompt = session.prompt
+        guard let session = sessions.first(where: { $0.id == id }), session.isInterrupted,
+              let prompt = session.turnPrompt ?? session.prompt
         else { return }
         update(id) { session in
             session.enter(.lavora)
@@ -867,6 +871,8 @@ final class SessionStore {
     @discardableResult
     private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
+        // Kept from the start, also before the copy is ready: Riprendi asks this turn again if Bubo quits.
+        update(id) { $0.turnPrompt = prompt }
         let environment = session.portEnvironment
         var conversation: String?
         var hasAnswered = false
@@ -919,9 +925,12 @@ final class SessionStore {
             // Also after an error: what was said enters the Indice.
             defer { Task { [indexer, project = session.project] in await indexer?.add(kept, in: project) } }
             // Read now: Riavvia may have just interrupted the turn before.
-            let resumed = sessions.first { $0.id == id }?.continuedConversation
+            let current = sessions.first { $0.id == id }
+            let resumed = current?.continuedConversation
+            // Continua da qui cuts only the conversation it forked: the turns after resume theirs whole.
+            let cut = resumed != nil && resumed == current?.forkedFrom ? current?.forkedUpTo : nil
             let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
-                                   forkingFrom: resumed, keeping: kept,
+                                   forkingFrom: resumed, upTo: cut, keeping: kept,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
                                    offersPreview: hasServer) { [weak self] progress in

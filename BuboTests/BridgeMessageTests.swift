@@ -147,6 +147,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","resume":"c-1","settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func askContinuingFromAMessageCarriesTheCut() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         resuming: "c-1", resumingAt: "m-2").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","resume":"c-1","settingSources":[],"type":"ask","upTo":"m-2","v":4}"# + "\n")
+    }
+
     @Test func readHistoryAsksForTheFirstPageOrAll() throws {
         #expect(String(decoding: try BridgeCommand.readHistory(id: "h1", isComplete: false).line(), as: UTF8.self)
             == #"{"all":false,"id":"h1","type":"history","v":4}"# + "\n")
