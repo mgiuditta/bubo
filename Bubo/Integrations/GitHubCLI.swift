@@ -110,6 +110,22 @@ nonisolated struct GitHubCLI: Sendable {
         return String(decoding: try await run(arguments, for: repository), as: UTF8.self)
     }
 
+    /// The state, the checks and the URL of pull request `number` of `repository`.
+    ///
+    /// - Throws: `GitHubCLIError`.
+    func pullRequest(_ number: Int, in repository: GitHubRepository) async throws -> GitHubPullRequest {
+        let arguments = ["pr", "view", String(number), "--repo", repository.argument, "--json", GitHubPullRequest.fields]
+        return try decoder.decode(GitHubPullRequest.self, from: try await run(arguments, for: repository))
+    }
+
+    /// The log of the failed steps of GitHub Actions job `job` of `repository`.
+    ///
+    /// - Throws: `GitHubCLIError`.
+    func failedLog(ofJob job: Int, in repository: GitHubRepository) async throws -> String {
+        let arguments = ["run", "view", "--job", String(job), "--log-failed", "--repo", repository.argument]
+        return String(decoding: try await run(arguments, for: repository), as: UTF8.self)
+    }
+
     private var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601

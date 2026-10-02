@@ -4,7 +4,7 @@ import SwiftUI
 /// The next step of a Sessione's card on the Board. In Da guardare: Fondi…, which opens the revisione while a blocco
 /// is not accepted, else a confirmation that says what it merges into what, ↩ to merge and esc to cancel; Apri PR…,
 /// disabled with its reason without `gh`; and Archivia, which removes the worktree and keeps the branch. In PR
-/// aperta: the pull request's link and Archivia. In Fusa, Annulla merge while the merge
+/// aperta: the pull request with its checks, Correggi and Aggiorna PR, and Archivia. In Fusa, Annulla merge while the merge
 /// can be undone. Fondi goes through `SessionStore.merge`, like the revisione: the same checks, the same Annulla.
 struct BoardActions: View {
     let session: Session
@@ -40,11 +40,11 @@ struct BoardActions: View {
                     Button("Annulla merge", action: undo)
                 }
             } else if column.hasNextStep {
+                if column == .prAperta {
+                    PullRequestBadge(session: session, store: store)
+                }
                 HStack(spacing: Spacing.xSmall) {
-                    if let pullRequest = session.pullRequest, column == .prAperta {
-                        Link(pullRequest.label, destination: pullRequest.url)
-                            .help("Apre la PR su GitHub")
-                    } else if session.workspace?.branch != nil {
+                    if column != .prAperta, session.workspace?.branch != nil {
                         Button("Fondi…", action: prepareMerge)
                             .disabled(isPreparing || session.isRunning)
                             .help("Mostra cosa unisce e dove, poi chiede conferma")

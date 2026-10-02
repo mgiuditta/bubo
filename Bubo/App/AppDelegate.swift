@@ -171,6 +171,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
     }
 
+    /// Back in front: the pull requests are read at once, then at intervals (spec 16).
+    func applicationDidBecomeActive(_ notification: Notification) {
+        sessions?.followPullRequests(isForeground: true)
+    }
+
+    /// In the background: no reading of the pull requests, so no `gh` runs.
+    func applicationDidResignActive(_ notification: Notification) {
+        sessions?.followPullRequests(isForeground: false)
+    }
+
     /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
     /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. A link never starts a
     /// Sessione: anyone can write one.

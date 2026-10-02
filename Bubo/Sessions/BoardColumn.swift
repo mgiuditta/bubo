@@ -42,7 +42,7 @@ nonisolated enum BoardColumn: String, CaseIterable, Identifiable, Sendable {
 
     /// The column of `session` at `now`; `nil` when it is off the Board.
     init?(_ session: Session, at now: Date) {
-        // ponytail: In revisione means an open PR until the PR monitor reads its state (#153).
+        // In revisione lasts while the pull request is open: the monitor moves it on once merged or closed.
         self.init(phase: session.phase, activity: session.activity,
                   pullRequest: session.phase == .inRevisione ? .open : nil, mergedAt: session.mergedAt, now: now)
     }

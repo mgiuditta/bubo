@@ -24,6 +24,9 @@ final class HUDPresenter {
     /// Whether the HUD shows the sheet of the GitHub issues (⌘I).
     var isPickingIssue = false
 
+    /// The Sessione whose Apri PR sheet the HUD shows, opened from the menu or the Palette; `nil` for none.
+    var pullRequestSession: Session?
+
     /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
     @ObservationIgnored var searchConversations: ((String) -> Void)?
 
@@ -72,6 +75,12 @@ final class HUDPresenter {
     /// Brings the HUD to the front with the sheet of the open GitHub issues of a Progetto (⌘I).
     func pickIssue() {
         isPickingIssue = true
+        show()
+    }
+
+    /// Brings the HUD to the front with the Apri PR sheet of `session`.
+    func openPullRequest(of session: Session) {
+        pullRequestSession = session
         show()
     }
 
