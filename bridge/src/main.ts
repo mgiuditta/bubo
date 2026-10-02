@@ -14,7 +14,7 @@ import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
-import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
 import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { orbInstruction, rosaOf, TurnVariante } from "./orb";
@@ -29,7 +29,7 @@ import { summarize, summaryOptions } from "./summary";
 import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
-import { Denials, unattendedOf, unattendedOptions, type Denial, type Unattended } from "./unattended";
+import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
 import { allowedBuboTools } from "./tools";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
@@ -116,13 +116,13 @@ const permissions = new Map<string, (answer: Answer) => void>();
 // Richiesta, se la risposta non è "allow". Se Bubo esce, stdin si chiude e il ponte esce senza approvare nulla.
 // Con la Sandbox accesa, un Bash che chiede di uscirne arriva a Bubo segnato "fuori dalla sandbox".
 // Un host fuori dai domini della Sandbox approvato per la Sessione porta con sé `WebFetch(domain:host)` di sessione.
-function askBubo(id: string, isSandboxed: boolean): CanUseTool {
+function askBubo(id: string, isSandboxed: boolean, subagents: Subagents): CanUseTool {
   return async (toolName, input, options) => {
     if (toolName === "AskUserQuestion") return askQuestion(id, input, options.signal);
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
     if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
     const request = randomUUID();
-    const shown = permissionRequest(request, toolName, input, options);
+    const shown = permissionRequest(request, toolName, input, options, subagents);
     if (isSandboxed && isOutsideSandbox(toolName, input)) shown.outsideSandbox = true;
     if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
     let reached = true;
@@ -353,6 +353,10 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   const stopped = new AbortController();
   let servers: Promise<McpServerStatus[]> | undefined;
   const denials = unattended ? new Denials() : undefined;
+  // I nomi dei subagent, per le Richieste e i dinieghi; la verifica dell'agente che guida un'Esecuzione.
+  const subagents = new Subagents();
+  const mainAgent = unattended?.agent ? new MainAgent(unattended.agent) : undefined;
+  const checkAgent = mainAgent ? [{ hooks: [mainAgent.hook] }] : [];
   const gate = sandboxGate({
     cwd,
     sandbox,
@@ -395,13 +399,16 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       permissionMode,
       ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
       ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
-      ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined) }),
+      ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined, subagents) }),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
       // Le scritture in memoria, solo nelle Sessioni: nelle Domande la memoria automatica è spenta.
       // Grep e Glob riusciti danno i file letti alla Galassia (spec 11).
       hooks: {
-        PreToolUse: [{ hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
+        // Il primo hook del filo principale dice se l'Esecuzione gira come il suo agente (`MainAgent`).
+        UserPromptSubmit: checkAgent,
+        PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
+        SubagentStart: [{ hooks: [subagents.hook] }],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
         Stop: [witness.stopHook],
@@ -433,7 +440,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         usage ??= new UsageReader(message.apiKeySource === "none" ? "subscription" : "apiKey", restored);
         if (unattended) send({ type: "mode", id, permissionMode: message.permissionMode });
       }
-      if (message.type === "system" && message.subtype === "permission_denied") denials?.denied(message);
+      if (message.type === "system" && message.subtype === "permission_denied") denials?.denied(message, subagents.name(message.agent_id));
       // A ogni `init` il `claude` di questa Conversazione: si aggiorna anche con Bubo aperto. Sotto la minima di
       // Bubo, o rifiutato da Anthropic, la Conversazione si chiude prima del turno del modello.
       const claude = claudeInfo(message);
@@ -477,6 +484,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         if (variante) send({ type: "variante", id, nome: variante });
       } else if (message.type === "result") {
         report(message.permission_denials);
+        // Fermato da `MainAgent`: l'errore va dopo l'ultimo messaggio, uno solo.
+        if (mainAgent?.isWrong) continue;
         if (message.subtype === "success" && !message.is_error) succeeded = true;
         else if (message.subtype === "error_max_budget_usd") send({ type: "budgetExhausted", id });
         else if (limit) send({ type: "limit", id, ...limit });
@@ -490,6 +499,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     const answeredBy = witness.answeredBy();
     if (answeredBy) send({ type: "answeredBy", id, ...answeredBy });
     if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
+    else if (mainAgent?.isWrong) send({ type: "error", id, message: wrongAgent });
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
     else if (succeeded) send({ type: "done", id });
   } catch (error) {

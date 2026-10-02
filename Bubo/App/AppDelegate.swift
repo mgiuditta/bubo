@@ -14,6 +14,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let macOnlyProjects = MacOnlyProjects()
     /// Lets the Sessioni and the Battito out to the paired iPhones.
     private(set) lazy var remoteBridge = RemoteBridge.live(remote: remote, macOnly: macOnlyProjects, sessions: sessions)
+    /// Whether the user is at the Mac: then a Richiesta reaches the iPhone without a notification.
+    let presence = PresenceMonitor()
+    /// Sends the Richieste di permesso to the paired iPhones and answers them with their Verdicts.
+    private(set) lazy var remoteRequests = RemoteRequests.live(remote: remote, macOnly: macOnlyProjects, presence: presence)
     /// Keeps the iPhones up to date while Bubo runs.
     private var remoteUpdates: Task<Void, Never>?
     /// This Macchina's key and the Biglietti of the Consegne, in Impostazioni › Consegne (spec 24).
@@ -241,10 +245,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sweeper?.start()
         // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
         summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
-        remoteUpdates = Task { [remote, remoteBridge, sessions] in
+        remoteUpdates = Task { [remote, remoteBridge, remoteRequests, presence, sessions] in
             await remote.loadDevices()
             guard let sessions else { return await remoteBridge.cleanUp() }
+            async let presenceChanges: Void = presence.run()
+            async let requests: Void = remoteRequests.run(sessions: sessions)
             await remoteBridge.run(sessions: sessions)
+            _ = await (presenceChanges, requests)
         }
         // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
         priceUpdates = Task {

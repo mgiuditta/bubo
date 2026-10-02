@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import LocalAuthentication
 import Security
 
 /// Signs Verdicts and Commands with a P-256 key; the Mac verifies with the public key it got at pairing.
@@ -25,8 +26,12 @@ public struct SecureEnclaveSigner: RemoteSigner {
     private let key: SecureEnclave.P256.Signing.PrivateKey
 
     /// Restores the key from the opaque blob of ``dataRepresentation``, readable only by this Secure Enclave.
-    public init(dataRepresentation: Data) throws {
-        key = try SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: dataRepresentation)
+    ///
+    /// - Parameter authenticationContext: The context that authorizes the key; one with a reuse duration lets the
+    ///   Face ID that unlocked the iPhone for a notification's action sign without asking again.
+    public init(dataRepresentation: Data, authenticationContext: LAContext? = nil) throws {
+        key = try SecureEnclave.P256.Signing.PrivateKey(dataRepresentation: dataRepresentation,
+                                                         authenticationContext: authenticationContext)
     }
 
     private init(key: SecureEnclave.P256.Signing.PrivateKey) {
