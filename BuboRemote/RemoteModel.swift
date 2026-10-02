@@ -33,6 +33,8 @@ final class RemoteModel {
     private(set) var macs: [PairedMac] = []
     /// The pairing in progress; `nil` when none.
     private(set) var pairing: Pairing?
+    /// What each paired Mac lets out, by Mac: its Battito and the cards of its Sessioni.
+    private(set) var snapshots: [UUID: MacSnapshot] = [:]
 
     let deviceID: UUID
     private let deviceName: String
@@ -164,12 +166,36 @@ final class RemoteModel {
 
     private func forget(_ macID: UUID) async {
         macs.removeAll { $0.id == macID }
+        snapshots[macID] = nil
         do {
             try await store.delete(id: macID)
         } catch {
             log.error("Portachiavi: \(error.status)")
         }
         if macs.isEmpty { pairing = .scanning }
+    }
+
+    /// Reads again what every paired Mac lets out.
+    func refresh() async {
+        for mac in macs {
+            do {
+                let sealer = RecordSealer(key: SymmetricKey(data: mac.recordKey))
+                let snapshot = try await channel.snapshot(macID: mac.id, deviceID: deviceID, sealer: sealer)
+                // A Mac revoked while reading has no snapshot any more.
+                if macs.contains(where: { $0.id == mac.id }) { snapshots[mac.id] = snapshot }
+            } catch {
+                log.error("Lettura da \(mac.id): \(String(describing: error), privacy: .public)")
+            }
+        }
+    }
+
+    /// Reads again every 5 s while the app is open, until cancelled: push notifications are too few and not
+    /// guaranteed to carry a change of Attività.
+    func keepRefreshing() async {
+        while !Task.isCancelled {
+            await refresh()
+            try? await Task.sleep(for: .seconds(5))
+        }
     }
 
     private static func message(for error: any Error) -> String {
