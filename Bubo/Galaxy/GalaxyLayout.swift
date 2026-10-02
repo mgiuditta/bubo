@@ -211,9 +211,11 @@ nonisolated private enum CirclePacking {
         (previous[1], previous[2], previous[0]) = (0, 1, 2)
         var first = 0
         var second = 1
-        // Rounding could make a circle bounce between two places forever: past this many tries, the rest go outside.
-        var triesLeft = 8 * circles.count * circles.count
+        // Rounding could make a circle bounce between two places forever: past this many tries, it and the rest go
+        // outside. The budget is per circle and grows with its index only, so a circle's place still depends only on
+        // the circles before it.
         var index = 3
+        var triesLeft = 8 * index + 16
         placing: while index < circles.count {
             circles[index].center = place(circles[index].radius, touching: circles[first], and: circles[second])
             triesLeft -= 1
@@ -256,6 +258,7 @@ nonisolated private enum CirclePacking {
             first = closest
             second = next[first]
             index += 1
+            triesLeft = 8 * index + 16
         }
         if index < circles.count {
             var reach = circles[..<index].map { simd_length($0.center) + $0.radius }.max() ?? 0
@@ -270,7 +273,10 @@ nonisolated private enum CirclePacking {
 
     /// The smallest circle around the circles at `centers` with `radii`.
     static func enclosingCircle(centers: [SIMD2<Double>], radii: [Double]) -> (center: SIMD2<Double>, radius: Double) {
+        // Farthest first: the circles arrive spiralling outwards, Welzl's worst order, and d3 shuffles them for this.
+        // Sorting is deterministic, and the smallest enclosing circle is unique, so the result does not change.
         let circles = zip(centers, radii).map { Circle(center: $0, radius: $1) }
+            .sorted { simd_length($0.center) + $0.radius > simd_length($1.center) + $1.radius }
         var basis: [Circle] = []
         var enclosing: Circle?
         var index = 0

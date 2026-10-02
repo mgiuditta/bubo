@@ -15,6 +15,12 @@ final class GalaxyModel {
         var point: CGPoint
         var kind: Kind
 
+        /// Whether this label and `other` would overlap on screen, estimating each text at 7 points a character.
+        func covers(_ other: Label) -> Bool {
+            let halfWidths = CGFloat(text.count + other.text.count) * 7 / 2
+            return abs(point.x - other.point.x) < halfWidths && abs(point.y - other.point.y) < 14
+        }
+
         /// What a label names.
         enum Kind: Equatable, Sendable {
             /// A folder large enough to read.
@@ -679,10 +685,10 @@ final class GalaxyModel {
             point.y -= CGFloat(cluster.radius * camera.scale * GalaxyCamera.tilt) + 4
             guard bounds.insetBy(dx: -40, dy: 0).contains(point) else { continue }
             // A folder holding one large subfolder has its name over the subfolder's: only the larger one's shows.
-            guard !labels.contains(where: { abs($0.point.x - point.x) < 60 && abs($0.point.y - point.y) < 14 })
-            else { continue }
-            labels.append(Label(id: "c" + cluster.path, text: (cluster.path as NSString).lastPathComponent,
-                                point: point, kind: .folder))
+            let label = Label(id: "c" + cluster.path, text: (cluster.path as NSString).lastPathComponent,
+                              point: point, kind: .folder)
+            guard !labels.contains(where: { $0.kind == .folder && $0.covers(label) }) else { continue }
+            labels.append(label)
         }
         return labels
     }

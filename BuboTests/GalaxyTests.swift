@@ -208,10 +208,17 @@ struct GalaxyTests {
         #expect(!folders.isEmpty)
         for (offset, first) in folders.enumerated() {
             for second in folders.dropFirst(offset + 1) {
-                let apart = abs(first.point.x - second.point.x) >= 60 || abs(first.point.y - second.point.y) >= 14
-                #expect(apart, "\(first.text) covers \(second.text)")
+                #expect(!first.covers(second), "\(first.text) covers \(second.text)")
             }
         }
+    }
+
+    @Test func longFolderNamesNeedMoreRoomThanShortOnes() {
+        let apart = CGPoint(x: 61, y: 0)
+        let short = GalaxyModel.Label(id: "a", text: "docs", point: .zero, kind: .folder)
+        let long = GalaxyModel.Label(id: "b", text: "swiftui-accessibility-auditor", point: .zero, kind: .folder)
+        #expect(!short.covers(GalaxyModel.Label(id: "c", text: "Bubo", point: apart, kind: .folder)))
+        #expect(long.covers(GalaxyModel.Label(id: "d", text: "swift-concurrency-pro", point: apart, kind: .folder)))
     }
 
     @Test func aResizeKeepsTheWholeGalassiaInViewUntilTheCameraMoves() {
