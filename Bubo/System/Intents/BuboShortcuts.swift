@@ -15,5 +15,9 @@ struct BuboShortcuts: AppShortcutsProvider {
                     phrases: ["Apri la Galassia di \(.applicationName)", "Mostra la Galassia in \(.applicationName)"],
                     shortTitle: "Apri Galassia",
                     systemImageName: "sparkles")
+        AppShortcut(intent: SearchHistoryIntent(),
+                    phrases: ["Cerca nella cronologia di \(.applicationName)", "Cerca nelle conversazioni di \(.applicationName)"],
+                    shortTitle: "Cerca nella cronologia",
+                    systemImageName: "clock.arrow.circlepath")
     }
 }

@@ -1734,6 +1734,16 @@
         }
       }
     },
+    "Apre la Palette di Bubo sulle conversazioni recenti, per cercarne una." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Bubo's Palette on recent conversations, to search for one."
+          }
+        }
+      }
+    },
     "Apre la finestra Costi" : {
       "localizations" : {
         "en" : {
@@ -2725,6 +2735,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Cerca nella cronologia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search History"
           }
         }
       }
