@@ -11,6 +11,10 @@ struct SpokenAnswerTests {
         var hasOnlyDefaultVoices = true
         private(set) var said: [String] = []
         private(set) var statesWhileSpeaking: [OrbState?] = []
+        private(set) var stops = 0
+        /// Whether `speak` goes on until `stop`, like a long Sintesi parlata.
+        var speaksUntilStopped = false
+        private var stopped: CheckedContinuation<Void, Never>?
         let orb: OrbControls
 
         init(orb: OrbControls) {
@@ -21,6 +25,15 @@ struct SpokenAnswerTests {
             said.append(text)
             statesWhileSpeaking.append(orb.questionState)
             level(0.5)
+            if speaksUntilStopped {
+                await withCheckedContinuation { stopped = $0 }
+            }
+        }
+
+        func stop() {
+            stops += 1
+            stopped?.resume()
+            stopped = nil
         }
     }
 
@@ -69,6 +82,34 @@ struct SpokenAnswerTests {
         #expect(model.subtitle == nil)
         #expect(orb.questionState == nil)
         #expect(orb.voiceLevel == nil)
+    }
+
+    @Test func stoppingTheVoiceLeavesParlaAndKeepsTheVariante() async {
+        let lente = Variante(nome: "lente", forma: "lente", categoria: .ricerca, descrizione: "", parole: [])
+        orb.variante = lente
+        speaker.speaksUntilStopped = true
+        model.prompt = "Che ore sono a Lima?"
+        model.askByVoice()
+        await model.answering?.value
+        while speaker.statesWhileSpeaking.isEmpty { await Task.yield() }
+        #expect(orb.questionState == .speaking)
+        #expect(model.subtitle != nil)
+
+        let speaking = model.speaking
+        model.stopSpeaking()
+        await speaking?.value
+
+        #expect(speaker.stops == 1)
+        #expect(orb.questionState == nil)
+        #expect(orb.voiceLevel == nil)
+        #expect(model.subtitle == nil)
+        #expect(model.answer == "Ecco i dettagli.")
+        #expect(orb.variante == lente)
+    }
+
+    @Test func stoppingWithNothingSaidDoesNothing() {
+        model.stopSpeaking()
+        #expect(speaker.stops == 0)
     }
 
     @Test func aWrittenDomandaIsNotSaid() async {

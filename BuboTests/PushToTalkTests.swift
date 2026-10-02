@@ -38,6 +38,7 @@ struct PushToTalkTests {
     /// What push-to-talk did with the HUD and the prompt.
     final class Recorder {
         var taps = 0
+        var interrupts = 0
         var shows = 0
         var dictated: [(text: String, isFinal: Bool)] = []
     }
@@ -56,6 +57,8 @@ struct PushToTalkTests {
             return grants
         }
         return PushToTalk(listener: listener, microphone: access, orb: orb, holdThreshold: holdThreshold) {
+            recorder.interrupts += 1
+        } tap: {
             recorder.taps += 1
         } show: {
             recorder.shows += 1
@@ -159,5 +162,17 @@ struct PushToTalkTests {
         await voice.closing?.value
         #expect(listener.starts == 1)
         #expect(recorder.taps == 1)
+        #expect(recorder.interrupts == 1)
+    }
+
+    @Test func thePressStopsTheVoiceBeforeTheAscolto() async {
+        let voice = pushToTalk()
+        voice.press()
+        // At once, not after the threshold: the audio stops within 100 ms.
+        #expect(recorder.interrupts == 1)
+        #expect(!voice.isListening)
+        await voice.holding?.value
+        #expect(voice.isListening)
+        #expect(orb.questionState == .listening)
     }
 }

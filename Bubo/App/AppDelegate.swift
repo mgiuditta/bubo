@@ -93,7 +93,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The global shortcut; created at launch so it works with no window open.
     private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press() } release: { [pushToTalk] in pushToTalk.release() }
     /// The global shortcut held down: dictation into the Domanda, sent at release.
-    private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [hud] in hud.toggle() } show: { [hud] in
+    private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [questions] in
+        questions.stopSpeaking()
+    } tap: { [hud] in hud.toggle() } show: { [hud] in
         hud.show()
     } dictate: { [questions] text, isFinal in
         questions.prompt = text
