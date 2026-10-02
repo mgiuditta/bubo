@@ -1726,6 +1726,17 @@
         }
       }
     },
+    "Autorizza Bubo entro 10 minuti dall'apertura del browser." : {
+      "comment" : "Settings › Models: remedy for an expired OpenRouter authorization.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorize Bubo within 10 minutes of the browser opening."
+          }
+        }
+      }
+    },
     "Autorizza Bubo nel browser…" : {
       "comment" : "Settings › Models: waiting for the user to authorize Bubo on OpenRouter.",
       "localizations" : {
@@ -4564,13 +4575,13 @@
         }
       }
     },
-    "Il collegamento è scaduto: riprova e autorizza Bubo entro 10 minuti." : {
+    "Il collegamento è scaduto" : {
       "comment" : "Settings › Models: the OpenRouter authorization took too long.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The connection expired: try again and authorize Bubo within 10 minutes."
+            "value" : "The connection expired"
           }
         }
       }
@@ -7379,13 +7390,13 @@
         }
       }
     },
-    "OpenRouter non ha dato la chiave: riprova." : {
-      "comment" : "Settings › Models: the OpenRouter exchange failed.",
+    "OpenRouter non ha dato la chiave" : {
+      "comment" : "Settings › Models: the OpenRouter connection failed.",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OpenRouter didn't give the key: try again."
+            "value" : "OpenRouter didn't give the key"
           }
         }
       }
@@ -8632,6 +8643,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Try Again"
+          }
+        }
+      }
+    },
+    "Riprova a collegarlo dal browser." : {
+      "comment" : "Settings › Models: remedy for a failed OpenRouter connection.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try connecting it again from the browser."
           }
         }
       }

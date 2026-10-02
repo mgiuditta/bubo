@@ -10,6 +10,7 @@ struct EndpointSection: View {
     @State private var isEnteringKey = false
     @State private var keyFailure: String?
     @State private var connecting: Task<Void, Never>?
+    @State private var connectFailure: OpenRouterConnectFailure?
     @Environment(\.openURL) private var openURL
 
     var body: some View {
@@ -99,7 +100,16 @@ struct EndpointSection: View {
                 LoadingLabel("Autorizza Bubo nel browser…")
             }
         case false?:
-            Button("Collega OpenRouter…", action: connectOpenRouter)
+            switch connectFailure {
+            case .expired?:
+                ErrorNotice("Il collegamento è scaduto", remedy: "Autorizza Bubo entro 10 minuti dall'apertura del browser.",
+                            actionTitle: "Riprova", action: connectOpenRouter)
+            case .refused?:
+                ErrorNotice("OpenRouter non ha dato la chiave", remedy: "Riprova a collegarlo dal browser.",
+                            actionTitle: "Riprova", action: connectOpenRouter)
+            case nil:
+                Button("Collega OpenRouter…", action: connectOpenRouter)
+            }
         case nil:
             EmptyView()
         }
@@ -176,6 +186,7 @@ struct EndpointSection: View {
 
     private func connectOpenRouter() {
         keyFailure = nil
+        connectFailure = nil
         connecting = Task {
             defer { connecting = nil }
             do {
@@ -185,9 +196,9 @@ struct EndpointSection: View {
                 hasKey = true
             } catch is CancellationError {
             } catch OAuthCallbackServer.Failure.timedOut {
-                keyFailure = String(localized: "Il collegamento è scaduto: riprova e autorizza Bubo entro 10 minuti.")
+                connectFailure = .expired
             } catch {
-                keyFailure = String(localized: "OpenRouter non ha dato la chiave: riprova.")
+                connectFailure = .refused
             }
         }
     }
@@ -201,4 +212,12 @@ struct EndpointSection: View {
             keyFailure = error.localizedDescription
         }
     }
+}
+
+/// Why connecting OpenRouter gave no key.
+private enum OpenRouterConnectFailure {
+    /// The browser did not come back within the 10 minutes a code lasts.
+    case expired
+    /// The callback, the browser or the exchange failed.
+    case refused
 }
