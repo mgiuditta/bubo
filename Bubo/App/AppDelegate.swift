@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let panel = OrbPanelController()
     /// The pairing of the Telecomando, in Impostazioni › iPhone (spec 21).
     let remote = PairingController.live()
+    /// This Macchina's key and the Biglietti of the Consegne, in Impostazioni › Consegne (spec 24).
+    let deliveries = DeliveriesController.live()
     /// The Indice, kept fresh while Bubo runs; `nil` when its database cannot be opened.
     let searchIndex: SearchIndex? = {
         do {
@@ -243,9 +245,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. `bubo://sessione`
     /// shows its Sessione. A link never starts a Sessione: anyone can write one.
     func application(_ application: NSApplication, open urls: [URL]) {
+        let files = urls.filter(\.isFileURL)
+        for file in files {
+            Task { await open(bubo: file) }
+        }
         guard let sessions else { return }
         var madeDrafts = false
-        for url in urls {
+        for url in urls where !url.isFileURL {
             if let link = SessionLink(url) {
                 show(link, among: sessions.sessions)
             } else if let link = LinearLink(url) {
@@ -259,6 +265,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if madeDrafts { hud.showDrafts() }
+    }
+
+    /// A `.bubo` file opened from the Finder: a Biglietto shows its code in the HUD; a Consegna, or a file that does
+    /// not open, an alert.
+    private func open(bubo file: URL) async {
+        let message: String
+        switch await deliveries.open(file) {
+        case .ticket:
+            hud.show()
+            return
+        case .consegna:
+            message = String(localized: "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila.")
+        case .failed(.unsupportedVersion):
+            message = String(localized: "Il file è di una versione più nuova di Bubo. Aggiorna Bubo, poi riaprilo.")
+        case .failed(.notBubo), .failed(.unreadable):
+            message = String(localized: "Il file non è un file Bubo, oppure non si legge.")
+        case .failed:
+            message = String(localized: "Il Biglietto è stato modificato o è danneggiato. Chiedi di rimandarlo.")
+        }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Non si apre")
+        alert.informativeText = message
+        NSApp.activate()
+        alert.runModal()
     }
 
     /// A Sessione's link: the HUD on it while it lives, else the Cronologia window on its latest conversation.

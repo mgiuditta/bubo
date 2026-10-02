@@ -3,6 +3,7 @@ import SwiftUI
 /// The main window: the Orb at the centre of the HUD rings, with the Sessioni laid out in the current Vista.
 struct HUDView: View {
     @Environment(HUDPresenter.self) private var hud
+    @Environment(DeliveriesController.self) private var deliveries
     @Environment(\.openWindow) private var openWindow
     /// The Vista chosen in Aspetto: choosing another there switches the HUD to it.
     @AppStorage(VistaDelleSessioni.defaultsKey) private var chosenVista = VistaDelleSessioni.colonna
@@ -26,7 +27,13 @@ struct HUDView: View {
         }
         .padding(.horizontal, Spacing.large)
         .frame(minWidth: 720, minHeight: 560)
-        .background { HUDBackground() }
+        .background {
+            HUDBackground()
+                // Here, not next to the other sheets: one sheet modifier per view.
+                .sheet(item: Bindable(deliveries).pendingImport) { pending in
+                    TicketImportSheet(pending: pending, deliveries: deliveries)
+                }
+        }
         // A drop with no Sessione in front: a new Domanda with the Allegati (regola "Sessione davanti").
         .dropDestination(for: URL.self) { urls, _ in
             let attachments = HUDDropDestination.attachments(from: urls)
@@ -164,4 +171,5 @@ struct HUDView: View {
             launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
                                    subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())
+        .environment(DeliveriesController.live())
 }

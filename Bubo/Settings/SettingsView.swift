@@ -28,11 +28,17 @@ struct SettingsView: View {
             Tab("iPhone", systemImage: "iphone") {
                 RemoteSettingsView()
             }
-            Tab("Scorciatoie", systemImage: "keyboard") {
-                ShortcutSettingsView()
-            }
-            Tab("Diagnostica", systemImage: "stethoscope") {
-                DiagnosticsView()
+            // A Group: the builder takes at most 10 tabs.
+            Group {
+                Tab("Consegne", systemImage: "shippingbox") {
+                    DeliveriesSettingsView()
+                }
+                Tab("Scorciatoie", systemImage: "keyboard") {
+                    ShortcutSettingsView()
+                }
+                Tab("Diagnostica", systemImage: "stethoscope") {
+                    DiagnosticsView()
+                }
             }
         }
         .frame(width: 480)
