@@ -97,6 +97,9 @@ struct RouterLine: View {
         case let .preferred(type):
             return LocalizedStringResource("\(String(localized: type.label)) → \(family) (tua preferenza)",
                                            comment: Self.comment)
+        case let .offline(type):
+            return LocalizedStringResource("\(String(localized: type.label)) → \(family), senza rete",
+                                           comment: Self.comment)
         }
     }
 
@@ -111,6 +114,10 @@ struct RouterLine: View {
             LocalizedStringResource("\(type) → \(family), tua preferenza in pausa", comment: comment)
         case .attachments:
             LocalizedStringResource("\(type) → \(family), gli allegati vanno solo a Claude o sul Mac", comment: comment)
+        case let .localServerOff(server):
+            LocalizedStringResource("\(type) → \(family), \(server) non risponde", comment: comment)
+        case let .localModelMissing(server):
+            LocalizedStringResource("\(type) → \(family), \(server) non ha più il modello", comment: comment)
         }
     }
 

@@ -39,6 +39,9 @@ final class QuestionModel {
     /// Whether to invite the user to download a better voice: Bubo spoke with a basic-quality one, and the user did not
     /// close the invitation yet.
     private(set) var invitesBetterVoice = false
+    /// The Modello locale Bubo proposes, once, after finding Ollama or LM Studio on the Mac; `nil` when there is
+    /// nothing to propose, and after the user's answer.
+    private(set) var localModelOffer: LocalModelDetector.Offer?
     /// The endpoints the user left out of "Rifai con…" for this Domanda, by not giving their consent.
     private(set) var declinedEndpoints: Set<String> = []
     /// The road every Domanda takes to `claude`, moving the Orb on the way.
@@ -65,6 +68,7 @@ final class QuestionModel {
     ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
     ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
     ///   - endpointContext: Reads the context of an endpoint's model, for the cap of the Allegati.
+    ///   - localServers: Finds Ollama and LM Studio on the Mac, and tells whether they can answer.
     ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
     ///   - onDevice: Apple's model on the Mac, which `intake` measures with when it is `nil`.
     ///   - onDeviceAnswerer: Answers the Domande the router keeps on the Mac; Foundation Models on `onDevice` when `nil`.
@@ -79,6 +83,7 @@ final class QuestionModel {
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
          endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
          endpointContext: EndpointContextReader = EndpointContextReader(),
+         localServers: LocalModelDetector = LocalModelDetector(),
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
          ledger: CostLedger? = nil, prices: PriceTable = .shared) {
@@ -101,6 +106,7 @@ final class QuestionModel {
         self.preferences = preferences
         self.endpointClient = endpointClient
         self.endpointContext = endpointContext
+        self.localServers = localServers
         self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
         self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
     }
@@ -118,6 +124,7 @@ final class QuestionModel {
     @ObservationIgnored private let endpointClient: OpenAICompatibleClient
     @ObservationIgnored private let endpointKey: (OpenAICompatibleEndpoint) async throws -> String?
     @ObservationIgnored private let endpointContext: EndpointContextReader
+    @ObservationIgnored private let localServers: LocalModelDetector
     /// The Allegati of this Domanda the user confirmed for each endpoint, by its id: they go to it without asking again.
     @ObservationIgnored private var confirmedAttachments: [String: Set<Allegato>] = [:]
     @ObservationIgnored private let makeSpeaker: () -> any VoiceSpeaker
@@ -196,7 +203,7 @@ final class QuestionModel {
             try? await Task.sleep(for: Self.forecastDelay)
             guard !Task.isCancelled else { return }
             let route = await intake.forecastRoute(for: Richiesta(text: text, attachments: attachments),
-                                                   catalog: catalog, preferences: routerPreferences)
+                                                   catalog: catalog, preferences: await routerPreferences())
             guard !Task.isCancelled else { return }
             forecast = route
         }
@@ -243,11 +250,52 @@ final class QuestionModel {
         return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
     }
 
-    /// What the router knows of the user's preferences: a cloud endpoint takes part only with its consent.
-    private var routerPreferences: ModelRouter.Preferences {
-        ModelRouter.Preferences(choices: preferences.choices, endpoints: endpoints.ready.filter {
+    /// What the router knows of the user's preferences: a cloud endpoint takes part only with its consent; the
+    /// servers on the Mac they may need, and the network, are checked now.
+    private func routerPreferences() async -> ModelRouter.Preferences {
+        var routed = ModelRouter.Preferences(choices: preferences.choices, endpoints: endpoints.ready.filter {
             $0.isOnMac || endpoints.consents.contains($0.id)
         })
+        routed.localModel = endpoints.localModel
+        async let isOnline = cli.isOnline()
+        var asked = Set(routed.choices.values.compactMap { choice -> String? in
+            if case let .endpoint(id) = choice { id } else { nil }
+        })
+        if let local = routed.localModel { asked.insert(local.id) }
+        for endpoint in routed.endpoints where endpoint.isOnMac && asked.contains(endpoint.id) {
+            let availability = await localServers.availability(of: endpoint)
+            if availability != .available { routed.localOutages[endpoint.id] = availability }
+        }
+        routed.isOffline = !(await isOnline)
+        return routed
+    }
+
+    /// Looks for Ollama and LM Studio on the Mac, and proposes the model found, once: never again, whatever the
+    /// answer, and not when a Modello locale is already set.
+    func lookForLocalModel() async {
+        guard !endpoints.hasOfferedLocalModel, endpoints.localModel == nil else { return }
+        let servers = endpoints.endpoints.filter { $0.kind == .ollama || $0.kind == .lmStudio }
+        guard let offer = await localServers.offer(among: servers), !endpoints.hasOfferedLocalModel else { return }
+        endpoints.markLocalModelOffered()
+        localModelOffer = offer
+    }
+
+    /// Makes the proposed model the Modello locale, and the user's preference for Fatto breve and Riassunto.
+    func acceptLocalModel() {
+        guard let offer = localModelOffer else { return }
+        var endpoint = endpoints.endpoints.first { $0.id == offer.endpoint.id } ?? offer.endpoint
+        endpoint.model = offer.model
+        endpoints.save(endpoint)
+        endpoints.setLocalModel(endpoint)
+        for type in [RequestType.shortFact, .summary] {
+            preferences.set(.endpoint(id: endpoint.id), for: type)
+        }
+        localModelOffer = nil
+    }
+
+    /// Lets the proposal go: it is not made again.
+    func dismissLocalModelOffer() {
+        localModelOffer = nil
     }
 
     /// Asks the last prompt again with `alternative`, for this turn only unless `alwaysUse`: then it becomes the
@@ -618,7 +666,7 @@ final class QuestionModel {
         let text = richiesta.text
         // The user's choice for this turn goes before any preference.
         let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog,
-                                             preferences: chosen == nil ? routerPreferences : .none)
+                                             preferences: chosen == nil ? await routerPreferences() : .none)
         defer { intake.finish(submission) }
         lastType = submission.classification?.type
         var route = chosen ?? submission.route
