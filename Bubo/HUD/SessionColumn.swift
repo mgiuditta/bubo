@@ -465,6 +465,11 @@ struct SessionRow: View {
                     .controlSize(.small)
                 }
             }
+            if let state = store.pluginReloader.state(of: session.id) {
+                PluginReloadButton(state: state) {
+                    Task { await store.pluginReloader.reloadPlugins(in: session.id) }
+                }
+            }
             if store.footprints.heavySessions.contains(session.id) {
                 HeavySessionBanner(restart: store.canRestartTurn(session.id) ? { store.restartTurn(session.id) } : nil)
             }

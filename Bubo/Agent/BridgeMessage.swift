@@ -48,6 +48,9 @@ enum BridgeCommand: Equatable {
     case coolConfiguration
     /// Has every turn in progress connect again to the MCP server `name`, after a login.
     case reconnectMCPServer(name: String)
+    /// Reloads the plugins of the conversation `turn` in progress, answering the request `id`: stopping when it would lose
+    /// the prompt cache, unless `isForced` (Ricarica comunque).
+    case reloadPlugins(id: String, turn: String, isForced: Bool = false)
     /// Lists the Cronologia CLI, most recent first: the first page, or all of it when `isComplete`.
     case readHistory(id: String, isComplete: Bool)
     /// Reads the latest messages of `conversation`, or all of them when `isComplete`, for the Indice.
@@ -118,6 +121,9 @@ enum BridgeCommand: Equatable {
             object = ["type": "cool"]
         case let .reconnectMCPServer(name):
             object = ["type": "reconnect", "server": name]
+        case let .reloadPlugins(id, turn, isForced):
+            object = ["type": "reloadPlugins", "id": id, "turn": turn]
+            if isForced { object["force"] = true }
         case let .readHistory(id, isComplete):
             object = ["type": "history", "id": id, "all": isComplete]
         case let .readTranscript(id, conversation, isComplete):
@@ -224,6 +230,8 @@ enum BridgeEvent: Equatable, Decodable {
     case models(ModelCatalog)
     /// The Regole di permesso that widen the Sandbox, answering the request `id`.
     case sandboxRules(id: String, [SandboxWideningRule])
+    /// How Ricarica plugin went, answering the request `id`.
+    case pluginsReloaded(id: String, PluginReload)
     /// A line in a protocol version Bubo does not speak.
     case unsupportedVersion(Int)
 
@@ -344,6 +352,8 @@ enum BridgeEvent: Equatable, Decodable {
         case "denial": self = .progress(id: try container.decode(String.self, forKey: .id), .denial(try BridgeDenial(from: decoder)))
         case "mode": self = .progress(id: try container.decode(String.self, forKey: .id),
                                       .permissionMode(try container.decode(String.self, forKey: .permissionMode)))
+        case "pluginsReloaded": self = .pluginsReloaded(id: try container.decode(String.self, forKey: .id),
+                                                        try PluginReload(from: decoder))
         case "models": self = .models(ModelCatalog(entries: try container.decode([ModelCatalog.Entry].self, forKey: .models)))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")

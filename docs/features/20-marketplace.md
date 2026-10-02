@@ -201,7 +201,7 @@ Fonte: [#184](https://github.com/mgiuditta/bubo/issues/184).
 ### Sessioni aperte (deciso)
 
 - Ogni modifica vale subito per le **Sessioni nuove**.
-- Sulle Sessioni aperte compare **"Ricarica plugin"**, una per Sessione (`reloadPlugins()`), perché ricaricare può invalidare la cache del prompt.
+- Sulle Sessioni con un turno in corso compare **"Ricarica plugin"**, una per Sessione (`reloadPlugins()`), perché ricaricare può invalidare la cache del prompt. Ogni turno è un `claude` nuovo che carica i plugin all'avvio (decisione del 2026-10-02, #212): una Sessione ferma prende quelli nuovi al turno dopo, senza ricarica.
 
 ### Configurazione, accesso, rimozione (deciso)
 
@@ -231,7 +231,7 @@ Fonte: [#190](https://github.com/mgiuditta/bubo/issues/190), variante A (tre col
   - **Aggiorna** con nuovo codice eseguibile: elenca solo i componenti nuovi. Senza codice nuovo nessun foglio: 1 clic.
   - **Disinstalla**: "per spegnerlo e basta, usa Disattiva", casella "Tieni i dati del plugin" (spenta), nota sulle dipendenze orfane.
   - **Impostazioni** (`userConfig`): un campo per chiave; i segreti in un campo password, solo via stdin.
-- **Ricarica plugin**: banner sotto la barra degli strumenti, solo se ci sono Sessioni aperte con plugin vecchi. "N Sessioni aperte usano i plugin di prima" + "Ricaricare può invalidare la cache del prompt". Un pulsante per Sessione e "Ricarica tutte" (da B). Lo stesso stato sulla riga della Sessione nell'HUD.
+- **Ricarica plugin**: banner sotto la barra degli strumenti, solo se ci sono turni in corso con plugin vecchi. "N Sessioni al lavoro usano i plugin di prima" + "Ricaricare può invalidare la cache del prompt". Il primo tentativo passa `holdOnCacheImpact: true`; "Ricarica comunque" richiama senza l'opzione. La generazione cresce a ogni comando riuscito della finestra Plugin e a ogni modifica vista da FSEvents mentre la finestra è aperta. Un pulsante per Sessione e "Ricarica tutte" (da B). Lo stesso stato sulla riga della Sessione nell'HUD.
 - **Accessibilità**: barra laterale ed elenco sono `List` con selezione, navigabili da tastiera. Il punto di stato ha sempre un'etichetta testuale per VoiceOver. I fogli hanno Invio come azione primaria (tranne Disinstalla) ed Esc per annullare.
 
 ### Scelte di dettaglio (prese scrivendo la spec)

@@ -250,6 +250,19 @@ final class AgentBridge {
         try process?.input.write(contentsOf: BridgeCommand.reconnectMCPServer(name: name).line())
     }
 
+    /// Reloads the plugins of the answer `id` in progress: Ricarica plugin, which `claude` holds when it would lose the
+    /// prompt cache, or Ricarica comunque when `isForced`.
+    ///
+    /// - Throws: `AgentBridgeError.failed` when the answer has ended, or `claude` could not reload.
+    func reloadPlugins(ofAnswer id: String, isForced: Bool) async throws -> PluginReload {
+        let request = UUID().uuidString
+        let command = BridgeCommand.reloadPlugins(id: request, turn: id, isForced: isForced)
+        guard case let .pluginsReloaded(_, reload) = try await self.request(command, id: request) else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+        return reload
+    }
+
     /// Where `claude` reads the Progetto's settings for `directory`: the main checkout when it is a worktree.
     private static func projectConfigRoot(of directory: URL) -> URL? {
         TrustGate.mainCheckout(ofWorktree: directory).map { URL(filePath: $0, directoryHint: .isDirectory) }
@@ -496,7 +509,7 @@ final class AgentBridge {
         case let .models(models):
             catalog(models)
         case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id),
-             let .sandboxRules(id, _):
+             let .sandboxRules(id, _), let .pluginsReloaded(id, _):
             requests.removeValue(forKey: id)?.resume(returning: event)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
