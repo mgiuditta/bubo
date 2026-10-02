@@ -13032,6 +13032,92 @@
           }
         }
       }
+    },
+    "%@ → %@ (tua preferenza)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@ (your preference)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@ (tua preferenza)"
+          }
+        }
+      }
+    },
+    "In pausa: %@ non ha il tuo consenso. Te lo chiede «Rifai con…» quando lo scegli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: %@ doesn't have your consent. «Redo with…» asks for it when you pick it."
+          }
+        }
+      }
+    },
+    "In pausa: scegli un modello per %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused: choose a model for %@."
+          }
+        }
+      }
+    },
+    "Le prossime Domande di %@ vanno al modello che scegli qui. Puoi togliere la preferenza in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your next %@ questions go to the model you pick here. You can remove the preference in Settings › Models."
+          }
+        }
+      }
+    },
+    "Nessuna preferenza. Per mandare sempre un tipo di Domanda allo stesso modello, spunta «Usa sempre per» in «Rifai con…»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No preferences. To always send a kind of question to the same model, check «Always use for» in «Redo with…»."
+          }
+        }
+      }
+    },
+    "Preferenze per le Domande" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question preferences"
+          }
+        }
+      }
+    },
+    "Togli la preferenza per %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the preference for %@"
+          }
+        }
+      }
+    },
+    "Usa sempre per «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always use for «%@»"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
