@@ -13954,6 +13954,121 @@
           }
         }
       }
+    },
+    "%@ → %@, %@ non ha più il modello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, %3$@ no longer has the model"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, %3$@ non ha più il modello"
+          }
+        }
+      }
+    },
+    "%@ → %@, %@ non risponde" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, %3$@ isn't responding"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, %3$@ non risponde"
+          }
+        }
+      }
+    },
+    "%@ → %@, senza rete" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, offline"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, senza rete"
+          }
+        }
+      }
+    },
+    "Hai %@ con %@: usarlo per %@ e %@?" : {
+      "comment" : "Proposal of the Modello locale: the server (Ollama, LM Studio), the model id, then the two Tipi di richiesta.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have %1$@ with %2$@: use it for %3$@ and %4$@?"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hai %1$@ con %2$@: usarlo per %3$@ e %4$@?"
+          }
+        }
+      }
+    },
+    "Modello locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Local model"
+          }
+        }
+      }
+    },
+    "No, grazie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, thanks"
+          }
+        }
+      }
+    },
+    "Risponde sul Mac, gratis, anche senza rete. Lo cambi in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It answers on your Mac, for free, even offline. You can change it in Settings › Models."
+          }
+        }
+      }
+    },
+    "Senza rete le Domande vanno al Modello locale invece che a Claude; se non risponde, ad Apple FM. In nessun altro caso Bubo lo sceglie da solo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you're offline, Questions go to the local model instead of Claude; if it doesn't respond, to Apple FM. Bubo never picks it on its own otherwise."
+          }
+        }
+      }
+    },
+    "Usalo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use It"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

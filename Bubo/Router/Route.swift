@@ -34,6 +34,10 @@ nonisolated struct Route: Equatable, Sendable {
         case endpointUnavailable
         /// The Domanda carries Allegati, which go only to Claude or to the Mac (#101).
         case attachments
+        /// The preferred server on the Mac, called so, does not answer.
+        case localServerOff(String)
+        /// The preferred server on the Mac, called so, answers but no longer has the model.
+        case localModelMissing(String)
     }
 
     /// Why the router chose what it chose.
@@ -52,6 +56,8 @@ nonisolated struct Route: Equatable, Sendable {
         case retried
         /// "Usa sempre per «Tipo»": the user's preference for the Tipo, instead of its default.
         case preferred(RequestType)
+        /// No network: the Modello locale answers, or else Apple Foundation Models (spec 10, Quota).
+        case offline(RequestType)
     }
 
     /// The family the router asked for; `nil` when `claude` picks.
