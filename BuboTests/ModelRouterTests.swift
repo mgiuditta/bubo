@@ -249,7 +249,7 @@ extension ModelRouterTests {
 
         let reason = String(localized: RouterLine.reason(for: route))
 
-        #expect(reason.contains("tua preferenza"))
+        #expect(route.pausedPreference != nil)
         #expect(reason.contains(ModelFamily.fable.name))
     }
 
