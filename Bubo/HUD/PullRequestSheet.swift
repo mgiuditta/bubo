@@ -132,17 +132,17 @@ struct PullRequestSheet: View {
         }
     }
 
-    /// Where the pull request goes, and the text the model proposes, together.
+    /// Where the pull request goes, then the text the model proposes: no model is asked when `gh` cannot open it.
     private func load() async {
-        async let proposal = proposedText()
         do {
             let found = try await store.pullRequestTarget(of: session.id, with: cli)
             target = found.target
             rejectedCount = found.rejectedCount
         } catch {
             show(error)
+            return
         }
-        text = await proposal
+        text = await proposedText()
         isTextReady = true
     }
 
