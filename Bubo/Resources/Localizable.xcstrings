@@ -7051,6 +7051,16 @@
         }
       }
     },
+    "Modello dal prossimo turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model from the next turn"
+          }
+        }
+      }
+    },
     "Modello successivo" : {
       "comment" : "VoiceOver action of the router chip: pick the next model for this Domanda.",
       "localizations" : {
@@ -8644,6 +8654,16 @@
         }
       }
     },
+    "Più forte: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stronger: %@"
+          }
+        }
+      }
+    },
     "PR aperta" : {
       "localizations" : {
         "en" : {
@@ -8900,6 +8920,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You can undo when no Session in this Project is working"
+          }
+        }
+      }
+    },
+    "Predefinito di Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's default"
           }
         }
       }

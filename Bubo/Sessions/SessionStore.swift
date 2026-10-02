@@ -1021,7 +1021,10 @@ final class SessionStore {
             let resumed = current?.continuedConversation
             // Continua da qui cuts only the conversation it forked: the turns after resume theirs whole.
             let cut = resumed != nil && resumed == current?.forkedFrom ? current?.forkedUpTo : nil
-            let answer = agent.ask(prompt, in: workspace.folder, model: unattended?.model, environment: environment,
+            // An Esecuzione keeps the model of its Automazione; the others take the one chosen in the Sessione.
+            let chosen = unattended == nil ? current?.model : nil
+            let answer = agent.ask(prompt, in: workspace.folder, model: unattended?.model ?? chosen?.family.alias,
+                                   effort: chosen?.effort, environment: environment,
                                    forkingFrom: resumed, upTo: cut, keeping: kept,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
@@ -1131,6 +1134,12 @@ final class SessionStore {
     func setAutonomous(_ isAutonomous: Bool, in id: UUID) {
         guard let session = sessions.first(where: { $0.id == id }), session.allowsAutonomy || !isAutonomous else { return }
         update(id) { $0.isAutonomous = isAutonomous }
+    }
+
+    /// Makes the turns of the Sessione `id` run on `model`, from its next one: the current turn keeps its model.
+    /// `nil` gives them back the model and effort the user set in `claude`.
+    func setModel(_ model: Scala.Step?, in id: UUID) {
+        update(id) { $0.model = model }
     }
 
     /// Whether a Sessione of the Progetto at `project` is in a turn: Bubo then never writes in its memory.

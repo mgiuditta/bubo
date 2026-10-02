@@ -1,3 +1,5 @@
+import Foundation
+
 /// The order of the steps model · effort that "Rifai più forte" climbs one at a time, effort first, then the model
 /// (spec 10).
 ///
@@ -5,9 +7,16 @@
 /// effort above its `maxEffortLevel` is skipped once the SDK is seen lowering it. So a step is never refused.
 nonisolated struct Scala: Equatable, Sendable {
     /// One step: a family at an effort; Haiku has no effort.
-    struct Step: Codable, Comparable, Sendable {
+    struct Step: Codable, Hashable, Comparable, Sendable {
         let family: ModelFamily
         let effort: Effort?
+
+        /// The step as the reason line names it, such as «Sonnet · medio»; the family alone without effort.
+        var name: String {
+            guard let effort else { return family.name }
+            return String(localized: "\(family.name) · \(String(localized: effort.label))",
+                          comment: "Model and effort in the reason line, such as «Sonnet 5.5 · medio».")
+        }
 
         /// Stronger model first, then stronger effort; no effort is the weakest.
         static func < (lhs: Self, rhs: Self) -> Bool {

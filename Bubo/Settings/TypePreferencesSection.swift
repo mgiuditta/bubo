@@ -34,10 +34,7 @@ struct TypePreferencesSection: View {
     /// The model the Tipo goes to, as the reason line names it.
     private func name(of choice: TypePreference) -> String {
         switch choice {
-        case let .claude(step):
-            guard let effort = step.effort else { return step.family.name }
-            return String(localized: "\(step.family.name) · \(String(localized: effort.label))",
-                          comment: "Model and effort in the reason line, such as «Sonnet 5.5 · medio».")
+        case let .claude(step): return step.name
         case let .endpoint(id):
             guard let endpoint = settings.endpoints.first(where: { $0.id == id }) else { return id }
             return endpoint.model.isEmpty ? endpoint.name : "\(endpoint.name) · \(endpoint.model)"
