@@ -379,6 +379,9 @@ struct SessionRow: View {
                     .controlSize(.small)
                 }
             }
+            if store.footprints.heavySessions.contains(session.id) {
+                HeavySessionBanner(restart: store.canRestartTurn(session.id) ? { store.restartTurn(session.id) } : nil)
+            }
             if let failure = session.failure, !isArchived {
                 Text(verbatim: failure)
                     .font(Typography.body(size: 12))
@@ -435,6 +438,9 @@ struct SessionRow: View {
                 .disabled(session.isRunning)
         }
         .accessibilityActions {
+            if store.footprints.heavySessions.contains(session.id) && store.canRestartTurn(session.id) {
+                Button("Riavvia") { store.restartTurn(session.id) }
+            }
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }

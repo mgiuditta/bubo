@@ -198,6 +198,8 @@ Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#18
   - Nessuna impostazione in v1.
   - Effetto: 10 Sessioni ferme passano da ~1,4 GB a ~200 MB.
 - **Sessioni che crescono**: il footprint di ogni `claude` si legge ogni **30 s**. Oltre **2 GB** la Sessione mostra "Sessione pesante: [Riavvia]". Riavvia chiude e riprende, come la sospensione.
+  - Con un `claude` per turno (oggi, in attesa di [#198](https://github.com/mgiuditta/bubo/issues/198)) l'avviso compare solo a turno in corso e la fine del turno lo libera da sola: "Riavvia a fine turno" non serve. Riavvia interrompe il turno e ripete la sua richiesta con un `claude` nuovo, nella stessa copia e in una Conversazione nuova, come Riprendi; durante la risoluzione dei conflitti solo l'avviso ([#199](https://github.com/mgiuditta/bubo/issues/199)).
+  - Il `claude` di una Sessione è il figlio del ponte avviato con `--session-id` uguale alla Conversazione del turno: `proc_listchildpids`, `KERN_PROCARGS2` e `proc_pid_rusage`, nessun processo lanciato. Soglia di uscita **1,5 GB**.
 
 ### Fotogrammi e reattività (deciso)
 

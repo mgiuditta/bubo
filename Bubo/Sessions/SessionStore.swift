@@ -109,7 +109,9 @@ final class SessionStore {
     @ObservationIgnored var indexer: ConversationIndexer?
     /// Called when a turn of a Sessione fails, with why; the onboarding offers a remedy for the first one (spec 26).
     @ObservationIgnored var onTurnFailure: (_ session: UUID, _ error: any Error) -> Void = { _, _ in }
-    /// The turns started by `start` and `restart`, which `restart` interrupts.
+    /// Which Sessioni have a heavy `claude`, read every 30 s while a turn is in progress (spec 25).
+    @ObservationIgnored let footprints = ProcessFootprintMonitor()
+    /// The turns in progress, which `restart` and `restartTurn` interrupt; not those resolving conflicts.
     @ObservationIgnored private var turnTasks: [UUID: Task<Void, Never>] = [:]
     /// The version of `claude` when it is too old to start a turn, checked before each one (spec 27); `nil` lets it
     /// start. By default nothing is checked here: the bridge still checks at `init`.
@@ -134,6 +136,10 @@ final class SessionStore {
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
+    /// The prompt of each Sessione's turn in progress, which `restartTurn` asks again.
+    @ObservationIgnored private var turnPrompts: [UUID: String] = [:]
+    /// The reading of the footprints, every 30 s while a turn is in progress.
+    @ObservationIgnored private var footprintWatch: Task<Void, Never>?
     /// The answer of each Sessione's turn in progress, and whether it has the Anteprima's tools.
     @ObservationIgnored private var previewOffers: [UUID: (answer: String, isOffered: Bool)] = [:]
     /// The merges that can still be undone, with the task that archives their Sessione when the time is up.
@@ -265,9 +271,25 @@ final class SessionStore {
     /// Asks `claude` the first prompt of the open Sessione `id` again, in its copy and in a new Conversazione, once
     /// the turn in progress, if any, is interrupted: Riprova of the onboarding (spec 26).
     func restart(_ id: UUID) {
-        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta,
-              let prompt = session.prompt
-        else { return }
+        guard let prompt = sessions.first(where: { $0.id == id })?.prompt else { return }
+        restart(id, prompt: prompt)
+    }
+
+    /// Riavvia of a Sessione pesante: interrupts the turn in progress and asks its prompt again in a new `claude`,
+    /// in the same copy and in a new Conversazione. Nothing when ``canRestartTurn(_:)`` is false.
+    func restartTurn(_ id: UUID) {
+        guard canRestartTurn(id), let prompt = turnPrompts[id] else { return }
+        restart(id, prompt: prompt)
+    }
+
+    /// Whether Riavvia can start the turn in progress of the Sessione `id` again: not while it resolves conflicts.
+    func canRestartTurn(_ id: UUID) -> Bool {
+        turnPrompts[id] != nil && sessions.first { $0.id == id }?.resolution == nil
+    }
+
+    /// Asks `claude` `prompt` in the open Sessione `id`, once the turn in progress, if any, is interrupted.
+    private func restart(_ id: UUID, prompt: String) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .aperta else { return }
         let interrupted = turnTasks[id]
         interrupted?.cancel()
         turnTasks[id] = Task {
@@ -301,7 +323,7 @@ final class SessionStore {
             session.summary = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+        turnTasks[id] = Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
     }
 
     /// Riprova on a Sessione whose turn did not start, because its Sandbox could not or `claude` was too old: the same
@@ -317,7 +339,7 @@ final class SessionStore {
             session.unstartedPrompt = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+        turnTasks[id] = Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
     }
 
     /// Starts again the turns that waited for `claude` to be updated, now that it is ready: no click needed.
@@ -351,7 +373,9 @@ final class SessionStore {
             session.setupFailure = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: prompt, branch: session.branchToPrepare, reopening: session.workspace) }
+        turnTasks[id] = Task {
+            await run(id, prompt: prompt, branch: session.branchToPrepare, reopening: session.workspace)
+        }
     }
 
     /// The changes of the Sessione `id` to review, since its branch started; none while it has no copy yet.
@@ -394,7 +418,7 @@ final class SessionStore {
             session.failure = nil
             session.isInterrupted = false
         }
-        Task { await run(id, prompt: feedback, branch: session.branchToPrepare) }
+        turnTasks[id] = Task { await run(id, prompt: feedback, branch: session.branchToPrepare) }
     }
 
     /// What Fondi would do now with the Sessione `id`, without touching the Progetto's checkout; `nil` when the
@@ -685,11 +709,15 @@ final class SessionStore {
             // Read now: the copy may have just been prepared, and the switch may have changed since the turn was asked.
             let permissionMode = sessions.first { $0.id == id }?.permissionMode ?? .manual
             turns[id] = agent
+            turnPrompts[id] = prompt
+            watchFootprints()
             sandboxedTurns[id] = isSandboxed
             sandboxBlocks[id] = nil
             previewOffers[id] = (answerID, hasServer)
             defer {
                 turns[id] = nil
+                turnPrompts[id] = nil
+                footprints.forget(id)
                 sandboxedTurns[id] = nil
                 previewOffers[id] = nil
                 permissions.clear(id)
@@ -765,6 +793,39 @@ final class SessionStore {
             }
             return false
         }
+    }
+
+    /// Reads the footprint of each turn's `claude` every 30 s, until no turn is in progress.
+    private func watchFootprints() {
+        guard footprintWatch == nil else { return }
+        footprintWatch = Task { [weak self] in
+            while self?.readFootprints() == true {
+                try? await Task.sleep(for: ProcessFootprintMonitor.interval)
+            }
+        }
+    }
+
+    /// Records the footprint of each turn's `claude`, found among the children of its bridge by its conversation.
+    ///
+    /// - Returns: `false`, ending the watch, once no turn is in progress.
+    private func readFootprints() -> Bool {
+        guard !turns.isEmpty else {
+            footprintWatch = nil
+            return false
+        }
+        var claudes: [pid_t: [String: pid_t]] = [:]
+        var readings: [UUID: UInt64] = [:]
+        for (id, agent) in turns {
+            guard let bridge = agent.pid, let conversation = sessions.first(where: { $0.id == id })?.conversations.last
+            else { continue }
+            let processes = claudes[bridge] ?? ProcessInspector.claudeProcesses(of: bridge)
+            claudes[bridge] = processes
+            if let pid = processes[conversation], let footprint = ProcessInspector.footprint(of: pid) {
+                readings[id] = footprint
+            }
+        }
+        footprints.record(readings)
+        return true
     }
 
     /// Turns the Modalità autonoma of the Sessione `id` on or off, from its next turn; nothing where it is not possible.

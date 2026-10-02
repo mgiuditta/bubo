@@ -86,6 +86,8 @@ final class AgentBridge {
     private var isClosing = false
     /// The `claude` of the latest conversation, from its `init`: it changes when `claude` updates with Bubo open.
     private(set) var claude: (version: String, capabilities: Set<ClaudeCapability>)?
+    /// The bridge's process identifier while it runs: each `claude` in progress is one of its children.
+    var pid: pid_t? { process?.pid }
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///

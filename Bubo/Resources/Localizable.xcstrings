@@ -2228,6 +2228,26 @@
         }
       }
     },
+    "Claude usa più di 2 GB di memoria. Riavvia interrompe il turno e ripete la richiesta con un Claude nuovo, nella stessa copia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude is using more than 2 GB of memory. Restart stops the turn and asks the same request again with a new Claude, in the same copy."
+          }
+        }
+      }
+    },
+    "Claude usa più di 2 GB di memoria. Torna leggero alla fine del turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude is using more than 2 GB of memory. It gets light again when the turn ends."
+          }
+        }
+      }
+    },
     "Collega" : {
       "localizations" : {
         "en" : {
@@ -6659,6 +6679,16 @@
         }
       }
     },
+    "Riavvia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restart"
+          }
+        }
+      }
+    },
     "Ricarica" : {
       "localizations" : {
         "en" : {
@@ -7601,6 +7631,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session from GitHub Issue…"
+          }
+        }
+      }
+    },
+    "Sessione pesante" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heavy session"
           }
         }
       }
