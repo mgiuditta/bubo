@@ -56,6 +56,10 @@ struct PanelBubbleView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityHidden(true)
                 }
+                // What was dropped on the Orb, waiting for the Domanda about it.
+                if !model.attachments.isEmpty {
+                    AttachmentChips(attachments: model.attachments, remove: model.detach)
+                }
                 prompt
                 if let failure = model.failure {
                     QuestionNotice(failure: failure, model: model, pickRetry: hud.show)

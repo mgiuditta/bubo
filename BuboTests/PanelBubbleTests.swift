@@ -46,6 +46,10 @@ struct PanelBubbleTests {
         #expect(PanelBubble.closesOnLosingKeyboard(prompt: prompt, answer: answer, isAnswering: isAnswering) == closes)
     }
 
+    @Test func losingTheKeyboardKeepsABubbleWithAllegati() {
+        #expect(!PanelBubble.closesOnLosingKeyboard(prompt: "", answer: "", isAnswering: false, hasAttachments: true))
+    }
+
     @Test func losingTheKeyboardKeepsABubbleWithADomanda() {
         let bubble = PanelBubble()
         bubble.open(focus: .prompt)

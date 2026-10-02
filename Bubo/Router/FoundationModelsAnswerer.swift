@@ -45,7 +45,7 @@ nonisolated struct FoundationModelsAnswerer: OnDeviceAnswering {
 
     private static func prompt(_ question: String, attachments: [Allegato]) -> String {
         guard !attachments.isEmpty else { return question }
-        let attached = attachments.map { "--- \($0.name) ---\n\($0.text)" }.joined(separator: "\n\n")
+        let attached = attachments.map { "--- \($0.name) ---\n\($0.text ?? "")" }.joined(separator: "\n\n")
         return "\(question)\n\nAttachments:\n\(attached)"
     }
 }

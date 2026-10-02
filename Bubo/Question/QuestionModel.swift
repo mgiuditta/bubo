@@ -10,6 +10,8 @@ final class QuestionModel {
             if prompt != oldValue { updateForecast() }
         }
     }
+    /// The Allegati in the prompt, dragged onto the Orb, that go with the next Domanda.
+    private(set) var attachments: [Allegato] = []
     /// What the router would choose for the prompt as typed, for the chip; `nil` with an empty prompt and until the
     /// first forecast.
     private(set) var forecast: Route?
@@ -178,7 +180,8 @@ final class QuestionModel {
         forecasting = Task {
             try? await Task.sleep(for: Self.forecastDelay)
             guard !Task.isCancelled else { return }
-            let route = await intake.forecastRoute(for: Richiesta(text: text), catalog: catalog)
+            let route = await intake.forecastRoute(for: Richiesta(text: text, attachments: attachments),
+                                                   catalog: catalog)
             guard !Task.isCancelled else { return }
             forecast = route
         }
@@ -284,10 +287,38 @@ final class QuestionModel {
             return
         }
         lastPrompt = text
-        lastAttachments = []
+        lastAttachments = attachments
+        attachments = []
         declinedEndpoints = []
         question = UUID()
         start(text, route: choice, speaksAnswer: speaksAnswer)
+    }
+
+    /// Puts `new` in the prompt, after the Allegati already there, and shows the Orb in Ascolto: the user writes or
+    /// speaks, then sends.
+    func attach(_ new: [Allegato]) {
+        attachments += new.filter { !attachments.contains($0) }
+        guard !attachments.isEmpty else { return }
+        awaitAttachments()
+        updateForecast()
+    }
+
+    /// Takes `allegato` out of the prompt; with the last one goes the Ascolto.
+    func detach(_ allegato: Allegato) {
+        attachments.removeAll { $0 == allegato }
+        if attachments.isEmpty { stopAwaitingAttachments() }
+        updateForecast()
+    }
+
+    /// Shows the Orb in Ascolto, waiting for what the user writes or says about an Allegato; nothing while a Domanda
+    /// is under way.
+    func awaitAttachments() {
+        if orb.questionState == nil { orb.questionState = .listening }
+    }
+
+    /// Ends the Ascolto of ``awaitAttachments()``: the drag left the Orb, or the prompt was put away.
+    func stopAwaitingAttachments() {
+        if orb.questionState == .listening { orb.questionState = nil }
     }
 
     /// Asks the last prompt again.
@@ -501,7 +532,7 @@ final class QuestionModel {
                 }
                 Logger.agent.info("Domanda answered on the Mac")
                 // Counted after the answer, off its way: the line does not wait for it.
-                let read = ([asked] + richiesta.attachments.map(\.text)).joined(separator: "\n\n")
+                let read = ([asked] + richiesta.attachments.compactMap(\.text)).joined(separator: "\n\n")
                 Task { [answer, question] in await recordOnDevice(read: read, answer: answer, question: question) }
                 return
             } catch is CancellationError {
@@ -540,6 +571,7 @@ final class QuestionModel {
             let prompt = Self.prompt(asked, attachments: richiesta.attachments)
             let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
+                                    readableDirectories: Self.readableDirectories(for: richiesta.attachments),
                                     progress: { [orb] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                     },
@@ -591,11 +623,27 @@ final class QuestionModel {
         }
     }
 
-    /// What `claude` reads of a Domanda: `question`, then each Allegato under its name.
-    private static func prompt(_ question: String, attachments: [Allegato]) -> String {
+    /// What `claude` reads of a Domanda: `question`, each Allegato with no file behind it under its name, then the
+    /// paths of the others, which the agent reads from the disk (spec 09).
+    static func prompt(_ question: String, attachments: [Allegato]) -> String {
         guard !attachments.isEmpty else { return question }
-        let attached = attachments.map { "--- \($0.name) ---\n\($0.text)" }.joined(separator: "\n\n")
-        return question + "\n\n" + attached
+        let inline = attachments.filter { $0.path == nil }.map { "--- \($0.name) ---\n\($0.text ?? "")" }
+        let paths = attachments.compactMap(\.path).map { "- \($0.path(percentEncoded: false))" }
+        let onDisk = paths.isEmpty ? [] : ["Allegati da leggere dal disco:\n" + paths.joined(separator: "\n")]
+        return ([question] + inline + onDisk).joined(separator: "\n\n")
+    }
+
+    /// The folders `claude` may read besides its own for `attachments`: each folder, and the folder of each file.
+    static func readableDirectories(for attachments: [Allegato]) -> [URL] {
+        let directories = attachments.compactMap { allegato in
+            allegato.path.map { path in
+                let directory = allegato.kind == .folder ? path : path.deletingLastPathComponent()
+                return URL(filePath: directory.path(percentEncoded: false), directoryHint: .isDirectory)
+            }
+        }
+        return directories.reduce(into: []) { unique, directory in
+            if !unique.contains(directory) { unique.append(directory) }
+        }
     }
 
     /// Records the turn Apple FM answered: gratis, with the tokens the model counts of what it read and wrote.
@@ -693,7 +741,7 @@ final class QuestionModel {
     }
 
     /// Where Domande run: they have no Progetto, so an empty folder of Bubo's own.
-    private static func directory() throws -> URL {
+    static func directory() throws -> URL {
         let directory = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appending(path: "Bubo/Domande", directoryHint: .isDirectory)

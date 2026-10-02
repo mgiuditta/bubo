@@ -131,6 +131,7 @@ final class AgentBridge {
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
              rosa: [Variante] = Catalogo.bundled?.rosa() ?? [], unattended: UnattendedTurn? = nil,
+             readableDirectories: [URL] = [],
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -163,7 +164,8 @@ final class AgentBridge {
                                             offersPreview: offersPreview,
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
                                             remembers: remembers, permissionMode: permissionMode, effort: effort,
-                                            rosa: rosa.map(\.nome), unattended: unattended)
+                                            rosa: rosa.map(\.nome), unattended: unattended,
+                                            readableDirectories: readableDirectories)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

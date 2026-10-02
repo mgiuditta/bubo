@@ -62,10 +62,12 @@ final class PanelBubble {
         wasActive = isActive
     }
 
-    /// Returns whether losing the keyboard closes the bubble: only with nothing typed, nothing answered, nothing on its
-    /// way.
-    nonisolated static func closesOnLosingKeyboard(prompt: String, answer: String, isAnswering: Bool) -> Bool {
-        prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && answer.isEmpty && !isAnswering
+    /// Returns whether losing the keyboard closes the bubble: only with nothing typed, nothing attached, nothing
+    /// answered, nothing on its way.
+    nonisolated static func closesOnLosingKeyboard(prompt: String, answer: String, isAnswering: Bool,
+                                                   hasAttachments: Bool = false) -> Bool {
+        prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !hasAttachments && answer.isEmpty
+            && !isAnswering
     }
 
     /// Returns what VoiceOver announces when an answer ends: once, never chunk by chunk.
