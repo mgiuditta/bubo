@@ -761,6 +761,22 @@
         }
       }
     },
+    "5 ore: %@ · si azzera alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5 hours: %1$@ · resets at %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "5 ore: %1$@ · si azzera alle %2$@"
+          }
+        }
+      }
+    },
     "ANTHROPIC_API_KEY è impostata nel tuo ambiente" : {
       "localizations" : {
         "en" : {
@@ -2233,6 +2249,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo is connected to OpenRouter. You can close this page and go back to Bubo."
+          }
+        }
+      }
+    },
+    "Bubo, %lld Sessioni ti attendono" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bubo, %lld Session waiting on you"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bubo, %lld Sessions waiting on you"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bubo, %lld Sessione ti attende"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Bubo, %lld Sessioni ti attendono"
+                }
+              }
+            }
           }
         }
       }
@@ -8234,6 +8290,16 @@
         }
       }
     },
+    "Quota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quota"
+          }
+        }
+      }
+    },
     "Quota %@: %@ usata" : {
       "localizations" : {
         "en" : {
@@ -9689,6 +9755,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Week"
+          }
+        }
+      }
+    },
+    "Settimana: %@ · si azzera %@ alle %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Week: %1$@ · resets %2$@ at %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Settimana: %1$@ · si azzera %2$@ alle %3$@"
           }
         }
       }

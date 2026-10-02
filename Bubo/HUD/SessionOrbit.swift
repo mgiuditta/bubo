@@ -5,6 +5,7 @@ import SwiftUI
 struct SessionOrbit: View {
     let store: SessionStore
     let quota: Quota
+    @Environment(HUDPresenter.self) private var hud
     /// The Sessione whose card is shown; until one is chosen, the one waiting the longest.
     @State private var selection: Session.ID?
 
@@ -42,6 +43,12 @@ struct SessionOrbit: View {
                     .padding(Spacing.xxSmall)
                     .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.large))
             }
+        }
+        // The Sessione chosen in the menu bar becomes the chosen one here.
+        .onChange(of: hud.revealedSession, initial: true) {
+            guard let id = hud.revealedSession else { return }
+            selection = id
+            hud.revealedSession = nil
         }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sessioni")

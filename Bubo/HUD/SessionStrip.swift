@@ -10,22 +10,25 @@ struct SessionStrip: View {
 
     var body: some View {
         let sessions = sessions
-        ScrollView(.horizontal) {
-            GlassEffectContainer(spacing: Spacing.xSmall) {
-                HStack(alignment: .top, spacing: Spacing.xSmall) {
-                    ForEach(sessions) { session in
-                        let isWaiting = session.activity == .attende
-                        SessionRow(session: session, store: store)
-                            .frame(width: isWaiting ? 320 : 200, alignment: .leading)
-                            .padding(Spacing.xxSmall)
-                            .glassEffect(isWaiting ? .regular.tint(Palette.attention.opacity(0.12)) : .regular,
-                                         in: .rect(cornerRadius: CornerRadius.large))
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal) {
+                GlassEffectContainer(spacing: Spacing.xSmall) {
+                    HStack(alignment: .top, spacing: Spacing.xSmall) {
+                        ForEach(sessions) { session in
+                            let isWaiting = session.activity == .attende
+                            SessionRow(session: session, store: store)
+                                .frame(width: isWaiting ? 320 : 200, alignment: .leading)
+                                .padding(Spacing.xxSmall)
+                                .glassEffect(isWaiting ? .regular.tint(Palette.attention.opacity(0.12)) : .regular,
+                                             in: .rect(cornerRadius: CornerRadius.large))
+                        }
                     }
+                    .padding(Spacing.xxSmall)
                 }
-                .padding(Spacing.xxSmall)
             }
+            .scrollIndicators(.never)
+            .revealingSession(with: proxy)
         }
-        .scrollIndicators(.never)
         .animation(Motion.isReduced ? nil : Motion.emphasized, value: sessions.map(\.activity))
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sessioni")

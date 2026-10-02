@@ -68,17 +68,20 @@ struct SessionBoard: View {
                     .font(Typography.body(size: 12))
                     .foregroundStyle(Palette.textSecondary)
             }
-            ScrollView(.horizontal) {
-                GlassEffectContainer(spacing: Spacing.xSmall) {
-                    HStack(alignment: .top, spacing: Spacing.xSmall) {
-                        draftColumn
-                        ForEach(columns, id: \.column) { column, sessions in
-                            columnView(column, sessions: sessions)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal) {
+                    GlassEffectContainer(spacing: Spacing.xSmall) {
+                        HStack(alignment: .top, spacing: Spacing.xSmall) {
+                            draftColumn
+                            ForEach(columns, id: \.column) { column, sessions in
+                                columnView(column, sessions: sessions)
+                            }
                         }
                     }
                 }
+                .scrollIndicators(.automatic)
+                .revealingSession(with: proxy)
             }
-            .scrollIndicators(.automatic)
         }
         // Reduce Motion: the cards jump to their new column.
         .animation(Motion.isReduced ? nil : Motion.emphasized, value: columns.map { $0.sessions.map(\.id) })

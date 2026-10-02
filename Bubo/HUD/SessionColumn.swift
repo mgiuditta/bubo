@@ -57,26 +57,29 @@ struct SessionColumn: View {
                 .help(Text("Cerca nei messaggi nella Palette (⌘K)"))
             }
             .padding([.horizontal, .top], Spacing.small)
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
-                    ForEach(groups, id: \.title.key) { group in
-                        GroupHeader(title: Text("\(Text(group.title)) · \(group.sessions.count)"))
-                        ForEach(group.sessions) { session in
-                            SessionRow(session: session, store: store)
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: Spacing.xSmall) {
+                        ForEach(groups, id: \.title.key) { group in
+                            GroupHeader(title: Text("\(Text(group.title)) · \(group.sessions.count)"))
+                            ForEach(group.sessions) { session in
+                                SessionRow(session: session, store: store)
+                            }
                         }
-                    }
-                    if !conversations.isEmpty {
-                        GroupHeader(title: Text("Cronologia CLI"))
-                        ForEach(conversations) { conversation in
-                            CLIConversationRow(conversation: conversation) {
-                                hud.createSession(from: SessionDraft(conversation: conversation))
-                            } read: {
-                                reading = conversation
+                        if !conversations.isEmpty {
+                            GroupHeader(title: Text("Cronologia CLI"))
+                            ForEach(conversations) { conversation in
+                                CLIConversationRow(conversation: conversation) {
+                                    hud.createSession(from: SessionDraft(conversation: conversation))
+                                } read: {
+                                    reading = conversation
+                                }
                             }
                         }
                     }
+                    .padding(Spacing.small)
                 }
-                .padding(Spacing.small)
+                .revealingSession(with: proxy)
             }
         }
         .frame(width: 280)

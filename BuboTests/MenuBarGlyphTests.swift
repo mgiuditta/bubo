@@ -40,4 +40,31 @@ struct MenuBarGlyphTests {
         #expect(eye.alphaComponent < 0.05)
         #expect(corner.alphaComponent == 0)
     }
+
+    @Test func waitingSessionsAddAFullDotAndAClearRing() throws {
+        let waiting = MenuBarGlyph.makeImage(waiting: 2)
+        #expect(waiting.isTemplate)
+        let bitmap = try #require(NSBitmapImageRep(
+            bitmapDataPlanes: nil, pixelsWide: 36, pixelsHigh: 36,
+            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+            colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0
+        ))
+        bitmap.size = waiting.size
+        NSGraphicsContext.saveGraphicsState()
+        NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
+        waiting.draw(in: CGRect(origin: .zero, size: waiting.size))
+        NSGraphicsContext.restoreGraphicsState()
+
+        // Bitmap rows run top-down: the dot's centre is at (15, 3) points, the ring just left of it.
+        let dot = try #require(bitmap.colorAt(x: 30, y: 6))
+        let ring = try #require(bitmap.colorAt(x: 22, y: 6))
+        #expect(dot.alphaComponent > 0.95)
+        #expect(ring.alphaComponent < 0.05)
+    }
+
+    @Test func descriptionSaysHowManySessioniWait() {
+        #expect(MenuBarGlyph.makeImage().accessibilityDescription == String(localized: "Bubo"))
+        #expect(MenuBarGlyph.makeImage(waiting: 2).accessibilityDescription
+                == String(localized: "Bubo, \(2) Sessioni ti attendono"))
+    }
 }
