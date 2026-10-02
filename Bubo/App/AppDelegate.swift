@@ -109,15 +109,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Riprendi and Continua da qui, from the Palette and the Cronologia window.
     private(set) lazy var resumeActions = ResumeActions(sessions: { [weak self] in self?.sessions }, hud: hud)
     /// The global shortcut; created at launch so it works with no window open.
-    private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press() } release: { [pushToTalk] in pushToTalk.release() }
-    /// The global shortcut held down: dictation into the Domanda, sent at release.
+    private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press(sending: $0) } release: { [pushToTalk] in pushToTalk.release() }
+    /// The global shortcut held down: dictation into the Domanda, sent at release unless it was the sola dettatura.
     private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [questions] in
         questions.stopSpeaking()
     } tap: { [hud] in hud.toggle() } show: { [hud] in
         hud.show()
-    } dictate: { [questions] text, isFinal in
+    } dictate: { [questions] text, sends in
         questions.prompt = text
-        if isFinal { questions.askByVoice() }
+        if sends { questions.askByVoice() }
     }
 
     /// Shows the standard About panel, with Bubo's one line of credits.

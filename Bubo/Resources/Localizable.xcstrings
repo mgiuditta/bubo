@@ -11734,6 +11734,78 @@
           }
         }
       }
+    },
+    "%@ aprirà anche %@: cambiala qui o nell'altra app." : {
+      "comment" : "Under the shortcut recorder: installed apps that take the same shortcut. The second is a list of app names.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ will also open %2$@: change it here or in the other app."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ aprirà anche %2$@: cambiala qui o nell'altra app."
+          }
+        }
+      }
+    },
+    "%@ è anche una scorciatoia di sistema: cambiala qui o in Impostazioni di Sistema › Tastiera." : {
+      "comment" : "Under the shortcut recorder: the combination is an enabled system shortcut.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is also a system shortcut: change it here or in System Settings › Keyboard."
+          }
+        }
+      }
+    },
+    "La combinazione contiene già ⇧: la sola dettatura è spenta." : {
+      "comment" : "Under the shortcut recorder: no dictation-only variant.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The combination already has ⇧: dictation only is off."
+          }
+        }
+      }
+    },
+    "Non riesco a registrare %@ per la sola dettatura." : {
+      "comment" : "Settings › Shortcut: the shortcut plus ⇧ could not be registered.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't register %@ for dictation only."
+          }
+        }
+      }
+    },
+    "Scorciatoia di Bubo" : {
+      "comment" : "First launch: label of the shortcut recorder when another app takes the shortcut.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo's shortcut"
+          }
+        }
+      }
+    },
+    "Tieni premuto %@ per dettare nel prompt senza inviare." : {
+      "comment" : "Under the shortcut recorder: the dictation-only shortcut.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold %@ to dictate into the prompt without sending."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
