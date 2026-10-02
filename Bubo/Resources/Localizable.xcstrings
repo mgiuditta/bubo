@@ -89,6 +89,17 @@
         }
       }
     },
+    "%@ esaurito" : {
+      "comment" : "Notification title: a monthly Budget is spent, such as «Budget di OpenAI esaurito».\nReason line: the monthly Budget the answer counts in is spent, such as «Budget di OpenAI esaurito».",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ used up"
+          }
+        }
+      }
+    },
     "%@ non può andare a capo. Scrivilo su una riga sola." : {
       "localizations" : {
         "en" : {
@@ -121,6 +132,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@ or %2$@ → %3$@"
+          }
+        }
+      }
+    },
+    "%@ oltre la soglia" : {
+      "comment" : "Notification title: a monthly Budget passed its threshold, such as «Budget di OpenAI oltre la soglia».",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ past its threshold"
           }
         }
       }
@@ -417,6 +439,22 @@
         }
       }
     },
+    "%@ → %@, tua preferenza in pausa: %@ oltre la soglia" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, tua preferenza in pausa: %3$@ oltre la soglia"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, your preference paused: %3$@ past its threshold"
+          }
+        }
+      }
+    },
     "%@ → %@, allegato troppo lungo per Apple FM" : {
       "localizations" : {
         "it" : {
@@ -541,12 +579,19 @@
         }
       }
     },
-    "%lld aggiornamenti" : {
+    "%@: %@" : {
+      "comment" : "Reason line: the monthly Budget the answer counts in is past its threshold, with the share spent, such as «Budget di OpenAI: 84%».",
       "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%lld updates"
+            "value" : "%1$@: %2$@"
           }
         }
       }
@@ -1005,66 +1050,6 @@
         }
       }
     },
-    "Aggiorna" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update"
-          }
-        }
-      }
-    },
-    "Aggiorna %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update %@"
-          }
-        }
-      }
-    },
-    "Aggiornamenti" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updates"
-          }
-        }
-      }
-    },
-    "Aggiornamenti disponibili" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updates available"
-          }
-        }
-      }
-    },
-    "Aggiornamento disponibile: versione %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Update available: version %@"
-          }
-        }
-      }
-    },
-    "Aggiorno…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Updating…"
-          }
-        }
-      }
-    },
     "Allegati a «%@»: %@" : {
       "localizations" : {
         "en" : {
@@ -1501,6 +1486,16 @@
         }
       }
     },
+    "Alla soglia Bubo ti avvisa sotto la risposta e con una notifica, e nelle scelte automatiche usa un altro modello, se c'è. Lo sforamento massimo è un turno per Sessione attiva: il turno che supera il Budget finisce. Per un blocco duro, imposta un limite dal fornitore." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At the threshold Bubo warns you under the answer and with a notification, and uses another model in its automatic choices, if there is one. The most a Budget can be overshot is one turn per active Session: the turn that crosses it finishes. For a hard stop, set a limit at the provider."
+          }
+        }
+      }
+    },
     "Allegati" : {
       "localizations" : {
         "en" : {
@@ -1637,6 +1632,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Other OpenAI-Compatible Endpoint"
+          }
+        }
+      }
+    },
+    "Ancora nessun Progetto con Spesa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Project with spending yet."
           }
         }
       }
@@ -2855,6 +2860,59 @@
         }
       }
     },
+    "Budget" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Budget"
+          }
+        }
+      }
+    },
+    "Budget di %@" : {
+      "comment" : "The Budget of a provider (a brand) or of a Progetto (its folder), such as «Budget di OpenAI».",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Budget"
+          }
+        }
+      }
+    },
+    "Budget di Claude" : {
+      "comment" : "The Budget of Claude paid with the user's API key.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Budget"
+          }
+        }
+      }
+    },
+    "Budget mensili sulla Spesa, dal primo del mese nel fuso del Mac. Contano solo i turni passati da Bubo: la riga di comando resta fuori, e l'abbonamento ha già la sua Quota." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly Budgets on spending, from the first of the month in the Mac's time zone. Only turns that go through Bubo count: the command line stays out, and the subscription already has its Quota."
+          }
+        }
+      }
+    },
+    "Budget totale" : {
+      "comment" : "The Budget on all the Spesa.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total Budget"
+          }
+        }
+      }
+    },
     "Cerca nella cronologia" : {
       "localizations" : {
         "en" : {
@@ -2871,96 +2929,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What should Claude do?"
-          }
-        }
-      }
-    },
-    "Componenti nuovi" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New components"
-          }
-        }
-      }
-    },
-    "Forse c'è un aggiornamento: il repository è passato a %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "There may be an update: the repository moved to %@"
-          }
-        }
-      }
-    },
-    "Ho visto" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seen"
-          }
-        }
-      }
-    },
-    "L'autore non ha cambiato versione: questa è già l'ultima che pubblica." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The author hasn't changed the version: this is already the latest they publish."
-          }
-        }
-      }
-    },
-    "La nuova versione porta codice che gira sul Mac, fuori dalla sandbox." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The new version brings code that runs on the Mac, outside the sandbox."
-          }
-        }
-      }
-    },
-    "Nuovo codice eseguibile dall'ultimo aggiornamento: %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New executable code since the last update: %@"
-          }
-        }
-      }
-    },
-    "Per aggiornarlo, claude esegue questo comando sul Mac:" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "To update it, claude runs this command on the Mac:"
-          }
-        }
-      }
-    },
-    "Tutti i plugin sono aggiornati" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "All plugins are up to date"
-          }
-        }
-      }
-    },
-    "aggiornamento" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "update"
           }
         }
       }
@@ -3449,6 +3417,16 @@
         }
       }
     },
+    "Cifra incerta: un turno di Claude su un modello senza prezzo noto è stimato alla tariffa del modello predefinito." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uncertain figure: a Claude turn on a model with no known price is estimated at the default model's rate."
+          }
+        }
+      }
+    },
     "Cifra riportata dal fornitore nella risposta." : {
       "localizations" : {
         "en" : {
@@ -3545,6 +3523,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude Code is too old for Bubo. Update it and the Session starts on its own."
+          }
+        }
+      }
+    },
+    "Claude con API key" : {
+      "comment" : "The Budget of Claude paid with the user's API key.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude with API key"
           }
         }
       }
@@ -4451,6 +4440,16 @@
         }
       }
     },
+    "Crediti OpenRouter finiti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter credits used up"
+          }
+        }
+      }
+    },
     "Cronologia" : {
       "localizations" : {
         "en" : {
@@ -5284,6 +5283,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Provider"
+          }
+        }
+      }
+    },
+    "Fornitori" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Providers"
           }
         }
       }
@@ -6809,16 +6818,6 @@
         }
       }
     },
-    "claude non ha accettato il comando confermato." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "claude didn't accept the confirmed command."
-          }
-        }
-      }
-    },
     "iPhone" : {
       "localizations" : {
         "en" : {
@@ -7371,6 +7370,16 @@
         }
       }
     },
+    "Le richieste in corso su OpenRouter riempiono già il limite della chiave: riprova quando finiscono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Requests in progress on OpenRouter already fill the key's limit: try again when they finish."
+          }
+        }
+      }
+    },
     "Le stesse cifre sono nella tabella, raggruppata per Periodo." : {
       "localizations" : {
         "en" : {
@@ -7567,6 +7576,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Read"
+          }
+        }
+      }
+    },
+    "Limite della chiave quasi raggiunto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key limit almost reached"
+          }
+        }
+      }
+    },
+    "Limite della chiave raggiunto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Key limit reached"
+          }
+        }
+      }
+    },
+    "Limite duro su %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard limit at %@"
+          }
+        }
+      }
+    },
+    "Limite mensile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monthly limit"
           }
         }
       }
@@ -9913,6 +9962,16 @@
         }
       }
     },
+    "Progetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Projects"
+          }
+        }
+      }
+    },
     "Progetto" : {
       "localizations" : {
         "en" : {
@@ -10388,6 +10447,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reload"
+          }
+        }
+      }
+    },
+    "Ricarica i crediti su openrouter.ai, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Top up your credits on openrouter.ai, then try again."
           }
         }
       }
@@ -11835,6 +11904,16 @@
         }
       }
     },
+    "Soglia di avviso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warning threshold"
+          }
+        }
+      }
+    },
     "Solo con Avvia ora" : {
       "localizations" : {
         "en" : {
@@ -11962,6 +12041,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Spend: %@"
+          }
+        }
+      }
+    },
+    "Spesi %@ su %@ questo mese (%@). Nelle scelte automatiche Bubo usa un altro modello, se c'è." : {
+      "comment" : "Notification body of a Budget past its threshold: the Spesa of the month, the limit, the share spent, and what the router does.",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spesi %1$@ su %2$@ questo mese (%3$@). Nelle scelte automatiche Bubo usa un altro modello, se c'è."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spent %1$@ of %2$@ this month (%3$@). In its automatic choices Bubo uses another model, if there is one."
+          }
+        }
+      }
+    },
+    "Spesi %@ su %@ questo mese, restano %@." : {
+      "comment" : "A Budget this month: the Spesa, the monthly limit and what is left.",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Spesi %1$@ su %2$@ questo mese, restano %3$@."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spent %1$@ of %2$@ this month, %3$@ left."
           }
         }
       }
@@ -12379,6 +12492,17 @@
         }
       }
     },
+    "Totale" : {
+      "comment" : "The Budget on all the Spesa, in the Budget settings.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Total"
+          }
+        }
+      }
+    },
     "Trasforma in Sessione" : {
       "localizations" : {
         "en" : {
@@ -12435,6 +12559,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Turns"
+          }
+        }
+      }
+    },
+    "Turni senza prezzo questo mese, che il Budget non può contare: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turns with no price this month, which the Budget can't count: %lld"
           }
         }
       }
@@ -13768,6 +13902,17 @@
         }
       }
     },
+    "senza prezzo, fuori dal Budget" : {
+      "comment" : "Reason line: the model has no known price, so its provider's Budget cannot count the answer.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no price, outside the Budget"
+          }
+        }
+      }
+    },
     "si azzera %@ alle %@" : {
       "localizations" : {
         "en" : {
@@ -14267,6 +14412,16 @@
         }
       }
     },
+    "La chiave di OpenRouter ha raggiunto il limite di spesa che le hai dato su openrouter.ai." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your OpenRouter key reached the spending limit you gave it on openrouter.ai."
+          }
+        }
+      }
+    },
     "Macchine" : {
       "localizations" : {
         "en" : {
@@ -14403,6 +14558,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "If the fingerprint matches, the key goes in ~/.ssh/known_hosts, as with ssh in Terminal."
+          }
+        }
+      }
+    },
+    "Se la chiave di OpenRouter ha un limite suo, quando lo raggiungi Bubo mostra quello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "If your OpenRouter key has a limit of its own, Bubo shows that one when you reach it."
           }
         }
       }
@@ -14551,6 +14716,22 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ → %2$@, %3$@ non risponde"
+          }
+        }
+      }
+    },
+    "%@ → %@, %@ oltre la soglia" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, %3$@ oltre la soglia"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, %3$@ past its threshold"
           }
         }
       }

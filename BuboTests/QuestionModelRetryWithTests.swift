@@ -8,6 +8,7 @@ struct QuestionModelRetryWithTests {
     let settings = EndpointSettings(defaults: UserDefaults(suiteName: "QuestionModelRetryWithTests-\(UUID().uuidString)")!)
     let endpoint: OpenAICompatibleEndpoint
     let preferences = TypePreferences(defaults: UserDefaults(suiteName: "QuestionModelRetryWithTests-\(UUID().uuidString)")!)
+    let budgets = BudgetSettings(defaults: UserDefaults(suiteName: "QuestionModelRetryWithTests-\(UUID().uuidString)")!)
 
     init() {
         var endpoint = OpenAICompatibleEndpoint.custom(
@@ -34,7 +35,7 @@ struct QuestionModelRetryWithTests {
                                   endpoints: settings, preferences: preferences,
                                   endpointClient: OpenAICompatibleClient(session: FakeChatServer.session),
                                   endpointKey: { _ in "sk-prova" }, ledger: ledger,
-                                  prices: PriceTable(file: nil, bundled: PriceTableTests.snapshot))
+                                  prices: PriceTable(file: nil, bundled: PriceTableTests.snapshot), budgets: budgets)
         await QuestionModelTests.ask(model)
         return model
     }
@@ -92,6 +93,34 @@ struct QuestionModelRetryWithTests {
         #expect(entry.usage.models.map(\.inputTokens) == [5])
         #expect(entry.usage.models.map(\.outputTokens) == [2])
         #expect(ledger.questionTotals()["OpenAI"]?[.spesa]?.value == 0)
+    }
+
+    // Acceptance of #164: a model without a price on a provider with a Budget is said in the line.
+    @Test func theLineSaysATurnWithoutAPriceIsOutsideTheBudget() async throws {
+        budgets.budgets.providers["OpenAI"] = 10
+        let model = await answeredModel(ledger: CostLedger())
+        settings.grantConsent(to: endpoint)
+
+        model.retry(with: try alternative(in: model))
+        await model.answering?.value
+
+        #expect(model.routedAnswer?.budgetNotice == .unpriced)
+    }
+
+    // Acceptance of #164: "Usa sempre per «Tipo»" on a provider past its threshold leaves it for the default.
+    @Test func aPreferredCloudPastItsThresholdIsAvoided() async throws {
+        let ledger = CostLedger()
+        ledger.record(TurnUsage(mode: .apiKey, cost: 9, basis: .list, isComplete: true, models: [], origin: .reported),
+                      turn: "t", question: UUID(), provider: "OpenAI")
+        budgets.budgets.providers["OpenAI"] = 10
+        settings.grantConsent(to: endpoint)
+        preferences.set(.endpoint(id: endpoint.id), for: .writing)
+
+        let model = await answeredModel(ledger: ledger, type: .writing)
+
+        #expect(model.routedAnswer?.route.pausedPreference == .overBudget("OpenAI"))
+        #expect(model.routedAnswer?.endpoint == nil)
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
     }
 
     @Test func withConsentTheCloudAnswersWithTheTextOnly() async throws {

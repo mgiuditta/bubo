@@ -97,6 +97,12 @@ struct OpenAICompatibleClientTests {
     @Test(arguments: [
         (401, "{}", OpenAICompatibleError.keyRefused),
         (429, #"{"error":{"message":"Troppe richieste"}}"#, .failed("Troppe richieste")),
+        // #164: OpenRouter's own limit is said as such, not as a Budget of Bubo.
+        (402, #"{"error":{"code":402,"message":"Key limit exceeded","metadata":{"limit_source":"openrouter_key_limit"}}}"#,
+         .providerLimit(.keyLimit)),
+        (402, #"{"error":{"code":402,"metadata":{"limit_source":"openrouter_in_flight_budget"}}}"#,
+         .providerLimit(.inFlightBudget)),
+        (402, #"{"error":{"message":"Insufficient credits"}}"#, .failed("Insufficient credits")),
     ])
     func anErrorOfTheServerIsSaid(status: Int, body: String, expected: OpenAICompatibleError) async {
         let endpoint = Self.cloud(.init(status: status, body: body))
