@@ -19,6 +19,11 @@ nonisolated struct PullRequestLink: Codable, Equatable, Sendable {
         self.base = base
     }
 
+    /// The repo of the pull request, from its URL; `nil` when the URL is not one of GitHub's.
+    var repository: GitHubRepository? {
+        GitHubRepository(remote: url.deletingLastPathComponent().deletingLastPathComponent().absoluteString)
+    }
+
     /// The reference on the card and in the Sessione: `PR #7`.
     var label: String { "PR #\(number)" }
 }

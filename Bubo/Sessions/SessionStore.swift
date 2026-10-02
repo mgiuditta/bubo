@@ -101,6 +101,8 @@ final class SessionStore {
     @ObservationIgnored let servers = PortWatcher()
     /// The Anteprime of the Sessioni's servers, closed with their server and at Archivia, Fondi and Cancella.
     @ObservationIgnored let previews = PreviewStore()
+    /// The open pull requests of the Sessioni, read only while Bubo is in front.
+    @ObservationIgnored let pullRequests = PullRequestMonitor()
     /// The visore, for the files ⌘-clicked in the terminals.
     @ObservationIgnored let viewer = CodeViewerStore()
     /// Called at the first token of each turn's answer; the onboarding ends at the first one (spec 26).
@@ -534,6 +536,139 @@ final class SessionStore {
             session.phase = .inRevisione
             session.pullRequest = link
         }
+    }
+
+    /// Reads the pull requests of the Sessioni In revisione while `isForeground`, at once and then at intervals;
+    /// stops otherwise. Without such Sessioni a reading runs nothing.
+    func followPullRequests(isForeground: Bool) {
+        pullRequests.follow(isForeground: isForeground) { [weak self] in await self?.readPullRequests() }
+    }
+
+    /// Reads once the pull request of each Sessione In revisione: a merged one makes it Fusa, then Archiviata; a
+    /// closed one Aperta again; an open one keeps its checks and whether the Sessione is ahead of it.
+    func readPullRequests() async {
+        let open = sessions.filter { $0.phase == .inRevisione && $0.pullRequest != nil }
+        pullRequests.keep(only: Set(open.map(\.id)))
+        for session in open {
+            guard let link = session.pullRequest, let repository = link.repository else { continue }
+            do {
+                let pullRequest = try await pullRequests.cli.pullRequest(link.number, in: repository)
+                switch pullRequest.state {
+                case .merged: pullRequestMerged(session.id, at: pullRequest.mergedAt ?? .now)
+                case .closed: pullRequestClosed(session.id)
+                case .open:
+                    let flow = PullRequestFlow(cli: pullRequests.cli, worktrees: worktrees)
+                    var isBehind = false
+                    if let workspace = session.workspace { isBehind = (try? await flow.isBehind(workspace)) ?? false }
+                    guard sessions.first(where: { $0.id == session.id })?.phase == .inRevisione else { continue }
+                    pullRequests.record(PullRequestStatus(checks: pullRequest.checks, isBehind: isBehind),
+                                        for: session.id)
+                }
+            } catch {
+                Logger.sessions.error("Pull request not read: \(String(describing: error), privacy: .private)")
+            }
+        }
+    }
+
+    /// The pull request of the Sessione `id` was merged on GitHub at `date`: Fusa, then as after Fondi once the
+    /// merge cannot be undone, Archiviata with its worktree and its branch gone. Not while the agent works: the next
+    /// reading does it.
+    private func pullRequestMerged(_ id: UUID, at date: Date) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .inRevisione, !session.isRunning
+        else { return }
+        Logger.sessions.notice("Pull request merged: \(session.pullRequest?.number ?? 0, privacy: .public)")
+        pullRequests.forget(id)
+        previews.close(id)
+        update(id) { session in
+            session.phase = .fusa
+            session.mergedAt = date
+        }
+        onPhaseChange?(id, .fusa)
+        update(id) { session in
+            session.phase = .archiviata
+            session.ports = nil
+            session.isInterrupted = false
+        }
+        Task {
+            // The shells leave the worktree before it goes.
+            await terminals.closeAll(of: id)
+            guard let workspace = session.workspace else { return }
+            await worktrees.remove(workspace, of: session.project, deletingBranch: true)
+        }
+    }
+
+    /// The pull request of the Sessione `id` was closed on GitHub without a merge: the Sessione is Aperta again,
+    /// with a note, and Apri PR can open another one.
+    private func pullRequestClosed(_ id: UUID) {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .inRevisione,
+              let link = session.pullRequest
+        else { return }
+        Logger.sessions.notice("Pull request closed: \(link.number, privacy: .public)")
+        pullRequests.forget(id)
+        update(id) { session in
+            session.phase = .aperta
+            session.pullRequest = nil
+            session.summary = String(localized: "La PR #\(link.number) è stata chiusa su GitHub senza merge.")
+        }
+    }
+
+    /// Aggiorna PR: commits what the Sessione `id` has not committed yet and pushes its branch to its pull request.
+    /// Only In revisione, with the agent still; Bubo never pushes otherwise.
+    ///
+    /// - Throws: `PullRequestError`, `GitHubCLIError` or `WorktreeError`; the pull request stays as it was.
+    func updatePullRequest(of id: UUID) async throws {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .inRevisione, !session.isRunning,
+              session.pullRequest != nil, let workspace = session.workspace, merging.insert(id).inserted
+        else { return }
+        defer { merging.remove(id) }
+        try await PullRequestFlow(cli: pullRequests.cli, worktrees: worktrees)
+            .update(workspace, in: session.project, message: session.title)
+        Logger.sessions.notice("Pull request updated")
+        pullRequests.markUpToDate(id)
+    }
+
+    /// Aggiorna PR from a button or a menu: ``updatePullRequest(of:)``, with its failure kept for the Sessione's
+    /// pull request to show.
+    func requestPullRequestUpdate(of id: UUID) async {
+        pullRequests.noteUpdate(of: id, isRunning: true)
+        do {
+            try await updatePullRequest(of: id)
+            pullRequests.noteUpdate(of: id, isRunning: false)
+        } catch {
+            Logger.sessions.error("Pull request not updated: \(String(describing: error), privacy: .private)")
+            pullRequests.noteUpdate(of: id, isRunning: false,
+                                    failure: (error.localizedDescription, (error as? GitHubCLIError)?.remedy))
+        }
+    }
+
+    /// Correggi: sends the failed checks of the pull request of the Sessione `id` to the agent, as a new turn in its
+    /// copy, with the failed log of each GitHub Actions job. Nothing without a failed check, or while it works.
+    func fixChecks(of id: UUID) async {
+        guard let session = sessions.first(where: { $0.id == id }), session.phase == .inRevisione, !session.isRunning,
+              session.workspace != nil, let link = session.pullRequest, let repository = link.repository,
+              let failed = pullRequests.statuses[id]?.failedChecks, !failed.isEmpty, merging.insert(id).inserted
+        else { return }
+        var failures: [(check: PullRequestCheck, log: String?)] = []
+        for check in failed {
+            let log: String? = if let job = check.jobID {
+                try? await pullRequests.cli.failedLog(ofJob: job, in: repository)
+            } else {
+                nil
+            }
+            failures.append((check, log))
+        }
+        merging.remove(id)
+        guard let current = sessions.first(where: { $0.id == id }), current.phase == .inRevisione,
+              !current.isRunning
+        else { return }
+        update(id) { session in
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.isInterrupted = false
+        }
+        let prompt = PullRequestFlow.fixPrompt(forPullRequest: link.number, failures: failures)
+        turnTasks[id] = Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
     }
 
     /// Brings the branch of the Progetto's checkout into the Sessione `id`, in its worktree, and asks the agent to

@@ -248,6 +248,12 @@ struct SessionRow: View {
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }
+            // Outside the combined element, so Correggi and Aggiorna PR stay buttons of their own.
+            if session.phase == .inRevisione {
+                PullRequestBadge(session: session, store: store)
+                    .controlSize(.small)
+                    .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
             // Outside the combined element, so Apri and Annulla stay buttons of their own.
             if !session.memoryLines.isEmpty, !isArchived {
                 VStack(alignment: .leading, spacing: Spacing.xxSmall) {

@@ -29,6 +29,23 @@ struct BuboApp: App {
                     .keyboardShortcut("i")
                     .disabled(appDelegate.sessions == nil)
                 Divider()
+                // Each names its Sessione, as the Palette has no other context; no shortcut (spec 16).
+                if let session = appDelegate.sessions?.pullRequestSessionToOpen {
+                    Button("Apri PR di «\(session.title)»…") { appDelegate.hud.openPullRequest(of: session) }
+                        .disabled(GitHubCLI().executable == nil)
+                } else {
+                    Button("Apri PR…") {}
+                        .disabled(true)
+                }
+                if let session = appDelegate.sessions?.pullRequestSessionToUpdate {
+                    Button("Aggiorna la PR di «\(session.title)»") {
+                        Task { await appDelegate.sessions?.requestPullRequestUpdate(of: session.id) }
+                    }
+                } else {
+                    Button("Aggiorna PR") {}
+                        .disabled(true)
+                }
+                Divider()
                 // Only with Bubo in front: no global shortcut (spec 14).
                 Button("Cerca…") { appDelegate.togglePalette() }
                     .keyboardShortcut("k")

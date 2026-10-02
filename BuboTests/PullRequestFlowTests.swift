@@ -34,6 +34,8 @@ extension WorktreeManagerTests {
               printf 'ENV %s\n' "$(env | sort | tr '\n' ' ')"; } >> "$here/calls.log"
             case "$1 $2" in
                 "repo view") echo main ;;
+                "pr view") cat "$here/pr.json" ;;
+                "run view") printf 'build\tRun tests\tline 1\nbuild\tRun tests\terror: test failed\n' ;;
                 "pr create")
                     case "$*" in
                         *--dry-run*) echo "Would have created a Pull Request with:" ;;

@@ -93,6 +93,10 @@ struct HUDView: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
+                    // Here, not next to the other sheets: one sheet modifier per view.
+                    .sheet(item: Bindable(hud).pullRequestSession) { session in
+                        if let sessions { PullRequestSheet(session: session, store: sessions) }
+                    }
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota)
             }
