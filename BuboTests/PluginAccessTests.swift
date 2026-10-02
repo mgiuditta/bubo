@@ -118,11 +118,12 @@ struct PluginAccessTests {
         let root = URL(filePath: TrustGate.realPath(home.home.path), directoryHint: .isDirectory)
         let environment = PluginListing.environment(base: ["HOME": root.path])
         let marketplace = root.appending(path: "mercato", directoryHint: .isDirectory)
-        try home.write(["name": "uno", "version": "1.0.0",
-                        "userConfig": ["region": ["type": "string", "title": "Regione", "description": "Dove",
-                                                  "options": ["eu", "us"], "required": true],
-                                       "count": ["type": "number", "title": "Quanti", "description": "n"]]],
-                       at: marketplace.appending(path: "plugins/uno/.claude-plugin/plugin.json").path)
+        // As text: the order of the options is the manifest's, which a dictionary would lose.
+        try home.write(Data(#"""
+            {"name": "uno", "version": "1.0.0", "userConfig": {
+              "region": {"type": "string", "title": "Regione", "description": "Dove", "options": ["eu", "us"], "required": true},
+              "count": {"type": "number", "title": "Quanti", "description": "n"}}}
+            """#.utf8), at: marketplace.appending(path: "plugins/uno/.claude-plugin/plugin.json").path)
         try home.write(["name": "prova", "owner": ["name": "Prova"], "plugins": [["name": "uno", "source": "./plugins/uno"]]],
                        at: marketplace.appending(path: ".claude-plugin/marketplace.json").path)
         let claude = try #require(LiveClaude.found)
