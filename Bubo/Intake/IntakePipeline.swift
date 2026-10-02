@@ -42,6 +42,10 @@ final class IntakePipeline {
     @ObservationIgnored private let router = ModelRouter()
     @ObservationIgnored private lazy var classifier: RequestClassifier? = makeClassifier()
     @ObservationIgnored private var latest = 0
+    /// Whether the Sintesi parlata of the latest Richiesta is being said.
+    @ObservationIgnored private var isSpeaking = false
+    /// Whether the answer of the latest Richiesta is over.
+    @ObservationIgnored private var isAnswered = false
 
     /// Starts `richiesta` towards `provider`: Pensiero and the Tinta at once, then the classification, the router's
     /// decision and the Morph.
@@ -50,6 +54,8 @@ final class IntakePipeline {
     func submit(_ richiesta: Richiesta, to provider: Provider?, catalog: ModelCatalog? = nil) async -> Submission {
         latest += 1
         let id = latest
+        isSpeaking = false
+        isAnswered = false
         orb.questionState = .thinking
         orb.provider = provider
         forecast = nil
@@ -69,15 +75,32 @@ final class IntakePipeline {
 
     /// Turns the Orb to Lavora: the first token of `submission`'s answer arrived.
     func beginWorking(on submission: Submission) {
-        guard submission.id == latest else { return }
+        guard submission.id == latest, !isSpeaking else { return }
         orb.questionState = .working
     }
 
-    /// Hands the Orb back to the Sessioni, and clears what is read under it: `submission` is answered, stopped or failed.
+    /// Turns the Orb to Parla: the Sintesi parlata of `submission`'s answer is being said.
+    func beginSpeaking(on submission: Submission) {
+        guard submission.id == latest else { return }
+        isSpeaking = true
+        orb.questionState = .speaking
+    }
+
+    /// Ends Parla: back to Lavora while the answer goes on, otherwise the Orb goes back to the Sessioni.
+    func endSpeaking(on submission: Submission) {
+        guard submission.id == latest, isSpeaking else { return }
+        isSpeaking = false
+        orb.voiceLevel = nil
+        orb.questionState = isAnswered ? nil : .working
+    }
+
+    /// Clears what is read under the Orb, and hands the Orb back to the Sessioni unless it is still speaking:
+    /// `submission` is answered, stopped or failed.
     func finish(_ submission: Submission) {
         guard submission.id == latest else { return }
-        orb.questionState = nil
+        isAnswered = true
         forecast = nil
+        if !isSpeaking { orb.questionState = nil }
     }
 
     /// The classifier of the Catalogo in the app bundle: Apple Foundation Models, then the rules.

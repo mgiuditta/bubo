@@ -15,7 +15,7 @@ final class OrbControls {
     var variante: Variante?
     /// The provider whose Tinta the Orb takes; `nil` for one outside the list.
     var provider: Provider? = .anthropic
-    /// The microphone's level in Ascolto, from 0 to 1; `nil` when nothing is heard, and the Orb makes one up.
+    /// The microphone's level in Ascolto or the voice's in Parla, from 0 to 1; `nil` for a made-up one.
     var voiceLevel: Float?
     /// The Panel's latest frame measurements; updated only in Debug builds.
     var frameReading: FrameMeter.Reading?

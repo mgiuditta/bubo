@@ -1891,6 +1891,16 @@
         }
       }
     },
+    "Bubo parla con una voce di base" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo is speaking with a basic voice"
+          }
+        }
+      }
+    },
     "Bubo resta sempre nella barra dei menu." : {
       "localizations" : {
         "en" : {
@@ -7081,6 +7091,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To just turn it off, use Turn Off."
+          }
+        }
+      }
+    },
+    "Per una voce più naturale scaricane una migliorata in Impostazioni di Sistema › Accessibilità › Lettura e voce › Voce di sistema." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For a more natural voice, download an enhanced one in System Settings › Accessibility › Read & Speak › System Voice."
           }
         }
       }

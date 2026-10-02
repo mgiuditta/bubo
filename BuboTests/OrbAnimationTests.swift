@@ -62,9 +62,10 @@ struct OrbAnimationTests {
         #expect((loudest > 0.1) == [.listening, .speaking].contains(state))
     }
 
-    @Test func listeningFollowsTheHeardLevel() {
+    @Test(arguments: [OrbState.listening, .speaking])
+    func theRippleFollowsTheVoiceLevel(in state: OrbState) {
         var animation = OrbAnimation()
-        animation.state = .listening
+        animation.state = state
         animation.voiceLevel = 0.6
         for _ in 0..<120 { animation.advance(by: Self.frame) }
         #expect(abs(animation.audio - 0.6) < 0.01)
