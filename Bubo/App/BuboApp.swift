@@ -45,6 +45,14 @@ struct BuboApp: App {
                     Button("Aggiorna PR") {}
                         .disabled(true)
                 }
+                // Off while the Sessione is in Lavora (spec 24).
+                if let session = appDelegate.sessions?.deliverySessionToOpen {
+                    Button("Consegna «\(session.title)»…") { appDelegate.hud.deliver(session) }
+                        .disabled(session.activity == .lavora)
+                } else {
+                    Button("Consegna…") {}
+                        .disabled(true)
+                }
                 Divider()
                 // Only with Bubo in front: no global shortcut (spec 14).
                 Button("Cerca…") { appDelegate.togglePalette() }
