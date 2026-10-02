@@ -8,7 +8,7 @@ struct EndpointSettingsTests {
     @Test func theKnownEndpointsAreThereWithNoModel() {
         let settings = EndpointSettings(defaults: defaults)
 
-        #expect(settings.endpoints.map(\.kind) == [.openAI, .gemini, .ollama, .lmStudio])
+        #expect(settings.endpoints.map(\.kind) == [.openAI, .gemini, .openRouter, .ollama, .lmStudio])
         #expect(settings.ready.isEmpty)
         #expect(settings.endpoints.filter(\.isOnMac).map(\.kind) == [.ollama, .lmStudio])
     }

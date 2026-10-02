@@ -85,7 +85,7 @@ struct RetryWithList: View {
 }
 
 #Preview {
-    var endpoint = OpenAICompatibleEndpoint.known[2]
+    var endpoint = OpenAICompatibleEndpoint.known.first { $0.kind == .ollama }!
     endpoint.model = "qwen3:8b"
     var gemini = OpenAICompatibleEndpoint.known[1]
     gemini.model = "gemini-2.5-flash"

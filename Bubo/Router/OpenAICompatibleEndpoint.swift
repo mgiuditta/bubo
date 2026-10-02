@@ -4,9 +4,9 @@ import Foundation
 ///
 /// What it is never holds a secret: its key stays in the keychain, under `keychainAccount`.
 nonisolated struct OpenAICompatibleEndpoint: Codable, Hashable, Identifiable, Sendable {
-    /// Who runs the server; the four known ones have a fixed address and name.
+    /// Who runs the server; the known ones have a fixed address and name.
     enum Kind: String, Codable, Sendable {
-        case openAI, gemini, ollama, lmStudio, custom
+        case openAI, gemini, openRouter, ollama, lmStudio, custom
     }
 
     /// Stable across launches: the kind for the known ones, a random id for a custom endpoint.
@@ -23,11 +23,13 @@ nonisolated struct OpenAICompatibleEndpoint: Codable, Hashable, Identifiable, Se
     /// No API says whether a key is on the free tier, so it is the user's word (preflight of #92).
     var confirmsBilling = false
 
-    /// The four endpoints Bubo knows, with no model chosen yet.
+    /// The endpoints Bubo knows, with no model chosen yet.
     static let known: [Self] = [
         Self(id: "openai", kind: .openAI, name: "OpenAI", baseURL: URL(string: "https://api.openai.com/v1")!, model: ""),
         Self(id: "gemini", kind: .gemini, name: "Gemini",
              baseURL: URL(string: "https://generativelanguage.googleapis.com/v1beta/openai")!, model: ""),
+        Self(id: "openrouter", kind: .openRouter, name: "OpenRouter", baseURL: URL(string: "https://openrouter.ai/api/v1")!,
+             model: ""),
         // `localhost`, not 127.0.0.1: App Transport Security lets plain HTTP through only to a name.
         Self(id: "ollama", kind: .ollama, name: "Ollama", baseURL: URL(string: "http://localhost:11434/v1")!, model: ""),
         Self(id: "lmstudio", kind: .lmStudio, name: "LM Studio", baseURL: URL(string: "http://localhost:1234/v1")!,
@@ -50,7 +52,7 @@ nonisolated struct OpenAICompatibleEndpoint: Codable, Hashable, Identifiable, Se
         switch kind {
         case .openAI: .openAI
         case .gemini: .google
-        case .ollama, .lmStudio, .custom: Provider(named: name)
+        case .openRouter, .ollama, .lmStudio, .custom: Provider(named: name)
         }
     }
 
@@ -60,7 +62,7 @@ nonisolated struct OpenAICompatibleEndpoint: Codable, Hashable, Identifiable, Se
     /// Whether the endpoint cannot answer without a key: the cloud ones Bubo knows. A custom endpoint uses one only if
     /// saved, and the servers on the Mac ignore it.
     var requiresKey: Bool {
-        kind == .openAI || kind == .gemini
+        kind == .openAI || kind == .gemini || kind == .openRouter
     }
 
     /// The full address of `chat/completions`.

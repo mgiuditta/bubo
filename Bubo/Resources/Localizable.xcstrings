@@ -1726,6 +1726,28 @@
         }
       }
     },
+    "Autorizza Bubo entro 10 minuti dall'apertura del browser." : {
+      "comment" : "Settings › Models: remedy for an expired OpenRouter authorization.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorize Bubo within 10 minutes of the browser opening."
+          }
+        }
+      }
+    },
+    "Autorizza Bubo nel browser…" : {
+      "comment" : "Settings › Models: waiting for the user to authorize Bubo on OpenRouter.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorize Bubo in your browser…"
+          }
+        }
+      }
+    },
     "Avvia" : {
       "localizations" : {
         "en" : {
@@ -2166,6 +2188,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo uses the claude CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Bubo è collegato a OpenRouter. Puoi chiudere questa pagina e tornare a Bubo." : {
+      "comment" : "Page shown in the browser after authorizing Bubo on OpenRouter.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo is connected to OpenRouter. You can close this page and go back to Bubo."
           }
         }
       }
@@ -2788,6 +2821,17 @@
         }
       }
     },
+    "Collega OpenRouter…" : {
+      "comment" : "Settings › Models: opens OpenRouter in the browser to authorize Bubo.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect OpenRouter…"
+          }
+        }
+      }
+    },
     "Collega un microfono o scegline uno in Impostazioni di Sistema › Suono." : {
       "localizations" : {
         "en" : {
@@ -2844,6 +2888,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Signed in as %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "Collegato, chiave nel Portachiavi" : {
+      "comment" : "Settings › Models: OpenRouter is connected and its key is saved.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected, key in the Keychain"
           }
         }
       }
@@ -4516,6 +4571,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ignored"
+          }
+        }
+      }
+    },
+    "Il collegamento è scaduto" : {
+      "comment" : "Settings › Models: the OpenRouter authorization took too long.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The connection expired"
           }
         }
       }
@@ -7324,6 +7390,17 @@
         }
       }
     },
+    "OpenRouter non ha dato la chiave" : {
+      "comment" : "Settings › Models: the OpenRouter connection failed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter didn't give the key"
+          }
+        }
+      }
+    },
     "Ora l'Indice cerca solo per parole." : {
       "localizations" : {
         "en" : {
@@ -8043,6 +8120,17 @@
         }
       }
     },
+    "Revoca la chiave «Bubo» su OpenRouter" : {
+      "comment" : "Settings › Models: link to OpenRouter's keys page.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke the “Bubo” key on OpenRouter"
+          }
+        }
+      }
+    },
     "Riassumi ora" : {
       "localizations" : {
         "en" : {
@@ -8559,6 +8647,17 @@
         }
       }
     },
+    "Riprova a collegarlo dal browser." : {
+      "comment" : "Settings › Models: remedy for a failed OpenRouter connection.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try connecting it again from the browser."
+          }
+        }
+      }
+    },
     "Riprova con %@" : {
       "localizations" : {
         "en" : {
@@ -8885,6 +8984,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Chosen by you"
+          }
+        }
+      }
+    },
+    "Scollega" : {
+      "comment" : "Settings › Models: forgets the OpenRouter key.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect"
           }
         }
       }
@@ -9303,6 +9413,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "It installs by running a command on your Mac:"
+          }
+        }
+      }
+    },
+    "Si paga con i tuoi crediti OpenRouter. Se su OpenRouter usi anche chiavi tue (BYOK), attiva «Never use shared capacity» su ciascuna: altrimenti, quando una fallisce, OpenRouter ripiega da solo sui suoi crediti." : {
+      "comment" : "Settings › Models: how OpenRouter is paid and the BYOK option Bubo cannot set.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You pay with your OpenRouter credits. If you also use your own keys (BYOK) on OpenRouter, turn on “Never use shared capacity” for each: otherwise, when one fails, OpenRouter falls back to its credits on its own."
           }
         }
       }

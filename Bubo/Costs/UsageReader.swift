@@ -47,7 +47,7 @@ nonisolated enum UsageReader {
         switch endpoint.kind {
         case .openAI: "openai"
         case .gemini: "google"
-        case .ollama, .lmStudio: nil
+        case .openRouter, .ollama, .lmStudio: nil
         case .custom: endpoint.baseURL.host() == "api.x.ai" ? "xai" : nil
         }
     }

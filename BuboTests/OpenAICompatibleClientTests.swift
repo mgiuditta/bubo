@@ -75,7 +75,7 @@ struct OpenAICompatibleClientTests {
     }
 
     @Test func aServerOnTheMacNeedsNoConsentNorKey() async throws {
-        var endpoint = OpenAICompatibleEndpoint.known[2]
+        var endpoint = try #require(OpenAICompatibleEndpoint.known.first { $0.kind == .ollama })
         endpoint.baseURL = FakeChatServer.serve(.init(body: FakeChatServer.stream(["locale"])), onMac: true)
         endpoint.model = "qwen"
 
