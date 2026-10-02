@@ -23,6 +23,9 @@ struct AutomationSchedulerTests {
     let store: SessionStore
     let clock: Clock
     let scheduler: AutomationScheduler
+    /// Where the scheduler keeps when it last watched: never the user's own.
+    let defaults: UserDefaults
+    let suite = "AutomationSchedulerTests-\(UUID().uuidString)"
 
     init() throws {
         repos = try WorktreeManagerTests()
@@ -33,9 +36,10 @@ struct AutomationSchedulerTests {
                              automations: automations) { bridge }
         let clock = try Clock("2026-10-02T08:30:00+02:00")
         self.clock = clock
+        defaults = try #require(UserDefaults(suiteName: suite))
         scheduler = AutomationScheduler(automations: automations,
                                         runner: ExecutionRunner(automations: automations, sessions: store),
-                                        calendar: { clock.calendar }, now: { clock.now })
+                                        calendar: { clock.calendar }, now: { clock.now }, defaults: defaults)
     }
 
     private func addAutomation(_ recurrence: Recurrence?, named name: String = "Controllo",
@@ -46,13 +50,18 @@ struct AutomationSchedulerTests {
         return automation
     }
 
+    private func cleanUp() {
+        try? FileManager.default.removeItem(at: repos.base)
+        defaults.removePersistentDomain(forName: suite)
+    }
+
     private func date(_ text: String) throws -> Date {
         try Date(text, strategy: .iso8601)
     }
 
     @Test(.timeLimit(.minutes(1)))
     func anAutomationDueNowStartsWithItsScheduledTime() async throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         let automation = addAutomation(.daily(hour: 9, minute: 0))
         #expect(scheduler.plan[automation.id] == (try date("2026-10-02T09:00:00+02:00")))
@@ -68,7 +77,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func aTimeMissedByMoreThanAMinuteWaitsForTheRecovery() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         let automation = addAutomation(.daily(hour: 9, minute: 0))
 
@@ -80,7 +89,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func aChangeCountsFromTheNextTime() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         var automation = addAutomation(.daily(hour: 9, minute: 0))
 
@@ -91,7 +100,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func aPausedAutomationIsNotPlannedUntilResumed() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         let automation = addAutomation(.daily(hour: 9, minute: 0))
 
@@ -103,7 +112,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func aNewTimeZoneMovesTheTimeToTheNewLocalOne() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         let automation = addAutomation(.daily(hour: 9, minute: 0))
 
@@ -114,7 +123,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func aMissingProjectPutsTheAutomationInPausaWithWhy() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         let automation = addAutomation(.hourly(minute: 0), in: repos.base.appending(path: "sparito"))
 
         scheduler.start()
@@ -125,7 +134,7 @@ struct AutomationSchedulerTests {
     }
 
     @Test func anAutomationWithoutARepetitionIsNeverPlanned() throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         _ = addAutomation(nil)
         scheduler.start()
         #expect(scheduler.plan.isEmpty)
@@ -133,7 +142,7 @@ struct AutomationSchedulerTests {
 
     @Test(.timeLimit(.minutes(1)))
     func differentAutomationsDueTogetherAllStart() async throws {
-        defer { try? FileManager.default.removeItem(at: repos.base) }
+        defer { cleanUp() }
         scheduler.start()
         let one = addAutomation(.daily(hour: 9, minute: 0), named: "Uno")
         let other = addAutomation(.weekdays(hour: 9, minute: 0), named: "Due")
