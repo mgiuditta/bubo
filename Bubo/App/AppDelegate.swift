@@ -160,7 +160,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } keepIndexFresh: { [searchIndex, secondBrain, semanticSearch] in
             secondBrain.start()
             semanticSearch.start()
-            await searchIndex?.keepFresh()
+            await withDiscardingTaskGroup { group in
+                group.addTask { await searchIndex?.keepFresh() }
+                group.addTask { await semanticSearch.followPauses() }
+            }
         } subscribeToMetrics: {
             MetricsCollector.shared.subscribe()
         } startConfigurationSpare: { [weak self] in

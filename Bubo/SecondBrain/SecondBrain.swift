@@ -37,6 +37,39 @@ final class SecondBrain {
         follow()
     }
 
+    /// Leaves `folder`, inside the Secondo cervello, out of the Indice; its notes stay where they are.
+    ///
+    /// - Throws: ``SecondBrainExclusionError/outsideSecondBrain`` for a folder outside it, or the Secondo cervello itself.
+    func exclude(_ folder: URL) throws(SecondBrainExclusionError) {
+        guard var location, let relativePath = location.relativePath(of: folder) else {
+            throw .outsideSecondBrain
+        }
+        guard !location.excludedFolders.contains(relativePath) else { return }
+        location.excludedFolders = (location.excludedFolders + [relativePath]).sorted()
+        remember(location)
+        follow()
+    }
+
+    /// Brings back into the Indice the folder at `relativePath`, relative to the Secondo cervello.
+    func include(_ relativePath: String) {
+        guard var location, location.excludedFolders.contains(relativePath) else { return }
+        location.excludedFolders.removeAll { $0 == relativePath }
+        remember(location)
+        follow()
+    }
+
+    /// How full the Indice is; `nil` until first read.
+    private(set) var fragmentLoad: FragmentLoad?
+
+    /// Reads again how full the Indice is.
+    func refreshFragmentLoad() async {
+        do {
+            fragmentLoad = try await index?.fragmentLoad()
+        } catch {
+            Logger.index.error("Could not count the fragments: \(error)")
+        }
+    }
+
     /// Stops using the Secondo cervello: the Indice forgets its notes; the folder is left as it is.
     func stopUsing() {
         remember(nil)
@@ -88,8 +121,9 @@ final class SecondBrain {
     private func follow() {
         following?.cancel()
         let folder = location?.url
+        let excludedFolders = Set(location?.excludedFolders ?? [])
         following = Task(priority: .utility) { [index] in
-            await index?.keepSecondBrainFresh(at: folder)
+            await index?.keepSecondBrainFresh(at: folder, excluding: excludedFolders)
         }
     }
 }

@@ -186,6 +186,37 @@ struct RealModelTests {
         #expect(recall >= 0.8)
     }
 
+    /// The spec's first indexing: 10.000 notes in 3 minutes at most, on a base M-series Mac with the standard model.
+    @Test func tenThousandNotesAreIndexedWithinThreeMinutes() async throws {
+        let model = TextEmbeddingModel.standard
+        let directory = store.directory(of: model)
+        try #require(FileManager.default.fileExists(atPath: directory.appending(path: "model.safetensors").path),
+                     "\(model.id) is not in the folder")
+        let folder = try NotesFolder()
+        let notes = ItalianRecallSet.notes
+        for number in 0..<10_000 {
+            let sections = (0..<3).map { "## Parte \($0 + 1)\n\n\(notes[(number + $0 * 7) % notes.count])" }
+            try folder.write("# Nota \(number)\n\n" + sections.joined(separator: "\n\n"),
+                             to: "Cartella \(number % 20)/Nota \(number).md")
+        }
+        let index = try folder.claude.open()
+        await index.use(Embedder(model: model, directory: directory))
+
+        let started = ContinuousClock.now
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        while try await index.fragmentLoad().fragmentCount == 0 {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        await index.vectorsComputed()
+        let elapsed = ContinuousClock.now - started
+
+        let load = try await index.fragmentLoad()
+        print("10.000 notes, \(load.fragmentCount) fragments: indexed in \(elapsed)")
+        #expect(await index.vectorCount == load.fragmentCount)
+        #expect(elapsed <= .seconds(180))
+    }
+
     @Test func theModelIsLetGoWhenIdle() async throws {
         let model = TextEmbeddingModel.standard
         let embedder = Embedder(model: model, directory: store.directory(of: model), idleTime: .milliseconds(200))

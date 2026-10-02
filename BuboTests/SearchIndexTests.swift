@@ -23,8 +23,10 @@ final class ClaudeFolder {
         try text.write(to: file, atomically: true, encoding: .utf8)
     }
 
-    func open() throws -> SearchIndex {
-        try SearchIndex(database: database, root: root)
+    /// Opens the Indice; by default on a Mac on its power adapter, so a laptop low on battery never pauses the tests.
+    func open(energy: any EnergyGauge = FakeEnergyGauge(),
+              fragmentLimit: Int = SearchIndex.fragmentLimit) throws -> SearchIndex {
+        try SearchIndex(database: database, root: root, energy: energy, fragmentLimit: fragmentLimit)
     }
 
     /// The real path FSEvents reports, with `/private` in front of the temporary folder.

@@ -8,11 +8,21 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
     var path: String
     /// A bookmark to the folder; `nil` when macOS could not make one.
     var bookmark: Data?
+    /// Folders left out of the Indice, relative to the Secondo cervello, sorted.
+    var excludedFolders: [String] = []
 
     /// Creates the location of `folder`.
     init(folder: URL) {
         path = folder.standardizedFileURL.path
         bookmark = try? folder.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
+    }
+
+    /// Decodes a saved choice, also one saved before folders could be excluded.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        path = try container.decode(String.self, forKey: .path)
+        bookmark = try container.decodeIfPresent(Data.self, forKey: .bookmark)
+        excludedFolders = try container.decodeIfPresent([String].self, forKey: .excludedFolders) ?? []
     }
 
     /// The folder.
@@ -42,7 +52,17 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
                                     relativeTo: nil, bookmarkDataIsStale: &isStale) else { return self }
         let path = folder.standardizedFileURL.path
         guard path != self.path || isStale else { return self }
-        return SecondBrainLocation(folder: folder)
+        var moved = SecondBrainLocation(folder: folder)
+        moved.excludedFolders = excludedFolders
+        return moved
+    }
+
+    /// The path of `folder` relative to the Secondo cervello; `nil` for the folder itself or one outside it.
+    func relativePath(of folder: URL) -> String? {
+        let root = url.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        let parts = folder.resolvingSymlinksInPath().standardizedFileURL.pathComponents
+        guard parts.count > root.count, parts.starts(with: root) else { return nil }
+        return parts.dropFirst(root.count).joined(separator: "/")
     }
 
     // MARK: Saved choice

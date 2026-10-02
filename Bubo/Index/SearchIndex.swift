@@ -62,7 +62,17 @@ nonisolated struct SearchHit: Equatable, Sendable {
 /// only as the answer to a `cerca` call.
 actor SearchIndex {
     /// Opens the Indice at `database`, copying the memory found under `root`, the `~/.claude` folder.
-    init(database: URL, root: URL) throws {
+    ///
+    /// - Parameters:
+    ///   - energy: What pauses the vectors: Low Power Mode or a low battery.
+    ///   - fragmentLimit: The fragments beyond which ``fragmentLoad(largest:)`` warns.
+    init(database: URL, root: URL, energy: any EnergyGauge = SystemEnergyGauge(),
+         fragmentLimit: Int = SearchIndex.fragmentLimit) throws {
+        self.energy = energy
+        self.fragmentLimit = fragmentLimit
+        let (pauses, reportPause) = AsyncStream.makeStream(of: IndexPause?.self, bufferingPolicy: .bufferingNewest(1))
+        self.pauses = pauses
+        self.reportPause = reportPause
         // FSEvents reports real paths: `~/.claude` may be a link, and `resolvingSymlinksInPath` keeps `/var` for `/private/var`.
         // A named argument: Xcode 26.6 rejects `$0` inside `defer`.
         self.root = Self.realPath(root.path)
@@ -100,10 +110,26 @@ actor SearchIndex {
     }
 
     isolated deinit {
+        reportPause.finish()
         sqlite3_close(connection)
     }
 
     private static let layoutVersion = 4
+    /// Fragments beyond which the Indice warns and suggests excluding folders: 100.000 (spec).
+    static let fragmentLimit = 100_000
+    /// How often a paused computation reads the battery again.
+    private static let energyRecheck: Duration = .seconds(60)
+    private let energy: any EnergyGauge
+    private let fragmentLimit: Int
+    /// Every change of the pause, `nil` when the vectors go on; for one reader, ``SemanticSearch``.
+    nonisolated let pauses: AsyncStream<IndexPause?>
+    private let reportPause: AsyncStream<IndexPause?>.Continuation
+    /// Why the vectors wait now; `nil` while they go on.
+    private var pause: IndexPause?
+    /// Whether the count of fragments was last found beyond the limit, so the log says it once.
+    private var wasBeyondLimit = false
+    /// Folders of the Secondo cervello left out of the Indice, relative to it.
+    private var excludedFolders: Set<String> = []
     /// The real path of the `~/.claude` folder.
     private let root: String
     private let connection: OpaquePointer
@@ -297,16 +323,20 @@ actor SearchIndex {
 
     /// Computes the vectors of the fragments without one, a few at a time, until none is left.
     private func vectorizeMissing() async {
-        defer { vectorizing = nil }
+        defer {
+            vectorizing = nil
+            report(nil)
+        }
         var after: Int64 = 0
         while let embedder, !Task.isCancelled {
-            // A long first indexing waits for the next change when the Mac saves energy.
-            guard !ProcessInfo.processInfo.isLowPowerModeEnabled else {
-                Logger.index.notice("Low Power Mode: vectors paused")
-                return
-            }
             let batch = fragmentsWithoutVectors(after: after)
             guard let last = batch.last else { return }
+            // A long first indexing waits while the Mac saves energy, then resumes on its own: the model and
+            // the fragments may have changed meanwhile, so they are read again.
+            if energy.current.pause != nil {
+                guard await energyAllowsVectors() else { return }
+                continue
+            }
             after = last.rowID
             do {
                 let vectors = try await embedder.vectors(for: batch.map(\.text), as: .passage)
@@ -324,6 +354,29 @@ actor SearchIndex {
                 Logger.index.error("Could not compute vectors: \(error)")
                 return
             }
+        }
+    }
+
+    /// Waits until the energy allows the vectors, reporting the pause meanwhile; `false` when cancelled first.
+    private func energyAllowsVectors() async -> Bool {
+        while let pause = energy.current.pause {
+            report(pause)
+            await energy.change(within: Self.energyRecheck)
+            if Task.isCancelled { return false }
+        }
+        report(nil)
+        return true
+    }
+
+    /// Tells ``pauses`` and the log when the pause changes.
+    private func report(_ pause: IndexPause?) {
+        guard pause != self.pause else { return }
+        self.pause = pause
+        reportPause.yield(pause)
+        if let pause {
+            Logger.index.notice("Vectors paused: \(String(describing: pause), privacy: .public)")
+        } else {
+            Logger.index.notice("Vectors resumed")
         }
     }
 
@@ -407,11 +460,16 @@ actor SearchIndex {
     ///
     /// Another folder than the last one replaces its notes. While the folder cannot be reached, as a disk
     /// unplugged, the Indice keeps the last copy of its notes and catches up when it comes back.
-    func keepSecondBrainFresh(at folder: URL?) async {
+    ///
+    /// - Parameter excludedFolders: Folders left out, relative to `folder`; their notes leave the Indice, and
+    ///   come back when no longer excluded.
+    func keepSecondBrainFresh(at folder: URL?, excluding excludedFolders: Set<String> = []) async {
         // Replaced before it even started: the newer call has the newer folder.
         guard !Task.isCancelled else { return }
         let chosen = folder?.standardizedFileURL.path
-        if chosen != state("secondBrain") {
+        let excluded = chosen == nil ? nil : excludedFolders.sorted().joined(separator: "\n")
+        let isSameFolder = chosen == state("secondBrain")
+        if !isSameFolder {
             do {
                 try transaction {
                     try forgetAll(from: .secondBrain)
@@ -423,6 +481,16 @@ actor SearchIndex {
             }
         }
         secondBrain = chosen
+        self.excludedFolders = excludedFolders
+        if excluded != state("secondBrain.excluded") {
+            do {
+                try setState("secondBrain.excluded", to: excluded)
+            } catch {
+                Logger.index.error("Could not save the excluded folders: \(error)")
+            }
+            // A full pass forgets the notes now excluded and reads the ones included again.
+            if isSameFolder { rescanSecondBrain() }
+        }
         guard let chosen else { return }
         // FSEvents reports real paths, and a missing folder has none yet: worked out again at every batch.
         await follow(Self.realPath(chosen), as: .secondBrain) { batch in
@@ -490,8 +558,8 @@ actor SearchIndex {
             try transaction {
                 for path in paths {
                     let relative = path == folder ? "" : String(path.dropFirst(folder.count + 1))
-                    guard !SecondBrainNotes.skips(relative) else { continue }
-                    let found = SecondBrainNotes.files(at: path, in: folder)
+                    guard !SecondBrainNotes.skips(relative, excluding: excludedFolders) else { continue }
+                    let found = SecondBrainNotes.files(at: path, in: folder, excluding: excludedFolders)
                     let known = try documents(from: .secondBrain, under: path).filter { !found.kept.contains($0.key) }
                     try update(source: .secondBrain, known: known, onDisk: found.notes)
                 }
@@ -510,6 +578,34 @@ actor SearchIndex {
             try forget(path)
             try store(path, from: source, stamp: file)
         }
+    }
+
+    /// How many fragments the Indice holds, and the `limit` folders of the Secondo cervello holding the most.
+    func fragmentLoad(largest limit: Int = 3) throws -> FragmentLoad {
+        let count = try Self.integer("SELECT count(*) FROM fragments", in: connection)
+        var folders: [String: Int] = [:]
+        if let secondBrain {
+            let prefix = Self.realPath(secondBrain) + "/"
+            let statement = try prepare("SELECT path, count(*) FROM fragments WHERE source = ?1 GROUP BY path")
+            defer { sqlite3_finalize(statement) }
+            bind(SearchSource.secondBrain.rawValue, at: 1, in: statement)
+            while sqlite3_step(statement) == SQLITE_ROW {
+                guard let path = column(0, of: statement), path.hasPrefix(prefix) else { continue }
+                let parts = path.dropFirst(prefix.count).split(separator: "/")
+                // A note at the top has no folder to exclude.
+                guard parts.count > 1 else { continue }
+                folders[String(parts[0]), default: 0] += Int(sqlite3_column_int64(statement, 1))
+            }
+        }
+        let load = FragmentLoad(fragmentCount: count, limit: fragmentLimit, largestFolders: Array(folders
+            .map { FolderLoad(relativePath: $0.key, fragmentCount: $0.value) }
+            .sorted { ($0.fragmentCount, $1.relativePath) > ($1.fragmentCount, $0.relativePath) }
+            .prefix(limit)))
+        if load.exceedsLimit, !wasBeyondLimit {
+            Logger.index.notice("The Indice holds \(count, privacy: .public) fragments, beyond \(self.fragmentLimit, privacy: .public)")
+        }
+        wasBeyondLimit = load.exceedsLimit
+        return load
     }
 
     /// The files of `source` in the Indice, at or under `path` when given.

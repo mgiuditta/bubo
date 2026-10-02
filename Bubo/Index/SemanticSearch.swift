@@ -27,6 +27,8 @@ final class SemanticSearch {
     }
 
     private(set) var phase = Phase.wordsOnly
+    /// Why the vectors wait now; `nil` while they go on.
+    private(set) var pause: IndexPause?
 
     @ObservationIgnored private let index: SearchIndex?
     @ObservationIgnored private let store: TextEmbeddingModelStore?
@@ -41,6 +43,14 @@ final class SemanticSearch {
     /// The model in use, if any.
     var model: TextEmbeddingModel? {
         if case let .ready(model) = phase { model } else { nil }
+    }
+
+    /// Follows the pauses of the Indice until cancelled.
+    func followPauses() async {
+        guard let index else { return }
+        for await pause in index.pauses {
+            self.pause = pause
+        }
     }
 
     /// Uses the model chosen at a previous launch, if it is still installed.

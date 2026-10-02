@@ -570,6 +570,46 @@
         }
       }
     },
+    "%lld frammenti" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld fragment"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld fragments"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld frammento"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld frammenti"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld letture" : {
       "localizations" : {
         "en" : {
@@ -2607,6 +2647,16 @@
         }
       }
     },
+    "Cartelle escluse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded Folders"
+          }
+        }
+      }
+    },
     "Catalogo non valido: %@" : {
       "localizations" : {
         "en" : {
@@ -4368,6 +4418,36 @@
         }
       }
     },
+    "Escludi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude"
+          }
+        }
+      }
+    },
+    "Escludi %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude %@"
+          }
+        }
+      }
+    },
+    "Escludi una cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exclude a Folder…"
+          }
+        }
+      }
+    },
     "Esegue il comando" : {
       "localizations" : {
         "en" : {
@@ -5632,6 +5712,26 @@
         }
       }
     },
+    "In pausa con il Risparmio energetico: riprende da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused in Low Power Mode: it resumes on its own."
+          }
+        }
+      }
+    },
+    "In pausa con la batteria sotto il %@: riprende da sola." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused while the battery is below %@: it resumes on its own."
+          }
+        }
+      }
+    },
     "In pausa: il Progetto non è più in %@. Riportalo lì, poi Riprendi." : {
       "localizations" : {
         "en" : {
@@ -5658,6 +5758,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Which Project?"
+          }
+        }
+      }
+    },
+    "Includi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include"
+          }
+        }
+      }
+    },
+    "Includi %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include %@"
           }
         }
       }
@@ -5858,6 +5978,32 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Index searches by words and by meaning."
+          }
+        }
+      }
+    },
+    "L'Indice ha %@ frammenti, oltre i %@ previsti: le ricerche rallentano. Escludi le cartelle che non ti servono." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "L'Indice ha %1$@ frammenti, oltre i %2$@ previsti: le ricerche rallentano. Escludi le cartelle che non ti servono."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Index has %1$@ fragments, more than the %2$@ it's designed for: searches are slower. Exclude the folders you don't need."
+          }
+        }
+      }
+    },
+    "L'Indice non legge queste cartelle. Le note restano dove sono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Index doesn't read these folders. Your notes stay where they are."
           }
         }
       }
@@ -7502,6 +7648,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Edit, Write or WebFetch rules in Claude's settings."
+          }
+        }
+      }
+    },
+    "Nessuna cartella esclusa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No excluded folders."
           }
         }
       }
@@ -10081,6 +10237,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose another folder…"
+          }
+        }
+      }
+    },
+    "Scegli una cartella dentro il Secondo cervello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a folder inside your Second Brain."
           }
         }
       }

@@ -26,6 +26,12 @@ struct SemanticSearchSettingsSection: View {
                     Text(verbatim: model.name)
                 }
                 Text("L'Indice cerca per parole e per significato.")
+                if let pause = search.pause {
+                    // A state, not an error: no warning color.
+                    Label(pauseText(pause), systemImage: "pause.circle")
+                        .foregroundStyle(Palette.textSecondary)
+                        .font(.callout)
+                }
                 HStack {
                     if model == .standard {
                         Button("Passa alla qualità alta (\(TextEmbeddingModel.highQuality.size.formatted(.byteCount(style: .file))))") {
@@ -48,6 +54,15 @@ struct SemanticSearchSettingsSection: View {
             Text("Ricerca per significato")
         } footer: {
             Text("Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice.")
+        }
+    }
+
+    private func pauseText(_ pause: IndexPause) -> String {
+        switch pause {
+        case .lowPowerMode:
+            String(localized: "In pausa con il Risparmio energetico: riprende da sola.")
+        case .lowBattery:
+            String(localized: "In pausa con la batteria sotto il \(EnergyState.minimumBatteryLevel.formatted(.percent)): riprende da sola.")
         }
     }
 }
