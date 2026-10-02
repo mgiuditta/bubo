@@ -40,6 +40,9 @@ struct QuestionNotice: View {
                         actionTitle: "Riprova", action: model.retry)
         case .endpoint(let error):
             endpointNotice(for: error)
+        case .attachmentsHeld:
+            ErrorNotice("Allegati non inviati", remedy: "Non sono partiti: conferma ogni allegato, o chiedi a Claude.",
+                        actionTitle: "Chiedi a Claude", action: model.askClaude)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
                         actionTitle: "Apri Impostazioni") { openSettings() }

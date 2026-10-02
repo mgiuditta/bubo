@@ -114,6 +114,66 @@ struct QuestionModelRetryWithTests {
         #expect(model.retryAlternatives.allSatisfy { $0.target != .endpoint(endpoint) })
     }
 
+    /// A Domanda with `attachments` answered by Sonnet, with `settings`' endpoints in "Rifai con…".
+    func answeredModel(attachments: [Allegato]) async -> QuestionModel {
+        let model = await answeredModel()
+        model.ask("Riassumi", attachments: attachments)
+        await model.answering?.value
+        return model
+    }
+
+    // Acceptance of #99: not a byte of an Allegato reaches a cloud without its confirmation.
+    @Test func anAllegatoWaitsForItsConfirmation() async throws {
+        let note = Allegato(name: "nota.md", text: "Testo riservato")
+        let model = await answeredModel(attachments: [note])
+        settings.grantConsent(to: endpoint)
+        let alternative = try alternative(in: model)
+
+        #expect(await model.attachmentVerdict(for: endpoint) == .needsConfirmation([note]))
+        model.retry(with: alternative)
+        await model.answering?.value
+
+        #expect(model.failure == .attachmentsHeld)
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
+
+        model.confirm([note], for: endpoint)
+        model.retry(with: alternative)
+        await model.answering?.value
+
+        #expect(model.failure == nil)
+        let request = try #require(FakeChatServer.requests(at: endpoint.baseURL).first)
+        let body = try #require(try JSONSerialization.jsonObject(with: request.body) as? [String: Any])
+        #expect(body["messages"] as? [[String: String]]
+            == [["role": "user", "content": "Riassumi\n\n--- nota.md ---\nTesto riservato"]])
+    }
+
+    // Acceptance of #99: over the cap nothing is cut, and nothing is sent.
+    @Test func anAllegatoOverTheCapIsNeverSent() async throws {
+        let long = AttachmentCapTests.allegato(tokens: AttachmentPolicy.fixedCap + 1)
+        let model = await answeredModel(attachments: [long])
+        settings.grantConsent(to: endpoint)
+        model.confirm([long], for: endpoint)
+
+        #expect(await model.attachmentVerdict(for: endpoint)
+            == .overCap(tokens: AttachmentPolicy.fixedCap + 1, cap: AttachmentPolicy.fixedCap))
+        model.retry(with: try alternative(in: model))
+        await model.answering?.value
+
+        #expect(model.failure == .attachmentsHeld)
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
+    }
+
+    @Test func aConfirmationLastsOneDomanda() async throws {
+        let note = Allegato(name: "nota.md", text: "Testo")
+        let model = await answeredModel(attachments: [note])
+        model.confirm([note], for: endpoint)
+        #expect(await model.attachmentVerdict(for: endpoint) == .allowed)
+
+        model.ask("Di nuovo", attachments: [note])
+        await model.answering?.value
+        #expect(await model.attachmentVerdict(for: endpoint) == .needsConfirmation([note]))
+    }
+
     @Test func aClaudeStepIsRetriedForThisTurnOnly() async throws {
         let model = await answeredModel()
 

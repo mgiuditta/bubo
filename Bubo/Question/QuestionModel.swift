@@ -64,6 +64,7 @@ final class QuestionModel {
     ///   - preferences: The user's preferences for each Tipo.
     ///   - endpointClient: The client that asks them; tests pass one served by a stand-in server.
     ///   - endpointKey: Reads an endpoint's key, from `APIKeyStore` when `nil`; called only when that endpoint answers.
+    ///   - endpointContext: Reads the context of an endpoint's model, for the cap of the Allegati.
     ///   - speaker: Says the Sintesi parlata of the Domande asked by voice; the voices of the Mac when `nil`.
     ///   - onDevice: Apple's model on the Mac, which `intake` measures with when it is `nil`.
     ///   - onDeviceAnswerer: Answers the Domande the router keeps on the Mac; Foundation Models on `onDevice` when `nil`.
@@ -77,6 +78,7 @@ final class QuestionModel {
          preferences: TypePreferences = .shared,
          endpointClient: OpenAICompatibleClient = OpenAICompatibleClient(),
          endpointKey: ((OpenAICompatibleEndpoint) async throws -> String?)? = nil,
+         endpointContext: EndpointContextReader = EndpointContextReader(),
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
          ledger: CostLedger? = nil, prices: PriceTable = .shared) {
@@ -98,6 +100,7 @@ final class QuestionModel {
         self.endpoints = endpoints
         self.preferences = preferences
         self.endpointClient = endpointClient
+        self.endpointContext = endpointContext
         self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
         self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
     }
@@ -114,6 +117,9 @@ final class QuestionModel {
     @ObservationIgnored private let apiKey: () async throws -> String?
     @ObservationIgnored private let endpointClient: OpenAICompatibleClient
     @ObservationIgnored private let endpointKey: (OpenAICompatibleEndpoint) async throws -> String?
+    @ObservationIgnored private let endpointContext: EndpointContextReader
+    /// The Allegati of this Domanda the user confirmed for each endpoint, by its id: they go to it without asking again.
+    @ObservationIgnored private var confirmedAttachments: [String: Set<Allegato>] = [:]
     @ObservationIgnored private let makeSpeaker: () -> any VoiceSpeaker
     /// The voice, made at the first Domanda asked by voice.
     @ObservationIgnored private lazy var speaker = makeSpeaker()
@@ -212,8 +218,8 @@ final class QuestionModel {
     var retryAlternatives: [RetryAlternative] {
         guard !isAnswering, !lastPrompt.isEmpty, let routedAnswer else { return [] }
         let current = routedAnswer.endpoint == nil ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
-        // The endpoints receive the text alone: a Domanda with Allegati stays with Claude until their consent (#99).
-        let offered = lastAttachments.isEmpty ? endpoints.ready.filter { !declinedEndpoints.contains($0.id) } : []
+        // With Allegati too: picking one checks them first (`attachmentVerdict(for:)`).
+        let offered = endpoints.ready.filter { !declinedEndpoints.contains($0.id) }
         return RetryAlternative.alternatives(around: current, on: Scala(catalog: catalog, effortCaps: effortCaps),
                                              endpoints: offered,
                                              answeredBy: routedAnswer.endpoint?.id)
@@ -260,6 +266,34 @@ final class QuestionModel {
         }
     }
 
+    /// The Allegati of the last Domanda, which go with it when it is asked again.
+    var askedAttachments: [Allegato] {
+        lastAttachments
+    }
+
+    /// What may go to `endpoint` of the last Domanda's Allegati: its cap read from its server, and the user's
+    /// confirmations so far.
+    func attachmentVerdict(for endpoint: OpenAICompatibleEndpoint) async -> AttachmentPolicy.Verdict {
+        let attachments = lastAttachments
+        guard !attachments.isEmpty else { return .allowed }
+        // A folder or an image is refused before the server is asked anything.
+        if let withoutText = attachments.first(where: { $0.text == nil }) { return .onlyClaude(withoutText) }
+        let contextLength = await endpointContext.contextLength(of: endpoint)
+        return AttachmentPolicy.verdict(for: attachments, to: endpoint, contextLength: contextLength,
+                                        confirmed: confirmedAttachments[endpoint.id] ?? [])
+    }
+
+    /// Lets `attachments` go to `endpoint` for the rest of this Domanda: the user confirmed them, one by one.
+    func confirm(_ attachments: [Allegato], for endpoint: OpenAICompatibleEndpoint) {
+        confirmedAttachments[endpoint.id, default: []].formUnion(attachments)
+    }
+
+    /// Asks the last prompt again with Claude, which reads every Allegato from its path: what Bubo proposes when the
+    /// Allegati cannot go to another provider.
+    func askClaude() {
+        start(lastPrompt, route: .retried(Scala.Step(family: .sonnet, effort: .medium)))
+    }
+
     /// Remembers that the user did not allow `endpoint`: it leaves "Rifai con…" until the next Domanda.
     func decline(_ endpoint: OpenAICompatibleEndpoint) {
         declinedEndpoints.insert(endpoint.id)
@@ -292,6 +326,7 @@ final class QuestionModel {
         guard !text.isEmpty else { return }
         lastPrompt = text
         lastAttachments = attachments
+        confirmedAttachments = [:]
         declinedEndpoints = []
         question = UUID()
         start(text)
@@ -311,6 +346,7 @@ final class QuestionModel {
         lastPrompt = text
         lastAttachments = attachments
         attachments = []
+        confirmedAttachments = [:]
         declinedEndpoints = []
         question = UUID()
         start(text, route: choice, speaksAnswer: speaksAnswer)
@@ -468,22 +504,30 @@ final class QuestionModel {
         let attachments = lastAttachments
         answering = Task {
             if let endpoint {
-                await stream(text, from: endpoint)
+                await stream(text, attachments: attachments, from: endpoint)
             } else {
                 await stream(Richiesta(text: text, attachments: attachments), route: route, speaksAnswer: speaksAnswer)
             }
         }
     }
 
-    /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text only, straight from the Mac.
-    private func stream(_ text: String, from endpoint: OpenAICompatibleEndpoint) async {
+    /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text, and the text of its Allegati when they
+    /// fit the endpoint's cap and the user confirmed them, straight from the Mac.
+    private func stream(_ text: String, attachments: [Allegato], from endpoint: OpenAICompatibleEndpoint) async {
         defer { isAnswering = false }
+        // Not a byte of an Allegato leaves without its confirmation, nor is any of it cut to fit.
+        guard await attachmentVerdict(for: endpoint) == .allowed else {
+            failure = .attachmentsHeld
+            return
+        }
+        guard !Task.isCancelled else { return }
         // No preference: the Orb takes the Tinta of the endpoint the user picked, whatever the router would choose.
         let submission = await intake.submit(Richiesta(text: text), to: endpoint.provider, catalog: catalog)
         defer { intake.finish(submission) }
         lastType = submission.classification?.type
         guard !Task.isCancelled else { return }
-        await answer(text, from: endpoint, route: .retriedElsewhere, submission: submission, speaksAnswer: false)
+        await answer(AttachmentPolicy.prompt(text, attachments: attachments), from: endpoint, route: .retriedElsewhere,
+                     submission: submission, speaksAnswer: false)
     }
 
     /// Streams `endpoint`'s answer to `text` for `submission`, the reason line saying `route`.

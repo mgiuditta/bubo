@@ -58,9 +58,18 @@ struct AttachmentPolicyTests {
         #expect(!AttachmentPolicy.allows(allegato, to: .otherProvider))
     }
 
-    // Until #99 asks for consent, nothing goes to another provider.
+    // Without the user's confirmation (#99), nothing goes to another provider.
     @Test func noAllegatoGoesToAnotherProviderWithoutConsent() {
         #expect(!AttachmentPolicy.allows(Allegato(name: "Nota", text: "Testo"), to: .otherProvider))
+    }
+
+    // Another provider receives a PDF as its extracted text (#99).
+    @MainActor @Test func aPDFsTextIsExtracted() throws {
+        let view = NSTextView(frame: CGRect(x: 0, y: 0, width: 300, height: 60))
+        view.string = "Ciao dal PDF"
+        let allegato = Allegato(fileAt: try file("documento.pdf", view.dataWithPDF(inside: view.bounds)))
+        #expect(allegato.kind == .file)
+        #expect(allegato.text?.contains("Ciao dal PDF") == true)
     }
 
     @Test func aTextFileOverTheReadableSizeIsNotRead() throws {

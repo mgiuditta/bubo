@@ -108,6 +108,16 @@
         }
       }
     },
+    "%@ riceve il testo della Domanda e degli allegati che hai confermato, mai modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ receives the text of the Question and of the attachments you confirmed, never changes or Project memory, and the answer is paid with your key. You can revoke consent in Settings › Models."
+          }
+        }
+      }
+    },
     "%@ riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli." : {
       "localizations" : {
         "en" : {
@@ -964,6 +974,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paired on %@"
+          }
+        }
+      }
+    },
+    "Allegati non inviati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attachments not sent"
+          }
+        }
+      }
+    },
+    "Allegati troppo lunghi per %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attachments too long for %@"
           }
         }
       }
@@ -2444,6 +2474,16 @@
         }
       }
     },
+    "Bubo non ne legge il testo: Claude lo apre dal disco, %@ riceve solo testo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't read its text: Claude opens it from disk, %@ receives text only."
+          }
+        }
+      }
+    },
     "Bubo non passa da solo alla API key: riprova quando torna la rete." : {
       "localizations" : {
         "en" : {
@@ -2591,6 +2631,32 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Chiedi a Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Claude"
+          }
+        }
+      }
+    },
+    "Circa %@ token, il massimo per questo modello è %@. Bubo non li taglia: Claude li legge interi." : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Circa %1$@ token, il massimo per questo modello è %2$@. Bubo non li taglia: Claude li legge interi."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About %1$@ tokens; this model takes at most %2$@. Bubo doesn't cut them: Claude reads them whole."
           }
         }
       }
@@ -5669,6 +5735,16 @@
         }
       }
     },
+    "Il testo di questi allegati esce dal Mac e va a %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The text of these attachments leaves your Mac and goes to %@."
+          }
+        }
+      }
+    },
     "Immagine" : {
       "comment" : "File name of an image dragged onto the Orb, before .png",
       "localizations" : {
@@ -5996,6 +6072,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Interrupted"
+          }
+        }
+      }
+    },
+    "Invia a %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send to %@"
           }
         }
       }
@@ -8266,6 +8352,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The branch the Session started from isn’t known: the PR targets %@, the default branch."
+          }
+        }
+      }
+    },
+    "Non sono partiti: conferma ogni allegato, o chiedi a Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing was sent: confirm each attachment, or ask Claude."
           }
         }
       }
@@ -13019,6 +13115,16 @@
         }
       }
     },
+    "«%@» va solo a Claude" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” goes to Claude only"
+          }
+        }
+      }
+    },
     "«almeno»: un turno si è interrotto, ne conto i token ma non tutta la cifra." : {
       "localizations" : {
         "en" : {
@@ -13035,6 +13141,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“About”: a model without a known price is counted at the default model's price."
+          }
+        }
+      }
+    },
+    "È un'immagine: Claude la legge dal disco, %@ riceve solo testo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's an image: Claude reads it from disk, %@ receives text only."
+          }
+        }
+      }
+    },
+    "È una cartella: Claude la legge dal disco, %@ riceverebbe solo il suo nome." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's a folder: Claude reads it from disk, %@ would only get its name."
           }
         }
       }
