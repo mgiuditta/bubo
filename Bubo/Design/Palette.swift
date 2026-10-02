@@ -20,6 +20,12 @@ enum Palette {
     static let textSecondary = Color(hex: 0x8E939B)
     /// Hints and disabled text; never text to read.
     static let textFaint = Color(hex: 0x5A5F66)
+    /// The lit side of the brand mark (design system, Marchio); never text.
+    static let markLight = Color(hex: 0xF6F7F9)
+    /// The shadow side of the brand mark (design system, Marchio); never text.
+    static let markDark = Color(hex: 0x1C1F24)
+    /// The on-state track of switches: the system knob is white, so a moon-colored track would hide it.
+    static let switchTrack = textSecondary
     /// Selection: the filled primary button and the active item, expressed with lightness. Text on it is `ink`.
     static let accent = textPrimary
     /// Lume, the one signal: only what waits for the user, such as Attende te and permission requests.

@@ -11,6 +11,7 @@ struct ConversationSettingsSection: View {
     var body: some View {
         Section {
             Toggle("Conserva anche le conversazioni della riga di comando", isOn: $keepsCLIHistory)
+                .tint(Palette.switchTrack)
                 .onChange(of: keepsCLIHistory) { _, keeps in
                     Task { await apply(keeps) }
                 }

@@ -7,7 +7,7 @@ struct HUDHeader: View {
             Circle()
                 .fill(
                     RadialGradient(
-                        colors: [Color(hex: 0xF6F7F9), Palette.textSecondary, Color(hex: 0x1C1F24)],
+                        colors: [Palette.markLight, Palette.textSecondary, Palette.markDark],
                         center: UnitPoint(x: 0.35, y: 0.3),
                         startRadius: 0,
                         endRadius: 14

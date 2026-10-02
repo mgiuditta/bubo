@@ -11,6 +11,7 @@ struct GeneralSettingsView: View {
         @Bindable var panel = panel
         Form {
             Toggle("Apri Bubo al login", isOn: $opensAtLogin)
+                .tint(Palette.switchTrack)
                 .onChange(of: opensAtLogin) { _, enabled in updateLoginItem(enabled) }
             if let loginItemError {
                 Text(loginItemError)
@@ -18,11 +19,13 @@ struct GeneralSettingsView: View {
                     .foregroundStyle(Palette.danger)
             }
             Toggle("Mostra l'icona nel Dock", isOn: $showsDockIcon)
+                .tint(Palette.switchTrack)
                 .onChange(of: showsDockIcon) { _, visible in DockIcon.apply(isVisible: visible) }
             Text("Bubo resta sempre nella barra dei menu.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             Toggle("Mostra il Panel con l'Orb", isOn: $panel.isShown)
+                .tint(Palette.switchTrack)
             ConversationSettingsSection()
             SecondBrainSettingsSection()
             SemanticSearchSettingsSection()

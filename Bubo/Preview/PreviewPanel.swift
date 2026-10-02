@@ -22,7 +22,7 @@ private struct PreviewPageView: View {
     let isInWindow: Bool
     @State private var showsConsole = false
     /// The system's appearance, which the page reads as `prefers-color-scheme`: the HUD around it is always dark.
-    @State private var systemColorScheme = ColorScheme(NSApp.effectiveAppearance)
+    @State private var systemColorScheme = ColorScheme.system
 
     var body: some View {
         VStack(spacing: 0) {
@@ -56,7 +56,9 @@ private struct PreviewPageView: View {
             WebView(preview.page)
                 // The page is the user's, not Bubo's: it follows the system, not the HUD's forced dark.
                 .environment(\.colorScheme, systemColorScheme)
-                .onReceive(NSApp.publisher(for: \.effectiveAppearance)) { systemColorScheme = ColorScheme($0) }
+                .onReceive(DistributedNotificationCenter.default().publisher(for: .systemAppearanceDidChange)) { _ in
+                    systemColorScheme = .system
+                }
                 .frame(maxWidth: preview.width.points ?? .infinity)
                 .frame(maxWidth: .infinity)
                 .padding(Spacing.xxSmall)
@@ -132,9 +134,20 @@ private struct PreviewPageView: View {
     }
 }
 
-private extension ColorScheme {
-    /// The color scheme closest to `appearance`.
-    init(_ appearance: NSAppearance) {
-        self = appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? .dark : .light
+extension ColorScheme {
+    /// The scheme of the system, read from the global defaults and not from `NSApp`, whose appearance the HUD's
+    /// forced dark can change.
+    static var system: ColorScheme {
+        ColorScheme(interfaceStyle: UserDefaults.standard.string(forKey: "AppleInterfaceStyle"))
     }
+
+    /// The scheme for the system's `AppleInterfaceStyle`, which is `"Dark"` in dark mode and missing in light mode.
+    init(interfaceStyle: String?) {
+        self = interfaceStyle == "Dark" ? .dark : .light
+    }
+}
+
+private extension Notification.Name {
+    /// Posted to every app when the system switches between light and dark.
+    static let systemAppearanceDidChange = Notification.Name("AppleInterfaceThemeChangedNotification")
 }

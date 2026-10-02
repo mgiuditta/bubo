@@ -24,6 +24,7 @@ struct AutonomyToggle: View {
             }
         }
         .toggleStyle(.switch)
+        .tint(Palette.switchTrack)
         .controlSize(.mini)
         .font(Typography.mono(size: 11))
         .foregroundStyle(Palette.textSecondary)
