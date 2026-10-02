@@ -5,6 +5,8 @@ import SwiftUI
 /// Impostazioni › iPhone: the Telecomando switch with the consent, the pairing QR and the paired iPhones (spec 21).
 struct RemoteSettingsView: View {
     @Environment(PairingController.self) private var remote
+    @Environment(MacOnlyProjects.self) private var macOnly
+    @Environment(SessionStore.self) private var sessions: SessionStore?
     @AppStorage(PairingController.isOnKey) private var isOn = false
 
     var body: some View {
@@ -24,6 +26,21 @@ struct RemoteSettingsView: View {
             if isOn || !remote.devices.isEmpty {
                 Section("iPhone accoppiati") {
                     PairedDevicesSection(remote: remote)
+                }
+            }
+            if isOn {
+                Section("Progetti solo Mac") {
+                    Text("Le Sessioni di un Progetto solo Mac non escono dal Mac: l'iPhone non le vede.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                    let projects = sessions?.projects ?? []
+                    if projects.isEmpty {
+                        Text("Nessun Progetto: compaiono qui con la prima Sessione.")
+                            .foregroundStyle(.secondary)
+                    }
+                    ForEach(projects, id: \.self) { project in
+                        MacOnlyToggle(project: project, store: macOnly)
+                    }
                 }
             }
         }
@@ -144,6 +161,23 @@ private struct PairedDeviceRow: View {
             Text(device.name)
             Text("Accoppiato il \(device.pairedAt.formatted(date: .abbreviated, time: .omitted))")
         }
+    }
+}
+
+/// The solo Mac switch of one Progetto.
+private struct MacOnlyToggle: View {
+    let project: URL
+    let store: MacOnlyProjects
+    @State private var isMacOnly = false
+
+    var body: some View {
+        Toggle(isOn: $isMacOnly) {
+            Text(verbatim: project.lastPathComponent)
+            Text(verbatim: project.path(percentEncoded: false))
+        }
+        .tint(Palette.switchTrack)
+        .onAppear { isMacOnly = store.isMacOnly(project) }
+        .onChange(of: isMacOnly) { _, isMacOnly in store.setMacOnly(isMacOnly, for: project) }
     }
 }
 

@@ -43,8 +43,10 @@ final class PairingController {
     private(set) var failure: String?
 
     let macID: UUID
-    private let macName: String
-    private let channel: any RemoteChannel
+    /// This Mac's name, on the QR and in the Battito.
+    let macName: String
+    /// Where the pairing, the records and the revocations travel.
+    let channel: any RemoteChannel
     private let store: any PairedDeviceStore
     /// The Mac's X25519 key of the QR on screen.
     private var agreementKey: Curve25519.KeyAgreement.PrivateKey?
@@ -76,13 +78,18 @@ final class PairingController {
 
     /// Loads the paired iPhones, then applies the revocations the iPhones send until cancelled.
     func run() async {
+        await loadDevices()
+        for await revocation in await channel.revocations() where revocation.macID == macID {
+            await forget(revocation.deviceID)
+        }
+    }
+
+    /// Loads the paired iPhones from the keychain.
+    func loadDevices() async {
         do {
             devices = try await store.items().sorted { $0.pairedAt < $1.pairedAt }
         } catch {
             report(error)
-        }
-        for await revocation in await channel.revocations() where revocation.macID == macID {
-            await forget(revocation.deviceID)
         }
     }
 

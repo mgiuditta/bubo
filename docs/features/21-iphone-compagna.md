@@ -124,7 +124,7 @@ Fonte: [#235](https://github.com/mgiuditta/bubo/issues/235), [#239](https://gith
 ### Mac in stop (deciso)
 
 - Bubo impedisce lo stop per inattività mentre una Sessione Lavora o Attende te, **solo con l'alimentatore**, acceso per default e disattivabile.
-- L'iPhone mostra sempre il Battito; con più di 2 minuti o il Mac che dorme la riga diventa gialla con "i dati possono essere vecchi".
+- L'iPhone mostra sempre il Battito ("Visto 30 s fa", in `textSecondary`); con più di 2 minuti o il Mac che dorme il testo passa a `textPrimary` con un simbolo (orologio o luna) e "i dati possono essere vecchi". Nessuna tinta: è il design system (ADR 0004), non un segnale.
 - Coperchio chiuso senza monitor esterno: limite dichiarato.
 
 ### Cancello (deciso)
@@ -219,7 +219,7 @@ Estensioni: `Permissions/RequestCenter` (una Richiesta può essere risolta da un
 3. **Sessioni e Battito**: `RemoteBridge` con `SessionCard` e `Heartbeat`, schede Sessioni e dettaglio (senza Richieste), Progetti solo Mac, pulizia a 24 h. Dipende da 2 e da 06.
 4. **Richieste dalla notifica e dall'app**: record `Request`, Notification Service Extension, categorie e azioni, Verdetto firmato, verifica sul Mac, scheda Attende te, pagina dei Livelli 4–5, `PresenceMonitor`. Dipende da 3 e da 05.
 5. **Rispondi, Domanda e Ferma**: `Command` firmati, pipeline degli ingressi, scheda Domanda, domande dell'agente. Dipende da 4 e da 09.
-6. **Notifiche passive e Mac in stop**: errore, fine lavoro, Budget, Automazioni fallite; `SleepGuard`; riga del Battito gialla. Dipende da 4, 18 e 19.
+6. **Notifiche passive e Mac in stop**: errore, fine lavoro, Budget, Automazioni fallite; `SleepGuard`. Dipende da 4, 18 e 19.
 
 ## Specifica "migliore di"
 

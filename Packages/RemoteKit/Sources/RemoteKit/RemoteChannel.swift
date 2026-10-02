@@ -13,6 +13,10 @@ public protocol RemoteChannel: Sendable {
     func save(_ record: RemoteRecord) async throws
     /// The records of the pair `macID`–`deviceID`.
     func records(macID: UUID, deviceID: UUID) async throws -> [RemoteRecord]
+    /// Deletes the records `ids`; an ID with no record is not an error.
+    func deleteRecords(_ ids: [String]) async throws
+    /// Deletes every record of the Mac `macID` that expires before `date`, for every iPhone.
+    func deleteRecords(of macID: UUID, expiringBefore date: Date) async throws
     /// Marks the pair revoked and deletes all its records.
     func revoke(_ revocation: Revocation) async throws
     /// Every revocation, by either side, including those sent before listening: a revoked Device stays revoked.
@@ -53,6 +57,14 @@ public actor InMemoryRemoteChannel: RemoteChannel {
 
     public func records(macID: UUID, deviceID: UUID) -> [RemoteRecord] {
         storedRecords.values.filter { $0.macID == macID && $0.deviceID == deviceID }
+    }
+
+    public func deleteRecords(_ ids: [String]) {
+        for id in ids { storedRecords[id] = nil }
+    }
+
+    public func deleteRecords(of macID: UUID, expiringBefore date: Date) {
+        storedRecords = storedRecords.filter { $0.value.macID != macID || $0.value.expiresAt >= date }
     }
 
     public func revoke(_ revocation: Revocation) {
