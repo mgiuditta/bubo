@@ -14,6 +14,7 @@ import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } fro
 import { configuration, type Configuration, type Instructions } from "./config";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { orbInstruction, rosaOf, TurnVariante } from "./orb";
 import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
@@ -48,6 +49,7 @@ type Command =
   | { v: number; type: "forget"; conversations?: unknown }
   | { v: number; type: "forgetHistory"; id: string }
   | { v: number; type: "permission"; request: string; behavior?: unknown; scope?: unknown }
+  | { v: number; type: "question"; request: string; answers?: unknown }
   | { v: number; type: "sandboxRules"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "previewServer"; id: string; available?: unknown }
   | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown }
@@ -81,6 +83,7 @@ type Event =
   | { type: "kept"; id: string; count: number }
   | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
+  | (AgentQuestion & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
   | (SandboxBlock & { type: "sandboxBlock"; id: string })
   | { type: "sandboxRules"; id: string; rules: SandboxRule[] }
@@ -113,6 +116,7 @@ const permissions = new Map<string, (answer: Answer) => void>();
 // Un host fuori dai domini della Sandbox approvato per la Sessione porta con sé `WebFetch(domain:host)` di sessione.
 function askBubo(id: string, isSandboxed: boolean): CanUseTool {
   return async (toolName, input, options) => {
+    if (toolName === "AskUserQuestion") return askQuestion(id, input, options.signal);
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
     if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
     const request = randomUUID();
@@ -137,6 +141,34 @@ function askBubo(id: string, isSandboxed: boolean): CanUseTool {
     const rule = answer.lasting && toolName === networkTool ? networkRule(input.host) : undefined;
     return permissionResult(answer.allowed, input, reached ? undefined : deniedWithoutBubo, rule && [rule]);
   };
+}
+
+// Le domande dell'agente in attesa delle risposte di Bubo: un elenco per posizione, oppure nulla se l'utente non risponde.
+const questions = new Map<string, (replies: unknown) => void>();
+
+// `AskUserQuestion` della conversazione `id`: Bubo mostra le domande nella Sessione e risponde con le scelte. Senza
+// risposte valide, se Bubo non si raggiunge o se la CLI ritira la domanda (turno fermato, scadenza), è negata.
+async function askQuestion(id: string, input: Record<string, unknown>, signal: AbortSignal) {
+  if (signal.aborted) return questionResult(input, undefined, notShown);
+  const request = randomUUID();
+  const shown = agentQuestion(request, input);
+  if (!shown) return questionResult(input, undefined, notShown);
+  let reached = true;
+  const replies = await new Promise<unknown>((resolve) => {
+    questions.set(request, resolve);
+    signal.addEventListener("abort", () => {
+      resolve(undefined);
+      if (questions.delete(request)) send({ type: "permissionWithdrawn", id, request });
+    }, { once: true });
+    try {
+      send({ ...shown, id });
+    } catch {
+      reached = false;
+      resolve(undefined);
+    }
+  });
+  questions.delete(request);
+  return questionResult(input, answersOf(input, replies), reached ? undefined : notShown);
 }
 
 // Le domande sul Livello di rischio del cancello in attesa di Bubo: `true` per i livelli 4–5.
@@ -759,6 +791,10 @@ lines.on("line", (line) => {
     case "permission":
       permissions.get(command.request)?.({ allowed: isAllowed(command.behavior), lasting: isLasting(command.scope) });
       permissions.delete(command.request);
+      break;
+    case "question":
+      questions.get(command.request)?.(command.answers);
+      questions.delete(command.request);
       break;
     case "sandboxRules": {
       const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")

@@ -880,6 +880,16 @@
         }
       }
     },
+    "Altra risposta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other answer"
+          }
+        }
+      }
+    },
     "ANTHROPIC_API_KEY è impostata nel tuo ambiente" : {
       "localizations" : {
         "en" : {
@@ -4178,6 +4188,16 @@
         }
       }
     },
+    "Domanda dell'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent's question"
+          }
+        }
+      }
+    },
     "Domanda nel Panel" : {
       "localizations" : {
         "en" : {
@@ -4214,6 +4234,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Questions"
+          }
+        }
+      }
+    },
+    "Domande dell'agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent's questions"
           }
         }
       }
@@ -7966,6 +7996,16 @@
         }
       }
     },
+    "Non rispondere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don't answer"
+          }
+        }
+      }
+    },
     "Non salvarli" : {
       "localizations" : {
         "en" : {
@@ -8897,6 +8937,16 @@
         }
       }
     },
+    "Puoi sceglierne più di una." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can choose more than one."
+          }
+        }
+      }
+    },
     "Può ricevere il testo delle Domande" : {
       "localizations" : {
         "en" : {
@@ -9771,6 +9821,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Team Resources"
+          }
+        }
+      }
+    },
+    "Rispondi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer"
           }
         }
       }
@@ -12731,6 +12791,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "↑↓ choose"
+          }
+        }
+      }
+    },
+    "↩ Rispondi · esc Non rispondere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↩ Answer · esc Don't answer"
           }
         }
       }

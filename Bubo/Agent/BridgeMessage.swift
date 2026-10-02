@@ -56,6 +56,9 @@ enum BridgeCommand: Equatable {
     /// it for the rest of the Sessione: a host outside the Sandbox then comes with its session rule
     /// `WebFetch(domain:)`.
     case answerPermission(request: String, allows: Bool, isLasting: Bool = false)
+    /// Answers the questions `request` of the agent with `replies`, one per question in order; `nil` when the user
+    /// does not answer, and the agent goes on without.
+    case answerQuestion(request: String, replies: [AgentQuestion.Reply]?)
     /// Lists the Regole di permesso of `claude` in `directory` that widen the Sandbox, without a turn of the model.
     case readSandboxRules(id: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil)
     /// Answers the gate's question `request`: whether the call is level 4 or 5, so that it asks anyway.
@@ -123,6 +126,12 @@ enum BridgeCommand: Equatable {
         case let .answerPermission(request, allows, isLasting):
             object = ["type": "permission", "request": request, "behavior": allows ? "allow" : "deny"]
             if allows && isLasting { object["scope"] = "session" }
+        case let .answerQuestion(request, replies):
+            object = ["type": "question", "request": request]
+            object["answers"] = replies?.map { reply -> [String: Any] in
+                let text = reply.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                return text.isEmpty ? ["options": reply.options] : ["options": reply.options, "text": text]
+            }
         case let .readSandboxRules(id, directory, settingSources, projectConfigRoot):
             object = ["type": "sandboxRules", "id": id, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
@@ -201,7 +210,9 @@ enum BridgeEvent: Equatable, Decodable {
     case forgot(id: String)
     /// The conversation `id` waits for the user to answer a Richiesta di permesso.
     case permission(id: String, PermissionRequest)
-    /// The conversation `id` no longer waits for the Richiesta `request`.
+    /// The conversation `id` waits for the user to answer the agent's questions.
+    case question(id: String, AgentQuestion)
+    /// The conversation `id` no longer waits for the Richiesta or the questions `request`.
     case permissionWithdrawn(id: String, request: String)
     /// The gate of the conversation `id` asks whether a call, described as a Richiesta, is level 4 or 5.
     case risk(id: String, PermissionRequest)
@@ -318,6 +329,8 @@ enum BridgeEvent: Equatable, Decodable {
         case "forgot": self = .forgot(id: try container.decode(String.self, forKey: .id))
         case "permission": self = .permission(id: try container.decode(String.self, forKey: .id),
                                               try PermissionRequest(from: decoder))
+        case "question": self = .question(id: try container.decode(String.self, forKey: .id),
+                                          try AgentQuestion(from: decoder))
         case "risk": self = .risk(id: try container.decode(String.self, forKey: .id), try PermissionRequest(from: decoder))
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
                                                                 request: try container.decode(String.self, forKey: .request))
