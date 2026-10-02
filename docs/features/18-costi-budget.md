@@ -137,6 +137,7 @@ Fonte: [#135](https://github.com/mgiuditta/bubo/issues/135).
 
 - **Ogni turno** di Sessione e di Domanda, per qualunque fornitore.
 - **Cronologia CLI di Claude**, inclusa di default con origine "riga di comando", filtrabile. Si legge dalla copia a specchio (ADR 0006), quindi anche oltre i 30 giorni della CLI. Deduplicata per `message.id` + `requestId`, ultima occorrenza.
+  - Costruita in [#163](https://github.com/mgiuditta/bubo/issues/163): token + stima a listino con la tabella nostra `Bubo/Resources/PrezziAnthropic.json` (con la scrittura in cache a 1 h), rifatta da `scripts/update-anthropic-prices.sh`. Unità propria "Riga di comando, a listino", mai Spesa né Valore a listino, fuori dal `CostLedger` e quindi dai Budget. Si legge la copia, poi `~/.claude/projects`; restano fuori solo le righe con entrypoint `sdk-ts`, cioè le Sessioni e le Domande di Bubo, già nel registro. Filtro "Fonte" (Tutte, Bubo, Riga di comando) nella finestra Costi.
 - **Altri strumenti a riga di comando** (Codex, Gemini CLI, …) fuori, e lo si dichiara nella finestra Costi.
 - **Domande** nel gruppo "Domande": contano per fornitore e nel totale, non per Progetto. Una Domanda diventata Sessione porta le sue cifre nel Progetto da quel momento in avanti; i turni di prima restano nelle Domande.
 - **Jev**: resta com'è nella [10](10-router.md), totale mensile nelle impostazioni, nessun Budget.

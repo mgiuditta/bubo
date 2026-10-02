@@ -53,9 +53,33 @@ struct CostHistoryTests {
         for unit in CostUnit.allCases {
             let rows = history.rows.filter { $0.unit == unit }.reduce(Decimal(0)) { $0 + $1.amount.value }
             let bars = history.points[unit, default: []].reduce(Decimal(0)) { $0 + $1.value }
-            #expect(rows == history.totals[unit]?.value)
-            #expect(bars == history.totals[unit]?.value)
+            #expect(rows == history.totals[unit]?.value ?? 0)
+            #expect(bars == history.totals[unit]?.value ?? 0)
         }
+    }
+
+    /// A turn of the Cronologia CLI, as `CLIHistoryReader` reads it.
+    static let commandLineEntry = CostLedger.Entry(
+        id: "cli|msg|req", session: UUID(), project: URL(filePath: "/tmp/cli"), provider: "Anthropic",
+        date: now.addingTimeInterval(-600), usage: usage(.commandLine, 0.4, origin: .priceTable))
+
+    @Test func theCommandLineIsAUnitOfItsOwnAndCanBeFilteredBySource() throws {
+        let entries = Self.mixedLedger().entries + [Self.commandLineEntry]
+        func history(_ source: CostHistory.Source) -> CostHistory {
+            CostHistory(entries: entries, grouping: .project, period: .all, source: source, now: Self.now,
+                        calendar: Self.calendar)
+        }
+        let all = history(.all)
+        #expect(all.totals[.rigaDiComando]?.value == 0.4)
+        #expect(all.totals[.spesa]?.value == Decimal(string: "0.53"))
+        #expect(all.totals[.valoreListino]?.value == 2)
+        #expect(history(.bubo).totals[.rigaDiComando] == nil)
+        #expect(history(.bubo).totals[.spesa]?.value == Decimal(string: "0.53"))
+        #expect(Set(history(.commandLine).totals.keys) == [.rigaDiComando])
+        #expect(history(.commandLine).rows.map(\.group) == ["cli"])
+        // The CSV keeps the estimate in its own column, never in Spesa or Valore a listino.
+        let line = try #require(all.csv.split(separator: "\r\n").first { $0.hasPrefix("cli,") })
+        #expect(line.hasPrefix("cli,rigaDiComando,priceTable,,,0.4,"))
     }
 
     @Test(arguments: CostHistory.Grouping.allCases)

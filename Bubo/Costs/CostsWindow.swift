@@ -7,21 +7,26 @@ import UniformTypeIdentifiers
 /// the HUD, with no shortcut (spec 18).
 final class CostsWindow {
     private let ledger: CostLedger
+    private let cliHistory: CLIHistoryCosts
     private let sessionTitle: (UUID) -> String?
     private lazy var window = makeWindow()
 
     /// Creates the window, built at its first opening.
     ///
     /// - Parameters:
-    ///   - ledger: The turns shown.
+    ///   - ledger: The turns of Bubo shown.
+    ///   - cliHistory: The turns of the Cronologia CLI shown, apart from the ledger.
     ///   - sessionTitle: The title of a Sessione still in Bubo.
-    init(ledger: CostLedger, sessionTitle: @escaping (UUID) -> String?) {
+    init(ledger: CostLedger, cliHistory: CLIHistoryCosts = CLIHistoryCosts(makeReader: CLIHistoryCosts.userReader),
+         sessionTitle: @escaping (UUID) -> String?) {
         self.ledger = ledger
+        self.cliHistory = cliHistory
         self.sessionTitle = sessionTitle
     }
 
-    /// Brings the window forward, as it was left.
+    /// Brings the window forward, as it was left, and reads the Cronologia CLI again.
     func show() {
+        cliHistory.reload()
         NSApp.activate()
         window.makeKeyAndOrderFront(nil)
     }
@@ -32,7 +37,7 @@ final class CostsWindow {
                               backing: .buffered, defer: true)
         window.title = String(localized: "Costi")
         window.contentViewController = NSHostingController(rootView: CostsView(
-            ledger: ledger, sessionTitle: sessionTitle) { [weak self] csv in self?.save(csv) })
+            ledger: ledger, cliHistory: cliHistory, sessionTitle: sessionTitle) { [weak self] csv in self?.save(csv) })
         // Dark like the rest of Bubo, whatever the system's appearance.
         window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
