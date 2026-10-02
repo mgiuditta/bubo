@@ -40,7 +40,7 @@ struct PushToTalkTests {
         var taps = 0
         var interrupts = 0
         var shows = 0
-        var dictated: [(text: String, isFinal: Bool)] = []
+        var dictated: [(text: String, sends: Bool)] = []
     }
 
     let listener = FakeListener()
@@ -96,10 +96,26 @@ struct PushToTalkTests {
 
         #expect(recorder.taps == 0)
         #expect(recorder.dictated.map(\.text) == ["ciao", "ciao Bubo"])
-        #expect(recorder.dictated.map(\.isFinal) == [false, true])
+        #expect(recorder.dictated.map(\.sends) == [false, true])
         #expect(!voice.isListening)
         #expect(orb.voiceLevel == nil)
         #expect(orb.questionState == nil)
+    }
+
+    @Test func aDictationOnlyHoldLeavesTheFinalTextUnsent() async {
+        let voice = pushToTalk()
+        voice.press(sending: false)
+        await voice.holding?.value
+        #expect(voice.isListening)
+
+        listener.say("ciao")
+        listener.finalText = "ciao Bubo"
+        voice.release()
+        await voice.closing?.value
+
+        #expect(recorder.dictated.map(\.text) == ["ciao", "ciao Bubo"])
+        #expect(recorder.dictated.map(\.sends) == [false, false])
+        #expect(recorder.taps == 0)
     }
 
     @Test func nothingHeardSendsNothing() async {

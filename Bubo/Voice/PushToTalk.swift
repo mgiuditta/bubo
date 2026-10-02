@@ -3,7 +3,8 @@ import OSLog
 
 /// The global shortcut as push-to-talk (spec 08): a tap shows or hides the HUD; held past `holdThreshold` it opens the
 /// Ascolto, with the Orb following the voice and the partial text in the prompt, and at release the final text goes
-/// into the pipeline of the ingressi.
+/// into the pipeline of the ingressi. Pressed as sola dettatura (the shortcut plus ⇧), the final text stays in the
+/// prompt, unsent.
 @Observable
 final class PushToTalk {
     /// How long the shortcut stays down before a tap becomes push-to-talk.
@@ -24,10 +25,11 @@ final class PushToTalk {
     ///     reopens the Ascolto and the microphone does not hear it.
     ///   - tap: Runs on a tap: shows or hides the HUD.
     ///   - show: Runs when the Ascolto opens: brings the prompt to the front.
-    ///   - dictate: Gets the text heard so far, then the final text with `isFinal`, which sends it.
+    ///   - dictate: Gets the text heard so far, then the final text; `sends` is true only for the final text of a
+    ///     push-to-talk, which sends it.
     init(listener: any VoiceListener, microphone: MicrophoneAccess = .system, orb: OrbControls = .shared,
          holdThreshold: Duration = PushToTalk.holdThreshold, interrupt: @escaping () -> Void = {}, tap: @escaping () -> Void, show: @escaping () -> Void,
-         dictate: @escaping (_ text: String, _ isFinal: Bool) -> Void) {
+         dictate: @escaping (_ text: String, _ sends: Bool) -> Void) {
         self.listener = listener
         self.microphone = microphone
         self.orb = orb
@@ -48,6 +50,8 @@ final class PushToTalk {
     @ObservationIgnored private let dictate: (String, Bool) -> Void
     /// Whether the shortcut is down.
     @ObservationIgnored private var isHeld = false
+    /// Whether the final text of this hold is sent, or only dictated into the prompt.
+    @ObservationIgnored private var sends = true
     /// Whether the shortcut stayed down past the threshold since it went down.
     @ObservationIgnored private var isHold = false
     /// The wait for the threshold, then the opening of the Ascolto.
@@ -64,10 +68,13 @@ final class PushToTalk {
 
     /// The shortcut went down: Bubo stops speaking, and with the microphone already granted it opens at once, so the
     /// first word is not lost.
-    func press() {
+    ///
+    /// - Parameter sending: Whether a hold sends what was heard at release; `false` for the sola dettatura.
+    func press(sending: Bool = true) {
         guard !isHeld else { return }
         interrupt()
         isHeld = true
+        sends = sending
         isHold = false
         if microphone.status() == .granted { openMicrophone() }
         holding = Task {
@@ -139,6 +146,7 @@ final class PushToTalk {
     private func closeMicrophone(sending: Bool) {
         guard let opening = starting else { return }
         starting = nil
+        let sends = sends
         closing = Task {
             guard await opening.value == nil else { return }
             guard sending else {
@@ -150,7 +158,7 @@ final class PushToTalk {
             Signposts.endInterval(.voiceFinalText, interval)
             endListening()
             guard !text.isEmpty else { return }
-            dictate(text, true)
+            dictate(text, sends)
         }
     }
 

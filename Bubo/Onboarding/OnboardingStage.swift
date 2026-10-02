@@ -3,7 +3,8 @@ import SwiftUI
 /// The first launch under the Orb (spec 26): what the Orb says, the recent Progetti, and the input bar with three
 /// suggested questions. No window and no sheet: the Open panel appears only when the user asks for it.
 ///
-/// From the keyboard: ↑↓ choose among the recent Progetti, ↩ sends, ⌘O opens another folder.
+/// From the keyboard: ↑↓ choose among the recent Progetti, ↩ sends, ⌘O opens another folder. When something else
+/// answers Bubo's shortcut, the "Scorciatoia" step says so (spec 08).
 struct OnboardingStage: View {
     @Bindable var flow: OnboardingFlow
     /// The recent Progetto under the arrow keys.
@@ -12,6 +13,8 @@ struct OnboardingStage: View {
     /// Where the Open panel starts: the protected recent Progetto the user picked, or the panel's own default.
     @State private var folderToOpen: URL?
     @FocusState private var isInputFocused: Bool
+    /// Missing in previews, where no shortcut is registered.
+    @Environment(HotKeyCenter.self) private var hotKeys: HotKeyCenter?
 
     var body: some View {
         VStack(spacing: Spacing.medium) {
@@ -21,6 +24,7 @@ struct OnboardingStage: View {
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.orbLine")
             if flow.needsRemedy { FixCard(flow: flow) }
+            if let hotKeys { ShortcutStep(hotKeys: hotKeys) }
             if flow.readiness != nil { projects }
             input
             suggestions
