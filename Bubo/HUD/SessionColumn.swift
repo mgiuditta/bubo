@@ -466,6 +466,9 @@ struct SessionRow: View {
         .contextMenu {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
+            if !isArchived {
+                SessionModelMenu(model: session.model) { store.setModel($0, in: session.id) }
+            }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
             if summarizer != nil {
