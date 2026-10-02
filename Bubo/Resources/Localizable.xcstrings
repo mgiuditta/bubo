@@ -6589,6 +6589,36 @@
         }
       }
     },
+    "Rifai con un modello o uno sforzo più forte (⌘↑)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo with a stronger model or effort (⌘↑)"
+          }
+        }
+      }
+    },
+    "Rifai più forte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo stronger"
+          }
+        }
+      }
+    },
+    "Rifai più forte → %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo stronger → %@"
+          }
+        }
+      }
+    },
     "Riferimento" : {
       "localizations" : {
         "en" : {

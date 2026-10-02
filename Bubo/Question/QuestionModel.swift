@@ -72,6 +72,19 @@ final class QuestionModel {
     @ObservationIgnored private var quotaReports = 0
     /// The Claude models the account offers, read with the Quota; `nil` until then, and the router does without.
     @ObservationIgnored private var catalog: ModelCatalog?
+    /// The strongest effort each family turned out to accept, when the SDK lowered the one asked for (an organization's
+    /// `maxEffortLevel`): the Scala skips the steps above it from then on.
+    @ObservationIgnored private var effortCaps: [ModelFamily: Effort] = [:]
+
+    /// The step of the Scala above the last answer's, for "Rifai più forte"; `nil` while answering, before the first
+    /// answer and at the top, where the command is off.
+    var strongerRoute: Route? {
+        guard !isAnswering, !answer.isEmpty, let routedAnswer,
+              let current = routedAnswer.route.step(answeredBy: routedAnswer.answeringModel),
+              let step = Scala(catalog: catalog, effortCaps: effortCaps).step(above: current)
+        else { return nil }
+        return .stronger(step)
+    }
 
     /// Asks the typed or dictated prompt, replacing any answer in progress; the Orbite's word plays it instead.
     func ask() {
@@ -94,7 +107,13 @@ final class QuestionModel {
 
     /// Asks the last prompt again with `model`, a `claude` alias such as `sonnet`, instead of the router's choice.
     func retry(model: String) {
-        start(lastPrompt, model: model)
+        start(lastPrompt, route: .chosen(model))
+    }
+
+    /// Asks the last prompt again one step up the Scala, for this turn only: the router's default does not change.
+    func retryStronger() {
+        guard let strongerRoute else { return }
+        start(lastPrompt, route: strongerRoute)
     }
 
     /// Stops the answer in progress, keeping what arrived, or stops waiting for a reset.
@@ -178,7 +197,8 @@ final class QuestionModel {
         }
     }
 
-    private func start(_ text: String, model: String? = nil) {
+    /// - Parameter route: The user's choice for this turn; `nil` for the router's.
+    private func start(_ text: String, route: Route? = nil) {
         answering?.cancel()
         answer = ""
         failure = nil
@@ -186,10 +206,10 @@ final class QuestionModel {
         savedNote = nil
         routedAnswer = nil
         isAnswering = true
-        answering = Task { await stream(text, model: model) }
+        answering = Task { await stream(text, route: route) }
     }
 
-    private func stream(_ text: String, model: String?) async {
+    private func stream(_ text: String, route chosen: Route?) async {
         defer { isAnswering = false }
         let signpostID = Signposts.signposter.makeSignpostID()
         var waitingForFirstToken: OSSignpostIntervalState? =
@@ -198,7 +218,7 @@ final class QuestionModel {
         // Domande go to `claude` until the router chooses among providers (feature 10): Anthropic's Tinta.
         let submission = await intake.submit(Richiesta(text: text), to: .anthropic, catalog: catalog)
         defer { intake.finish(submission) }
-        let route = model.map(Route.chosen) ?? submission.route
+        let route = chosen ?? submission.route
         let windowBefore = quotaReports > 0 ? quota.fiveHour : nil
         let reportsBefore = quotaReports
         // A Domanda replaced while it was classified leaves the line to the newer one.
@@ -219,7 +239,10 @@ final class QuestionModel {
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                     },
                                     usage: { [weak self] in self?.routedAnswer?.usage = $0 },
-                                    answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
+                                    answeredBy: { [weak self] in
+                                        self?.routedAnswer?.answeringModel = $0
+                                        self?.learnEffortCap(asked: route, answeredBy: $0)
+                                    })
             for try await chunk in stream {
                 if let state = waitingForFirstToken {
                     Signposts.signposter.endInterval("Domanda, primo token", state)
@@ -243,6 +266,14 @@ final class QuestionModel {
             Logger.agent.error("Domanda failed: \(error)")
             failure = .unexpected
         }
+    }
+
+    /// Remembers the effort the SDK lowered `asked`'s to, as the strongest its family accepts.
+    private func learnEffortCap(asked route: Route, answeredBy answeringModel: AnsweringModel) {
+        guard let family = route.family, ModelFamily(model: answeringModel.model) == family,
+              let wanted = route.effort, let effective = answeringModel.effort, effective < wanted
+        else { return }
+        effortCaps[family] = min(effortCaps[family] ?? effective, effective)
     }
 
     /// Starts the bridge without asking anything, so the first Domanda or Sessione finds it ready.

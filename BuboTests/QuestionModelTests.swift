@@ -198,4 +198,32 @@ struct QuestionModelTests {
         #expect(model.routedAnswer?.route == .chosen("haiku"))
         #expect(model.routedAnswer?.answeringModel?.name == "Haiku 4.5")
     }
+
+    /// A bridge played by `/bin/sh` that always answers with Sonnet at medium effort.
+    static let sonnetBridge = #"""
+        while read line; do
+          id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+          echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"risposta\"}"
+          echo "{\"v\":4,\"type\":\"answeredBy\",\"id\":\"$id\",\"model\":\"claude-sonnet-5-5\",\"effort\":\"medium\"}"
+          echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+        done
+        """#
+
+    // "Rifai più forte" climbs one step for that turn only: the next Domanda takes the router's default again.
+    @Test func rifaiPiuForteLeavesTheDefaultAlone() async {
+        let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
+        let orb = OrbControls()
+        let model = QuestionModel(cli: cli, orb: orb, intake: IntakePipeline(orb: orb, makeClassifier: { nil }),
+                                  bridgeExecutable: URL(filePath: "/bin/sh"), bridgeArguments: ["-c", Self.sonnetBridge],
+                                  apiKey: { nil })
+        await Self.ask(model)
+        #expect(model.strongerRoute == .stronger(Scala.Step(family: .sonnet, effort: .high)))
+
+        model.retryStronger()
+        await model.answering?.value
+        #expect(model.routedAnswer?.route == .stronger(Scala.Step(family: .sonnet, effort: .high)))
+
+        await Self.ask(model)
+        #expect(model.routedAnswer?.route.reason == .unclassified)
+    }
 }

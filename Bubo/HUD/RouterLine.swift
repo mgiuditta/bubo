@@ -76,6 +76,8 @@ struct RouterLine: View {
             return LocalizedStringResource("Richiesta non classificata → modello predefinito", comment: Self.comment)
         case .chosenByUser:
             return LocalizedStringResource("Scelto da te", comment: Self.comment)
+        case .stronger:
+            return LocalizedStringResource("Rifai più forte → \(family)", comment: Self.comment)
         }
     }
 
@@ -125,6 +127,7 @@ struct RouterLine: View {
         RouterLine(answer: RoutedAnswer(route: Route(family: .opus, model: "opus", effort: .medium,
                                                      reason: .type(.reasoning, runnerUp: .writing)), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .chosen("sonnet"), provider: .anthropic))
+        RouterLine(answer: RoutedAnswer(route: .stronger(Scala.Step(family: .opus, effort: .high)), provider: .anthropic))
     }
     .frame(width: 560)
     .padding()

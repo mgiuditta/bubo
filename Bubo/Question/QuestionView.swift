@@ -66,7 +66,18 @@ struct QuestionView: View {
                 .accessibilityIdentifier("question.answer")
                 // Under every answer, once it is complete or stopped: who answered it, why, and at what cost.
                 if !model.isAnswering, let routedAnswer = model.routedAnswer {
-                    RouterLine(answer: routedAnswer)
+                    HStack(spacing: Spacing.xSmall) {
+                        RouterLine(answer: routedAnswer)
+                        // ⌘↑ only with the prompt empty: while typing it stays the text field's "go to the start".
+                        Button("Rifai più forte", systemImage: "arrow.up", action: model.retryStronger)
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Palette.textSecondary)
+                            .keyboardShortcut(.upArrow, modifiers: .command)
+                            .disabled(model.strongerRoute == nil || !model.prompt.isEmpty)
+                            .help("Rifai con un modello o uno sforzo più forte (⌘↑)")
+                            .accessibilityIdentifier("question.retryStronger")
+                    }
                 }
             }
 
