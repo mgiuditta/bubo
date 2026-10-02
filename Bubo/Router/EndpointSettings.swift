@@ -13,6 +13,10 @@ final class EndpointSettings {
     private(set) var endpoints: [OpenAICompatibleEndpoint]
     /// The ids of the endpoints in a cloud that is not Claude that the user allowed to receive Domande; revocable.
     private(set) var consents: Set<String>
+    /// The id of the Modello locale's endpoint, a server on the Mac; `nil` without one.
+    private(set) var localModelID: String?
+    /// Whether Bubo already proposed a Modello locale: it does so once, whatever the answer.
+    private(set) var hasOfferedLocalModel: Bool
 
     /// Creates the settings saved in `defaults`.
     init(defaults: UserDefaults = .standard) {
@@ -29,6 +33,8 @@ final class EndpointSettings {
         endpoints = OpenAICompatibleEndpoint.known.map { known in saved.first { $0.id == known.id } ?? known }
             + saved.filter { $0.kind == .custom }
         consents = Set(defaults.stringArray(forKey: Self.consentsKey) ?? [])
+        localModelID = defaults.string(forKey: Self.localModelKey)
+        hasOfferedLocalModel = defaults.bool(forKey: Self.localModelOfferedKey)
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -36,6 +42,23 @@ final class EndpointSettings {
     /// The endpoints that can answer: a model is written for them.
     var ready: [OpenAICompatibleEndpoint] {
         endpoints.filter { !$0.model.trimmingCharacters(in: .whitespaces).isEmpty }
+    }
+
+    /// The Modello locale: the endpoint on the Mac the user set, while it has a model.
+    var localModel: OpenAICompatibleEndpoint? {
+        ready.first { $0.id == localModelID && $0.isOnMac }
+    }
+
+    /// Makes `endpoint`, on the Mac, the Modello locale; `nil` leaves none.
+    func setLocalModel(_ endpoint: OpenAICompatibleEndpoint?) {
+        localModelID = endpoint?.id
+        defaults.set(localModelID, forKey: Self.localModelKey)
+    }
+
+    /// Remembers that the Modello locale was proposed, so that it never is again.
+    func markLocalModelOffered() {
+        hasOfferedLocalModel = true
+        defaults.set(true, forKey: Self.localModelOfferedKey)
     }
 
     /// Saves `endpoint`, replacing the one with its id or adding it at the end.
@@ -80,4 +103,6 @@ final class EndpointSettings {
 
     private static let endpointsKey = "router.endpoints"
     private static let consentsKey = "router.cloudConsents"
+    private static let localModelKey = "router.localModel"
+    private static let localModelOfferedKey = "router.localModelOffered"
 }
