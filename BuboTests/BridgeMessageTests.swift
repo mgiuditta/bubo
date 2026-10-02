@@ -226,7 +226,7 @@ struct BridgeMessageTests {
     @Test func theConfigurationDecodes() throws {
         let line = #"""
             {"v":4,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0","path":"/p/figma"},{"name":"locale"}],
-             "pluginErrors":[{"plugin":"rotto@mercato","message":"manca base"}],
+             "pluginErrors":[{"plugin":"rotto@mercato","type":"dependency-unsatisfied","message":"manca base"}],
              "mcpServers":[{"name":"db","status":"failed","source":"project","error":"Connection closed"},{"name":"linear","status":"needs-auth"}],
              "instructions":[{"path":"/r/CLAUDE.md","type":"Project"}],
              "agents":[{"name":"Explore","description":"Cerca","model":"haiku"},{"name":"revisore","description":"Rivede"}]}
@@ -234,7 +234,7 @@ struct BridgeMessageTests {
         let expected = ClaudeConfiguration(
             skills: ["prova"],
             plugins: [.init(name: "figma", version: "1.2.0", path: "/p/figma"), .init(name: "locale", version: nil)],
-            pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base")],
+            pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base", type: "dependency-unsatisfied")],
             mcpServers: [.init(name: "db", status: "failed", source: "project", error: "Connection closed"),
                          .init(name: "linear", status: "needs-auth", source: nil, error: nil)],
             instructions: [.init(path: "/r/CLAUDE.md", type: "Project")],

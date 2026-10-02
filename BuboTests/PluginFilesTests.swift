@@ -67,7 +67,7 @@ struct PluginFilesTests {
 
     @Test func aProjectPluginEnabledButNotInstalledIsAProblem() async throws {
         let home = try PluginHome()
-        try home.addMarketplace("ufficiale", plugins: [["name": "formattatore", "source": "./plugins/formattatore"]])
+        try home.addMarketplace("ufficiale", plugins: [["name": "formattatore", "source": ["source": "github", "repo": "a/f"]]])
         try home.enableForProject(["formattatore@ufficiale": true, "spento@ufficiale": false])
         let snapshot = await PluginSnapshot.read(from: home.folders, project: home.project)
         let id = try #require(PluginID("formattatore@ufficiale"))

@@ -65,6 +65,7 @@ private struct ConfigurationForm: View {
     let configuration: ClaudeConfiguration
     let sandbox: SandboxStore
     let readSandboxRules: (URL) async throws -> [SandboxWideningRule]
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         Form {
@@ -121,6 +122,12 @@ private struct ConfigurationForm: View {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .foregroundStyle(Palette.danger)
                             .accessibilityLabel("Errore")
+                    }
+                }
+                if !configuration.pluginErrors.isEmpty {
+                    Button("Sistema nella finestra Plugin") {
+                        PluginsWindowRoute.shared.showProblems(of: project)
+                        openWindow(id: PluginsWindow.windowID)
                     }
                 }
                 if configuration.plugins.isEmpty {

@@ -1617,6 +1617,16 @@
         }
       }
     },
+    "Attiva %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn On %@"
+          }
+        }
+      }
+    },
     "Attivo" : {
       "localizations" : {
         "en" : {
@@ -3165,6 +3175,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copy the command"
+          }
+        }
+      }
+    },
+    "Copia l'errore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy Error"
+          }
+        }
+      }
+    },
+    "Copiato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied"
           }
         }
       }
@@ -7415,6 +7445,22 @@
         }
       }
     },
+    "Prima aggiunge il marketplace %@ da %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First adds the %1$@ marketplace from %2$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Prima aggiunge il marketplace %1$@ da %2$@."
+          }
+        }
+      }
+    },
     "Prima di eseguirlo ti mostro il comando come lo vede claude, con la sua impronta." : {
       "localizations" : {
         "en" : {
@@ -9005,6 +9051,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Synced from claude.ai"
+          }
+        }
+      }
+    },
+    "Sistema nella finestra Plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fix in the Plugins Window"
           }
         }
       }

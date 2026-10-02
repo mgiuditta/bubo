@@ -22,7 +22,7 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             case .orderedSame: lhs.id < rhs.id
             }
         }
-        self.problems = problems
+        self.problems = problems.sorted { ($0.gravity, $0.plugin) < ($1.gravity, $1.plugin) }
         self.everyInstalled = everyInstalled.union(self.plugins.filter(\.isInstalled).map(\.id))
     }
 
@@ -82,14 +82,39 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
 
         var problems: [PluginProblem] = []
         if project != nil, enabled.count == 3 {
-            for (id, isOn) in enabled[1] where isOn && merged[id] == true && entries[id]?.isInstalled != true {
-                problems.append(.missingProjectPlugin(id))
+            // The Marketplaces the settings declare, the Progetto's local ones first.
+            let declared = settingsJSON.reversed().reduce(into: [String: String]()) { result, file in
+                for (name, value) in file["extraKnownMarketplaces"] as? [String: Any] ?? [:] where result[name] == nil {
+                    result[name] = marketplaceSource(of: value)
+                }
+            }
+            for (id, isOn) in enabled[1] where isOn && merged[id] == true && entries[id]?.isInstalled != true
+                && !reservedOrigins.contains(id.marketplace) {
+                let isKnown = known[id.marketplace] != nil
+                // A plugin at a relative path loads from its Marketplace with no installation (docs, plugins/loading).
+                if isKnown, case .relative = entries[id]?.source { continue }
+                problems.append(.missingProjectPlugin(id, marketplaceSource: isKnown ? nil : declared[id.marketplace]))
                 if entries[id] == nil { entries[id] = PluginEntry(id: id) }
             }
         }
-        return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values),
-                              problems: problems.sorted { $0.plugin < $1.plugin },
+        return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems,
                               everyInstalled: Set(installed.filter { !$0.value.isEmpty }.keys))
+    }
+
+    /// The origins no Marketplace can be called: plugins from `--plugin-dir`, a skills folder, claude.ai.
+    private static let reservedOrigins: Set<String> = ["inline", "skills-dir", "synced"]
+
+    /// What `claude plugin marketplace add` takes for an entry of `extraKnownMarketplaces`: `owner/repo`, a git URL,
+    /// a folder or a file; `nil` for a Marketplace defined inline in the settings.
+    private static func marketplaceSource(of value: Any) -> String? {
+        guard let source = (value as? [String: Any])?["source"] as? [String: Any] else { return nil }
+        let key = switch source["source"] as? String {
+        case "github": "repo"
+        case "git", "url": "url"
+        case "directory", "file": "path"
+        default: ""
+        }
+        return (source[key] as? String).flatMap { $0.isEmpty ? nil : $0 }
     }
 
     /// An entry of a `marketplace.json`; `nil` without a name.
@@ -167,8 +192,9 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             } else {
                 entries[id, default: PluginEntry(id: id)].installations = counted
             }
-            for message in Set(items.flatMap(\.errors)).sorted() {
-                problems.append(.loadFailed(id, message: message))
+            var seen = Set<String>()
+            for error in items.flatMap(\.errors) where seen.insert(error.message).inserted {
+                problems.append(.loadFailed(id, type: error.type, message: error.message))
             }
         }
         for item in list.available {
@@ -184,8 +210,38 @@ nonisolated struct PluginSnapshot: Sendable, Equatable {
             marketplaces.append(Marketplace(name: name, installLocation: nil))
         }
         // A missing project plugin that `claude` reports installed after all.
-        problems.removeAll { if case let .missingProjectPlugin(id) = $0 { entries[id]?.isInstalled == true } else { false } }
+        problems.removeAll { if case let .missingProjectPlugin(id, _) = $0 { entries[id]?.isInstalled == true } else { false } }
         return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems,
                               everyInstalled: everyInstalled.union(installed.map(\.id)))
+    }
+
+    // MARK: Merging the Sessioni
+
+    /// The snapshot with the `plugin_errors` of a Sessione's `system/init`, read for the Progetto followed.
+    ///
+    /// An error the list already has is not repeated; one that says the plugin of the Progetto is not installed here
+    /// is the missing plugin the files already show, or becomes one. An error without `name@marketplace`, such as
+    /// `inline[0]`, is of a plugin the window has no row for, and stays in the panel of the 04.
+    func merging(_ errors: [ClaudeConfiguration.PluginError]) -> PluginSnapshot {
+        var entries = Dictionary(plugins.map { ($0.id, $0) }) { first, _ in first }
+        var problems = self.problems
+        for error in errors {
+            guard let id = PluginID(error.plugin) else { continue }
+            let problem: PluginProblem
+            if PluginProblem.meansNotInstalledHere(error.message) {
+                guard entries[id]?.isInstalled != true,
+                      !problems.contains(where: { if case .missingProjectPlugin(id, _) = $0 { true } else { false } })
+                else { continue }
+                problem = .missingProjectPlugin(id)
+            } else {
+                guard !problems.contains(where: { if case .loadFailed(id, _, error.message) = $0 { true } else { false } })
+                else { continue }
+                problem = .loadFailed(id, type: error.type, message: error.message)
+            }
+            problems.append(problem)
+            if entries[id] == nil { entries[id] = PluginEntry(id: id) }
+        }
+        return PluginSnapshot(marketplaces: marketplaces, plugins: Array(entries.values), problems: problems,
+                              everyInstalled: everyInstalled)
     }
 }

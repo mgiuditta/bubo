@@ -11,7 +11,14 @@ nonisolated struct PluginList: Sendable, Equatable {
         let installPath: URL?
         let projectPath: URL?
         /// The load errors, when the plugin failed to load.
-        let errors: [String]
+        let errors: [LoadError]
+    }
+
+    /// A load error: `errorDetails` with its type, or a line of `errors` from a CLI without them.
+    struct LoadError: Sendable, Equatable {
+        /// Such as `dependency-unsatisfied`; `nil` when the CLI gives only the text.
+        let type: String?
+        let message: String
     }
 
     /// One plugin a Marketplace offers and nobody installed.
@@ -52,7 +59,7 @@ nonisolated struct PluginList: Sendable, Equatable {
                              version: item["version"] as? String,
                              installPath: (item["installPath"] as? String).map { URL(filePath: $0, directoryHint: .isDirectory) },
                              projectPath: (item["projectPath"] as? String).map { URL(filePath: $0, directoryHint: .isDirectory) },
-                             errors: item["errors"] as? [String] ?? [])
+                             errors: Self.loadErrors(of: item))
         }
         self.available = available.compactMap { item in
             guard let item = item as? [String: Any], let id = (item["pluginId"] as? String).flatMap(PluginID.init)
@@ -60,5 +67,20 @@ nonisolated struct PluginList: Sendable, Equatable {
             return Available(id: id, summary: item["description"] as? String, version: item["version"] as? String,
                              installCount: item["installCount"] as? Int, source: PluginSource(json: item["source"]))
         }
+    }
+
+    /// The errors of an installation: `errorDetails` paired with the lines of `errors`, which say the same in words.
+    private static func loadErrors(of item: [String: Any]) -> [LoadError] {
+        let lines = item["errors"] as? [String] ?? []
+        guard let details = item["errorDetails"] as? [Any], !details.isEmpty else {
+            return lines.map { LoadError(type: nil, message: $0) }
+        }
+        // The CLI builds both from the same errors, one to one.
+        let typed = details.enumerated().compactMap { index, detail in
+            let detail = detail as? [String: Any] ?? [:]
+            let message = index < lines.count ? lines[index] : detail["message"] as? String
+            return message.map { LoadError(type: detail["type"] as? String, message: $0) }
+        }
+        return typed + lines.dropFirst(details.count).map { LoadError(type: nil, message: $0) }
     }
 }

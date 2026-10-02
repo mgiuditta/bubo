@@ -55,7 +55,7 @@ struct PluginCatalogTests {
 
     @Test func theWindowOpensOnDaSistemareOnlyWhenItHasSomething() async throws {
         let home = try PluginHome()
-        try home.addMarketplace("ufficiale", plugins: [["name": "formattatore", "source": "./f"]])
+        try home.addMarketplace("ufficiale", plugins: [["name": "formattatore", "source": ["source": "github", "repo": "a/f"]]])
         let catalog = PluginCatalog(folders: home.folders, listing: .never)
         let following = Task { await catalog.follow(project: home.project) }
         try await waitForCondition { catalog.snapshot != nil }
