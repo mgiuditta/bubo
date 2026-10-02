@@ -1,5 +1,5 @@
 /// A family of Claude models, as `claude` reaches its latest with an alias; weakest first.
-nonisolated enum ModelFamily: String, CaseIterable, Comparable, Sendable {
+nonisolated enum ModelFamily: String, CaseIterable, Codable, Comparable, Sendable {
     case haiku, sonnet, opus, fable
 
     /// The family of the model `id` names, such as `claude-opus-5-5`; `nil` when it names none.

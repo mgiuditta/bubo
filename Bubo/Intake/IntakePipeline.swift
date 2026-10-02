@@ -58,8 +58,11 @@ final class IntakePipeline {
     /// What the Richiesta carries is measured for Apple Foundation Models while it is classified, within the same
     /// budget; a Domanda the router sends there takes the neutral Tinta.
     ///
-    /// - Parameter catalog: The Claude models the account offers, for the router; `nil` when not read yet.
-    func submit(_ richiesta: Richiesta, to provider: Provider?, catalog: ModelCatalog? = nil) async -> Submission {
+    /// - Parameters:
+    ///   - catalog: The Claude models the account offers, for the router; `nil` when not read yet.
+    ///   - preferences: The user's preferences for each Tipo; an endpoint they choose gives the Orb its own Tinta.
+    func submit(_ richiesta: Richiesta, to provider: Provider?, catalog: ModelCatalog? = nil,
+                preferences: ModelRouter.Preferences = .none) async -> Submission {
         latest += 1
         let id = latest
         isSpeaking = false
@@ -75,7 +78,7 @@ final class IntakePipeline {
         let classification = await classifier.classification(of: richiesta.classifierInput)
         let fit = await measured
         let route = router.route(for: classification, fit: fit, hasAttachments: !richiesta.attachments.isEmpty,
-                                 readsOnDevice: richiesta.isReadableOnDevice, in: catalog)
+                                 readsOnDevice: richiesta.isReadableOnDevice, preferences: preferences, in: catalog)
         Signposts.endInterval(.intakeDecision, decision)
         // Where the Domanda goes and what was measured: never its text.
         let fallback = route.onDeviceFallback.map { String(describing: $0) } ?? "-"
@@ -83,7 +86,11 @@ final class IntakePipeline {
             Route \(String(describing: route.destination), privacy: .public), \
             fit \(String(describing: fit), privacy: .public), fallback \(fallback, privacy: .public)
             """)
-        let tinta = route.destination == .onDevice ? nil : provider
+        let tinta = switch route.destination {
+        case .claude: provider
+        case .onDevice: Provider?.none
+        case let .endpoint(endpoint): endpoint.provider
+        }
         if id == latest {
             orb.variante = classification.variante
             orb.provider = tinta
@@ -95,13 +102,16 @@ final class IntakePipeline {
     /// The router's decision for `richiesta` while it is typed, for the chip in the prompt: the same classification
     /// and measure as `submit`, without moving the Orb.
     ///
-    /// - Parameter catalog: The Claude models the account offers, for the router; `nil` when not read yet.
-    func forecastRoute(for richiesta: Richiesta, catalog: ModelCatalog? = nil) async -> Route {
+    /// - Parameters:
+    ///   - catalog: The Claude models the account offers, for the router; `nil` when not read yet.
+    ///   - preferences: The user's preferences for each Tipo.
+    func forecastRoute(for richiesta: Richiesta, catalog: ModelCatalog? = nil,
+                       preferences: ModelRouter.Preferences = .none) async -> Route {
         guard let classifier else { return router.route(for: nil, in: catalog) }
         async let measured = onDevice.fit(of: richiesta.onDeviceContent)
         let classification = await classifier.classification(of: richiesta.classifierInput)
         return router.route(for: classification, fit: await measured, hasAttachments: !richiesta.attachments.isEmpty,
-                            readsOnDevice: richiesta.isReadableOnDevice, in: catalog)
+                            readsOnDevice: richiesta.isReadableOnDevice, preferences: preferences, in: catalog)
     }
 
     /// Gives the Orb `provider`'s Tinta: `submission`'s answer moved to it, after Apple Foundation Models failed.

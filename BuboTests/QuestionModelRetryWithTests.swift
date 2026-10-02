@@ -7,6 +7,7 @@ import Testing
 struct QuestionModelRetryWithTests {
     let settings = EndpointSettings(defaults: UserDefaults(suiteName: "QuestionModelRetryWithTests-\(UUID().uuidString)")!)
     let endpoint: OpenAICompatibleEndpoint
+    let preferences = TypePreferences(defaults: UserDefaults(suiteName: "QuestionModelRetryWithTests-\(UUID().uuidString)")!)
 
     init() {
         var endpoint = OpenAICompatibleEndpoint.custom(
@@ -17,13 +18,21 @@ struct QuestionModelRetryWithTests {
     }
 
     /// A Domanda answered by Sonnet through a bridge played by `/bin/sh`, with `settings`' endpoints in "Rifai con…".
-    func answeredModel(ledger: CostLedger? = nil) async -> QuestionModel {
+    ///
+    /// - Parameter type: The Tipo every Domanda is classified as; none is decided when `nil`.
+    func answeredModel(ledger: CostLedger? = nil, type: RequestType? = nil) async -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         let orb = OrbControls()
-        let model = QuestionModel(cli: cli, orb: orb, intake: IntakePipeline(orb: orb, makeClassifier: { nil }),
+        let rules = try? RuleClassifier(catalogo: Catalogo(bundle: .main))
+        let intake = IntakePipeline(orb: orb, onDevice: .off) {
+            guard let type, let rules else { return nil }
+            return RequestClassifier(engines: [QuestionModelTests.FixedEngine(type: type)], rules: rules)
+        }
+        let model = QuestionModel(cli: cli, orb: orb, intake: intake,
                                   bridgeExecutable: URL(filePath: "/bin/sh"),
                                   bridgeArguments: ["-c", QuestionModelTests.sonnetBridge], apiKey: { nil },
-                                  endpoints: settings, endpointClient: OpenAICompatibleClient(session: FakeChatServer.session),
+                                  endpoints: settings, preferences: preferences,
+                                  endpointClient: OpenAICompatibleClient(session: FakeChatServer.session),
                                   endpointKey: { _ in "sk-prova" }, ledger: ledger,
                                   prices: PriceTable(file: nil, bundled: PriceTableTests.snapshot))
         await QuestionModelTests.ask(model)
@@ -114,5 +123,60 @@ struct QuestionModelRetryWithTests {
         #expect(model.routedAnswer?.route == .retried(Scala.Step(family: .sonnet, effort: .low)))
         await QuestionModelTests.ask(model)
         #expect(model.routedAnswer?.route.reason == .unclassified)
+    }
+
+    // Acceptance of #409: the step picked with "Usa sempre per «Tipo»" answers the Tipo's next Domande.
+    @Test func aClaudeStepBecomesTheTiposPreference() async throws {
+        let model = await answeredModel(type: .writing)
+        let opus = Scala.Step(family: .opus, effort: .high)
+
+        model.retry(with: RetryAlternative(target: .claude(opus)), alwaysUse: true)
+        await model.answering?.value
+        #expect(preferences.choices == [.writing: .claude(opus)])
+
+        await QuestionModelTests.ask(model)
+        #expect(model.routedAnswer?.route == Route(family: .opus, model: "opus", effort: .high,
+                                                   reason: .preferred(.writing)))
+    }
+
+    // Acceptance of #409: a cloud without consent never becomes a preference.
+    @Test func aCloudWithoutConsentIsNotRemembered() async throws {
+        let model = await answeredModel(type: .writing)
+
+        model.retry(with: try alternative(in: model), alwaysUse: true)
+        await model.answering?.value
+
+        #expect(preferences.choices.isEmpty)
+    }
+
+    @Test func aPreferredCloudAnswersOnlyWhileItHasConsent() async throws {
+        let model = await answeredModel(type: .writing)
+        settings.grantConsent(to: endpoint)
+        model.retry(with: try alternative(in: model), alwaysUse: true)
+        await model.answering?.value
+        #expect(preferences.choices == [.writing: .endpoint(id: endpoint.id)])
+
+        await QuestionModelTests.ask(model)
+        #expect(model.answer == "dal cloud")
+        #expect(model.routedAnswer?.route.reason == .preferred(.writing))
+        #expect(model.routedAnswer?.endpoint == endpoint)
+
+        settings.revokeConsent(of: endpoint)
+        await QuestionModelTests.ask(model)
+        #expect(model.answer == "risposta")
+        #expect(model.routedAnswer?.endpoint == nil)
+    }
+
+    // #101: a Domanda with Allegati never goes to an endpoint, preference or not.
+    @Test func aDomandaWithAllegatiStaysWithClaude() async throws {
+        let model = await answeredModel(type: .writing)
+        settings.grantConsent(to: endpoint)
+        preferences.set(.endpoint(id: endpoint.id), for: .writing)
+
+        model.ask("Riassumi", attachments: [Allegato(name: "nota.txt", text: "testo")])
+        await model.answering?.value
+
+        #expect(model.answer == "risposta")
+        #expect(model.routedAnswer?.endpoint == nil)
     }
 }

@@ -10,6 +10,8 @@ struct QuestionView: View {
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
     @State private var askingConsent: RetryAlternative?
     @State private var isAskingConsent = false
+    /// Whether the model picked in "Rifai con…" becomes the preference of the Domanda's Tipo.
+    @State private var alwaysUse = false
     /// Push-to-talk, whose partial text fills the prompt; `nil` in previews.
     @Environment(PushToTalk.self) private var voice: PushToTalk?
 
@@ -105,12 +107,16 @@ struct QuestionView: View {
         // On the whole field, not on the button: a failed answer offers "Rifai con…" too, without the reason line.
         .popover(isPresented: $isPickingRetry, arrowEdge: .bottom) {
             RetryWithList(alternatives: model.retryAlternatives, excluded: model.excludedEndpoints,
-                          usesAPIKey: model.usesAPIKey, pick: pick)
+                          usesAPIKey: model.usesAPIKey, type: model.lastType, alwaysUse: $alwaysUse, pick: pick)
+        }
+        // "Usa sempre per «Tipo»" starts off every time "Rifai con…" opens.
+        .onChange(of: isPickingRetry) {
+            if isPickingRetry { alwaysUse = false }
         }
         .confirmationDialog(consentTitle, isPresented: $isAskingConsent, presenting: askingConsent) { alternative in
             Button("Consenti e invia") {
                 if case let .endpoint(endpoint) = alternative.target { model.endpoints.grantConsent(to: endpoint) }
-                model.retry(with: alternative)
+                model.retry(with: alternative, alwaysUse: alwaysUse)
             }
             Button("Non ora", role: .cancel) {
                 if case let .endpoint(endpoint) = alternative.target { model.decline(endpoint) }
@@ -157,7 +163,7 @@ struct QuestionView: View {
             askingConsent = alternative
             isAskingConsent = true
         } else {
-            model.retry(with: alternative)
+            model.retry(with: alternative, alwaysUse: alwaysUse)
         }
     }
 

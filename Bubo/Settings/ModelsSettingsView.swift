@@ -1,10 +1,11 @@
 import SwiftUI
 
-/// Impostazioni › Modelli: the OpenAI-compatible endpoints "Rifai con…" offers besides Claude (spec 10), and the
-/// PriceTable their Spesa is estimated with (spec 18).
+/// Impostazioni › Modelli: the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
+/// Claude (spec 10), and the PriceTable their Spesa is estimated with (spec 18).
 struct ModelsSettingsView: View {
     @State private var settings = EndpointSettings.shared
     @State private var prices = PriceTable.shared
+    @State private var preferences = TypePreferences.shared
     @State private var newName = ""
     @State private var newAddress = ""
 
@@ -15,6 +16,7 @@ struct ModelsSettingsView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+            TypePreferencesSection(preferences: preferences, settings: settings)
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
             }

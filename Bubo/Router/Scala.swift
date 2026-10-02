@@ -5,7 +5,7 @@
 /// effort above its `maxEffortLevel` is skipped once the SDK is seen lowering it. So a step is never refused.
 nonisolated struct Scala: Equatable, Sendable {
     /// One step: a family at an effort; Haiku has no effort.
-    struct Step: Comparable, Sendable {
+    struct Step: Codable, Comparable, Sendable {
         let family: ModelFamily
         let effort: Effort?
 

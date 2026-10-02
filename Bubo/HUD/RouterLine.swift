@@ -64,7 +64,11 @@ struct RouterLine: View {
 
     /// Why the router chose `route`, as the line and the chip in the prompt say it.
     static func reason(for route: Route) -> LocalizedStringResource {
-        let family = route.destination == .onDevice ? appleFM : route.family?.name ?? ""
+        let family = switch route.destination {
+        case .claude: route.family?.name ?? ""
+        case .onDevice: appleFM
+        case let .endpoint(endpoint): endpoint.name
+        }
         if case let .type(type, _) = route.reason, let fallback = route.onDeviceFallback {
             return reason(String(localized: type.label), family, fallback)
         }
@@ -87,6 +91,9 @@ struct RouterLine: View {
             return LocalizedStringResource("Rifai più forte → \(family)", comment: Self.comment)
         case .retried:
             return LocalizedStringResource("Rifatto da te", comment: Self.comment)
+        case let .preferred(type):
+            return LocalizedStringResource("\(String(localized: type.label)) → \(family) (tua preferenza)",
+                                           comment: Self.comment)
         }
     }
 
@@ -184,6 +191,8 @@ struct RouterLine: View {
                                                      onDeviceFallback: .attachmentTooLong), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .chosen("sonnet"), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: .stronger(Scala.Step(family: .opus, effort: .high)), provider: .anthropic))
+        RouterLine(answer: RoutedAnswer(route: Route(family: .opus, model: "opus", effort: .high,
+                                                     reason: .preferred(.writing)), provider: .anthropic))
         RouterLine(answer: {
             var endpoint = OpenAICompatibleEndpoint.known[0]
             endpoint.model = "gpt-5-mini"
