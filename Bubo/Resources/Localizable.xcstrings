@@ -98,6 +98,16 @@
         }
       }
     },
+    "%@ token" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ tokens"
+          }
+        }
+      }
+    },
     "%@ token sulla tua chiave" : {
       "comment" : "Cost of an answer from another provider, paid on the user's own key at a price Bubo does not know: the tokens used.",
       "localizations" : {
@@ -1473,6 +1483,16 @@
         }
       }
     },
+    "Apre la finestra Costi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the Costs window"
+          }
+        }
+      }
+    },
     "Apre la nota" : {
       "localizations" : {
         "en" : {
@@ -1569,6 +1589,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open PR…"
+          }
+        }
+      }
+    },
+    "Apri i Costi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Costs"
           }
         }
       }
@@ -3387,6 +3417,16 @@
         }
       }
     },
+    "Contano i turni passati da Bubo. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only turns that went through Bubo count. Other command-line tools, such as Codex and Gemini CLI, are left out."
+          }
+        }
+      }
+    },
     "Continua da dove ti eri fermato." : {
       "localizations" : {
         "en" : {
@@ -3673,6 +3713,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What changed in the last week?"
+          }
+        }
+      }
+    },
+    "Costi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Costs"
+          }
+        }
+      }
+    },
+    "Costi di Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo Costs"
           }
         }
       }
@@ -3978,6 +4038,16 @@
         }
       }
     },
+    "Domanda del %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question of %@"
+          }
+        }
+      }
+    },
     "Domanda" : {
       "localizations" : {
         "en" : {
@@ -4014,6 +4084,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Question not sent to Gemini"
+          }
+        }
+      }
+    },
+    "Domande" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questions"
           }
         }
       }
@@ -4204,6 +4284,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Explore code"
+          }
+        }
+      }
+    },
+    "Esporta CSV…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export CSV…"
           }
         }
       }
@@ -4674,6 +4764,36 @@
         }
       }
     },
+    "Grafico" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chart"
+          }
+        }
+      }
+    },
+    "Grafico di %@ nel tempo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ over time"
+          }
+        }
+      }
+    },
+    "Gratis" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free"
+          }
+        }
+      }
+    },
     "Guarda…" : {
       "localizations" : {
         "en" : {
@@ -4886,6 +5006,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, reach only the package registries and can't read ~/.ssh, ~/.aws, ~/.gnupg or ~/.netrc. A new host becomes a Request. If the Sandbox doesn't start, neither does the Session. The terminal and the servers aren't in the Sandbox. Applies from the next turn."
+          }
+        }
+      }
+    },
+    "I crediti extra dell'abbonamento non compaiono: Bubo non li distingue ancora dagli altri consumi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The subscription's extra credits don't appear: Bubo can't tell them apart from other usage yet."
           }
         }
       }
@@ -5690,6 +5820,16 @@
         }
       }
     },
+    "La Quota dell'abbonamento è una percentuale, nell'HUD: non si somma a queste cifre." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The subscription's Quota is a percentage, shown in the HUD: it's never added to these figures."
+          }
+        }
+      }
+    },
     "La Sessione ha modifiche che la PR non ha." : {
       "localizations" : {
         "en" : {
@@ -5964,6 +6104,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The team rules can't be read: none applies, not even the deny rules."
+          }
+        }
+      }
+    },
+    "Le stesse cifre sono nella tabella, raggruppata per Periodo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The same figures are in the table, grouped by Period."
           }
         }
       }
@@ -6280,6 +6430,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No key saved"
+          }
+        }
+      }
+    },
+    "Manca la cifra di qualche turno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some turns are missing their figure"
           }
         }
       }
@@ -7032,6 +7192,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No MCP servers."
+          }
+        }
+      }
+    },
+    "Nessun turno in questo periodo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No turns in this period."
           }
         }
       }
@@ -7958,6 +8128,16 @@
         }
       }
     },
+    "Origine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source"
+          }
+        }
+      }
+    },
     "Ovunque" : {
       "localizations" : {
         "en" : {
@@ -8148,6 +8328,16 @@
         }
       }
     },
+    "Periodo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Period"
+          }
+        }
+      }
+    },
     "Permessi" : {
       "localizations" : {
         "en" : {
@@ -8280,6 +8470,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prices"
+          }
+        }
+      }
+    },
+    "Prezzo da tabella" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price from table"
+          }
+        }
+      }
+    },
+    "Prezzo da tabella del %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Price from table of %@"
           }
         }
       }
@@ -8503,6 +8713,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "5-hour Quota used during the answer, as reported by Claude."
+          }
+        }
+      }
+    },
+    "Raggruppa per" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Group by"
           }
         }
       }
@@ -9120,6 +9340,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Move Back to HUD"
+          }
+        }
+      }
+    },
+    "Riportata dal fornitore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reported by the provider"
           }
         }
       }
@@ -9806,6 +10036,16 @@
         }
       }
     },
+    "Senza prezzo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No price"
+          }
+        }
+      }
+    },
     "Senza modifiche" : {
       "localizations" : {
         "en" : {
@@ -9912,6 +10152,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Session"
+          }
+        }
+      }
+    },
+    "Sessione %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session %@"
           }
         }
       }
@@ -10171,6 +10421,16 @@
         }
       }
     },
+    "Spesa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spend"
+          }
+        }
+      }
+    },
     "Spesa %@" : {
       "localizations" : {
         "en" : {
@@ -10268,6 +10528,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Same name in the same folder: claude loads one by the order it reads them, with no rule."
+          }
+        }
+      }
+    },
+    "Stima a listino" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List-price estimate"
           }
         }
       }
@@ -10534,6 +10804,16 @@
         }
       }
     },
+    "Token" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tokens"
+          }
+        }
+      }
+    },
     "Togli…" : {
       "localizations" : {
         "en" : {
@@ -10635,6 +10915,16 @@
         }
       }
     },
+    "Turni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turns"
+          }
+        }
+      }
+    },
     "Tutte" : {
       "localizations" : {
         "en" : {
@@ -10681,6 +10971,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Projects"
+          }
+        }
+      }
+    },
+    "Tutto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All"
           }
         }
       }
@@ -10735,6 +11035,16 @@
         }
       }
     },
+    "Ultimi 12 mesi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 12 months"
+          }
+        }
+      }
+    },
     "Ultimi 30 giorni" : {
       "localizations" : {
         "en" : {
@@ -10751,6 +11061,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Last 7 days"
+          }
+        }
+      }
+    },
+    "Ultimi 90 giorni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last 90 days"
           }
         }
       }
@@ -11067,6 +11387,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Applies to every Session of the Project, isolated copies included, and to claude in Terminal. Revoke it from Claude Configuration."
+          }
+        }
+      }
+    },
+    "Valore a listino" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List value"
           }
         }
       }
@@ -11812,6 +12142,16 @@
         }
       }
     },
+    "manca qualche cifra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "some figures missing"
+          }
+        }
+      }
+    },
     "massimo" : {
       "localizations" : {
         "en" : {
@@ -11849,6 +12189,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "under %@"
+          }
+        }
+      }
+    },
+    "modello senza prezzo noto all'SDK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "model with no price known to the SDK"
           }
         }
       }

@@ -98,7 +98,7 @@ struct HUDView: View {
                         if let sessions { PullRequestSheet(session: session, store: sessions) }
                     }
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
-                QuotaView(quota: questions.quota)
+                QuotaView(quota: questions.quota) { hud.showCosts?() }
             }
             // Here, not next to the other sheets: one sheet modifier per view.
             .sheet(isPresented: Bindable(hud).isPickingIssue) {

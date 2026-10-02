@@ -2,11 +2,23 @@ import SwiftUI
 
 /// The Quota at the top of the HUD: the 5-hour and the weekly window, each with its reset, with no click.
 ///
-/// A window `claude` never reported, or whose reset has passed, is not shown: Bubo never guesses it.
+/// A window `claude` never reported, or whose reset has passed, is not shown: Bubo never guesses it. A click opens
+/// the Costi window (spec 18).
 struct QuotaView: View {
     let quota: Quota
+    /// Opens the Costi window.
+    var showCosts: () -> Void = {}
 
     var body: some View {
+        Button(action: showCosts) { windows }
+            .buttonStyle(.plain)
+            .help("Apri i Costi")
+            .accessibilityHint(Text("Apre la finestra Costi"))
+            // With no window reported there is nothing to read; the Finestra menu still opens the Costi.
+            .accessibilityHidden(quota.fiveHour == nil && quota.sevenDay == nil)
+    }
+
+    private var windows: some View {
         TimelineView(.everyMinute) { context in
             HStack(spacing: Spacing.medium) {
                 if let window = quota.fiveHour, window.resetsAt > context.date {

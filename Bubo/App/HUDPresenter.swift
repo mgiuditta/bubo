@@ -34,6 +34,9 @@ final class HUDPresenter {
     /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
     @ObservationIgnored var searchConversations: ((String) -> Void)?
 
+    /// Opens the Costi window; set by the app, since it is an AppKit window.
+    @ObservationIgnored var showCosts: (() -> Void)?
+
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
 

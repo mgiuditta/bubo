@@ -106,6 +106,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard let sessions else { throw CocoaError(.fileReadUnknown) }
         return try await sessions.transcript(ofConversation: conversation)
     }, actions: resumeActions)
+    /// The Costi window: the CostLedger's turns by Progetto, Sessione, model, provider and period.
+    private(set) lazy var costs = CostsWindow(ledger: ledger) { [weak self] id in
+        self?.sessions?.sessions.first { $0.id == id }?.title
+    }
     /// Riprendi and Continua da qui, from the Palette and the Cronologia window.
     private(set) lazy var resumeActions = ResumeActions(sessions: { [weak self] in self?.sessions }, hud: hud)
     /// The global shortcut; created at launch so it works with no window open.
@@ -203,6 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(panel))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
+        hud.showCosts = { [weak self] in self?.costs.show() }
     }
 
     /// Back in front: the pull requests are read at once, then at intervals (spec 16).
