@@ -10,6 +10,11 @@ nonisolated enum PluginCommand: Sendable, Equatable {
     case uninstall(PluginID, scope: PluginScope, keepingData: Bool)
     /// Removes the dependencies of `scope` nothing needs any more. `-y` here confirms only that, never a command.
     case prune(scope: PluginScope)
+    /// Registers the Marketplace at `source` (`owner/repo`, a git URL or a folder) in `scope`.
+    case addMarketplace(source: String, scope: PluginScope)
+    /// Removes the Marketplace `name` from `scope`, or from every scope when `nil`: only then `claude` uninstalls
+    /// every plugin of it, in every scope and Progetto.
+    case removeMarketplace(name: String, scope: PluginScope?)
 
     /// The arguments after `claude`.
     var arguments: [String] {
@@ -25,19 +30,29 @@ nonisolated enum PluginCommand: Sendable, Equatable {
             ["plugin", "uninstall", plugin.description, "--scope", scope.rawValue, "--json"] + (keepingData ? ["--keep-data"] : [])
         case let .prune(scope):
             ["plugin", "prune", "--scope", scope.rawValue, "-y"]
+        // No `--json` before CLI 2.1.287: the exit code, then `marketplace list --json` to check. `--` so a source
+        // or a name starting with a dash is never read as an option.
+        case let .addMarketplace(source, scope):
+            ["plugin", "marketplace", "add", "--scope", scope.rawValue, "--", source]
+        case let .removeMarketplace(name, scope):
+            ["plugin", "marketplace", "remove"] + (scope.map { ["--scope", $0.rawValue] } ?? []) + ["--", name]
         }
     }
 
-    /// How long `claude` may take: 120 s to install, since the CLI already allows 60 s for `npm ci`; 60 s otherwise.
+    /// How long `claude` may take: 120 s to install, since the CLI already allows 60 s for `npm ci`, and to clone a
+    /// Marketplace; 60 s otherwise.
     var timeout: Duration {
-        if case .install = self { .seconds(120) } else { .seconds(60) }
+        switch self {
+        case .install, .addMarketplace: .seconds(120)
+        default: .seconds(60)
+        }
     }
 
-    /// The plugin it acts on; `nil` for `prune`.
+    /// The plugin it acts on; `nil` for `prune` and the Marketplaces.
     var plugin: PluginID? {
         switch self {
         case let .install(plugin, _, _), let .enable(plugin, _), let .disable(plugin, _), let .uninstall(plugin, _, _): plugin
-        case .prune: nil
+        case .prune, .addMarketplace, .removeMarketplace: nil
         }
     }
 }

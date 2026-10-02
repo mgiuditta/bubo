@@ -20,6 +20,12 @@ struct PluginsWindow: View {
     @State private var isChoosingFolder = false
     @State private var installing: PluginEntry?
     @State private var uninstalling: PluginEntry?
+    @State private var isAddingMarketplace = false
+    @State private var removingMarketplace: Marketplace?
+    /// The source of the Marketplace being added in one click, and what went wrong with it.
+    @State private var addingSource: String?
+    @State private var addFailure: Text?
+    @State private var showsAddFailure = false
 
     /// Creates the window, on the most recent Progetto of `store`.
     init(store: SessionStore?) {
@@ -40,8 +46,14 @@ struct PluginsWindow: View {
 
     var body: some View {
         NavigationSplitView {
-            PluginSidebar(snapshot: catalog.snapshot, project: project, selection: $selection) {
+            PluginSidebar(snapshot: catalog.snapshot, project: project, selection: $selection, addingSource: addingSource) {
                 isChoosingFolder = true
+            } add: { source in
+                add(source)
+            } addOther: {
+                isAddingMarketplace = true
+            } remove: { marketplace in
+                removingMarketplace = marketplace
             }
             .navigationSplitViewColumnWidth(min: 190, ideal: 220)
         } content: {
@@ -77,12 +89,30 @@ struct PluginsWindow: View {
                 selection = .initialSelection(in: snapshot)
             }
         }
+        .onChange(of: catalog.snapshot?.marketplaces.map(\.name)) { _, names in
+            // A Marketplace removed while selected.
+            if case let .marketplace(name) = selection, let names, !names.contains(name) {
+                selection = .installed
+            }
+        }
         .sheet(item: $installing) { entry in
             InstallSheet(entry: entry, marketplace: catalog.snapshot?.marketplace(named: entry.id.marketplace),
                          officialCache: catalog.officialCache, hasProject: project != nil, catalog: catalog)
         }
         .sheet(item: $uninstalling) { entry in
             UninstallSheet(entry: entry, catalog: catalog)
+        }
+        .sheet(isPresented: $isAddingMarketplace) {
+            AddMarketplaceSheet(catalog: catalog)
+        }
+        .sheet(item: $removingMarketplace) { marketplace in
+            RemoveMarketplaceSheet(marketplace: marketplace, plugins: catalog.snapshot?.pluginsRemoved(with: marketplace) ?? [],
+                                   catalog: catalog)
+        }
+        .alert("Non riesco ad aggiungere il marketplace", isPresented: $showsAddFailure, presenting: addFailure) { _ in
+            Button("OK") {}
+        } message: { failure in
+            failure
         }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }
@@ -93,6 +123,27 @@ struct PluginsWindow: View {
         .preferredColorScheme(.dark)
         // Last, so everything inside gets it: selection is lightness, not the system blue (design system).
         .tint(Palette.accent)
+    }
+
+    private func showAddFailure(_ failure: Text) {
+        addFailure = failure
+        showsAddFailure = true
+    }
+
+    /// Registers the Marketplace at `source` Per me, after the user's click on its row.
+    private func add(_ source: String) {
+        addingSource = source
+        Task {
+            defer { addingSource = nil }
+            do {
+                let result = try await catalog.perform(.addMarketplace(source: source, scope: .user))
+                if !result.succeeded { showAddFailure(Text(marketplaceFailure: result)) }
+            } catch is CancellationError {
+                return
+            } catch {
+                showAddFailure(Text(marketplaceError: error))
+            }
+        }
     }
 }
 

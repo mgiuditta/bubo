@@ -86,6 +86,38 @@ struct PluginCLILiveTests {
         #expect(installations.allSatisfy { ($0["projectPath"] as? String).map(TrustGate.realPath) == TrustGate.realPath(main.path) })
     }
 
+    @Test func removingTheMarketplaceTakesEveryPluginTheConfirmationListed() async throws {
+        let following = Task { await catalog.follow(project: main) }
+        defer { following.cancel() }
+        try await waitForCondition { catalog.snapshot != nil }
+        let folder = root.appending(path: "mercato").path
+
+        // Declared in the Progetto too: taken from the user's settings only, the plugins stay.
+        #expect(try await catalog.perform(.addMarketplace(source: folder, scope: .project)).succeeded)
+        #expect(try await catalog.perform(.install(plugin, scope: .user)).succeeded)
+        #expect(try await catalog.perform(.install(plugin, scope: .project)).succeeded)
+        try await waitForCondition { catalog.snapshot?.marketplace(named: "prova")?.declaredScopes == [.user, .project] }
+        var marketplace = try #require(catalog.snapshot?.marketplace(named: "prova"))
+        #expect(try await catalog.perform(.removeMarketplace(name: "prova", scope: marketplace.removalScope(.user))).succeeded)
+        try await waitForCondition { catalog.snapshot?.marketplace(named: "prova")?.declaredScopes == [.project] }
+        #expect(try await claudeList().keys.contains(plugin))
+
+        // The last declaration: what the confirmation lists is what `claude` uninstalls.
+        marketplace = try #require(catalog.snapshot?.marketplace(named: "prova"))
+        let listed = try #require(catalog.snapshot).pluginsRemoved(with: marketplace)
+        #expect(listed == [plugin])
+        let result = try await catalog.perform(.removeMarketplace(name: "prova", scope: marketplace.removalScope(.project)))
+        #expect(result.succeeded, "\(result.message)")
+        let data = try Data(contentsOf: PluginFolders.current(home: root, environment: [:]).installedPlugins)
+        let left = (try JSONSerialization.jsonObject(with: data) as? [String: Any])?["plugins"] as? [String: Any] ?? [:]
+        #expect(left.keys.filter { $0.hasSuffix("@prova") }.isEmpty)
+        try await waitForCondition { catalog.snapshot?.marketplace(named: "prova") == nil }
+
+        let wrong = try await catalog.perform(.addMarketplace(source: "non/un/repo///", scope: .user))
+        #expect(!wrong.succeeded)
+        #expect(!wrong.message.isEmpty)
+    }
+
     // MARK: Helpers
 
     /// The installed plugins as the window shows them: scopes and whether it is on.

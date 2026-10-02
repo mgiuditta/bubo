@@ -21,7 +21,10 @@ nonisolated struct PluginCLI: Sendable {
                      environment: [String: String] = PluginListing.environment()) -> PluginCLI {
         PluginCLI(run: { arguments, folder in
             guard let claude = await locator.executableURL() else { throw PluginCLIError.claudeMissing }
-            return try await ProcessRunner.disclaimed(environment: environment, in: folder).run(claude, arguments)
+            // `marketplace add` and `remove` print why they failed only on standard error.
+            let mergingErrors = arguments.starts(with: ["plugin", "marketplace"]) && !arguments.contains("--json")
+            return try await ProcessRunner.disclaimed(environment: environment, in: folder, mergingErrors: mergingErrors)
+                .run(claude, arguments)
         }, home: environment["HOME"].map { URL(filePath: $0, directoryHint: .isDirectory) } ?? .homeDirectory)
     }
 
@@ -49,8 +52,18 @@ nonisolated struct PluginCLI: Sendable {
                 defer { group.cancelAll() }
                 return try await group.next()!
             }
-            if case .prune = command {
+            switch command {
+            case .prune:
                 return PluginCommandResult(succeeded: output.exitCode == 0)
+            case .addMarketplace:
+                let listed = output.exitCode == 0 ? try await Self.marketplaceNames(run: run, in: folder) : nil
+                return PluginCommandResult(marketplaceOutput: output, listed: listed)
+            case let .removeMarketplace(name, scope):
+                // Taken from one scope of several, it stays listed: nothing to check but the exit code.
+                let listed = output.exitCode == 0 && scope == nil ? try await Self.marketplaceNames(run: run, in: folder) : nil
+                return PluginCommandResult(marketplaceOutput: output, removing: name, listed: listed)
+            default:
+                break
             }
             guard let result = PluginCommandResult(output: output.standardOutput) else {
                 Logger.plugins.error("claude plugin \(command.arguments[1], privacy: .public) without a result, exit \(output.exitCode)")
@@ -58,6 +71,18 @@ nonisolated struct PluginCLI: Sendable {
             }
             return result
         }
+    }
+
+    /// The names `claude plugin marketplace list --json` gives in `folder`; `nil` when it gives none, and the exit
+    /// code alone then tells how the command ended.
+    private static func marketplaceNames(run: @Sendable ([String], URL) async throws -> ProcessOutput,
+                                         in folder: URL) async throws -> [String]? {
+        let output = try await run(["plugin", "marketplace", "list", "--json"], folder)
+        let text = output.standardOutput.drop { $0 != "[" }
+        guard output.exitCode == 0,
+              let items = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [[String: Any]]
+        else { return nil }
+        return items.compactMap { $0["name"] as? String }
     }
 }
 
