@@ -83,7 +83,7 @@ struct CostHistoryTests {
 
     @Test func theDomandeAreOneGroupApartFromTheProgetti() {
         let groups = Set(Self.history(Self.mixedLedger(), .project).rows.map(\.group))
-        #expect(groups == ["bubo", "Domande"])
+        #expect(groups == ["bubo", String(localized: "Domande")])
     }
 
     @Test func groupedByModelEachModelGetsItsShare() {
