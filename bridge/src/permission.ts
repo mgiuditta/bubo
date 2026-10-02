@@ -91,8 +91,8 @@ export function networkRule(host: unknown): PermissionUpdate | undefined {
   };
 }
 
-// Le domande all'utente vivono sulla scheda dello strumento (AskUserQuestion): Bubo non le mostra ancora.
-// Un'approvazione con un tasto lì risponderebbe al posto dell'utente: si nega e Claude va avanti da solo.
+// Gli strumenti che l'utente usa sulla propria scheda: un'approvazione con un tasto risponderebbe al posto suo.
+// `AskUserQuestion` ha la sua scheda in Bubo (`question.ts`) e non arriva qui; gli altri si negano e Claude va avanti.
 export function needsItsOwnCard(toolName: string, options: Options): boolean {
   return toolName === "AskUserQuestion" || (options as { requiresUserInteraction?: unknown }).requiresUserInteraction === true;
 }

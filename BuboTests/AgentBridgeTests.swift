@@ -275,6 +275,39 @@ struct AgentBridgeTests {
         #expect(asked == [.asked(PermissionRequest(id: "p1", tool: "Bash", command: "npm test"))])
     }
 
+    /// A bridge that asks the agent's questions, then writes Bubo's answer back as the conversation's text.
+    static let askingQuestion = answering(#"""
+        echo "{\"v\":4,\"type\":\"question\",\"id\":\"$id\",\"request\":\"q1\",\"questions\":[{\"question\":\"Quale?\",\"header\":\"Scelta\",\"multiSelect\":false,\"options\":[{\"label\":\"A\"},{\"label\":\"B\"}]}]}"
+        read answer
+        case "$answer" in
+            *'"answers":[{"options":[1]}]'*) said=B ;;
+            *'"answers"'*) said=other ;;
+            *) said=none ;;
+        esac
+        echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$said\"}"
+        echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+        read _
+        """#)
+
+    @Test func theAgentsQuestionsAreAnsweredOnTheBridgesInput() async throws {
+        let bridge = Self.bridge(Self.askingQuestion)
+        var asked: [PermissionEvent] = []
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), permissions: { event in
+            asked.append(event)
+            if case let .question(question) = event { bridge.answerQuestion(question.id, with: [.init(options: [1])]) }
+        }))
+        #expect(answer == "B")
+        #expect(asked == [.question(AgentQuestion(id: "q1", items: [
+            .init(question: "Quale?", header: "Scelta", options: [.init(label: "A"), .init(label: "B")], allowsMultiple: false),
+        ]))])
+    }
+
+    @Test func aConversationThatTakesNoPermissionsLeavesTheQuestionsUnanswered() async throws {
+        let bridge = Self.bridge(Self.askingQuestion)
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
+        #expect(answer == "none")
+    }
+
     @Test func aConversationThatTakesNoPermissionsIsDenied() async throws {
         let bridge = Self.bridge(Self.askingPermission)
         let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))

@@ -8,6 +8,8 @@ final class SessionStore {
     private(set) var sessions: [Session] = []
     /// The Richieste di permesso waiting in the Sessioni, and the permissions given "Per questa Sessione".
     private(set) var permissions = RequestCenter()
+    /// The agent's questions waiting in each Sessione, oldest first.
+    private(set) var questions: [UUID: [AgentQuestion]] = [:]
     /// Until when each merge made by Fondi can be undone, by Sessione.
     private(set) var undoDeadlines: [UUID: Date] = [:]
     /// Whether the turn in progress of each Sessione runs in the Sandbox, from when its `claude` is asked.
@@ -907,6 +909,7 @@ final class SessionStore {
         turnTasks[id] = nil
         sessions.removeAll { $0.id == id }
         permissions.forget(id)
+        questions[id] = nil
         sandboxBlocks[id] = nil
         previews.close(id)
         Task { await terminals.closeAll(of: id) }
@@ -1005,6 +1008,7 @@ final class SessionStore {
                 sandboxedTurns[id] = nil
                 previewOffers[id] = nil
                 permissions.clear(id)
+                questions[id] = nil
             }
             // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
             let kept = UUID().uuidString.lowercased()
@@ -1161,6 +1165,16 @@ final class SessionStore {
         followActivity()
     }
 
+    /// Answers the agent's questions `question` of the Sessione `id` with `replies`, one per question in order; `nil`
+    /// when the user does not answer. Nothing if `claude` no longer waits for them.
+    func answer(_ question: AgentQuestion.ID, in id: UUID, with replies: [AgentQuestion.Reply]?) {
+        guard let index = questions[id]?.firstIndex(where: { $0.id == question }) else { return }
+        questions[id]?.remove(at: index)
+        if questions[id]?.isEmpty == true { questions[id] = nil }
+        turns[id]?.answerQuestion(question, with: replies)
+        followActivity()
+    }
+
     /// Answers from its notification the Richiesta di permesso `request` of the Sessione `id`: nothing if `claude` no
     /// longer waits for it, and no approval unless the notification could offer Solo ora.
     func answerFromNotification(_ request: PermissionRequest.ID, in id: UUID, allows: Bool) {
@@ -1214,7 +1228,7 @@ final class SessionStore {
     }
 
     /// Queues a Richiesta di permesso of the Sessione `id`, or answers it at once: no to a critical path,
-    /// yes to what the user already allowed "Per questa Sessione".
+    /// yes to what the user already allowed "Per questa Sessione". Queues the agent's questions too.
     private func receive(_ event: PermissionEvent, in id: UUID, from bridge: AgentBridge, classifier: RiskClassifier) {
         switch event {
         case let .asked(request):
@@ -1227,8 +1241,12 @@ final class SessionStore {
             case .queued:
                 break
             }
+        case let .question(question):
+            questions[id, default: []].append(question)
         case let .withdrawn(request):
             permissions.withdraw(request, in: id)
+            questions[id]?.removeAll { $0.id == request }
+            if questions[id]?.isEmpty == true { questions[id] = nil }
         }
         followActivity()
     }

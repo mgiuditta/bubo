@@ -205,7 +205,7 @@ private struct CLIConversationRow: View {
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
 /// the issue (`#42`) · Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
 /// and the configuration
-/// of Claude in its Progetto in its menu; under it, its oldest Richiesta di permesso.
+/// of Claude in its Progetto in its menu; under it, the agent's questions and its oldest Richiesta di permesso.
 struct SessionRow: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(SessionSummarizer.self) private var summarizer: SessionSummarizer?
@@ -272,6 +272,16 @@ struct SessionRow: View {
                         }
                     }
                 }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+            // Outside the combined element, so each option and answer stays a control of its own.
+            // The keys go to it only when no Richiesta nor other Sessione's questions wait: one key never answers two.
+            if let question = store.questions[session.id]?.first, !isArchived {
+                AgentQuestionView(question: question,
+                                  hasKeyboard: store.permissions.first == nil && store.questions.count == 1) { replies in
+                    store.answer(question.id, in: session.id, with: replies)
+                }
+                .id(question.id)
                 .padding([.horizontal, .bottom], Spacing.xSmall)
             }
             // Outside the combined element, so each answer stays a button of its own.

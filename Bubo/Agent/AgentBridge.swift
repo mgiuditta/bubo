@@ -27,7 +27,9 @@ enum AgentBridgeError: Error, Equatable {
 enum PermissionEvent: Equatable {
     /// A Richiesta di permesso to answer.
     case asked(PermissionRequest)
-    /// `claude` no longer waits for the Richiesta with this id.
+    /// Questions of the agent to answer.
+    case question(AgentQuestion)
+    /// `claude` no longer waits for the Richiesta, or the questions, with this id.
     case withdrawn(PermissionRequest.ID)
 }
 
@@ -117,8 +119,8 @@ final class AgentBridge {
     ///   - unattended: Makes the turn one with nobody in front of it, an Esecuzione's: `claude` never asks, and a
     ///     Richiesta that arrives anyway is refused at once. Its denials and mode reach `progress`.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
-    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
-    ///     `nil` refuses them all.
+    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`,
+    ///     and the agent's questions, answered with `answerQuestion(_:with:)`; `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
     ///   - preview: Does what the agent asks of the Anteprima; `nil` fails every call.
@@ -338,6 +340,16 @@ final class AgentBridge {
         }
     }
 
+    /// Answers the agent's questions `question` with `replies`, one per question in order; `nil` when the user does not
+    /// answer. If the bridge is gone, so is the agent waiting for them.
+    func answerQuestion(_ question: AgentQuestion.ID, with replies: [AgentQuestion.Reply]?) {
+        do {
+            try process?.input.write(contentsOf: BridgeCommand.answerQuestion(request: question, replies: replies).line())
+        } catch {
+            Logger.agent.error("Question answer not sent: \(error)")
+        }
+    }
+
     /// Adds the Anteprima's tools to the answer `id` in progress, or removes them; nothing once it has ended.
     func offerPreview(_ isOffered: Bool, to id: String) {
         guard answers[id] != nil, let process else { return }
@@ -458,6 +470,12 @@ final class AgentBridge {
                 handler(.asked(request))
             } else {
                 answerPermission(request.id, allows: false)
+            }
+        case let .question(id, question):
+            if let handler = permissionHandlers[id] {
+                handler(.question(question))
+            } else {
+                answerQuestion(question.id, with: nil)
             }
         case let .permissionWithdrawn(id, request):
             permissionHandlers[id]?(.withdrawn(request))
