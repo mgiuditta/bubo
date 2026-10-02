@@ -142,6 +142,23 @@
         }
       }
     },
+    "%@ · Livello %lld · %@" : {
+      "comment" : "Under a permission rule in Settings › Permissions: where it comes from, its risk level number and name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Level %2$lld · %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · Livello %2$lld · %3$@"
+          }
+        }
+      }
+    },
     "%@ · blocco %lld di %lld nel file" : {
       "localizations" : {
         "en" : {
@@ -747,6 +764,16 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    ".claude/settings.json, nel repo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ".claude/settings.json, in the repo"
           }
         }
       }
@@ -1730,6 +1757,17 @@
         }
       }
     },
+    "Automazione %@" : {
+      "comment" : "Settings › Permissions section header; the argument is the Automation name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automation %@"
+          }
+        }
+      }
+    },
     "Automazione · %@ · %@" : {
       "localizations" : {
         "it" : {
@@ -2128,6 +2166,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo typed the command below. Press Return to run it, or close the window."
+          }
+        }
+      }
+    },
+    "Bubo la toglie da .claude/settings.local.json: Claude torna a chiedere, anche nel terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo removes it from .claude/settings.local.json: Claude asks again, in the terminal too."
           }
         }
       }
@@ -3343,6 +3391,16 @@
         }
       }
     },
+    "Controlla .claude/settings.local.json del Progetto, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check the project's .claude/settings.local.json, then try again."
+          }
+        }
+      }
+    },
     "Controlla che il file si legga e che .bubo sia una cartella del Progetto, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -3689,6 +3747,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Needs Attention"
+          }
+        }
+      }
+    },
+    "Dalla prossima Esecuzione, l'Automazione %@ non potrà più farlo." : {
+      "comment" : "Confirmation message when removing an Automation rule; the argument is the Automation name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From the next run, the automation %@ can no longer do this."
           }
         }
       }
@@ -5972,6 +6041,16 @@
         }
       }
     },
+    "Leggo le regole…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the rules…"
+          }
+        }
+      }
+    },
     "Lettura" : {
       "localizations" : {
         "en" : {
@@ -7350,6 +7429,16 @@
         }
       }
     },
+    "Non riesco a togliere la regola" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't remove the rule"
+          }
+        }
+      }
+    },
     "Non riesco ad aggiungere il marketplace" : {
       "localizations" : {
         "en" : {
@@ -7982,6 +8071,16 @@
         }
       }
     },
+    "Permessi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissions"
+          }
+        }
+      }
+    },
     "Pianifica" : {
       "localizations" : {
         "en" : {
@@ -8150,6 +8249,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project"
+          }
+        }
+      }
+    },
+    "Progetto %@" : {
+      "comment" : "Settings › Permissions section header; the argument is the Project folder name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project %@"
           }
         }
       }
@@ -9904,6 +10014,16 @@
         }
       }
     },
+    "Solo in questa Automazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only in this automation"
+          }
+        }
+      }
+    },
     "Solo io in questo Progetto" : {
       "localizations" : {
         "en" : {
@@ -10313,6 +10433,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Removes the filter"
+          }
+        }
+      }
+    },
+    "Togli…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove…"
           }
         }
       }
@@ -10844,6 +10974,16 @@
         }
       }
     },
+    "Valgono in ogni Progetto, anche nel terminale. Bubo le legge da ~/.claude/settings.json e non cambia il file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "They apply in every project, in the terminal too. Bubo reads them from ~/.claude/settings.json and never changes the file."
+          }
+        }
+      }
+    },
     "Variabili d'ambiente" : {
       "localizations" : {
         "en" : {
@@ -11068,6 +11208,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remove the API key?"
+          }
+        }
+      }
+    },
+    "Vuoi togliere la regola %@?" : {
+      "comment" : "Confirmation title; the argument is the rule, such as Bash(npm test).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the rule %@?"
           }
         }
       }

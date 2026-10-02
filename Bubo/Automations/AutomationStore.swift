@@ -68,6 +68,15 @@ final class AutomationStore {
         return true
     }
 
+    /// Removes `rule` from the Regole of the Automazione `id`: from its next Esecuzione, that action is denied again.
+    func revoke(_ rule: String, in id: Automation.ID) {
+        guard let index = automations.firstIndex(where: { $0.id == id }),
+              automations[index].rules.contains(rule)
+        else { return }
+        automations[index].rules.removeAll { $0 == rule }
+        save()
+    }
+
     /// Records `execution` in the history of the Automazione `id`: in place of the one in the same Sessione, else as
     /// the latest.
     func record(_ execution: Execution, for id: Automation.ID) {

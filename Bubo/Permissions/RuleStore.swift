@@ -37,7 +37,10 @@ nonisolated struct RuleStore: Sendable {
     /// The main checkout of the Progetto, as a real path.
     let root: URL
     /// The user's settings of `claude`, only read.
-    var userSettings = URL.homeDirectory.appending(path: ".claude/settings.json")
+    var userSettings = Self.defaultUserSettings
+
+    /// Where `claude` keeps the user's settings, whose rules count in every Progetto.
+    static let defaultUserSettings = URL.homeDirectory.appending(path: ".claude/settings.json")
 
     /// The rules of the Progetto in `folder`, or in the Progetto that `folder` is a worktree of.
     init(project folder: URL) {
@@ -153,7 +156,9 @@ nonisolated struct RuleStore: Sendable {
     }
 
     /// The `permissions.allow` rules of the file at `url`; none when it does not exist.
-    private static func allowRules(at url: URL) throws -> [String] {
+    ///
+    /// - Throws: `RuleStoreError.unreadableSettings` when the file is not what the CLI writes, or a file error.
+    static func allowRules(at url: URL) throws -> [String] {
         guard let settings = try object(at: url) else { return [] }
         return try value(value(settings["permissions"], or: [String: Any]())["allow"], or: [String]())
     }
