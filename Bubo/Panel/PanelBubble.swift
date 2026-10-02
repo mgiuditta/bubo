@@ -24,6 +24,9 @@ final class PanelBubble {
 
     /// Whether the bubble is on screen, beside a visible Panel.
     private(set) var isOpen = false
+    /// Why something asked from outside Bubo did not happen, such as "Nuova Sessione" on a Progetto that is gone;
+    /// it goes when the bubble closes.
+    private(set) var notice: String?
     /// Whether the prompt field has the keyboard; the app stays inactive either way.
     private(set) var takesKeyboard = false
     /// The side of the Panel the bubble opens on.
@@ -42,8 +45,15 @@ final class PanelBubble {
         if focus == .prompt { takesKeyboard = true }
     }
 
+    /// Opens the bubble with `notice`, leaving the keyboard to the app in front.
+    func show(notice: String, reducesMotion: Bool = Motion.isReduced) {
+        self.notice = notice
+        open(focus: .none, reducesMotion: reducesMotion)
+    }
+
     /// Closes the bubble; an answer on its way keeps going.
     func close() {
+        notice = nil
         isOpen = false
         takesKeyboard = false
     }

@@ -25,6 +25,7 @@ struct QuestionView: View {
             if !model.attachments.isEmpty {
                 AttachmentChips(attachments: model.attachments, remove: model.detach)
             }
+            SessionProposalButton(model: model, hud: hud)
             HStack(spacing: Spacing.xSmall) {
                 TextField(voice?.isListening == true ? "Ti ascolto…" : "Chiedi qualcosa a Claude", text: $model.prompt)
                     .textFieldStyle(.plain)

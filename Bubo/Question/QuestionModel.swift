@@ -135,8 +135,10 @@ final class QuestionModel {
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
-    /// The Allegati of the last prompt, asked again with it; only "Chiedi a Bubo" brings them, for now.
-    @ObservationIgnored private var lastAttachments: [Allegato] = []
+    /// The Allegati of the last prompt, asked again with it; observed, since they decide the proposal of a Sessione.
+    private var lastAttachments: [Allegato] = []
+    /// The known Progetti, those with Sessioni, for the proposal of a Sessione; set at launch.
+    @ObservationIgnored var knownProjects: () -> [URL] = { [] }
     /// Whether the Quota was asked for, or reported by `claude`, since launch.
     @ObservationIgnored private var hasFreshQuota = false
     /// How many times `claude` reported the Quota since launch, to tell whether a turn moved the 5-hour window.
@@ -410,6 +412,24 @@ final class QuestionModel {
         speaking.cancel()
         self.speaking = nil
         subtitle = nil
+    }
+
+    /// The Sessione the Allegati propose: those in the prompt, or else those of the last Domanda (spec 09).
+    var sessionProposal: SessionProposal? {
+        SessionProposal(for: attachments.isEmpty ? lastAttachments : attachments, projects: knownProjects())
+    }
+
+    /// Accepts `proposal`: stops the Domanda and hands it to a new Sessione on the proposed Progetto, with the files
+    /// of the Allegati inside it; the Allegati leave the prompt.
+    func turnIntoSession(accepting proposal: SessionProposal) -> SessionDraft {
+        let files = (attachments.isEmpty ? lastAttachments : attachments).compactMap(\.path)
+        var draft = turnIntoSession()
+        draft.project = proposal.project
+        if case .session = proposal { draft.files = files }
+        attachments = []
+        stopAwaitingAttachments()
+        updateForecast()
+        return draft
     }
 
     /// Stops the Domanda and hands it to a new Sessione: what is typed, and the last prompt with what arrived of its

@@ -6,9 +6,9 @@ import UniformTypeIdentifiers
 ///
 /// Claude reads a file, a folder or an image from its path; a model on the Mac reads only its text, and only when
 /// `AttachmentPolicy` lets it.
-nonisolated struct Allegato: Hashable, Sendable {
+nonisolated struct Allegato: Codable, Hashable, Sendable {
     /// What an Allegato is, which tells who may read it.
-    enum Kind: Hashable, Sendable {
+    enum Kind: Codable, Hashable, Sendable {
         /// Text or a web address, with no file behind it.
         case text
         /// A file that is not an image.

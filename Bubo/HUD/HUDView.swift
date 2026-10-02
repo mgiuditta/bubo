@@ -27,6 +27,12 @@ struct HUDView: View {
         .padding(.horizontal, Spacing.large)
         .frame(minWidth: 720, minHeight: 560)
         .background { HUDBackground() }
+        // A drop with no Sessione in front: a new Domanda with the Allegati (regola "Sessione davanti").
+        .dropDestination(for: URL.self) { urls, _ in
+            let attachments = HUDDropDestination.attachments(from: urls)
+            questions.attach(attachments)
+            return !attachments.isEmpty
+        }
         .foregroundStyle(Palette.textPrimary)
         .sheet(isPresented: $hud.isCreatingSession) {
             if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }

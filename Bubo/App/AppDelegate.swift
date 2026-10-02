@@ -180,6 +180,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
         // Before any App Intent runs: "Chiedi a Bubo" asks the Domanda of the HUD.
         AskBuboIntent.questions = questions
+        // "Nuova Sessione" starts its Sessioni in the HUD's store; the Domanda proposes them on the same Progetti.
+        if let sessions {
+            NewSessionIntent.starter = IntentSessionStarter(store: sessions, hud: hud, panel: panel)
+            questions.knownProjects = { [weak sessions] in sessions?.projects ?? [] }
+        }
+        hud.attachToQuestion = { [questions] attachments in questions.attach(attachments) }
         notifier.start()
     }
 

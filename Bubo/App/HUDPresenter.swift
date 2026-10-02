@@ -34,6 +34,9 @@ final class HUDPresenter {
     /// Opens the Palette with a text in its box; set by the app, since the Palette is an AppKit window.
     @ObservationIgnored var searchConversations: ((String) -> Void)?
 
+    /// Puts Allegati in the prompt of the Domanda, for a drop in the HUD with no open Sessione in front; set by the app.
+    @ObservationIgnored var attachToQuestion: ([Allegato]) -> Void = { _ in }
+
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
 

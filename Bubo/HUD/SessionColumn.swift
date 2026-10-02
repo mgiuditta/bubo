@@ -226,6 +226,8 @@ struct SessionRow: View {
     @State private var isConfirmingArchive = false
     /// The servers of the Sessione's `.claude/launch.json`, for Avvia server.
     @State private var launchServers: [LaunchConfig] = []
+    /// Whether a drag from Finder or a browser is over the row.
+    @State private var isDropTargeted = false
 
     private var isArchived: Bool { !session.isLive }
 
@@ -233,6 +235,22 @@ struct SessionRow: View {
     private var isAutonomyUnavailable: Bool {
         session.automation != nil && session.permissionMode == .autonomous
             && session.effectiveMode.map { $0 != PermissionMode.autonomous.rawValue } == true
+    }
+
+    /// Gives what is dropped on the row to the Sessione when it is open, or else to a new Domanda; returns whether
+    /// anything could be attached.
+    private func drop(_ urls: [URL]) -> Bool {
+        let attachments = HUDDropDestination.attachments(from: urls)
+        guard !attachments.isEmpty else { return false }
+        switch HUDDropDestination(sessionInFront: session) {
+        case let .session(id):
+            store.attach(attachments, to: id)
+            let names = attachments.map(\.name).formatted(.list(type: .and))
+            AccessibilityNotification.Announcement(String(localized: "Allegati a «\(session.title)»: \(names)")).post()
+        case .question:
+            hud.attachToQuestion(attachments)
+        }
+        return true
     }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
@@ -247,6 +265,18 @@ struct SessionRow: View {
                 } message: {
                     Text(verbatim: archiveNotice)
                 }
+            // Dropped on the Sessione in the HUD: they go with its next turn.
+            if !session.attachments.isEmpty, !isArchived {
+                VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+                    Text("Allegati al prossimo turno")
+                        .font(Typography.body(size: 12))
+                        .foregroundStyle(Palette.textSecondary)
+                    AttachmentChips(attachments: session.attachments) { allegato in
+                        store.detach(allegato, from: session.id)
+                    }
+                }
+                .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
             // Outside the combined element, so each switch stays a control of its own.
             if !isArchived, session.allowsAutonomy {
                 AutonomyToggle(isAutonomous: session.isAutonomous,
@@ -308,6 +338,16 @@ struct SessionRow: View {
                     for rule in denial.suggestions { store.automations.allow(rule, in: mark.automation) }
                 }
                 .padding([.horizontal, .bottom], Spacing.xSmall)
+            }
+        }
+        // The regola "Sessione davanti": files and addresses dropped on an open Sessione are its Allegati.
+        .dropDestination(for: URL.self) { urls, _ in
+            drop(urls)
+        } isTargeted: { isDropTargeted = $0 }
+        .overlay {
+            if isDropTargeted {
+                RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(Palette.lineStrong)
+                    .allowsHitTesting(false)
             }
         }
         // Read again each time the Sessione changes Attività: the agent may have written the file.
