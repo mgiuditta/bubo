@@ -6,14 +6,21 @@ import OSLog
 ///
 /// The engine is the output's only: the microphone stays closed while Bubo speaks, and the orange dot with it. The voice
 /// processing for the echo comes with the barge-in by voice, once its spike passes (spec 08).
+///
+/// While it plays, Esc stops it from any app: the panel never takes the keyboard, so Esc is a global shortcut taken
+/// from the app in front only for as long as Bubo speaks.
 final class SpeechOutput: VoiceSpeaker {
     private let synthesizer = AVSpeechSynthesizer()
     private let engine = AVAudioEngine()
     private let player = AVAudioPlayerNode()
     /// The format the player is connected with; `nil` before the first buffer.
     private var connectedFormat: AVAudioFormat?
-    /// Counts the utterances, so that the end of an interrupted one does not stop the next.
+    /// Counts the utterances and the stops, so that the end of an interrupted one does not stop the next.
     private var utterances = 0
+    /// The buffers of the utterance playing, ended by a stop.
+    private var buffers: AsyncStream<AVAudioPCMBuffer>.Continuation?
+    /// Esc, registered only while the voice plays.
+    private lazy var escape = GlobalHotKey { [weak self] in self?.stop() }
 
     /// Creates the output, silent until the first `speak`.
     init() {
@@ -26,11 +33,11 @@ final class SpeechOutput: VoiceSpeaker {
 
     func speak(_ text: String, level: @escaping (Float) -> Void) async {
         stop()
-        utterances += 1
         let utterance = utterances
         let spoken = AVSpeechUtterance(string: text)
         spoken.voice = Self.voice()
         let (buffers, input) = AsyncStream.makeStream(of: AVAudioPCMBuffer.self)
+        self.buffers = input
         let (levels, levelInput) = AsyncStream.makeStream(of: Float.self, bufferingPolicy: .bufferingNewest(1))
         let metering = Task {
             for await value in levels { level(value) }
@@ -38,11 +45,11 @@ final class SpeechOutput: VoiceSpeaker {
         defer {
             metering.cancel()
             levelInput.finish()
-            if utterance == utterances { stop() }
+            if utterance == utterances { silence() }
         }
         synthesizer.write(spoken, toBufferCallback: Self.collect(into: input))
         await withTaskCancellationHandler {
-            await play(buffers, levels: levelInput)
+            await play(buffers, of: utterance, levels: levelInput)
         } onCancel: {
             input.finish()
             Task { @MainActor in
@@ -51,17 +58,20 @@ final class SpeechOutput: VoiceSpeaker {
         }
     }
 
-    /// Plays the buffers as they come, and returns once the last one is heard.
-    private func play(_ buffers: AsyncStream<AVAudioPCMBuffer>, levels: AsyncStream<Float>.Continuation) async {
+    /// Plays the buffers of `utterance` as they come, and returns once the last one is heard or the voice is stopped.
+    private func play(_ buffers: AsyncStream<AVAudioPCMBuffer>, of utterance: Int,
+                      levels: AsyncStream<Float>.Continuation) async {
         var format: AVAudioFormat?
         for await buffer in buffers {
+            // Stopped: the buffers already written are left unplayed.
+            guard utterance == utterances else { return }
             if format == nil {
                 guard start(with: buffer.format, levels: levels) else { return }
                 format = buffer.format
             }
             schedule(buffer)
         }
-        guard !Task.isCancelled, let format, let silence = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1) else {
+        guard utterance == utterances, !Task.isCancelled, let format, let silence = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 1) else {
             return
         }
         // A frame of silence after the last buffer: when it is played back, the voice is heard to the end.
@@ -90,11 +100,27 @@ final class SpeechOutput: VoiceSpeaker {
             return false
         }
         player.play()
+        do {
+            try escape.register(.escape)
+        } catch {
+            Logger.voice.notice("Esc not taken while speaking: \(String(describing: error), privacy: .public)")
+        }
         return true
     }
 
-    /// Stops the voice and the engine.
-    private func stop() {
+    func stop() {
+        utterances += 1
+        guard buffers != nil else { return }
+        let interval = Signposts.beginInterval(.voiceInterruption)
+        silence()
+        Signposts.endInterval(.voiceInterruption, interval)
+    }
+
+    /// Stops the voice and the engine, and gives Esc back to the app in front.
+    private func silence() {
+        buffers?.finish()
+        buffers = nil
+        escape.unregister()
         synthesizer.stopSpeaking(at: .immediate)
         player.stop()
         player.removeTap(onBus: 0)

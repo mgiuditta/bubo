@@ -69,6 +69,8 @@ enum Signpost {
     case voiceFinalText
     /// Interval: from the first text of an answer asked by voice to the first audio of its Sintesi parlata.
     case voiceFirstAudio
+    /// Interval: from the interruption of the Sintesi parlata, by the shortcut or Esc, to the audio stopped.
+    case voiceInterruption
     /// Interval: compiling the pipeline of a Forma on its first request (ADR 0010).
     case formaCompilation
     /// Interval: from opening the Plugin window to its first snapshot, read from the files.
@@ -89,6 +91,7 @@ enum Signpost {
         case .intakeDecision: "Decisione della Richiesta"
         case .voiceFinalText: "Testo finale della voce"
         case .voiceFirstAudio: "Primo audio della Sintesi parlata"
+        case .voiceInterruption: "Interruzione della voce"
         case .formaCompilation: "Compilazione Forma"
         case .pluginsFirstDraw: "Primo disegno dei Plugin"
         }

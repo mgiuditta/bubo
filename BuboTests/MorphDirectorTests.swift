@@ -193,6 +193,18 @@ struct MorphDirectorTests {
         #expect(Self.frame(of: director, at: 60) == Self.still(on: Self.lente))
     }
 
+    @Test func anInterruptionMidMorphLetsTheMorphEnd() {
+        var director = MorphDirector()
+        director.request(Self.lente, at: 0)
+        director.enter(.speaking, at: Self.morph / 4)
+        // ⌥Spazio held during Parla: Ascolto, then Riposo with Esc.
+        director.enter(.listening, at: Self.morph / 2)
+        director.enter(.idle, at: Self.morph * 3 / 4)
+
+        #expect(Self.frame(of: director, at: Self.morph * 3 / 4).to == Self.lente)
+        #expect(Self.frame(of: director, at: Self.morph) == Self.still(on: Self.lente))
+    }
+
     // MARK: - Reduce Motion
 
     @Test func reduceMotionFadesInsteadOfMorphing() {

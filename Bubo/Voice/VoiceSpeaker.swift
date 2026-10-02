@@ -7,4 +7,6 @@ protocol VoiceSpeaker: AnyObject {
     /// - Parameter level: Gets the level of the voice being heard, from 0 to 1, a few times a second; its first call
     ///   is the first audio.
     func speak(_ text: String, level: @escaping (Float) -> Void) async
+    /// Stops the voice at once, if it is speaking: `speak` returns as if the text were over.
+    func stop()
 }

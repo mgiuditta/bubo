@@ -20,16 +20,19 @@ final class PushToTalk {
     ///   - microphone: The microphone permission, asked at the first hold, never at launch.
     ///   - orb: The Orb that listens.
     ///   - holdThreshold: How long the shortcut stays down before it is a hold.
+    ///   - interrupt: Runs as the shortcut goes down, before the microphone opens: stops Bubo's voice, so the hold
+    ///     reopens the Ascolto and the microphone does not hear it.
     ///   - tap: Runs on a tap: shows or hides the HUD.
     ///   - show: Runs when the Ascolto opens: brings the prompt to the front.
     ///   - dictate: Gets the text heard so far, then the final text with `isFinal`, which sends it.
     init(listener: any VoiceListener, microphone: MicrophoneAccess = .system, orb: OrbControls = .shared,
-         holdThreshold: Duration = PushToTalk.holdThreshold, tap: @escaping () -> Void, show: @escaping () -> Void,
+         holdThreshold: Duration = PushToTalk.holdThreshold, interrupt: @escaping () -> Void = {}, tap: @escaping () -> Void, show: @escaping () -> Void,
          dictate: @escaping (_ text: String, _ isFinal: Bool) -> Void) {
         self.listener = listener
         self.microphone = microphone
         self.orb = orb
         self.threshold = holdThreshold
+        self.interrupt = interrupt
         self.tap = tap
         self.show = show
         self.dictate = dictate
@@ -39,6 +42,7 @@ final class PushToTalk {
     @ObservationIgnored private let microphone: MicrophoneAccess
     @ObservationIgnored private let orb: OrbControls
     @ObservationIgnored private let threshold: Duration
+    @ObservationIgnored private let interrupt: () -> Void
     @ObservationIgnored private let tap: () -> Void
     @ObservationIgnored private let show: () -> Void
     @ObservationIgnored private let dictate: (String, Bool) -> Void
@@ -58,9 +62,11 @@ final class PushToTalk {
         failure = nil
     }
 
-    /// The shortcut went down: with the microphone already granted it opens at once, so the first word is not lost.
+    /// The shortcut went down: Bubo stops speaking, and with the microphone already granted it opens at once, so the
+    /// first word is not lost.
     func press() {
         guard !isHeld else { return }
+        interrupt()
         isHeld = true
         isHold = false
         if microphone.status() == .granted { openMicrophone() }

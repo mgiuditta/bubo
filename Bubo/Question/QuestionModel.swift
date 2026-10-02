@@ -219,9 +219,13 @@ final class QuestionModel {
         resumesAt = nil
     }
 
-    private func stopSpeaking() {
-        speaking?.cancel()
-        speaking = nil
+    /// Stops the Sintesi parlata being said, if any, with the audio stopped before it returns: the Orb leaves Parla, and
+    /// a Morph already started still runs to its end (spec 08).
+    func stopSpeaking() {
+        guard let speaking else { return }
+        speaker.stop()
+        speaking.cancel()
+        self.speaking = nil
         subtitle = nil
     }
 
