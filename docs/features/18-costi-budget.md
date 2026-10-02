@@ -159,6 +159,7 @@ Fonte: [#135](https://github.com/mgiuditta/bubo/issues/135).
 - **Più Budget sullo stesso turno**: vale il più stretto.
 - **Niente Budget** su abbonamento (c'è la Quota), modelli sul Mac, Apple FM, Jev.
 - Contano solo i turni passati da Bubo: la riga di comando non si può fermare. La Cronologia CLI resta nello storico, fuori dai Budget.
+  - Costruito in [#164](https://github.com/mgiuditta/bubo/issues/164): `Costs/BudgetSettings` (Impostazioni › Budget, in `UserDefaults`), `Costs/BudgetGuard` (residui ricalcolati a ogni lettura dal `CostLedger`, quindi subito dopo una modifica e a mezzanotte del primo), `Costs/BudgetAlerts` (notifica una volta per Budget, livello e limite al mese, chiamata dal registro a ogni turno). Il fornitore si riconosce dal nome nel registro ("Anthropic" per Claude, il nome dell'endpoint per gli altri; xAI è un endpoint personalizzato). Claude con `costBasis: unknown` conta, segnato incerto. Il router evita alla soglia: una preferenza va al predefinito, Claude con API key al Modello locale; senza alternativa resta, con l'avviso. Il 402 di OpenRouter (`limit_source`: chiave, crediti, richieste in corso) si mostra come limite del fornitore. Il 100% è [#165](https://github.com/mgiuditta/bubo/issues/165).
 
 ### Soglia e 100%: stop morbido (deciso)
 
