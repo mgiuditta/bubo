@@ -2206,6 +2206,16 @@
         }
       }
     },
+    "Bubo si sta avviando. Riprova tra un attimo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo is starting up. Try again in a moment."
+          }
+        }
+      }
+    },
     "Bubo usa il login della CLI claude e non vede mai i tuoi token." : {
       "localizations" : {
         "en" : {
@@ -2457,6 +2467,16 @@
         }
       }
     },
+    "Che cosa vuoi chiedere a Bubo?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What do you want to ask Bubo?"
+          }
+        }
+      }
+    },
     "Check falliti: %lld su %lld" : {
       "localizations" : {
         "en" : {
@@ -2531,6 +2551,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Always asks"
+          }
+        }
+      }
+    },
+    "Chiedi a Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Bubo"
+          }
+        }
+      }
+    },
+    "Chiedi a Bubo ${text}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Bubo ${text}"
           }
         }
       }
@@ -3757,6 +3797,16 @@
         }
       }
     },
+    "Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question"
+          }
+        }
+      }
+    },
     "Domanda non inviata" : {
       "localizations" : {
         "en" : {
@@ -3973,6 +4023,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pushes the new changes to the PR's branch"
+          }
+        }
+      }
+    },
+    "Fa una Domanda a Bubo, con file di testo facoltativi. Bubo risponde senza aprire l'HUD." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asks Bubo a question, with optional text files. Bubo answers without opening the HUD."
           }
         }
       }
@@ -11561,6 +11621,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "«%@» non è un file di testo: per ora Bubo legge solo quelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” isn’t a text file: for now Bubo reads only those."
           }
         }
       }

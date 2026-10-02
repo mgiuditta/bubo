@@ -1,0 +1,26 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "Chiedi a ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask ${applicationName}"
+          }
+        }
+      }
+    },
+    "Fai una domanda a ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask ${applicationName} a question"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
