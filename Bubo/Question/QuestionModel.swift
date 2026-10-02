@@ -311,6 +311,12 @@ final class QuestionModel {
         ask(speaksAnswer: true)
     }
 
+    /// Predicts Tipo and Variante of `text`, heard so far with push-to-talk, with the Allegati in the prompt: at the
+    /// release, the Morph starts at once if the final text confirms it.
+    func predict(_ text: String) {
+        intake.predict(Richiesta(text: text, attachments: attachments))
+    }
+
     /// Hides the invitation to download a better voice, for good.
     func dismissBetterVoice() {
         invitesBetterVoice = false

@@ -124,6 +124,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     } dictate: { [questions] text, sends in
         questions.prompt = text
         if sends { questions.askByVoice() }
+    } predict: { [questions] text in
+        questions.predict(text)
     }
 
     /// Shows the standard About panel, with Bubo's one line of credits.

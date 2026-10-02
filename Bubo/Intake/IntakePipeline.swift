@@ -51,6 +51,20 @@ final class IntakePipeline {
     @ObservationIgnored private var isSpeaking = false
     /// Whether the answer of the latest Richiesta is over.
     @ObservationIgnored private var isAnswered = false
+    /// The latest prediction on the partial text of the Ascolto, under way or done.
+    @ObservationIgnored private var prediction: Prediction?
+    /// The partial text heard while a prediction was under way: predicted next, unless a newer one replaces it.
+    @ObservationIgnored private var nextPrediction: ClassifierInput?
+    /// Whether a prediction is under way: one at a time, so the partials do not pile up on the model.
+    @ObservationIgnored private var isPredicting = false
+
+    /// A prediction of Tipo and Variante on a partial text, by Apple Foundation Models alone.
+    private struct Prediction {
+        /// The partial text, as `confirms(_:)` compares it with the final one.
+        let key: ClassifierInput
+        /// The verdict; `nil` when the model on the Mac could not answer in time.
+        let task: Task<RequestClassification?, Never>
+    }
 
     /// Starts `richiesta` towards `provider`: Pensiero and the Tinta at once, then the classification, the router's
     /// decision and the Morph.
@@ -70,12 +84,21 @@ final class IntakePipeline {
         orb.questionState = .thinking
         orb.provider = provider
         forecast = nil
+        let predicted = takePrediction(for: richiesta.classifierInput)
         guard let classifier else {
             return Submission(id: id, classification: nil, route: router.route(for: nil, in: catalog))
         }
         let decision = Signposts.beginInterval(.intakeDecision)
         async let measured = onDevice.fit(of: richiesta.onDeviceContent)
-        let classification = await classifier.classification(of: richiesta.classifierInput)
+        let classification: RequestClassification
+        if let held = await predicted?.value {
+            // The final text confirms the prediction: the Morph starts now, without waiting for the classifier.
+            classification = held
+            if id == latest { orb.variante = held.variante }
+            Signposts.emit(.voicePredictionHeld)
+        } else {
+            classification = await classifier.classification(of: richiesta.classifierInput)
+        }
         let fit = await measured
         let route = router.route(for: classification, fit: fit, hasAttachments: !richiesta.attachments.isEmpty,
                                  readsOnDevice: richiesta.isReadableOnDevice, preferences: preferences, in: catalog)
@@ -97,6 +120,58 @@ final class IntakePipeline {
             forecast = Forecast(variante: classification.variante, provider: tinta)
         }
         return Submission(id: id, classification: classification, route: route)
+    }
+
+    /// Predicts Tipo and Variante on the partial text of the Ascolto (spec 08), only with Apple Foundation Models on the
+    /// Mac; the Orb does not move until the release, when `submit` uses the prediction if the final text confirms it.
+    ///
+    /// Without the model on the Mac, nothing is predicted and the Morph waits for the classifier.
+    func predict(_ richiesta: Richiesta) {
+        let input = richiesta.classifierInput
+        let key = Self.key(of: input)
+        guard key != prediction?.key, key != nextPrediction.map(Self.key) else { return }
+        guard !isPredicting else {
+            nextPrediction = input
+            return
+        }
+        startPrediction(of: input)
+    }
+
+    private func startPrediction(of input: ClassifierInput) {
+        guard let classifier else { return }
+        isPredicting = true
+        let task = Task { [weak self] in
+            let classification = await classifier.prediction(of: input)
+            self?.endPrediction()
+            return classification
+        }
+        prediction = Prediction(key: Self.key(of: input), task: task)
+    }
+
+    private func endPrediction() {
+        isPredicting = false
+        guard let next = nextPrediction else { return }
+        nextPrediction = nil
+        startPrediction(of: next)
+    }
+
+    /// The prediction the final `input` confirms, done or still under way, and forgets every prediction: each
+    /// Ascolto starts afresh.
+    private func takePrediction(for input: ClassifierInput) -> Task<RequestClassification?, Never>? {
+        defer {
+            prediction = nil
+            nextPrediction = nil
+        }
+        guard let prediction, prediction.key == Self.key(of: input) else { return nil }
+        return prediction.task
+    }
+
+    /// What the comparison of a partial text with the final one looks at: the words, without case or punctuation,
+    /// which the final transcription adds; the Allegati as they are.
+    nonisolated static func key(of input: ClassifierInput) -> ClassifierInput {
+        let words = input.text.lowercased()
+            .split { !$0.isLetter && !$0.isNumber }
+        return ClassifierInput(text: words.joined(separator: " "), attachmentNames: input.attachmentNames)
     }
 
     /// The router's decision for `richiesta` while it is typed, for the chip in the prompt: the same classification
