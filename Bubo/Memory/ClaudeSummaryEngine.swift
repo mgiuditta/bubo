@@ -29,4 +29,18 @@ struct ClaudeSummaryEngine: SummaryEngine {
         guard !summary.isEmpty else { throw SummaryEngineError.emptyAnswer }
         return summary
     }
+
+    func shortText(for prompt: String, following instructions: String, session: UUID) async throws -> String {
+        let agent = try await bridge()
+        let turn = "riassunto-\(UUID().uuidString)"
+        var answer = ""
+        for try await text in agent.summarize(instructions + "\n\n" + prompt, model: model,
+                                              usage: { [usage] in usage($0, session, turn) }) {
+            answer += text
+        }
+        guard !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw SummaryEngineError.emptyAnswer
+        }
+        return answer
+    }
 }

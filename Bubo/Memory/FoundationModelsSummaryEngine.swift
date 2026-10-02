@@ -32,6 +32,16 @@ struct FoundationModelsSummaryEngine: SummaryEngine {
         return summary
     }
 
+    func shortText(for prompt: String, following instructions: String, session: UUID) async throws -> String {
+        guard isAvailable else { throw SummaryEngineError.unavailable }
+        let answer = try await LanguageModelSession(model: model, instructions: instructions)
+            .respond(to: String(prompt.prefix(Self.characterLimit))).content
+        guard !answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw SummaryEngineError.emptyAnswer
+        }
+        return answer
+    }
+
     /// The items on one line each, without the empty ones.
     private static func items(_ texts: [String]) -> [String] {
         texts.map { $0.split(whereSeparator: \.isWhitespace).joined(separator: " ") }.filter { !$0.isEmpty }

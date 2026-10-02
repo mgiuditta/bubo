@@ -1074,6 +1074,26 @@
         }
       }
     },
+    "Apre la PR come bozza, che non si può ancora fondere" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the PR as a draft, which can’t be merged yet"
+          }
+        }
+      }
+    },
+    "Apre la PR su GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the PR on GitHub"
+          }
+        }
+      }
+    },
     "Apre la nota" : {
       "localizations" : {
         "en" : {
@@ -1140,6 +1160,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "Apri PR · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PR · %@"
+          }
+        }
+      }
+    },
+    "Apri PR…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open PR…"
           }
         }
       }
@@ -1536,6 +1576,16 @@
         }
       }
     },
+    "Blocchi rifiutati e non rimandati all'agente: %lld. Entrano comunque nella PR." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rejected blocks not sent back to the agent: %lld. They still go into the PR."
+          }
+        }
+      }
+    },
     "Blocco %lld di %lld, %@" : {
       "localizations" : {
         "en" : {
@@ -1624,6 +1674,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo adds %@ to the Project's .bubo/regole.json. You make the commit; anyone using the repo sees it as a rule to accept."
+          }
+        }
+      }
+    },
+    "Bubo aggiunge «%@» in fondo alla descrizione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo adds “%@” at the end of the description."
           }
         }
       }
@@ -2734,6 +2794,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Create"
+          }
+        }
+      }
+    },
+    "Crea PR" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create PR"
           }
         }
       }
@@ -3880,6 +3950,16 @@
         }
       }
     },
+    "Il push del branch non è riuscito, e Bubo non crea fork. Controlla di avere i permessi di scrittura sul repo, poi riprova.\n%@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The branch couldn’t be pushed, and Bubo doesn’t create forks. Check that you can write to the repo, then try again.\n%@"
+          }
+        }
+      }
+    },
     "Il repo non attiva nulla." : {
       "localizations" : {
         "en" : {
@@ -4208,6 +4288,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The API key is saved, but Claude Code is still needed."
+          }
+        }
+      }
+    },
+    "La PR punta a %@, non al branch di default %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The PR targets %1$@, not the default branch %2$@."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "La PR punta a %1$@, non al branch di default %2$@."
+          }
+        }
+      }
+    },
+    "La Sessione non ha modifiche rispetto al branch da cui è partita." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session has no changes compared with the branch it started from."
+          }
+        }
+      }
+    },
+    "La Sessione non ha un branch suo: non c'è niente da proporre in una PR." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session has no branch of its own: there’s nothing to propose in a PR."
           }
         }
       }
@@ -4912,6 +5028,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show Panel"
+          }
+        }
+      }
+    },
+    "Mostra cosa farebbe «gh pr create --dry-run», senza push" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows what “gh pr create --dry-run” would do, without pushing"
           }
         }
       }
@@ -5806,6 +5932,16 @@
         }
       }
     },
+    "Non so da quale branch è partita la Sessione: la PR punta a %@, il branch di default." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The branch the Session started from isn’t known: the PR targets %@, the default branch."
+          }
+        }
+      }
+    },
     "Non trovo GitHub CLI in /opt/homebrew/bin, /usr/local/bin o /opt/local/bin. Installala con «brew install gh» nel Terminale, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -6307,6 +6443,16 @@
         }
       }
     },
+    "Preparo la PR…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preparing the PR…"
+          }
+        }
+      }
+    },
     "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
       "localizations" : {
         "en" : {
@@ -6379,6 +6525,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project, shared"
+          }
+        }
+      }
+    },
+    "Propone titolo e descrizione, poi fa il push e apre la PR su GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proposes a title and description, then pushes and opens the PR on GitHub"
           }
         }
       }
@@ -8338,6 +8494,16 @@
         }
       }
     },
+    "Unisce il lavoro in un commit sul branch, fa il push e apre la PR" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squashes the work into one commit on the branch, pushes it and opens the PR"
+          }
+        }
+      }
+    },
     "Usa" : {
       "localizations" : {
         "en" : {
@@ -8985,6 +9151,23 @@
         }
       }
     },
+    "fase.inRevisione" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In review"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "In revisione"
+          }
+        }
+      }
+    },
     "fps" : {
       "localizations" : {
         "en" : {
@@ -9162,6 +9345,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "“%@” already works on this Project's checkout. Archive it, or work in an isolated copy."
+          }
+        }
+      }
+    },
+    "«%@» resta, ma l'issue non si chiuderà da sola al merge." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” stays, but the issue won’t close by itself at merge."
           }
         }
       }

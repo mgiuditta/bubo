@@ -300,8 +300,8 @@ struct SessionBoard: View {
     /// A Sessione with the next step of its column under it.
     private func card(_ session: Session, in column: BoardColumn) -> some View {
         let border = switch session.activity {
-        case .attende where session.phase == .aperta: Palette.attention.opacity(0.45)
-        case .errore where session.phase == .aperta: Palette.danger.opacity(0.45)
+        case .attende where session.isLive: Palette.attention.opacity(0.45)
+        case .errore where session.isLive: Palette.danger.opacity(0.45)
         default: Palette.line
         }
         return VStack(alignment: .leading, spacing: 0) {

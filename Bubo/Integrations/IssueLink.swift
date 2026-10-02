@@ -84,7 +84,7 @@ nonisolated struct IssueLink: Codable, Hashable, Sendable {
             return .draft(draft)
         }
         let linked = sessions.filter { $0.issue == self && $0.project.standardizedFileURL.path == path }
-        if let open = linked.last(where: { $0.phase == .aperta }) { return .open(open) }
+        if let open = linked.last(where: \.isLive) { return .open(open) }
         return linked.last.map(Match.closed) ?? .none
     }
 }

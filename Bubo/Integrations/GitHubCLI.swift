@@ -42,15 +42,26 @@ nonisolated struct GitHubCLI: Sendable {
     ///
     /// - Throws: `GitHubCLIError.noGitHubRemote` when no remote points to a repo on a host.
     func repository(of project: URL) async throws -> GitHubRepository {
+        try await remote(of: project).repository
+    }
+
+    /// The remote of `project` that points to its GitHub repo, with the repo: `origin`, or its first one without
+    /// `origin`.
+    ///
+    /// - Throws: `GitHubCLIError.noGitHubRemote` when no remote points to a repo on a host.
+    func remote(of project: URL) async throws -> (name: String, repository: GitHubRepository) {
         let output = try await git.run(URL(filePath: "/usr/bin/git"), ["-C", project.path, "remote", "-v"])
         let remotes = output.standardOutput.split(whereSeparator: \.isNewline).compactMap { line in
             let fields = line.split(whereSeparator: \.isWhitespace)
             return fields.count >= 2 ? (name: String(fields[0]), url: String(fields[1])) : nil
         }
         let ordered = remotes.filter { $0.name == "origin" } + remotes.filter { $0.name != "origin" }
-        guard output.exitCode == 0, let repository = ordered.lazy.compactMap({ GitHubRepository(remote: $0.url) }).first
+        guard output.exitCode == 0,
+              let found = ordered.lazy.compactMap({ remote in
+                  GitHubRepository(remote: remote.url).map { (name: remote.name, repository: $0) }
+              }).first
         else { throw GitHubCLIError.noGitHubRemote }
-        return repository
+        return found
     }
 
     /// The open issues of `repository`, the most recently updated first, those matching `search` when it is not empty.
@@ -71,6 +82,32 @@ nonisolated struct GitHubCLI: Sendable {
         let arguments = ["issue", "view", String(number), "--repo", repository.argument,
                          "--json", GitHubIssueContext.fields]
         return try decoder.decode(GitHubIssueContext.self, from: try await run(arguments, for: repository))
+    }
+
+    /// The name of the default branch of `repository`, such as `main`.
+    ///
+    /// - Throws: `GitHubCLIError`.
+    func defaultBranch(of repository: GitHubRepository) async throws -> String {
+        let arguments = ["repo", "view", repository.argument, "--json", "defaultBranchRef",
+                         "--jq", ".defaultBranchRef.name"]
+        let name = String(decoding: try await run(arguments, for: repository), as: UTF8.self)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { throw GitHubCLIError.failed("") }
+        return name
+    }
+
+    /// Opens a pull request on `repository` from `head` into `base`, a branch already pushed there: never a push,
+    /// never a fork. With `isDryRun`, `gh` only prints what it would open.
+    ///
+    /// - Returns: What `gh` wrote: the URL of the pull request, or with `isDryRun` its details.
+    /// - Throws: `GitHubCLIError`.
+    func createPullRequest(from head: String, into base: String, title: String, body: String, isDraft: Bool,
+                           isDryRun: Bool = false, in repository: GitHubRepository) async throws -> String {
+        var arguments = ["pr", "create", "--repo", repository.argument, "--head", head, "--base", base,
+                         "--title", title, "--body", body]
+        if isDraft { arguments.append("--draft") }
+        if isDryRun { arguments.append("--dry-run") }
+        return String(decoding: try await run(arguments, for: repository), as: UTF8.self)
     }
 
     private var decoder: JSONDecoder {

@@ -6,7 +6,6 @@ nonisolated enum BoardColumn: String, CaseIterable, Identifiable, Sendable {
     case attendeTe, lavora, daGuardare, prAperta, fusa
 
     /// Where a Sessione's pull request is on GitHub.
-    // ponytail: no Sessione has a PR until Apri PR (#134); the rule already places them.
     enum PullRequest: Sendable {
         case open, closed, merged
     }
@@ -22,7 +21,7 @@ nonisolated enum BoardColumn: String, CaseIterable, Identifiable, Sendable {
     /// Errore → Attende te; Lavora → Lavora; a PR open → PR aperta; anything else → Da guardare.
     init?(phase: Session.Phase, activity: Session.Activity, pullRequest: PullRequest? = nil, mergedAt: Date?,
           now: Date) {
-        if phase != .aperta {
+        if phase != .aperta && phase != .inRevisione {
             if let mergedAt {
                 guard now.timeIntervalSince(mergedAt) < TimeInterval(Self.mergedWindow.components.seconds)
                 else { return nil }
@@ -43,7 +42,9 @@ nonisolated enum BoardColumn: String, CaseIterable, Identifiable, Sendable {
 
     /// The column of `session` at `now`; `nil` when it is off the Board.
     init?(_ session: Session, at now: Date) {
-        self.init(phase: session.phase, activity: session.activity, mergedAt: session.mergedAt, now: now)
+        // ponytail: In revisione means an open PR until the PR monitor reads its state (#153).
+        self.init(phase: session.phase, activity: session.activity,
+                  pullRequest: session.phase == .inRevisione ? .open : nil, mergedAt: session.mergedAt, now: now)
     }
 
     /// `sessions` in every column, in order, also the empty ones; off the Board the ones in no column. In Attende

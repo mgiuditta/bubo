@@ -9,6 +9,19 @@ protocol SummaryEngine {
     ///
     /// - Throws: When the model cannot answer, or its answer holds no summary.
     func summary(of input: SummaryInput) async throws -> SessionSummary
+
+    /// Answers `prompt`, already filtered of its secrets, with a short text that follows `instructions`, for the
+    /// Sessione `session`, which its cost goes to.
+    ///
+    /// - Throws: When the model cannot answer, or answers nothing.
+    func shortText(for prompt: String, following instructions: String, session: UUID) async throws -> String
+}
+
+extension SummaryEngine {
+    /// No short text: only the summary.
+    func shortText(for prompt: String, following instructions: String, session: UUID) async throws -> String {
+        throw SummaryEngineError.unavailable
+    }
 }
 
 /// Why an engine wrote no summary.

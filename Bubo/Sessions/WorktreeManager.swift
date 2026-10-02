@@ -17,6 +17,9 @@ nonisolated struct Workspace: Codable, Equatable, Sendable {
     /// The commit the branch started from, which the revisione compares with; `nil` from a repo without commits,
     /// on the checkout, or in Sessioni saved before it was kept.
     var base: String?
+    /// The branch of the checkout the Sessione started from, which Apri PR targets; `nil` from a detached checkout,
+    /// outside git, or in Sessioni saved before it was kept.
+    var baseBranch: String?
 }
 
 /// Makes the isolated copy of a Progetto for a new Sessione: `git worktree add` on a new branch from the
@@ -65,10 +68,12 @@ nonisolated struct WorktreeManager: Sendable {
 
         let head = try await run(["rev-parse", "--verify", "--quiet", "HEAD"], in: checkout)
         let base = head.exitCode == 0 ? head.standardOutput.trimmingCharacters(in: .newlines) : nil
+        let symbolic = try await run(["symbolic-ref", "--short", "-q", "HEAD"], in: checkout)
+        let baseBranch = symbolic.exitCode == 0 ? symbolic.standardOutput.trimmingCharacters(in: .newlines) : nil
         try await git(base.map { ["worktree", "add", "-b", name, folder.path, $0] }
                       ?? ["worktree", "add", "--orphan", "-b", name, folder.path], in: checkout)
         try await fill(folder, from: checkout)
-        return Workspace(folder: folder, branch: name, base: base)
+        return Workspace(folder: folder, branch: name, base: base, baseBranch: baseBranch)
     }
 
     /// Prepares again the copy of an Archiviata or Fusa Sessione that worked in `workspace`: a worktree on its branch
@@ -90,7 +95,7 @@ nonisolated struct WorktreeManager: Sendable {
         try await git(["worktree", "prune"], in: checkout)
         try await git(["worktree", "add", folder.path, branch], in: checkout)
         try await fill(folder, from: checkout)
-        return Workspace(folder: folder, branch: branch, base: workspace.base)
+        return Workspace(folder: folder, branch: branch, base: workspace.base, baseBranch: workspace.baseBranch)
     }
 
     /// Fills the new worktree `folder` of `checkout`: its submodules, then a clone of the files git ignores.
