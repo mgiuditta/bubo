@@ -309,3 +309,22 @@ struct BridgeMessageTests {
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .permission(id: "a1", request))
     }
 }
+
+extension BridgeMessageTests {
+    // Criterio 1: il turno di un'Esecuzione porta le sue Regole e dice al ponte che nessuno risponde.
+    @Test func anUnattendedAskCarriesItsRulesAndNoPrompts() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         unattended: UnattendedTurn(rules: ["Bash(npm test)"])).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","unattended":{"rules":["Bash(npm test)"]},"v":4}"# + "\n")
+    }
+
+    @Test func aDenialAndTheChosenModeArriveAsProgress() throws {
+        let denial = #"{"v":4,"type":"denial","id":"a1","toolUseID":"t1","tool":"Bash","command":"npm test","suggestions":["Bash(npm test)"],"source":"sdk"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(denial.utf8))
+            == .progress(id: "a1", .denial(BridgeDenial(id: "t1", tool: "Bash", command: "npm test",
+                                                        suggestions: ["Bash(npm test)"], source: .sdk))))
+        let mode = #"{"v":4,"type":"mode","id":"a1","permissionMode":"default"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(mode.utf8)) == .progress(id: "a1", .permissionMode("default")))
+    }
+}

@@ -95,6 +95,12 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isSummaryPending = false
     /// The pull request Apri PR opened on GitHub; `nil` until then.
     var pullRequest: PullRequestLink?
+    /// The Automazione that started the Sessione, with when; `nil` for the others.
+    var automation: AutomationMark?
+    /// The actions denied in the latest turn of the Esecuzione, oldest first.
+    var denials: [Denial] = []
+    /// The mode `claude` chose for the latest turn of the Esecuzione, such as `auto`; `nil` until it says.
+    var effectiveMode: String?
 
     /// The lines Ricordato and Richiamato a Sessione keeps.
     static let memoryLineLimit = 3
@@ -158,7 +164,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
-    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut and its turn's prompt were kept.
+    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut, its turn's prompt and its
+    /// Automazione were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -192,5 +199,8 @@ nonisolated extension Session {
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
         pullRequest = try container.decodeIfPresent(PullRequestLink.self, forKey: .pullRequest)
+        automation = try container.decodeIfPresent(AutomationMark.self, forKey: .automation)
+        denials = try container.decodeIfPresent([Denial].self, forKey: .denials) ?? []
+        effectiveMode = try container.decodeIfPresent(String.self, forKey: .effectiveMode)
     }
 }

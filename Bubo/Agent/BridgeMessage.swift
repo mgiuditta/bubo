@@ -25,11 +25,13 @@ enum BridgeCommand: Equatable {
     /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda. `permissionMode` is how `claude` approves the
     /// calls; without it, `claude` picks the mode itself. `effort` is the router's effort; without it, the model's default.
     /// `rosa` names the Varianti the agent may give the Orb with `⟦orb:nome⟧`; without it, the agent gets no
-    /// instruction and the Orb follows only its tools.
+    /// instruction and the Orb follows only its tools. `unattended` makes it a turn with nobody in front of it, the one
+    /// of an Esecuzione: no Richiesta di permesso, its rules as session rules, and a `denial` for each action denied.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
              keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
-             remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [])
+             remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [],
+             unattended: UnattendedTurn? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -74,7 +76,7 @@ enum BridgeCommand: Equatable {
         var object: [String: Any]
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
-                      keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa):
+                      keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -91,6 +93,7 @@ enum BridgeCommand: Equatable {
             object["permissionMode"] = permissionMode?.rawValue
             object["effort"] = effort?.rawValue
             if !rosa.isEmpty { object["orb"] = rosa }
+            if let unattended { object["unattended"] = ["rules": unattended.rules] }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
@@ -210,7 +213,7 @@ enum BridgeEvent: Equatable, Decodable {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
              rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities, model,
-             effort, models, nome
+             effort, models, nome, permissionMode
     }
 
     init(from decoder: any Decoder) throws {
@@ -318,6 +321,9 @@ enum BridgeEvent: Equatable, Decodable {
                                               // A level Bubo does not know yet shows no effort rather than a wrong one.
                                               effort: try container.decodeIfPresent(String.self, forKey: .effort)
                                                   .flatMap(Effort.init(rawValue:))))
+        case "denial": self = .progress(id: try container.decode(String.self, forKey: .id), .denial(try BridgeDenial(from: decoder)))
+        case "mode": self = .progress(id: try container.decode(String.self, forKey: .id),
+                                      .permissionMode(try container.decode(String.self, forKey: .permissionMode)))
         case "models": self = .models(ModelCatalog(entries: try container.decode([ModelCatalog.Entry].self, forKey: .models)))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")

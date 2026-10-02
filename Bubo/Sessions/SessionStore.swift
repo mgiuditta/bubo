@@ -45,10 +45,12 @@ final class SessionStore {
     ///   - ledger: Where each turn's tokens and figure are recorded.
     ///   - drafts: The Bozze that Avvia turns into Sessioni.
     ///   - sandbox: Whether each Progetto runs its Sessioni's commands in the Sandbox.
+    ///   - automations: The Automazioni, whose Regole "in questa Automazione" the report of an Esecuzione adds to.
     init(file: URL, worktrees: WorktreeManager, orb: OrbControls? = nil, alerts: WaitingAlerts? = nil,
          ledger: CostLedger = CostLedger(), drafts: DraftStore = DraftStore(), sandbox: SandboxStore = SandboxStore(),
-         bridge: @escaping () async throws -> AgentBridge) {
+         automations: AutomationStore = AutomationStore(), bridge: @escaping () async throws -> AgentBridge) {
         self.file = file
+        self.automations = automations
         self.sandbox = sandbox
         self.worktrees = worktrees
         self.ledger = ledger
@@ -93,6 +95,8 @@ final class SessionStore {
     @ObservationIgnored let ledger: CostLedger
     /// The Bozze, waiting for Avvia.
     @ObservationIgnored let drafts: DraftStore
+    /// The Automazioni, with their Regole "in questa Automazione".
+    @ObservationIgnored let automations: AutomationStore
     /// Whether each Progetto runs its Sessioni's commands in the Sandbox; a change counts from the next turn.
     @ObservationIgnored let sandbox: SandboxStore
     /// The terminals of the Sessioni, closed at Archivia, Fondi and Cancella.
@@ -156,7 +160,9 @@ final class SessionStore {
                                                   appropriateFor: nil, create: true)
         let store = SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
                                  orb: .shared, alerts: alerts, ledger: try .makeDefault(),
-                                 drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")), bridge: bridge)
+                                 drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")),
+                                 automations: AutomationStore(file: support.appending(path: "Bubo/Automazioni.json")),
+                                 bridge: bridge)
         store.indexer = index.map { ConversationIndexer(index: $0, bridge: bridge) }
         return store
     }
@@ -271,6 +277,33 @@ final class SessionStore {
         // On the checkout a server may already listen, with no event of its own.
         if onCheckout { servers.notice() }
         turnTasks[session.id] = Task { await run(session.id, prompt: prompt, branch: branch) }
+        return session.id
+    }
+
+    /// Starts the Sessione of an Esecuzione of an Automazione, marked with `automation`, in a new copy of `project` on
+    /// `branch`, and asks `claude` `prompt` there with nobody in front of it (`unattended`). Only that turn is
+    /// unattended: the next ones, asked by the user, are ordinary turns without the Automazione's rules.
+    ///
+    /// - Parameters:
+    ///   - isAutonomous: Whether the turn runs in the Modalità autonoma; it counts only in a worktree of its own.
+    ///   - ended: Called once the turn ends, with whether it ended without errors.
+    /// - Returns: The id of the new Sessione.
+    @discardableResult
+    func startExecution(_ prompt: String, title: String, branch: String, in project: URL, automation: AutomationMark,
+                        unattended: UnattendedTurn, isAutonomous: Bool,
+                        ended: @escaping (_ id: UUID, _ succeeded: Bool) -> Void = { _, _ in }) -> UUID {
+        var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
+        session.prompt = prompt
+        session.automation = automation
+        session.isAutonomous = isAutonomous
+        session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
+        sessions.append(session)
+        save()
+        followActivity()
+        turnTasks[session.id] = Task {
+            let succeeded = await run(session.id, prompt: prompt, branch: branch, unattended: unattended)
+            ended(session.id, succeeded)
+        }
         return session.id
     }
 
@@ -866,10 +899,13 @@ final class SessionStore {
     /// once `claude` ran it: when it ends, or fails after answering. An interrupted turn leaves it as it was, so that
     /// Riavvia and Riprendi start from the same point.
     ///
-    /// - Parameter reopening: The copy of the Archiviata Sessione that Riprendi prepares again, in place of a new one.
+    /// - Parameters:
+    ///   - reopening: The copy of the Archiviata Sessione that Riprendi prepares again, in place of a new one.
+    ///   - unattended: Makes it the turn of an Esecuzione, with nobody in front of it.
     /// - Returns: Whether the turn ended without errors.
     @discardableResult
-    private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil) async -> Bool {
+    private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil,
+                     unattended: UnattendedTurn? = nil) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         // Kept from the start, also before the copy is ready: Riprendi asks this turn again if Bubo quits.
         update(id) { $0.turnPrompt = prompt }
@@ -909,6 +945,12 @@ final class SessionStore {
             watchFootprints()
             sandboxedTurns[id] = isSandboxed
             sandboxBlocks[id] = nil
+            if unattended != nil {
+                update(id) { session in
+                    session.denials = []
+                    session.effectiveMode = nil
+                }
+            }
             previewOffers[id] = (answerID, hasServer)
             defer {
                 turns[id] = nil
@@ -929,15 +971,16 @@ final class SessionStore {
             let resumed = current?.continuedConversation
             // Continua da qui cuts only the conversation it forked: the turns after resume theirs whole.
             let cut = resumed != nil && resumed == current?.forkedFrom ? current?.forkedUpTo : nil
-            let answer = agent.ask(prompt, in: workspace.folder, environment: environment,
+            let answer = agent.ask(prompt, in: workspace.folder, model: unattended?.model, environment: environment,
                                    forkingFrom: resumed, upTo: cut, keeping: kept,
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
-                                   offersPreview: hasServer) { [weak self] progress in
+                                   offersPreview: hasServer, unattended: unattended) { [weak self] progress in
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .variante(nome): self?.orb?.showWork(nome)
                 case let .sandboxBlock(block): self?.record(block, in: id)
+                case let .denial(reported): self?.record(Denial(reported, classifier: classifier), in: id)
                 case .read: self?.onFileActivity?(id, progress)
                 case .edit:
                     self?.update(id) { $0.apply(progress) }
@@ -951,8 +994,7 @@ final class SessionStore {
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             } isDangerous: { request in
-                let risk = classifier.risk(of: request)
-                return risk.level.isDangerous || risk.isCritical
+                classifier.risk(of: request).isDangerous
             }
             for try await _ in answer where !hasAnswered {
                 hasAnswered = true
@@ -1107,6 +1149,14 @@ final class SessionStore {
         else { return }
         sandbox.allow(domain, in: session.project)
         answer(request, in: id, with: .allowInProject)
+    }
+
+    /// Keeps `denial` in the report of the Sessione `id`, once: a later report of the same call replaces it.
+    private func record(_ denial: Denial, in id: UUID) {
+        update(id) { session in
+            session.denials.removeAll { $0.id == denial.id }
+            session.denials.append(denial)
+        }
     }
 
     /// Keeps `block` among the latest of the Sessione `id`, once.

@@ -38,6 +38,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var summarizer: SessionSummarizer? = makeSummarizer()
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
+    /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
+    private(set) lazy var executions: ExecutionRunner? = sessions.map { ExecutionRunner(automations: $0.automations, sessions: $0) }
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
         let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
