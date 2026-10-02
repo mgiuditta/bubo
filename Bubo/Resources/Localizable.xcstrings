@@ -14129,6 +14129,62 @@
           }
         }
       }
+    },
+    "%@ → %@, quota di 5 ore oltre la soglia (%@)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, 5-hour quota past the threshold (%3$@)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, quota di 5 ore oltre la soglia (%3$@)"
+          }
+        }
+      }
+    },
+    "Domande sul Mac oltre: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questions on the Mac past: %@"
+          }
+        }
+      }
+    },
+    "Modello più leggero oltre: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lighter model past: %@"
+          }
+        }
+      }
+    },
+    "Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Past the first threshold, automatic choices go one step down; past the second, Questions go to the local model or to Apple FM. Sessions stay on Claude, your choices always apply, and nothing is blocked. Doesn't apply with an API key."
+          }
+        }
+      }
+    },
+    "Quota di 5 ore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "5-hour quota"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

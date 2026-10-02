@@ -68,4 +68,9 @@ nonisolated struct Scala: Equatable, Sendable {
     func step(above current: Step) -> Step? {
         steps.first { $0 > current }
     }
+
+    /// The last step weaker than `current`, where the Quota sends an automatic choice; `nil` at the bottom.
+    func step(below current: Step) -> Step? {
+        steps.last { $0 < current }
+    }
 }

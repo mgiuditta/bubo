@@ -250,6 +250,13 @@ final class QuestionModel {
         return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
     }
 
+    /// The share of the 5-hour window used, for the router; `nil` with the API key, which has no Quota, and when the
+    /// window is unknown or past its reset.
+    private var fiveHourUsed: Double? {
+        guard !usesAPIKey, let window = quota.fiveHour, window.resetsAt > .now else { return nil }
+        return window.used
+    }
+
     /// What the router knows of the user's preferences: a cloud endpoint takes part only with its consent; the
     /// servers on the Mac they may need, and the network, are checked now.
     private func routerPreferences() async -> ModelRouter.Preferences {
@@ -267,6 +274,8 @@ final class QuestionModel {
             if availability != .available { routed.localOutages[endpoint.id] = availability }
         }
         routed.isOffline = !(await isOnline)
+        routed.fiveHourUsed = fiveHourUsed
+        routed.quotaThresholds = QuotaThresholds.saved(in: defaults)
         return routed
     }
 

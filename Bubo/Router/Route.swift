@@ -58,6 +58,8 @@ nonisolated struct Route: Equatable, Sendable {
         case preferred(RequestType)
         /// No network: the Modello locale answers, or else Apple Foundation Models (spec 10, Quota).
         case offline(RequestType)
+        /// The 5-hour window is past `threshold`, a share from 0 to 1: one step down the Scala, or on the Mac.
+        case quota(RequestType, threshold: Double)
     }
 
     /// The family the router asked for; `nil` when `claude` picks.
