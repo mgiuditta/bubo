@@ -1,4 +1,5 @@
 import Foundation
+import PDFKit
 import UniformTypeIdentifiers
 
 /// A text, file, folder or image that comes with a Richiesta (spec 09, Allegati e fornitori).
@@ -22,8 +23,8 @@ nonisolated struct Allegato: Codable, Hashable, Sendable {
     let name: String
     /// What it is.
     let kind: Kind
-    /// The content a model on the Mac reads; `nil` for a folder, an image, and a file that is not text or is over
-    /// ``readableSize``.
+    /// The content a model on the Mac or another provider reads: a text file's, or the text extracted from a PDF; `nil`
+    /// for a folder, an image, and a file that is not text or is over ``readableSize``.
     let text: String?
     /// Where `claude` reads it; `nil` for text with no file behind it.
     let path: URL?
@@ -39,8 +40,11 @@ nonisolated struct Allegato: Codable, Hashable, Sendable {
         path = nil
     }
 
+    /// The largest PDF whose text is extracted at once.
+    static let readablePDFSize = 10 * 1024 * 1024
+
     /// Creates the Allegato of the file or folder at `url`, reading its text now when it is a text file up to
-    /// ``readableSize``.
+    /// ``readableSize``, or a PDF up to ``readablePDFSize`` with up to ``readableSize`` characters of text.
     init(fileAt url: URL) {
         let values = try? url.resourceValues(forKeys: [.isDirectoryKey, .contentTypeKey, .fileSizeKey, .isPackageKey])
         name = url.lastPathComponent
@@ -53,9 +57,14 @@ nonisolated struct Allegato: Codable, Hashable, Sendable {
             text = nil
         } else {
             kind = .file
-            let isText = values?.contentType?.conforms(to: .text) == true
-            let isSmall = (values?.fileSize ?? .max) <= Self.readableSize
-            text = isText && isSmall ? (try? String(contentsOf: url, encoding: .utf8)) : nil
+            let size = values?.fileSize ?? .max
+            if values?.contentType?.conforms(to: .pdf) == true {
+                let extracted = size <= Self.readablePDFSize ? PDFDocument(url: url)?.string : nil
+                text = extracted.flatMap { $0.count <= Self.readableSize ? $0 : nil }
+            } else {
+                let isText = values?.contentType?.conforms(to: .text) == true
+                text = isText && size <= Self.readableSize ? (try? String(contentsOf: url, encoding: .utf8)) : nil
+            }
         }
     }
 

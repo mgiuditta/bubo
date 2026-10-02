@@ -88,6 +88,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var unstartedPrompt: String?
     /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
     var isAutonomous = false
+    /// The model · sforzo the user chose for the Sessione's turns, from the next one, without restarting it (spec 10,
+    /// Nella Sessione); `nil` for the model and effort the user set in `claude`.
+    var model: Scala.Step?
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
     /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
@@ -197,6 +200,7 @@ nonisolated extension Session {
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
+        model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false

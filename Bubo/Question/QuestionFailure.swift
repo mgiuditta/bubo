@@ -10,6 +10,9 @@ enum QuestionFailure: Error, Equatable {
     case apiKeyMissing
     /// The OpenAI-compatible endpoint picked in "Rifai con…" did not answer, or could not be asked.
     case endpoint(OpenAICompatibleError)
+    /// The Allegati could not go to the endpoint picked in "Rifai con…": unconfirmed, over its cap, or without text.
+    /// Nothing was sent.
+    case attachmentsHeld
     /// Anything else, such as the Domande folder not being writable.
     case unexpected
 }

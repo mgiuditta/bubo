@@ -10,6 +10,10 @@ struct QuestionView: View {
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
     @State private var askingConsent: RetryAlternative?
     @State private var isAskingConsent = false
+    /// The endpoint picked in "Rifai con…" whose Allegati wait for a confirmation, or cannot go to it.
+    @State private var reviewedAlternative: RetryAlternative?
+    /// What may go to that endpoint of the Allegati.
+    @State private var attachmentVerdict: AttachmentPolicy.Verdict?
     /// Whether the model picked in "Rifai con…" becomes the preference of the Domanda's Tipo.
     @State private var alwaysUse = false
     /// Push-to-talk, whose partial text fills the prompt; `nil` in previews.
@@ -79,6 +83,10 @@ struct QuestionView: View {
                 BetterVoiceInvitation(dismiss: model.dismissBetterVoice)
             }
 
+            if let reviewedAlternative, case let .endpoint(endpoint) = reviewedAlternative.target, let attachmentVerdict {
+                attachmentReview(attachmentVerdict, endpoint: endpoint, alternative: reviewedAlternative)
+            }
+
             if let resumesAt = model.resumesAt {
                 HStack(spacing: Spacing.small) {
                     Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")
@@ -114,6 +122,10 @@ struct QuestionView: View {
         .onChange(of: isPickingRetry) {
             if isPickingRetry { alwaysUse = false }
         }
+        // A new answer under way leaves the Allegati's question behind.
+        .onChange(of: model.isAnswering) {
+            if model.isAnswering { closeAttachmentReview() }
+        }
         .confirmationDialog(consentTitle, isPresented: $isAskingConsent, presenting: askingConsent) { alternative in
             Button("Consenti e invia") {
                 if case let .endpoint(endpoint) = alternative.target { model.endpoints.grantConsent(to: endpoint) }
@@ -124,7 +136,11 @@ struct QuestionView: View {
             }
         } message: { alternative in
             if case let .endpoint(endpoint) = alternative.target {
-                Text("\(endpoint.name) riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
+                if model.askedAttachments.isEmpty {
+                    Text("\(endpoint.name) riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
+                } else {
+                    Text("\(endpoint.name) riceve il testo della Domanda e degli allegati che hai confermato, mai modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
+                }
             }
         }
     }
@@ -157,15 +173,81 @@ struct QuestionView: View {
         }
     }
 
-    /// Asks again with `alternative`, or first asks the user's consent when it is a cloud that never had it.
+    /// Asks again with `alternative`, once the Allegati of the Domanda may go to it; or shows why they cannot, or asks
+    /// to confirm them.
     private func pick(_ alternative: RetryAlternative) {
         isPickingRetry = false
+        closeAttachmentReview()
+        guard case let .endpoint(endpoint) = alternative.target, !model.askedAttachments.isEmpty else {
+            send(alternative)
+            return
+        }
+        Task {
+            let verdict = await model.attachmentVerdict(for: endpoint)
+            if verdict == .allowed {
+                send(alternative)
+            } else {
+                reviewedAlternative = alternative
+                attachmentVerdict = verdict
+            }
+        }
+    }
+
+    /// Asks again with `alternative`, or first asks the user's consent when it is a cloud that never had it.
+    private func send(_ alternative: RetryAlternative) {
         if model.needsConsent(for: alternative) {
             askingConsent = alternative
             isAskingConsent = true
         } else {
             model.retry(with: alternative, alwaysUse: alwaysUse)
         }
+    }
+
+    /// The confirmation of the Allegati about to go to `endpoint`, or why they cannot and the way to Claude.
+    @ViewBuilder
+    private func attachmentReview(_ verdict: AttachmentPolicy.Verdict, endpoint: OpenAICompatibleEndpoint,
+                                  alternative: RetryAlternative) -> some View {
+        switch verdict {
+        case let .needsConfirmation(attachments):
+            AttachmentConfirmation(attachments: attachments, endpoint: endpoint) {
+                model.confirm(attachments, for: endpoint)
+                closeAttachmentReview()
+                send(alternative)
+            } askClaude: {
+                closeAttachmentReview()
+                model.askClaude()
+            } cancel: {
+                closeAttachmentReview()
+            }
+        case let .overCap(tokens, cap):
+            ErrorNotice("Allegati troppo lunghi per \(endpoint.name)",
+                        remedy: "Circa \(tokens.formatted()) token, il massimo per questo modello è \(cap.formatted()). Bubo non li taglia: Claude li legge interi.",
+                        actionTitle: "Chiedi a Claude", action: askClaudeInstead)
+        case let .onlyClaude(allegato):
+            ErrorNotice("«\(allegato.name)» va solo a Claude", remedy: Self.onlyClaudeReason(allegato.kind, endpoint: endpoint),
+                        actionTitle: "Chiedi a Claude", action: askClaudeInstead)
+        case .allowed:
+            EmptyView()
+        }
+    }
+
+    /// Why an Allegato of `kind` cannot go to `endpoint`.
+    private static func onlyClaudeReason(_ kind: Allegato.Kind, endpoint: OpenAICompatibleEndpoint) -> LocalizedStringKey {
+        switch kind {
+        case .folder: "È una cartella: Claude la legge dal disco, \(endpoint.name) riceverebbe solo il suo nome."
+        case .image: "È un'immagine: Claude la legge dal disco, \(endpoint.name) riceve solo testo."
+        case .file, .text: "Bubo non ne legge il testo: Claude lo apre dal disco, \(endpoint.name) riceve solo testo."
+        }
+    }
+
+    private func askClaudeInstead() {
+        closeAttachmentReview()
+        model.askClaude()
+    }
+
+    private func closeAttachmentReview() {
+        reviewedAlternative = nil
+        attachmentVerdict = nil
     }
 
     private var consentTitle: String {
