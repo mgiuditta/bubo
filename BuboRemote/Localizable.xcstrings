@@ -1,0 +1,574 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "%lld file" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld file"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld files"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Accoppia con Face ID" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair with Face ID"
+          }
+        }
+      }
+    },
+    "Accoppia un Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair a Mac"
+          }
+        }
+      }
+    },
+    "Accoppia un altro Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pair Another Mac"
+          }
+        }
+      }
+    },
+    "Accoppiamento non riuscito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pairing Failed"
+          }
+        }
+      }
+    },
+    "Ancora nessun Battito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Heartbeat yet"
+          }
+        }
+      }
+    },
+    "Annulla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Attività" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activity"
+          }
+        }
+      }
+    },
+    "Cifrati, con una chiave che hanno solo questo iPhone e il Mac: titolo della Sessione, Progetto, Attività, Fase, estratto degli ultimi messaggi, Richiesta in attesa (strumento, comando, percorso) e statistiche del diff." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encrypted with a key only this iPhone and the Mac have: the Session's title, Project, Activity, Phase, an excerpt of the latest messages, the pending Request (tool, command, path) and diff statistics."
+          }
+        }
+      }
+    },
+    "Codice di verifica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verification Code"
+          }
+        }
+      }
+    },
+    "Conferma sul Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm on the Mac"
+          }
+        }
+      }
+    },
+    "Cosa arriva sull'iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What Reaches the iPhone"
+          }
+        }
+      }
+    },
+    "Dati di %@, possono essere vecchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Data from %@, may be out of date"
+          }
+        }
+      }
+    },
+    "Deve essere uguale a quello su «%@»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It must match the one on “%@”."
+          }
+        }
+      }
+    },
+    "Fase" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phase"
+          }
+        }
+      }
+    },
+    "File" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Files"
+          }
+        }
+      }
+    },
+    "Fine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "Fotocamera non disponibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera Unavailable"
+          }
+        }
+      }
+    },
+    "I Mac accoppiati cancellano la chiave e i dati in iCloud. Per usare di nuovo il Telecomando dovrai accoppiare da capo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The paired Macs delete the key and the data in iCloud. To use the Remote again, you'll need to pair from scratch."
+          }
+        }
+      }
+    },
+    "Il Mac dorme, visto %@: i dati possono essere vecchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Mac is asleep, seen %@: data may be out of date"
+          }
+        }
+      }
+    },
+    "Inquadra di nuovo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scan Again"
+          }
+        }
+      }
+    },
+    "Le Sessioni aperte sul Mac compaiono qui. Quelle dei Progetti solo Mac restano sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions open on the Mac appear here. Those of Mac-only Projects stay on the Mac."
+          }
+        }
+      }
+    },
+    "Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac"
+          }
+        }
+      }
+    },
+    "Mai i contenuti dei file, la trascrizione completa o gli Allegati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never the contents of files, the full transcript or Attachments."
+          }
+        }
+      }
+    },
+    "Mirino del QR" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR Viewfinder"
+          }
+        }
+      }
+    },
+    "Modifiche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes"
+          }
+        }
+      }
+    },
+    "Nessuna Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Sessions"
+          }
+        }
+      }
+    },
+    "Per inquadrare il QR, consenti a Bubo di usare la fotocamera in Impostazioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To scan the QR code, allow Bubo to use the camera in Settings."
+          }
+        }
+      }
+    },
+    "Revoca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke"
+          }
+        }
+      }
+    },
+    "Revoca questo iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke This iPhone"
+          }
+        }
+      }
+    },
+    "Revocare questo iPhone?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Revoke This iPhone?"
+          }
+        }
+      }
+    },
+    "Righe aggiunte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines Added"
+          }
+        }
+      }
+    },
+    "Righe tolte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lines Removed"
+          }
+        }
+      }
+    },
+    "Serve lo stesso Account Apple su Mac e iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Mac and the iPhone need the same Apple Account."
+          }
+        }
+      }
+    },
+    "Sessione non più sull'iPhone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session No Longer on the iPhone"
+          }
+        }
+      }
+    },
+    "Sessioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions"
+          }
+        }
+      }
+    },
+    "Su «%@» controlla che il codice sia lo stesso e scegli Accoppia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On “%@”, check that the code is the same and choose Pair."
+          }
+        }
+      }
+    },
+    "Sul Mac, in Bubo apri Impostazioni › iPhone, accendi il Telecomando e scegli Mostra il QR." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On the Mac, in Bubo open Settings › iPhone, turn on the Remote and choose Show QR Code."
+          }
+        }
+      }
+    },
+    "Ultimi messaggi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest Messages"
+          }
+        }
+      }
+    },
+    "Visto %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seen %@"
+          }
+        }
+      }
+    },
+    "Visto %@: i dati possono essere vecchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seen %@: data may be out of date"
+          }
+        }
+      }
+    },
+    "attivita.attendeTe" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting on you"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attende te"
+          }
+        }
+      }
+    },
+    "attivita.errore" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Error"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Errore"
+          }
+        }
+      }
+    },
+    "attivita.ferma" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopped"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ferma"
+          }
+        }
+      }
+    },
+    "attivita.lavora" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lavora"
+          }
+        }
+      }
+    },
+    "fase.aperta" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Aperta"
+          }
+        }
+      }
+    },
+    "fase.archiviata" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archived"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Archiviata"
+          }
+        }
+      }
+    },
+    "fase.fusa" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Merged"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fusa"
+          }
+        }
+      }
+    },
+    "fase.inRevisione" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In review"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "In revisione"
+          }
+        }
+      }
+    },
+    "È stata archiviata o il suo Progetto è solo Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It was archived, or its Project is Mac-only."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

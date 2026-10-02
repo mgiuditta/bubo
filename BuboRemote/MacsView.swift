@@ -9,14 +9,7 @@ struct MacsView: View {
         List {
             Section {
                 ForEach(model.macs) { mac in
-                    VStack(alignment: .leading) {
-                        Text(mac.name)
-                        // The Battito arrives with the Sessioni (step 3 of spec 21).
-                        Text("Ancora nessun Battito")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                    .accessibilityElement(children: .combine)
+                    HeartbeatRow(macName: mac.name, heartbeat: model.snapshots[mac.id]?.heartbeat)
                 }
                 Button("Accoppia un altro Mac", systemImage: "plus") { model.startPairing() }
             } footer: {

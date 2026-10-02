@@ -19,6 +19,15 @@ public struct RecordSealer: Sendable {
         self.key = key
     }
 
+    /// Returns the ID of the pair's record named `name`, such as the card of a Sessione: always the same for the
+    /// pair, unreadable without its key, different for every other pair.
+    public func recordID(named name: String) -> String {
+        HMAC<SHA256>.authenticationCode(for: Data(name.utf8), using: key)
+            .prefix(16)
+            .map { byte in (byte < 16 ? "0" : "") + String(byte, radix: 16) }
+            .joined()
+    }
+
     /// Returns `plaintext` encrypted for the record `recordID`: nonce, ciphertext and tag.
     public func seal(_ plaintext: Data, recordID: String) throws -> Data {
         try ChaChaPoly.seal(plaintext, using: key, authenticating: Data(recordID.utf8)).combined

@@ -6448,6 +6448,16 @@
         }
       }
     },
+    "Le Sessioni di un Progetto solo Mac non escono dal Mac: l'iPhone non le vede." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Sessions of a Mac-only Project never leave this Mac: the iPhone doesn't see them."
+          }
+        }
+      }
+    },
     "Leggetevi il codice a voce o in chiamata. Deve essere uguale sul Mac di %@." : {
       "localizations" : {
         "en" : {
@@ -6508,6 +6518,16 @@
         }
       }
     },
+    "Nessun Progetto: compaiono qui con la prima Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Projects yet: they appear here with their first Session."
+          }
+        }
+      }
+    },
     "Non coincide" : {
       "localizations" : {
         "en" : {
@@ -6554,6 +6574,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Now send yours: without your Ticket, %@ can’t open your Deliveries or send you any."
+          }
+        }
+      }
+    },
+    "Progetti solo Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac-only Projects"
           }
         }
       }
