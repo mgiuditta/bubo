@@ -19,6 +19,9 @@ struct SettingsView: View {
             Tab("Modelli", systemImage: "cpu") {
                 ModelsSettingsView()
             }
+            Tab("Budget", systemImage: "gauge.with.dots.needle.67percent") {
+                BudgetSettingsView()
+            }
             Tab("Macchine", systemImage: "server.rack") {
                 MachinesSettingsView()
             }

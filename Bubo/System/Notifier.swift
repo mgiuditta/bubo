@@ -78,6 +78,32 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         }
     }
 
+    /// Announces that the Budget of `status` passed its threshold, or is spent (spec 18); a click opens the HUD.
+    func announce(_ status: BudgetGuard.Status) async {
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            let budget = status.scope.budgetTitle
+            let spent = SessionCostTotal.formatted(status.spent.value)
+            let limit = status.limit.formatted(.currency(code: "USD"))
+            if status.level == .exhausted {
+                content.title = String(localized: "\(budget) esaurito",
+                                       comment: "Notification title: a monthly Budget is spent, such as «Budget di OpenAI esaurito».")
+            } else {
+                content.title = String(localized: "\(budget) oltre la soglia",
+                                       comment: "Notification title: a monthly Budget passed its threshold, such as «Budget di OpenAI oltre la soglia».")
+            }
+            let share = status.share.formatted(.percent.precision(.fractionLength(0)))
+            content.body = String(localized: "Spesi \(spent) su \(limit) questo mese (\(share)). Nelle scelte automatiche Bubo usa un altro modello, se c'è.",
+                                  comment: "Notification body of a Budget past its threshold: the Spesa of the month, the limit, the share spent, and what the router does.")
+            content.threadIdentifier = "budget"
+            try await center.add(UNNotificationRequest(identifier: "budget-\(UUID().uuidString)", content: content,
+                                                       trigger: nil))
+        } catch {
+            Logger.costs.error("Budget notification not posted: \(error)")
+        }
+    }
+
     /// Announces that the recovery started an Esecuzione of `automation` for the time it missed, `scheduledAt`.
     func announceRecovery(of automation: Automation, scheduledAt: Date) async {
         do {

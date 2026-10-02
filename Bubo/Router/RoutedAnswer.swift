@@ -31,6 +31,8 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
     let endpoint: OpenAICompatibleEndpoint?
     /// The tokens the endpoint counted for the turn, input and output together.
     var endpointTokens: Int?
+    /// What the line says of the Budgets the turn counts in; `nil` when there is nothing to say.
+    var budgetNotice: BudgetNotice?
 
     init(route: Route, provider: Provider?, endpoint: OpenAICompatibleEndpoint? = nil) {
         self.route = route

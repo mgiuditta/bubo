@@ -17,6 +17,9 @@ nonisolated struct ModelRouter {
         var localOutages: [String: LocalModelDetector.Availability] = [:]
         /// Whether the Mac has no network: the Domande go to the Modello locale, or else to Apple Foundation Models.
         var isOffline = false
+        /// The providers paid per use whose Budget is past its threshold, as the CostLedger names them ("Anthropic"
+        /// only with the API key): the router avoids them when it has an alternative (spec 18).
+        var overBudget: Set<String> = []
         /// The share of the 5-hour window used, from 0 to 1; `nil` when unknown: with the API key, never reported,
         /// or past its reset. Unknown, the Quota changes nothing.
         var fiveHourUsed: Double?
@@ -40,6 +43,20 @@ nonisolated struct ModelRouter {
     func route(for classification: RequestClassification?, fit: OnDeviceFit = .unavailable,
                hasAttachments: Bool = false, readsOnDevice: Bool = true, preferences: Preferences = .none,
                in catalog: ModelCatalog?) -> Route {
+        let route = routeBeforeBudgets(for: classification, fit: fit, hasAttachments: hasAttachments,
+                                       readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
+        guard let classification, let provider = Self.paidProvider(of: route),
+              preferences.overBudget.contains(provider) else { return route }
+        return Self.alternative(to: route, avoiding: provider, for: classification, fit: fit,
+                                hasAttachments: hasAttachments, readsOnDevice: readsOnDevice,
+                                preferences: preferences, in: catalog) ?? route
+    }
+
+    /// The route of `classification` before the Budgets, which `route(for:fit:hasAttachments:readsOnDevice:preferences:in:)`
+    /// then reads.
+    private func routeBeforeBudgets(for classification: RequestClassification?, fit: OnDeviceFit,
+                                    hasAttachments: Bool, readsOnDevice: Bool, preferences: Preferences,
+                                    in catalog: ModelCatalog?) -> Route {
         guard let classification else { return Route(family: nil, model: nil, effort: nil, reason: .unclassified) }
         let type = classification.type
         if preferences.isOffline,
@@ -61,6 +78,39 @@ nonisolated struct ModelRouter {
                                       readsOnDevice: readsOnDevice, in: catalog)
         route.pausedPreference = pause
         return route
+    }
+
+    /// Who is paid for `route`, as the CostLedger names it; `nil` for a model on the Mac, which is free.
+    static func paidProvider(of route: Route) -> String? {
+        switch route.destination {
+        case .claude: Budgets.claude
+        case .onDevice: nil
+        case let .endpoint(endpoint): endpoint.isOnMac ? nil : endpoint.name
+        }
+    }
+
+    /// Another route for `route`, whose provider's Budget is past its threshold: the Tipo's default for a preference,
+    /// or else the Modello locale; `nil` when there is none and `route` stays, with the warning only.
+    private static func alternative(to route: Route, avoiding provider: String,
+                                    for classification: RequestClassification, fit: OnDeviceFit,
+                                    hasAttachments: Bool, readsOnDevice: Bool, preferences: Preferences,
+                                    in catalog: ModelCatalog?) -> Route? {
+        if case .preferred = route.reason {
+            var fallback = defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
+                                        readsOnDevice: readsOnDevice, in: catalog)
+            if paidProvider(of: fallback).map(preferences.overBudget.contains) != true {
+                fallback.pausedPreference = .overBudget(provider)
+                return fallback
+            }
+        }
+        // The Allegati go only to Claude or to Apple FM (#101).
+        guard let local = preferences.localModel, !hasAttachments,
+              preferences.localOutages[local.id] ?? .available == .available else { return nil }
+        var fallback = Route(family: nil, model: nil, effort: nil,
+                             reason: .type(classification.type, runnerUp: classification.runnerUp),
+                             destination: .endpoint(local))
+        fallback.avoidedBudget = provider
+        return fallback
     }
 
     /// The route of the Tipo's default, from the table of spec 10, within `catalog`.
