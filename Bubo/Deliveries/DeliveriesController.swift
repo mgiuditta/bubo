@@ -19,11 +19,31 @@ final class DeliveriesController {
         var isConfirmed = false
     }
 
+    /// A Consegna opened, or why it does not open: the foglio "Consegna ricevuta" or "Non si apre".
+    struct Receipt: Identifiable {
+        /// Which foglio.
+        enum State: Equatable {
+            /// Verified and decrypted: the foglio "Consegna ricevuta".
+            case received(DeliveryOpener.Opened)
+            /// The foglio "Non si apre".
+            case failed(DeliveryOpener.Failure)
+        }
+
+        let id = UUID()
+        var state: State
+
+        /// The Consegna's id once verified; `nil` when it did not open.
+        var deliveryID: UUID? {
+            guard case let .received(opened) = state else { return nil }
+            return opened.manifest.id
+        }
+    }
+
     /// What opening a `.bubo` file led to.
     enum Opening: Equatable {
         /// A Biglietto, now in ``pendingImport``.
         case ticket
-        /// A Consegna: opened in a later version (#278).
+        /// A Consegna, verified or not: now in ``receipt``.
         case consegna
         /// The file does not open.
         case failed(DeliveryError)
@@ -38,6 +58,10 @@ final class DeliveriesController {
     private(set) var tickets: [ReceivedTicket] = []
     /// The Biglietto opened and not decided yet.
     var pendingImport: TicketImport?
+    /// The Consegna opened and not put among the Bozze or discarded yet, or why it did not open.
+    var receipt: Receipt?
+    /// Opens the Consegne: where their content waits in the clear.
+    var opener = DeliveryOpener()
     /// The last failure of the key or of the store, shown in Impostazioni › Consegne.
     private(set) var failure: String?
     /// This Mac's Biglietto as a file, to share; rewritten when the person's name changes.
@@ -95,7 +119,10 @@ final class DeliveriesController {
     func open(_ url: URL) async -> Opening {
         do {
             let header = try DeliveryHeader(contentsOf: url)
-            guard header.kind == .biglietto else { return .consegna }
+            guard header.kind == .biglietto else {
+                receipt = Receipt(state: await openDelivery(url))
+                return .consegna
+            }
             let file: Data
             do {
                 file = try Data(contentsOf: url)
@@ -115,6 +142,38 @@ final class DeliveriesController {
         } catch {
             return .failed(.unreadable)
         }
+    }
+
+    /// Checks and decrypts the Consegna at `url` with this Mac's key, off the main actor.
+    private func openDelivery(_ url: URL) async -> Receipt.State {
+        await load()
+        let privateKey: SecureEnclave.P256.KeyAgreement.PrivateKey
+        do {
+            privateKey = try await key.privateKey()
+        } catch {
+            return .failed(.unavailable)
+        }
+        do {
+            return .received(try await Self.open(url, with: privateKey, among: tickets, by: opener))
+        } catch {
+            log.error("Consegna not opened: \(String(describing: error), privacy: .public)")
+            return .failed(error)
+        }
+    }
+
+    @concurrent private static func open(_ url: URL, with key: SecureEnclave.P256.KeyAgreement.PrivateKey,
+                                         among tickets: [ReceivedTicket], by opener: DeliveryOpener)
+        async throws(DeliveryOpener.Failure) -> DeliveryOpener.Opened {
+        try opener.open(url, with: key, among: tickets)
+    }
+
+    /// The foglio of the Consegna closed: Scarta, or it did not open. Its content in the clear goes, unless
+    /// `keepingContent`: a Bozza has it.
+    func dismissReceipt(keepingContent: Bool = false) {
+        if !keepingContent, case let .received(opened)? = receipt?.state {
+            try? FileManager.default.removeItem(at: opened.folder)
+        }
+        receipt = nil
     }
 
     /// Coincide: saves the Biglietto as verified, then the sheet proposes to send this Mac's one.

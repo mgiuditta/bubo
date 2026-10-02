@@ -2,44 +2,47 @@ import SwiftUI
 
 /// Bubo's settings window.
 struct SettingsView: View {
+    /// The tab shown: the last one chosen, or the one a button elsewhere asked for, such as Impostazioni › Consegne.
+    @AppStorage(SettingsTab.defaultsKey) private var tab = SettingsTab.general
+
     var body: some View {
-        TabView {
-            Tab("Generale", systemImage: "gearshape") {
+        TabView(selection: $tab) {
+            Tab("Generale", systemImage: "gearshape", value: SettingsTab.general) {
                 GeneralSettingsView()
             }
-            Tab("Aspetto", systemImage: "paintbrush") {
+            Tab("Aspetto", systemImage: "paintbrush", value: SettingsTab.appearance) {
                 AppearanceSettingsView()
             }
-            Tab("Account", systemImage: "person.crop.circle") {
+            Tab("Account", systemImage: "person.crop.circle", value: SettingsTab.account) {
                 AccountSettingsView()
             }
-            Tab("Permessi", systemImage: "lock.shield") {
+            Tab("Permessi", systemImage: "lock.shield", value: SettingsTab.permissions) {
                 PermissionsSettingsView()
             }
-            Tab("Modelli", systemImage: "cpu") {
+            Tab("Modelli", systemImage: "cpu", value: SettingsTab.models) {
                 ModelsSettingsView()
             }
-            Tab("Budget", systemImage: "gauge.with.dots.needle.67percent") {
+            Tab("Budget", systemImage: "gauge.with.dots.needle.67percent", value: SettingsTab.budget) {
                 BudgetSettingsView()
             }
-            Tab("Macchine", systemImage: "server.rack") {
+            Tab("Macchine", systemImage: "server.rack", value: SettingsTab.machines) {
                 MachinesSettingsView()
             }
-            Tab("Voce", systemImage: "waveform") {
+            Tab("Voce", systemImage: "waveform", value: SettingsTab.voice) {
                 VoiceSettingsView()
             }
-            Tab("iPhone", systemImage: "iphone") {
+            Tab("iPhone", systemImage: "iphone", value: SettingsTab.iphone) {
                 RemoteSettingsView()
             }
             // A Group: the builder takes at most 10 tabs.
             Group {
-                Tab("Consegne", systemImage: "shippingbox") {
+                Tab("Consegne", systemImage: "shippingbox", value: SettingsTab.deliveries) {
                     DeliveriesSettingsView()
                 }
-                Tab("Scorciatoie", systemImage: "keyboard") {
+                Tab("Scorciatoie", systemImage: "keyboard", value: SettingsTab.shortcuts) {
                     ShortcutSettingsView()
                 }
-                Tab("Diagnostica", systemImage: "stethoscope") {
+                Tab("Diagnostica", systemImage: "stethoscope", value: SettingsTab.diagnostics) {
                     DiagnosticsView()
                 }
             }

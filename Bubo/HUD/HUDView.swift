@@ -34,6 +34,20 @@ struct HUDView: View {
                 .sheet(item: hud.deliverySession == nil ? Bindable(deliveries).pendingImport : .constant(nil)) { pending in
                     TicketImportSheet(pending: pending, deliveries: deliveries)
                 }
+            // A Consegna opened: "Consegna ricevuta", or "Non si apre".
+            Color.clear
+                .sheet(item: Bindable(deliveries).receipt) { receipt in
+                    switch receipt.state {
+                    case let .received(opened):
+                        if let sessions {
+                            DeliveryReceivedSheet(opened: opened, deliveries: deliveries, store: sessions)
+                        }
+                    case let .failed(failure):
+                        DeliveryErrorSheet(failure: failure, machine: deliveries.machine) {
+                            deliveries.dismissReceipt()
+                        }
+                    }
+                }
         }
         // A drop with no Sessione in front: a new Domanda with the Allegati (regola "Sessione davanti").
         .dropDestination(for: URL.self) { urls, _ in

@@ -124,6 +124,10 @@ final class SessionStore {
     /// The version of `claude` when it is too old to start a turn, checked before each one (spec 27); `nil` lets it
     /// start. By default nothing is checked here: the bridge still checks at `init`.
     @ObservationIgnored var outdatedClaude: () async -> String? = { nil }
+    /// Where the Consegne wait in the clear, and how their branch goes (spec 24).
+    @ObservationIgnored var deliveryOpener = DeliveryOpener()
+    /// `~/.claude/projects`, where Avvia of a Consegna writes its conversation for `claude` to resume.
+    @ObservationIgnored var claudeProjects = URL.homeDirectory.appending(path: ".claude/projects", directoryHint: .isDirectory)
     /// Called when a turn did not start because `claude` is too old, with its version if known.
     @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
     /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.
@@ -311,6 +315,48 @@ final class SessionStore {
         if onCheckout { servers.notice() }
         turnTasks[session.id] = Task { await run(session.id, prompt: prompt, branch: branch) }
         return session.id
+    }
+
+    /// Avvia of a Bozza from a Consegna (spec 24): a worktree on its branch `consegna/…` (a new copy without one), the
+    /// delivered conversation written for that worktree, then a Sessione whose first turn resumes it with this Mac's
+    /// account. The content in the clear goes once written: the conversation lives in Bubo's copy like any other.
+    ///
+    /// - Returns: The id of the new Sessione.
+    /// - Throws: `WorktreeError` when git fails, or a file error when the conversation cannot be written.
+    @discardableResult
+    func startDelivered(_ draft: Draft, _ delivery: DraftDelivery) async throws -> UUID {
+        let workspace = if let branch = delivery.branch {
+            try await worktrees.reopen(Workspace(folder: draft.project, branch: branch, base: delivery.baseCommit),
+                                       of: draft.project)
+        } else {
+            try await worktrees.prepare(draft.project, branch: Session.proposedBranch(for: draft.title))
+        }
+        let folder = DeliveryOpener.folder(of: delivery.id, in: deliveryOpener.root)
+        try DeliveryOpener.restore(folder, sessionID: delivery.sessionID, for: workspace.folder, in: claudeProjects)
+        try? FileManager.default.removeItem(at: folder)
+
+        let prompt = String(localized: "Questa conversazione ti arriva da \(delivery.person), che l'ha consegnata. Riprendi da dove si era fermata: in poche righe, a che punto siamo e cosa resta da fare.")
+        var session = Session(id: UUID(), title: draft.title, project: draft.project, activitySince: .now)
+        session.prompt = prompt
+        session.workspace = workspace
+        session.continuedConversation = delivery.sessionID
+        session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
+        sessions.append(session)
+        drafts.remove(draft.id)
+        save()
+        followActivity()
+        if let failure = await worktrees.runSetup(in: workspace, environment: session.portEnvironment) {
+            update(session.id) { $0.setupFailure = failure }
+        }
+        turnTasks[session.id] = Task { await run(session.id, prompt: prompt, branch: workspace.branch ?? "") }
+        return session.id
+    }
+
+    /// Scarta of a Bozza from a Consegna: the Bozza, the content in the clear and the branch, unless a worktree has it.
+    func discardDelivered(_ draft: Draft) async {
+        drafts.remove(draft.id)
+        guard let delivery = draft.delivery else { return }
+        await deliveryOpener.discard(delivery.id, branch: delivery.branch, in: draft.project)
     }
 
     /// Starts the Sessione of an Esecuzione of an Automazione, marked with `automation`, in a new copy of `project` on
