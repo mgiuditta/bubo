@@ -1,5 +1,6 @@
 import CryptoKit
 import Foundation
+import LocalAuthentication
 import os
 import RemoteKit
 import UIKit
@@ -33,8 +34,12 @@ final class RemoteModel {
     private(set) var macs: [PairedMac] = []
     /// The pairing in progress; `nil` when none.
     private(set) var pairing: Pairing?
-    /// What each paired Mac lets out, by Mac: its Battito and the cards of its Sessioni.
+    /// What each paired Mac lets out, by Mac: its Battito, the cards of its Sessioni and the Richieste waiting.
     private(set) var snapshots: [UUID: MacSnapshot] = [:]
+    /// The Richieste this iPhone answered, hidden until the Mac retires them.
+    private(set) var answered: Set<UUID> = []
+    /// The Richiesta a notification asked to open, shown full screen in Attende te.
+    var focusedRequest: UUID?
 
     let deviceID: UUID
     private let deviceName: String
@@ -62,7 +67,7 @@ final class RemoteModel {
             deviceID: deviceID,
             deviceName: UIDevice.current.name,
             channel: InMemoryRemoteChannel(),
-            store: KeychainStore(service: "com.mgiuditta.bubo.remote.mac")
+            store: KeychainStore(service: PairedMac.keychainService)
         )
     }
 
@@ -186,6 +191,58 @@ final class RemoteModel {
             } catch {
                 log.error("Lettura da \(mac.id): \(String(describing: error), privacy: .public)")
             }
+        }
+        let waiting = Set(snapshots.values.flatMap(\.requests).map(\.id))
+        answered.formIntersection(waiting)
+        await RemoteNotifications.withdrawAll(except: waiting)
+    }
+
+    /// The Richieste waiting on every paired Mac, the oldest first, without those this iPhone already answered.
+    var waitingRequests: [WaitingRequest] {
+        macs.flatMap { mac in
+            (snapshots[mac.id]?.requests ?? []).filter { !answered.contains($0.id) }
+                .map { WaitingRequest(macID: mac.id, macName: mac.name, request: $0) }
+        }
+        .sorted { $0.request.expiresAt < $1.request.expiresAt }
+    }
+
+    /// Signs `answer` to the Richiesta `requestID` of the Mac `macID` with the Secure Enclave key, after Face ID, and
+    /// sends the Verdict.
+    ///
+    /// - Parameter expiresAt: Until when the iPhone may decide it; later, only the Mac.
+    /// - Throws: ``DecisionError``.
+    func answer(_ requestID: UUID, of macID: UUID, with answer: Verdict.Answer, expiresAt: Date,
+                now: Date = .now) async throws(DecisionError) {
+        guard let mac = macs.first(where: { $0.id == macID }) else { throw .unknownMac }
+        guard now <= expiresAt else { throw .expired }
+        let verdict = Verdict(requestID: requestID, answer: answer, macID: macID, issuedAt: now)
+        do {
+            let signed = try await Self.sign(verdict, key: mac.signingKey, deviceID: deviceID)
+            try await channel.send(signed, sealer: RecordSealer(key: SymmetricKey(data: mac.recordKey)))
+        } catch let error as DecisionError {
+            throw error
+        } catch {
+            log.error("Verdetto non inviato: \(String(describing: error), privacy: .public)")
+            throw .notSent
+        }
+        answered.insert(requestID)
+        if focusedRequest == requestID { focusedRequest = nil }
+    }
+
+    /// Signs `verdict` off the main actor: Face ID may show, and the Secure Enclave takes its time.
+    ///
+    /// The context lets the Face ID that just unlocked the iPhone, for a notification's action, sign without asking
+    /// again.
+    @concurrent
+    private static func sign(_ verdict: Verdict, key: Data, deviceID: UUID) async throws -> SignedVerdict {
+        let context = LAContext()
+        context.touchIDAuthenticationAllowableReuseDuration = LATouchIDAuthenticationMaximumAllowableReuseDuration
+        context.localizedReason = String(localized: "Firma la tua decisione per il Mac")
+        do {
+            let signer = try SecureEnclaveSigner(dataRepresentation: key, authenticationContext: context)
+            return try verdict.signed(by: signer, deviceID: deviceID)
+        } catch {
+            throw DecisionError.notSigned
         }
     }
 

@@ -4,7 +4,7 @@ import Foundation
 /// The iPhone's answer to a permission Request, signed in the Secure Enclave (spec 21).
 public struct Verdict: Codable, Sendable, Equatable {
     /// The answers the iPhone can give; "Sempre in questo Progetto" exists only on the Mac.
-    public enum Answer: String, Codable, Sendable {
+    public enum Answer: String, Codable, Sendable, CaseIterable {
         /// No.
         case deny
         /// Solo ora.

@@ -39,16 +39,15 @@ struct AutomationRow: View {
             VStack(alignment: .leading, spacing: Spacing.xxSmall) {
                 Text(verbatim: automation.name)
                     .font(Typography.body(size: 13, weight: .semibold))
-                Text(verbatim: [automation.project.lastPathComponent, modelName].joined(separator: " · "))
+                Text(verbatim: details)
                     .font(Typography.mono(size: 11))
                     .foregroundStyle(Palette.textSecondary)
                     .help(automation.project.path)
                 Text(verbatim: schedule)
                     .font(Typography.body(size: 11))
                     .foregroundStyle(Palette.textSecondary)
-                if automation.pauseReason == .projectMissing {
-                    Label("In pausa: il Progetto non è più in \(automation.project.path). Riportalo lì, poi Riprendi.",
-                          systemImage: "exclamationmark.triangle")
+                if let pause = pauseNotice {
+                    Label(pause, systemImage: "exclamationmark.triangle")
                         .font(Typography.body(size: 11))
                         .foregroundStyle(Palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -86,6 +85,23 @@ struct AutomationRow: View {
         if automation.isPaused { return String(localized: "\(recurrence.title()) · in pausa") }
         guard let next = automation.nextDate(after: .now) else { return recurrence.title() }
         return String(localized: "\(recurrence.title()) · prossima \(next.formatted(date: .abbreviated, time: .shortened))")
+    }
+
+    /// Why Bubo put it in pausa by itself, and what brings it back; `nil` when it did not.
+    private var pauseNotice: String? {
+        switch automation.pauseReason {
+        case .projectMissing:
+            String(localized: "In pausa: il Progetto non è più in \(automation.project.path). Riportalo lì, poi Riprendi.")
+        case .agentMissing:
+            String(localized: "In pausa: l'agente «\(automation.agent ?? "")» non c'è più. Ripristina il file o scegli un altro agente in Modifica, poi Riprendi.")
+        case nil:
+            nil
+        }
+    }
+
+    /// Progetto, model and agent, the line under the name.
+    private var details: String {
+        [automation.project.lastPathComponent, modelName, automation.agent].compactMap(\.self).joined(separator: " · ")
     }
 
     private var modelName: String {

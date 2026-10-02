@@ -4,9 +4,12 @@ import os
 /// Runs the Automazioni: each Esecuzione, by its Ripetizione or by [Avvia ora], is a new Sessione in a new worktree,
 /// marked "Automazione", whose turn runs with nobody in front of it (spec 19).
 final class ExecutionRunner {
-    init(automations: AutomationStore, sessions: SessionStore) {
+    /// Creates a runner of `automations` in `sessions`; `agentsUser` is the `~/.claude` folder where the user's agents
+    /// are.
+    init(automations: AutomationStore, sessions: SessionStore, agentsUser: URL = AgentCatalog.userFolder) {
         self.automations = automations
         self.sessions = sessions
+        self.agentsUser = agentsUser
     }
 
     /// The last message the prompt asks for when there is nothing to do: with no changes and no denials, it makes the
@@ -22,12 +25,14 @@ final class ExecutionRunner {
 
     private let automations: AutomationStore
     private let sessions: SessionStore
+    private let agentsUser: URL
     /// The activity of each Esecuzione at work, by its Sessione.
     private var activities: [UUID: any NSObjectProtocol] = [:]
 
     /// Starts an Esecuzione of the Automazione `id` now, and records it in its history; or records it Saltata
     /// (sovrapposta) while the same Automazione is still at work, or, outside git, another Sessione works in its
-    /// Progetto's folder.
+    /// Progetto's folder. When the file of its agent is gone, nothing starts and the Automazione goes in pausa:
+    /// `claude` would only warn, and run without the agent.
     ///
     /// - Parameters:
     ///   - scheduledAt: When its Ripetizione had it due; `nil` for [Avvia ora].
@@ -35,6 +40,12 @@ final class ExecutionRunner {
     @discardableResult
     func run(_ id: Automation.ID, scheduledAt: Date? = nil, at date: Date = .now) -> UUID? {
         guard let automation = automations[id] else { return nil }
+        if let agent = automation.agent,
+           !AgentCatalog.runnableAgents(in: automation.project, user: agentsUser).contains(agent) {
+            automations.pause(id, reason: .agentMissing)
+            Logger.automations.notice("Automazione paused: agent missing")
+            return nil
+        }
         if isOverlapping(automation) {
             automations.record(Execution(startedAt: date, scheduledAt: scheduledAt, outcome: .saltata,
                                          skipReason: .sovrapposta), for: id)
@@ -42,7 +53,7 @@ final class ExecutionRunner {
             return nil
         }
         let mark = AutomationMark(automation: id, name: automation.name, startedAt: date)
-        let turn = UnattendedTurn(rules: automation.rules, model: automation.model.alias)
+        let turn = UnattendedTurn(rules: automation.rules, model: automation.model.alias, agent: automation.agent)
         let prompt = Self.prompt(for: automation, scheduledAt: scheduledAt ?? date, startedAt: date)
         let session = sessions.startExecution(prompt, title: automation.name,
                                               branch: Session.proposedBranch(for: "automazione \(automation.name)"),
