@@ -1,10 +1,11 @@
 import Foundation
 
-/// The tokens and the figure of one turn of `claude`, as the bridge's UsageReader reads them from the SDK's `result`.
+/// The tokens and the figure of one turn: of `claude`, as the bridge's UsageReader reads them from the SDK's `result`,
+/// or of another provider, as `UsageReader` reads its answer.
 ///
-/// The figure is the SDK's list-price estimate, made on the Mac: never a bill.
+/// The figure is an estimate made on the Mac, never a bill, unless the provider reported it; `origin` says which.
 nonisolated struct TurnUsage: Codable, Equatable, Sendable {
-    /// How `claude` paid for the turn (ADR 0003).
+    /// How the turn was paid: `claude`'s subscription or API key (ADR 0003), or the user's key at another provider.
     enum Mode: String, Codable, Sendable {
         case subscription, apiKey
     }
@@ -34,11 +35,32 @@ nonisolated struct TurnUsage: Codable, Equatable, Sendable {
     /// Whether the figure covers the whole turn; `false` after a crash.
     var isComplete: Bool
     var models: [ModelTokens]
+    /// Where `cost` comes from; the SDK's estimate for what the bridge reports.
+    var origin: CostOrigin = .listEstimate
+    /// The day of the PriceTable's prices, for a figure priced with it: the price of the turn's time, never redone.
+    var priceDate: Date?
 
-    /// Spesa with the API key, Valore a listino with the subscription.
-    var unit: CostUnit { mode == .apiKey ? .spesa : .valoreListino }
+    /// Gratis on the Mac; otherwise Spesa per use, Valore a listino with the subscription.
+    var unit: CostUnit {
+        if origin == .free { return .gratis }
+        return mode == .apiKey ? .spesa : .valoreListino
+    }
 
     private enum CodingKeys: String, CodingKey {
-        case mode, cost, basis, isComplete = "complete", models
+        case mode, cost, basis, isComplete = "complete", models, origin, priceDate
+    }
+}
+
+nonisolated extension TurnUsage {
+    /// Reads a turn; one from the bridge, or saved before origins existed, is the SDK's estimate.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        mode = try container.decode(Mode.self, forKey: .mode)
+        cost = try container.decodeIfPresent(Decimal.self, forKey: .cost)
+        basis = try container.decode(Basis.self, forKey: .basis)
+        isComplete = try container.decode(Bool.self, forKey: .isComplete)
+        models = try container.decode([ModelTokens].self, forKey: .models)
+        origin = try container.decodeIfPresent(CostOrigin.self, forKey: .origin) ?? .listEstimate
+        priceDate = try container.decodeIfPresent(Date.self, forKey: .priceDate)
     }
 }

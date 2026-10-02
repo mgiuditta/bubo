@@ -1,8 +1,10 @@
 import SwiftUI
 
-/// Impostazioni › Modelli: the OpenAI-compatible endpoints "Rifai con…" offers besides Claude (spec 10).
+/// Impostazioni › Modelli: the OpenAI-compatible endpoints "Rifai con…" offers besides Claude (spec 10), and the
+/// PriceTable their Spesa is estimated with (spec 18).
 struct ModelsSettingsView: View {
     @State private var settings = EndpointSettings.shared
+    @State private var prices = PriceTable.shared
     @State private var newName = ""
     @State private var newAddress = ""
 
@@ -23,6 +25,13 @@ struct ModelsSettingsView: View {
                     .disabled(newEndpointURL == nil || newName.trimmingCharacters(in: .whitespaces).isEmpty)
             } header: {
                 Text("Altro endpoint compatibile con OpenAI")
+            }
+            Section {
+                Toggle("Aggiorna i prezzi ogni giorno", isOn: $prices.updatesDaily)
+            } header: {
+                Text("Prezzi")
+            } footer: {
+                Text("Con i prezzi di models.dev Bubo stima la spesa di OpenAI, Gemini e xAI sulla tua chiave. L'aggiornamento scarica solo la tabella: non manda niente di tuo. Prezzi del \(prices.snapshot.date.formatted(date: .long, time: .omitted)).")
             }
         }
         .formStyle(.grouped)

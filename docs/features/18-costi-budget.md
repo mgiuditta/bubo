@@ -182,6 +182,7 @@ Fonte: [#136](https://github.com/mgiuditta/bubo/issues/136), regola ereditata da
 - Offline o aggiornamento spento: vale l'istantanea. Prezzi vecchi di oltre 30 giorni: lo si dice ("prezzi del 12 agosto").
 - Modello assente dalla tabella: "senza prezzo", nessuna cifra inventata; il turno conta i token.
 - Claude dall'SDK, OpenRouter dalla risposta: nessuna tabella per loro. Nessun prezzo scritto nel codice.
+- Costruito in [#143](https://github.com/mgiuditta/bubo/issues/143): istantanea in `Bubo/Resources/Prezzi.json`, rifatta con `scripts/update-prices.sh` (stesso taglio di `PriceTable` all'aggiornamento: `openai`, `google`, `xai`, solo il campo `cost`). L'età è la data dello scaricamento, con `etag` per la GET condizionale. xAI si riconosce dall'indirizzo `api.x.ai` di un endpoint personalizzato; gli altri endpoint personalizzati restano "senza prezzo". Prezzi a scaglioni per contesto (`tiers`) applicati a tutto il turno. Interruttore in Impostazioni › Modelli. La tabella Anthropic della Cronologia CLI ([#163](https://github.com/mgiuditta/bubo/issues/163), con la scrittura in cache a 1 h che models.dev non ha) va in un file a parte, non in questa istantanea: un aggiornamento da models.dev la perderebbe.
 
 ### Moduli
 

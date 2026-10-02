@@ -154,12 +154,12 @@ final class SessionStore {
     @ObservationIgnored private var merging: Set<UUID> = []
 
     /// The store in Bubo's Application Support folder.
-    static func makeDefault(alerts: WaitingAlerts, index: SearchIndex?,
+    static func makeDefault(alerts: WaitingAlerts, index: SearchIndex?, ledger: CostLedger,
                             bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
         let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
         let store = SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
-                                 orb: .shared, alerts: alerts, ledger: try .makeDefault(),
+                                 orb: .shared, alerts: alerts, ledger: ledger,
                                  drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")),
                                  automations: AutomationStore(file: support.appending(path: "Bubo/Automazioni.json")),
                                  bridge: bridge)

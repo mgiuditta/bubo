@@ -158,6 +158,23 @@
         }
       }
     },
+    "%@ · prezzi del %@" : {
+      "comment" : "Cost of an answer, then the day of the price table it was estimated with, such as «prezzi del 12 agosto».",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · prezzi del %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · prices as of %2$@"
+          }
+        }
+      }
+    },
     "%@ è escluso per questa Domanda: non hai dato il consenso." : {
       "localizations" : {
         "en" : {
@@ -936,6 +953,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Update PR"
+          }
+        }
+      }
+    },
+    "Aggiorna i prezzi ogni giorno" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update prices daily"
           }
         }
       }
@@ -2531,6 +2558,16 @@
         }
       }
     },
+    "Cifra riportata dal fornitore nella risposta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amount reported by the provider in the answer."
+          }
+        }
+      }
+    },
     "Claude" : {
       "localizations" : {
         "en" : {
@@ -2887,6 +2924,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unknown components: it may run code on this Mac"
+          }
+        }
+      }
+    },
+    "Con i prezzi di models.dev Bubo stima la spesa di OpenAI, Gemini e xAI sulla tua chiave. L'aggiornamento scarica solo la tabella: non manda niente di tuo. Prezzi del %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With models.dev prices, Bubo estimates what OpenAI, Gemini and xAI charge on your key. Updating only downloads the table: nothing of yours is sent. Prices as of %@."
           }
         }
       }
@@ -7613,6 +7660,16 @@
         }
       }
     },
+    "Prezzi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prices"
+          }
+        }
+      }
+    },
     "Prima di eseguirlo ti mostro il comando come lo vede claude, con la sua impronta." : {
       "localizations" : {
         "en" : {
@@ -9658,6 +9715,16 @@
         }
       }
     },
+    "Token contati dal fornitore per i prezzi di models.dev del %@: una stima, non una fattura." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tokens counted by the provider times models.dev prices as of %@: an estimate, not a bill."
+          }
+        }
+      }
+    },
     "Token contati dal fornitore, che li addebita sulla tua chiave. Bubo non conosce il prezzo." : {
       "localizations" : {
         "en" : {
@@ -10534,6 +10601,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "about %@"
+          }
+        }
+      }
+    },
+    "circa %@ sulla tua chiave" : {
+      "comment" : "Cost of an answer from another provider, paid on the user's own key: tokens times the provider's list prices.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "about %@ on your key"
           }
         }
       }

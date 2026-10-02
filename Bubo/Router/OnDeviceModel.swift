@@ -58,6 +58,12 @@ nonisolated struct OnDeviceModel: Sendable {
         }
     }
 
+    /// The tokens of `text`, counted by the model itself with no time budget; `nil` before macOS 26.4 or when the count
+    /// fails.
+    @concurrent func tokenCount(of text: String) async -> Int? {
+        try? await counter(text)
+    }
+
     /// A new session with `instructions`: one per request, so no transcript grows into the context.
     func makeSession(instructions: String) -> LanguageModelSession {
         LanguageModelSession(model: model, instructions: instructions)

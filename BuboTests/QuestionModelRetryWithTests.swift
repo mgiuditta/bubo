@@ -17,14 +17,15 @@ struct QuestionModelRetryWithTests {
     }
 
     /// A Domanda answered by Sonnet through a bridge played by `/bin/sh`, with `settings`' endpoints in "Rifai con…".
-    func answeredModel() async -> QuestionModel {
+    func answeredModel(ledger: CostLedger? = nil) async -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         let orb = OrbControls()
         let model = QuestionModel(cli: cli, orb: orb, intake: IntakePipeline(orb: orb, makeClassifier: { nil }),
                                   bridgeExecutable: URL(filePath: "/bin/sh"),
                                   bridgeArguments: ["-c", QuestionModelTests.sonnetBridge], apiKey: { nil },
                                   endpoints: settings, endpointClient: OpenAICompatibleClient(session: FakeChatServer.session),
-                                  endpointKey: { _ in "sk-prova" })
+                                  endpointKey: { _ in "sk-prova" }, ledger: ledger,
+                                  prices: PriceTable(file: nil, bundled: PriceTableTests.snapshot))
         await QuestionModelTests.ask(model)
         return model
     }
@@ -62,6 +63,26 @@ struct QuestionModelRetryWithTests {
 
         await QuestionModelTests.ask(model)
         #expect(model.excludedEndpoints.isEmpty)
+    }
+
+    // Acceptance of #143: the Domanda's turn enters the ledger in "Domande", with its provider, tokens, unit and origin.
+    @Test func theCloudsTurnIsRecordedInDomande() async throws {
+        let ledger = CostLedger()
+        let model = await answeredModel(ledger: ledger)
+        settings.grantConsent(to: endpoint)
+
+        model.retry(with: try alternative(in: model))
+        await model.answering?.value
+
+        let entry = try #require(ledger.entries.last)
+        #expect(entry.project == nil)
+        #expect(entry.provider == "OpenAI")
+        #expect(entry.usage.origin == .unpriced)
+        #expect(entry.usage.unit == .spesa)
+        #expect(entry.usage.cost == nil)
+        #expect(entry.usage.models.map(\.inputTokens) == [5])
+        #expect(entry.usage.models.map(\.outputTokens) == [2])
+        #expect(ledger.questionTotals()["OpenAI"]?[.spesa]?.value == 0)
     }
 
     @Test func withConsentTheCloudAnswersWithTheTextOnly() async throws {
