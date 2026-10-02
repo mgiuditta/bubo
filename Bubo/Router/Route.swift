@@ -26,6 +26,16 @@ nonisolated struct Route: Equatable, Sendable {
         case failed
     }
 
+    /// Why the user's preference for the Tipo did not answer, and its default did: the preference stays saved.
+    enum PausedPreference: Equatable, Sendable {
+        /// The preferred Claude family is not in the user's catalog, for their plan or organization.
+        case notInCatalog(ModelFamily)
+        /// The preferred endpoint has no model, or a cloud lost the user's consent.
+        case endpointUnavailable
+        /// The Domanda carries Allegati, which go only to Claude or to the Mac (#101).
+        case attachments
+    }
+
     /// Why the router chose what it chose.
     enum Reason: Equatable, Sendable {
         /// The default of the Tipo; with `runnerUp`, the stronger default of the two Tipi the classifier hesitated over.
@@ -55,6 +65,8 @@ nonisolated struct Route: Equatable, Sendable {
     var destination: Destination = .claude
     /// Why Apple Foundation Models did not answer a Tipo it answers by default; `nil` when it did, or for other Tipi.
     var onDeviceFallback: OnDeviceFallback?
+    /// Why the user's preference for the Tipo did not answer; `nil` without one, or when it did.
+    var pausedPreference: PausedPreference?
 
     /// The route of a Domanda of `type` that Apple Foundation Models answers on the Mac.
     static func onDevice(_ type: RequestType, runnerUp: RequestType?) -> Route {

@@ -69,6 +69,9 @@ struct RouterLine: View {
         case .onDevice: appleFM
         case let .endpoint(endpoint): endpoint.name
         }
+        if case let .type(type, _) = route.reason, let pause = route.pausedPreference {
+            return reason(String(localized: type.label), family, pause)
+        }
         if case let .type(type, _) = route.reason, let fallback = route.onDeviceFallback {
             return reason(String(localized: type.label), family, fallback)
         }
@@ -94,6 +97,20 @@ struct RouterLine: View {
         case let .preferred(type):
             return LocalizedStringResource("\(String(localized: type.label)) → \(family) (tua preferenza)",
                                            comment: Self.comment)
+        }
+    }
+
+    /// Why a Tipo with a preference went to its default, `family`, instead.
+    private static func reason(_ type: String, _ family: String,
+                               _ pause: Route.PausedPreference) -> LocalizedStringResource {
+        switch pause {
+        case let .notInCatalog(preferred):
+            LocalizedStringResource("\(type) → \(family), tua preferenza \(preferred.name) non disponibile",
+                                    comment: comment)
+        case .endpointUnavailable:
+            LocalizedStringResource("\(type) → \(family), tua preferenza in pausa", comment: comment)
+        case .attachments:
+            LocalizedStringResource("\(type) → \(family), gli allegati vanno solo a Claude o sul Mac", comment: comment)
         }
     }
 
@@ -193,6 +210,9 @@ struct RouterLine: View {
         RouterLine(answer: RoutedAnswer(route: .stronger(Scala.Step(family: .opus, effort: .high)), provider: .anthropic))
         RouterLine(answer: RoutedAnswer(route: Route(family: .opus, model: "opus", effort: .high,
                                                      reason: .preferred(.writing)), provider: .anthropic))
+        RouterLine(answer: RoutedAnswer(route: Route(family: .sonnet, model: "sonnet", effort: .medium,
+                                                     reason: .type(.writing, runnerUp: nil),
+                                                     pausedPreference: .notInCatalog(.fable)), provider: .anthropic))
         RouterLine(answer: {
             var endpoint = OpenAICompatibleEndpoint.known[0]
             endpoint.model = "gpt-5-mini"

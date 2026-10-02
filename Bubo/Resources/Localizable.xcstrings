@@ -342,6 +342,54 @@
         }
       }
     },
+    "%@ → %@, gli allegati vanno solo a Claude o sul Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, attachments go only to Claude or on the Mac"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, gli allegati vanno solo a Claude o sul Mac"
+          }
+        }
+      }
+    },
+    "%@ → %@, tua preferenza %@ non disponibile" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, your preference %3$@ unavailable"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, tua preferenza %3$@ non disponibile"
+          }
+        }
+      }
+    },
+    "%@ → %@, tua preferenza in pausa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ → %2$@, your preference is paused"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ → %2$@, tua preferenza in pausa"
+          }
+        }
+      }
+    },
     "%@ → %@, allegato troppo lungo per Apple FM" : {
       "localizations" : {
         "it" : {
