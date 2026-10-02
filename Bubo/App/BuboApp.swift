@@ -11,6 +11,7 @@ struct BuboApp: App {
             HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions,
                     onboarding: appDelegate.onboarding, launch: appDelegate.launch)
                 .environment(appDelegate.hud)
+                .environment(appDelegate.summarizer)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

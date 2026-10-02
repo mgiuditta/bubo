@@ -21,6 +21,10 @@ final class SessionStore {
     /// Called with each file the agent of a Sessione reads or writes, for the Galassia; reads change no Sessione.
     @ObservationIgnored var onFileActivity: ((UUID, AgentProgress) -> Void)?
 
+    /// Called when a Sessione becomes Fusa with Fondi, or Archiviata with Archivia, with its new Fase: the
+    /// Riassunto di Sessione starts there. The Archiviata that ends a Fusa calls nothing.
+    @ObservationIgnored var onPhaseChange: ((UUID, Session.Phase) -> Void)?
+
     /// How long Annulla merge is offered after Fondi.
     static let undoWindow = Duration.seconds(10)
 
@@ -451,6 +455,7 @@ final class SessionStore {
             session.phase = .fusa
             session.mergedAt = .now
         }
+        onPhaseChange?(id, .fusa)
         undoDeadlines[id] = .now + TimeInterval(Self.undoWindow.components.seconds)
         let finishing = Task { [weak self] in
             try? await Task.sleep(for: Self.undoWindow)
@@ -579,12 +584,21 @@ final class SessionStore {
             session.ports = nil
             session.isInterrupted = false
         }
+        onPhaseChange?(id, .archiviata)
         previews.close(id)
         Task {
             // The shells leave the worktree before it goes.
             await terminals.closeAll(of: id)
             guard let workspace = session.workspace else { return }
             await worktrees.remove(workspace, of: session.project, deletingBranch: false)
+        }
+    }
+
+    /// Records the Riassunto di Sessione of `id`: the note Bubo wrote, when it wrote one, and whether it still waits.
+    func recordSummary(_ note: SummaryNote?, isPending: Bool, in id: UUID) {
+        update(id) { session in
+            if let note { session.summaryNote = note }
+            session.isSummaryPending = isPending
         }
     }
 

@@ -23,6 +23,7 @@ import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { sandboxRules, type SandboxRule } from "./sandboxRules";
 import { blockedLine, blocksOf, type SandboxBlock } from "./violations";
 import { settingSources } from "./settingSources";
+import { summarize, summaryOptions } from "./summary";
 import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
@@ -48,7 +49,8 @@ type Command =
   | { v: number; type: "sandboxRules"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "previewServer"; id: string; available?: unknown }
   | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown }
-  | { v: number; type: "risk"; request: string; dangerous?: unknown };
+  | { v: number; type: "risk"; request: string; dangerous?: unknown }
+  | { v: number; type: "summarize"; id: string; prompt: string; cwd: string; model?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -690,6 +692,9 @@ lines.on("line", (line) => {
     case "cancel": void running.get(command.id)?.interrupt(); break;
     case "found": toolCalls.get(command.id)?.(command.text); toolCalls.delete(command.id); break;
     case "quota": void quota(); break;
+    case "summarize":
+      void summarize(command.id, command.prompt, summaryOptions(command.cwd, typeof command.model === "string" ? command.model : undefined, childEnv, claudePath), query, send);
+      break;
     case "previewServer": {
       // Il server della Sessione è comparso o sparito a turno in corso.
       const conversation = running.get(command.id);

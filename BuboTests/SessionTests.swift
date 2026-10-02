@@ -214,4 +214,11 @@ struct SessionTests {
         #expect(sessions.map(\.forkedFrom) == [nil])
         #expect(sessions.map(\.conversations) == [[]])
     }
+
+    @Test func aSessionSavedBeforeSummariesDecodes() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.summaryNote) == [nil])
+        #expect(sessions.map(\.isSummaryPending) == [false])
+    }
 }

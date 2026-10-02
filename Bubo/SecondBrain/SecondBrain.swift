@@ -54,6 +54,25 @@ final class SecondBrain {
         return note
     }
 
+    /// Writes the Riassunto di Sessione `body` in `Bubo/Sessioni/`, off the main actor, as
+    /// ``NoteWriter/writeSessionSummary(_:properties:replacing:)`` does.
+    ///
+    /// - Returns: The note; `nil` when `previous` was deleted, so nothing is written.
+    /// - Throws: `NoteWriter.Failure.unreachable` also when no folder is chosen; a file system error when the note
+    ///   could not be written.
+    func writeSessionSummary(_ body: String, properties: SummaryProperties,
+                             replacing previous: SummaryNote?) async throws -> SummaryNote? {
+        guard let location else { throw NoteWriter.Failure.unreachable }
+        return try await Self.writeSessionSummary(body, properties: properties, replacing: previous,
+                                                  with: NoteWriter(root: location.url))
+    }
+
+    @concurrent
+    private static func writeSessionSummary(_ body: String, properties: SummaryProperties, replacing previous: SummaryNote?,
+                                            with writer: NoteWriter) async throws -> SummaryNote? {
+        try writer.writeSessionSummary(body, properties: properties, replacing: previous)
+    }
+
     @concurrent
     private static func write(_ text: String, titled title: String,
                               with writer: NoteWriter) async throws -> NoteWriter.WrittenNote {

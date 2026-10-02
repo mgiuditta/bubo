@@ -64,6 +64,9 @@ enum BridgeCommand: Equatable {
     case offerPreview(id: String, isOffered: Bool)
     /// Answers the call `call` to a tool of the Anteprima.
     case answerPreview(call: String, PreviewReply)
+    /// Asks `model` to answer `prompt` in one turn in the empty `directory`, with no tools, no settings and no copy of
+    /// the conversation: the Riassunto di Sessione. The answer comes as for `ask`.
+    case summarize(id: String, prompt: String, directory: URL, model: String?)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -121,6 +124,9 @@ enum BridgeCommand: Equatable {
             object = ["type": "forgetHistory", "id": id]
         case let .offerPreview(id, isOffered):
             object = ["type": "previewServer", "id": id, "available": isOffered]
+        case let .summarize(id, prompt, directory, model):
+            object = ["type": "summarize", "id": id, "prompt": prompt, "cwd": directory.path]
+            object["model"] = model
         case let .answerPreview(call, reply):
             object = ["type": "previewResult", "call": call]
             switch reply {

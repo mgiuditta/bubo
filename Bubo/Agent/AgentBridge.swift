@@ -166,6 +166,35 @@ final class AgentBridge {
         return answer
     }
 
+    /// Asks `model` to answer `prompt` in one turn with no tools, no settings and no copy of the conversation, in an
+    /// empty folder of Bubo: the Riassunto di Sessione. The answer streams as the one of `ask` does.
+    ///
+    /// - Parameter usage: Receives the tokens and the figure of the turn, each time `claude` reports them.
+    func summarize(_ prompt: String, model: String?,
+                   usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
+        let id = UUID().uuidString
+        let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
+        continuation.onTermination = { [weak self] termination in
+            guard case .cancelled = termination else { return }
+            Task { @MainActor in self?.cancel(id) }
+        }
+        do {
+            let directory = URL.temporaryDirectory.appending(path: "bubo-riassunto", directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let process = try runningProcess()
+            answers[id] = continuation
+            usageHandlers[id] = usage
+            try process.input.write(contentsOf: BridgeCommand.summarize(id: id, prompt: prompt, directory: directory,
+                                                                        model: model).line())
+        } catch let ProcessSpawnerError.failed(code) {
+            continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
+        } catch {
+            removeAnswer(id)
+            continuation.finish(throwing: error)
+        }
+        return answer
+    }
+
     /// The Sandbox of a `claude` that gets the bridge's environment and `environment`, reaching also `allowances`.
     private func sandbox(for environment: [String: String], allowances: SandboxAllowances) -> SandboxPolicy {
         SandboxPolicy(environment: self.environment.merging(environment) { $1 }, allowances: allowances)
