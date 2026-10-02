@@ -22,10 +22,13 @@ final class OrbPanelController {
         }
     }
 
-    /// The zone of the grid the Panel sits in; in phase 3 it tells which way bubbles and cards open.
+    /// The zone of the grid the Panel sits in; it tells which way the bubble opens.
     private(set) var zone = PanelPlacement.defaultZone
 
-    /// Creates the Panel, off screen until ``start(openingHUD:)``.
+    /// The bubble beside the Orb, with the prompt and the answer of the Domanda.
+    let bubble = PanelBubble()
+
+    /// Creates the Panel, off screen until ``start(openingHUD:menu:questions:hud:)``.
     init() {
         UserDefaults.standard.register(defaults: [Self.defaultsKey: true])
         isShown = UserDefaults.standard.bool(forKey: Self.defaultsKey)
@@ -43,7 +46,10 @@ final class OrbPanelController {
     /// - Parameters:
     ///   - openHUD: Called when the Orb is clicked or pressed by VoiceOver.
     ///   - menu: The menu of a right click on the Orb, the same as the menu bar's.
-    func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu) {
+    ///   - questions: The Domanda of the HUD, which the bubble shows too.
+    ///   - hud: Where the bubble's "Rifai con…" and Sessione go.
+    func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter) {
+        self.openHUD = openHUD
         let frame = CGRect(origin: .zero, size: CGSize(width: Self.side, height: Self.side))
         let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
@@ -63,6 +69,7 @@ final class OrbPanelController {
         view.drawableSize = CGSize(width: Self.side * Self.renderScale, height: Self.side * Self.renderScale)
         view.preferredFramesPerSecond = 60
         view.onPress = openHUD
+        view.onAsk = { [weak self] in self?.askInPanel() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }
         view.menu = menu
@@ -79,6 +86,7 @@ final class OrbPanelController {
         panel.contentView = view
         self.panel = panel
         self.view = view
+        startBubble(questions: questions, hud: hud)
         moveToRememberedSpot()
 
         // A screen plugged, unplugged or rearranged: back to the remembered spot, or to the main screen.
@@ -105,6 +113,17 @@ final class OrbPanelController {
         updateVisibility()
     }
 
+    /// Opens the bubble with the keyboard in its prompt, or the HUD when the HUD is open and the Panel hidden.
+    func askInPanel() {
+        guard !isHUDOpen else {
+            openHUD()
+            return
+        }
+        bubble.open(focus: .prompt)
+    }
+
+    @ObservationIgnored private var openHUD: () -> Void = {}
+    @ObservationIgnored private var bubbleWindow: PanelBubbleWindow?
     @ObservationIgnored private var panel: NSPanel?
     @ObservationIgnored private var view: MTKView?
     @ObservationIgnored private var renderer: OrbRenderer?
@@ -113,6 +132,73 @@ final class OrbPanelController {
     /// The connected screens, the main one (with the menu bar) first.
     private var screens: [PanelScreen] {
         NSScreen.screens.map { PanelScreen(id: $0.stableID, visibleFrame: $0.visibleFrame) }
+    }
+
+    private func startBubble(questions: QuestionModel, hud: HUDPresenter) {
+        let bubble = bubble
+        let view = PanelBubbleView(bubble: bubble, model: questions, hud: hud) { [weak self] size in
+            self?.placeBubble(size: size)
+        }
+        let window = PanelBubbleWindow.make(content: view)
+        window.onCancel = bubble.close
+        bubbleWindow = window
+
+        // The keyboard gone to another window or app: an empty bubble closes, one with a Domanda stays.
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.didResignKeyNotification, object: window, queue: .main
+        ) { [questions] _ in
+            MainActor.assumeIsolated {
+                bubble.loseKeyboard(closes: PanelBubble.closesOnLosingKeyboard(
+                    prompt: questions.prompt, answer: questions.answer, isAnswering: questions.isAnswering))
+            }
+        }
+        // The window follows the bubble: on screen when it is open, with the keyboard when the prompt asks for it.
+        Task { [weak self] in
+            for await _ in Observations({ (bubble.isOpen, bubble.takesKeyboard) }) {
+                self?.updateBubbleWindow()
+            }
+        }
+        // An answer or a Sintesi parlata that starts with the HUD closed shows in the bubble ("Chiedi a Bubo", voce).
+        Task { [weak self] in
+            for await (isAnswering, isSpeaking) in Observations({ (questions.isAnswering, questions.subtitle != nil) }) {
+                bubble.follow(isAnswering: isAnswering, isSpeaking: isSpeaking,
+                              panelIsVisible: self?.panel?.isVisible == true)
+            }
+        }
+    }
+
+    private func updateBubbleWindow() {
+        guard let panel, let bubbleWindow else { return }
+        guard bubble.isOpen, panel.isVisible else {
+            if bubbleWindow.isVisible {
+                panel.removeChildWindow(bubbleWindow)
+                bubbleWindow.orderOut(nil)
+            }
+            return
+        }
+        if !bubbleWindow.isVisible {
+            placeBubble(size: bubbleWindow.frame.size)
+            bubbleWindow.orderFrontRegardless()
+            // A child moves with the Panel while it is dragged.
+            panel.addChildWindow(bubbleWindow, ordered: .above)
+        }
+        if bubble.takesKeyboard, !bubbleWindow.isKeyWindow {
+            // Never `NSApp.activate`: the app in front keeps being in front.
+            bubbleWindow.makeKey()
+            // For the manual check of focus theft: Bubo stays inactive, the app in front does not change.
+            Logger.panel.debug("""
+                Bubble has the keyboard; Bubo active \(NSApp.isActive), \
+                front \(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "none", privacy: .public)
+                """)
+        }
+    }
+
+    /// Puts a bubble of `size` beside the Panel, toward the screen's center.
+    private func placeBubble(size: CGSize) {
+        guard let panel, let bubbleWindow, let screen = panel.screen ?? NSScreen.main else { return }
+        let frame = PanelBubbleLayout.frame(ofSize: size, besidePanel: panel.frame, in: zone,
+                                            visibleFrame: screen.visibleFrame)
+        if frame != bubbleWindow.frame { bubbleWindow.setFrame(frame, display: true) }
     }
 
     private func moveToRememberedSpot() {
@@ -134,9 +220,11 @@ final class OrbPanelController {
 
     private func move(to spot: PanelSpot, animated: Bool) {
         zone = spot.zone
+        bubble.side = spot.zone.bubbleSide
         let origin = spot.panelOrigin(side: Self.side)
         panel?.setFrame(CGRect(origin: origin, size: CGSize(width: Self.side, height: Self.side)),
                         display: true, animate: animated)
+        if let bubbleWindow, bubbleWindow.isVisible { placeBubble(size: bubbleWindow.frame.size) }
         updateClickThrough()
     }
 
@@ -154,11 +242,15 @@ final class OrbPanelController {
 
     private func updateVisibility() {
         guard let panel, let view else { return }
+        let isHUDOpen = isHUDOpen
+        // The Domanda goes on in the HUD.
+        if isHUDOpen { bubble.close() }
         let wantsPanel = isShown && !isHUDOpen
         if wantsPanel != panel.isVisible {
             if wantsPanel { panel.orderFrontRegardless() } else { panel.orderOut(nil) }
         }
         view.isPaused = !(panel.isVisible && panel.occlusionState.contains(.visible))
+        updateBubbleWindow()
     }
 }
 
