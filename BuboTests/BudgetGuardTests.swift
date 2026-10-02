@@ -148,4 +148,20 @@ struct BudgetGuardTests {
         #expect(past.notice(after: turn.usage, of: "OpenAI") == .reached(.provider("OpenAI"), share: 0.85))
         #expect(past.notice(after: subscription.usage, of: Budgets.claude) == nil)
     }
+
+    // #165: a turn may spend what the tightest Budget has left; with one spent, nothing.
+    @Test func aTurnMaySpendWhatTheTightestBudgetHasLeft() {
+        let entries = [Self.entry(3, provider: Budgets.claude, project: Self.project)]
+        let folder = Self.project.path(percentEncoded: false)
+        let none = BudgetGuard(budgets: Budgets(), entries: entries, now: Self.now, calendar: Self.calendar)
+        let some = BudgetGuard(budgets: Self.budgets { $0.providers[Budgets.claude] = 10; $0.total = 5 },
+                               entries: entries, now: Self.now, calendar: Self.calendar)
+        let spent = BudgetGuard(budgets: Self.budgets { $0.providers[Budgets.claude] = 10; $0.projects[folder] = 3 },
+                                entries: entries, now: Self.now, calendar: Self.calendar)
+
+        #expect(none.allowance(provider: Budgets.claude) == .unlimited)
+        #expect(some.allowance(provider: Budgets.claude) == .upTo(2))
+        #expect(spent.allowance(provider: Budgets.claude) == .upTo(7))
+        #expect(spent.allowance(provider: Budgets.claude, project: Self.project) == .exhausted(.project(Self.project)))
+    }
 }

@@ -17,6 +17,8 @@ enum AgentBridgeError: Error, Equatable {
     case limitReached(Quota.Limit)
     /// The login of `claude` is no longer valid.
     case signInRequired
+    /// The turn stopped at the cap of its Budget, or was never sent because a Budget it counts in is spent (spec 18).
+    case budgetExhausted
     /// The Sandbox could not start, for this reason as `claude` wrote it: nothing ran.
     case sandboxUnavailable(reason: String)
     /// `claude` is too old: nothing ran. `version` is `nil` when `claude` did not say it.
@@ -90,6 +92,8 @@ final class AgentBridge {
     private(set) var claude: (version: String, capabilities: Set<ClaudeCapability>)?
     /// The bridge's process identifier while it runs: each `claude` in progress is one of its children.
     var pid: pid_t? { process?.pid }
+    /// Whether `claude` answers with the API key, paid per use and counted in the Budgets (ADR 0003).
+    var usesAPIKey: Bool { environment["ANTHROPIC_API_KEY"] != nil }
 
     /// Asks `claude` to answer `prompt` in `directory`, streaming the answer as it arrives.
     ///
@@ -118,6 +122,8 @@ final class AgentBridge {
     ///   - rosa: The Varianti the agent may give the Orb while it works, with the tag `⟦orb:nome⟧`.
     ///   - unattended: Makes the turn one with nobody in front of it, an Esecuzione's: `claude` never asks, and a
     ///     Richiesta that arrives anyway is refused at once. Its denials and mode reach `progress`.
+    ///   - maxBudget: What the tightest Budget has left, in US dollars: `claude` stops past it with
+    ///     `AgentBridgeError.budgetExhausted`, at most one answer over. `nil` for no cap.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`,
     ///     and the agent's questions, answered with `answerQuestion(_:with:)`; `nil` refuses them all.
@@ -133,7 +139,7 @@ final class AgentBridge {
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
              rosa: [Variante] = Catalogo.bundled?.rosa() ?? [], unattended: UnattendedTurn? = nil,
-             readableDirectories: [URL] = [],
+             readableDirectories: [URL] = [], maxBudget: Decimal? = nil,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -167,7 +173,7 @@ final class AgentBridge {
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
                                             remembers: remembers, permissionMode: permissionMode, effort: effort,
                                             rosa: rosa.map(\.nome), unattended: unattended,
-                                            readableDirectories: readableDirectories)
+                                            readableDirectories: readableDirectories, maxBudget: maxBudget)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -447,6 +453,8 @@ final class AgentBridge {
             removeAnswer(id)?.finish(throwing: AgentBridgeError.limitReached(limit))
         case let .signInRequired(id):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
+        case let .budgetExhausted(id):
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.budgetExhausted)
         case let .sandboxUnavailable(id, reason):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.sandboxUnavailable(reason: reason))
         case let .claude(_, version, capabilities):

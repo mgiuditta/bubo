@@ -2396,6 +2396,26 @@
         }
       }
     },
+    "Aumenta il Budget…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raise Budget…"
+          }
+        }
+      }
+    },
+    "Aumentalo in Impostazioni › Budget, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raise it in Settings › Budget, then try again."
+          }
+        }
+      }
+    },
     "Automatico (%@)" : {
       "localizations" : {
         "en" : {
@@ -2905,6 +2925,16 @@
         }
       }
     },
+    "Bubo non manda la Domanda senza una tua scelta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo won't send the question until you choose."
+          }
+        }
+      }
+    },
     "Bubo non ne legge il testo: Claude lo apre dal disco, %@ riceve solo testo." : {
       "localizations" : {
         "en" : {
@@ -3098,6 +3128,16 @@
         }
       }
     },
+    "Budget esaurito" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Budget Spent"
+          }
+        }
+      }
+    },
     "Budget mensili sulla Spesa, dal primo del mese nel fuso del Mac. Contano solo i turni passati da Bubo: la riga di comando resta fuori, e l'abbonamento ha già la sua Quota." : {
       "localizations" : {
         "en" : {
@@ -3247,6 +3287,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deliver…"
+          }
+        }
+      }
+    },
+    "Continua solo questa volta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Just This Once"
+          }
+        }
+      }
+    },
+    "Continua solo questa volta…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue Just This Once…"
           }
         }
       }
@@ -3431,6 +3491,16 @@
         }
       }
     },
+    "La Sessione si è fermata: riparte solo con una tua scelta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The session stopped. It starts again only when you choose."
+          }
+        }
+      }
+    },
     "La chiede il subagente «%@»." : {
       "localizations" : {
         "en" : {
@@ -3577,6 +3647,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Passa al locale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to Local Model"
+          }
+        }
+      }
+    },
+    "Passa all'abbonamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch to Subscription"
           }
         }
       }
@@ -3789,6 +3879,16 @@
         }
       }
     },
+    "Solo questa volta si spende oltre il limite. Per i turni dopo il Budget resta com'è." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only this time spending goes past the limit. For later turns the budget stays as it is."
+          }
+        }
+      }
+    },
     "Subagent: %lld, ripuliti allo stesso modo" : {
       "localizations" : {
         "en" : {
@@ -3845,6 +3945,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Once delivered, it's theirs."
+          }
+        }
+      }
+    },
+    "Vuoi andare oltre il Budget?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go Past the Budget?"
           }
         }
       }

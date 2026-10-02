@@ -117,6 +117,15 @@ final class SessionStore {
     @ObservationIgnored var indexer: ConversationIndexer?
     /// Called when a turn of a Sessione fails, with why; the onboarding offers a remedy for the first one (spec 26).
     @ObservationIgnored var onTurnFailure: (_ session: UUID, _ error: any Error) -> Void = { _, _ in }
+    /// The Budgets each turn with the API key is capped by, read again before every turn (spec 18).
+    @ObservationIgnored var budgets = BudgetSettings.shared
+    /// Moves the Domande and the Sessioni back to the subscription (ADR 0003): Passa all'abbonamento at 100%.
+    @ObservationIgnored var moveToSubscription: () -> Void = {}
+    /// The turns in progress capped by a Budget, with their Progetto: stopped as soon as a turn of another Sessione
+    /// spends what is left.
+    @ObservationIgnored private var budgetedTurns: [UUID: URL] = [:]
+    /// The turns stopped because another Sessione spent their Budget, until their end reads it.
+    @ObservationIgnored private var budgetStops: Set<UUID> = []
     /// Which Sessioni have a heavy `claude`, read every 30 s while a turn is in progress (spec 25).
     @ObservationIgnored let footprints = ProcessFootprintMonitor()
     /// The turns in progress, which `restart` and `restartTurn` interrupt; not those resolving conflicts.
@@ -469,6 +478,32 @@ final class SessionStore {
             session.isInterrupted = false
         }
         turnTasks[id] = Task { await run(id, prompt: prompt, branch: session.branchToPrepare) }
+    }
+
+    /// Asks again the turn of the Sessione `id` that a spent Budget stopped (spec 18): within the Budgets, once raised,
+    /// or past them for this turn only when `ignoringBudget`, which the user confirmed. Nothing for any other Sessione.
+    func resumeAfterBudget(_ id: UUID, ignoringBudget: Bool = false) {
+        guard let session = sessions.first(where: { $0.id == id }), session.isLive, session.budgetStop != nil,
+              let prompt = session.unstartedPrompt
+        else { return }
+        update(id) { session in
+            session.enter(.lavora)
+            session.summary = nil
+            session.failure = nil
+            session.unstartedPrompt = nil
+            session.isInterrupted = false
+        }
+        turnTasks[id] = Task {
+            await run(id, prompt: prompt, branch: session.branchToPrepare, ignoringBudget: ignoringBudget)
+        }
+    }
+
+    /// Moves the Domande and the Sessioni back to the subscription, then asks again the turn of the Sessione `id`
+    /// that the Budget of Claude stopped: only on the user's choice (ADR 0003).
+    func resumeWithSubscription(_ id: UUID) {
+        guard sessions.first(where: { $0.id == id })?.budgetStop != nil else { return }
+        moveToSubscription()
+        resumeAfterBudget(id)
     }
 
     /// Starts again the turns that waited for `claude` to be updated, now that it is ready: no click needed.
@@ -1009,7 +1044,7 @@ final class SessionStore {
     /// - Returns: Whether the turn ended without errors.
     @discardableResult
     private func run(_ id: UUID, prompt: String, branch: String, reopening: Workspace? = nil,
-                     unattended: UnattendedTurn? = nil) async -> Bool {
+                     unattended: UnattendedTurn? = nil, ignoringBudget: Bool = false) async -> Bool {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         // The Allegati dropped on the Sessione go with this turn, and only with it.
         let attachments = session.attachments
@@ -1018,6 +1053,7 @@ final class SessionStore {
         update(id) { session in
             session.turnPrompt = prompt
             session.attachments = []
+            session.budgetStop = nil
         }
         let environment = session.portEnvironment
         var conversation: String?
@@ -1043,6 +1079,8 @@ final class SessionStore {
                 }
             }
             let agent = try await bridge()
+            // With the API key the turn gets the shared residue as its cap; spent, nothing is sent (spec 18).
+            let maxBudget = agent.usesAPIKey && !ignoringBudget ? try budgetCap(in: session.project) : nil
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
             let isSandboxed = sandbox.isEnabled(in: session.project)
             // The Anteprima's tools exist only while the Sessione has a server (spec 15).
@@ -1063,8 +1101,10 @@ final class SessionStore {
             }
             previewOffers[id] = (answerID, hasServer)
             pluginReloader.turnDidStart(in: id)
+            if maxBudget != nil { budgetedTurns[id] = session.project }
             defer {
                 pluginReloader.turnDidEnd(in: id)
+                budgetedTurns[id] = nil
                 turns[id] = nil
                 turnPrompts[id] = nil
                 footprints.forget(id)
@@ -1092,7 +1132,8 @@ final class SessionStore {
                                    isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                                    permissionMode: permissionMode, id: answerID,
                                    offersPreview: hasServer, unattended: unattended,
-                                   readableDirectories: QuestionModel.readableDirectories(for: attachments)) { [weak self] progress in
+                                   readableDirectories: QuestionModel.readableDirectories(for: attachments),
+                                   maxBudget: maxBudget) { [weak self] progress in
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .variante(nome): self?.orb?.showWork(nome)
@@ -1106,8 +1147,9 @@ final class SessionStore {
                 }
             } permissions: { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
-            } usage: { [ledger] usage in
+            } usage: { [weak self, ledger] usage in
                 ledger.record(usage, turn: kept, session: id, project: session.project)
+                self?.stopTurnsPastBudget(besides: id)
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             } isDangerous: { request in
@@ -1117,6 +1159,7 @@ final class SessionStore {
                 hasAnswered = true
                 onFirstToken()
             }
+            if budgetStops.remove(id) != nil { throw AgentBridgeError.budgetExhausted }
             update(id) { session in
                 session.enter(.ferma)
                 if !Task.isCancelled { session.continuedConversation = kept }
@@ -1143,6 +1186,8 @@ final class SessionStore {
                 // ponytail: the three choices at the limit are in the Domanda; the Sessione says only why it stopped.
                 case AgentBridgeError.limitReached: String(localized: "Hai raggiunto il limite dell'abbonamento.")
                 case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
+                // The Sessione shows the Budget spent and the choices instead.
+                case AgentBridgeError.budgetExhausted: nil
                 case let AgentBridgeError.sandboxUnavailable(reason):
                     String(localized: "Sandbox non disponibile: \(reason). La Sessione non è partita.")
                 case let AgentBridgeError.claudeOutdated(version?):
@@ -1157,7 +1202,50 @@ final class SessionStore {
                 awaitingClaudeUpdate.insert(id)
                 onClaudeOutdated(version)
             }
+            if case AgentBridgeError.budgetExhausted = error {
+                budgetStops.remove(id)
+                let scope = spentBudget(in: session.project)
+                // Ferma, not in Errore: it waits for the user's choice, and its turn is kept for it.
+                update(id) { session in
+                    session.enter(.ferma)
+                    session.failure = nil
+                    session.unstartedPrompt = prompt
+                    session.budgetStop = scope
+                }
+            }
             return false
+        }
+    }
+
+    /// The cap of a turn with the API key on `project`: what the tightest Budget has left; `nil` without a Budget.
+    ///
+    /// - Throws: `AgentBridgeError.budgetExhausted` when a Budget the turn counts in is spent.
+    private func budgetCap(in project: URL) throws -> Decimal? {
+        switch BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+            .allowance(provider: Budgets.claude, project: project) {
+        case .unlimited: nil
+        case let .upTo(residue): residue
+        case .exhausted: throw AgentBridgeError.budgetExhausted
+        }
+    }
+
+    /// The spent Budget a turn on `project` counts in; Claude's when the ledger does not show one spent yet.
+    private func spentBudget(in project: URL) -> BudgetGuard.Scope {
+        let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        if case let .exhausted(scope) = guarded.allowance(provider: Budgets.claude, project: project) { return scope }
+        return guarded.tightest(provider: Budgets.claude, project: project)?.scope ?? .provider(Budgets.claude)
+    }
+
+    /// Stops at once every turn in progress capped by a Budget now spent, besides `reporting`, whose figure just
+    /// arrived: each Sessione goes over by at most the answer it was writing (spec 18).
+    private func stopTurnsPastBudget(besides reporting: UUID) {
+        guard budgetedTurns.keys.contains(where: { $0 != reporting }) else { return }
+        let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        for (id, project) in budgetedTurns where id != reporting {
+            guard case .exhausted = guarded.allowance(provider: Budgets.claude, project: project) else { continue }
+            budgetedTurns[id] = nil
+            budgetStops.insert(id)
+            turnTasks[id]?.cancel()
         }
     }
 

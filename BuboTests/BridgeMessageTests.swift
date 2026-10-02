@@ -16,6 +16,16 @@ struct BridgeMessageTests {
         #expect(String(decoding: line, as: UTF8.self).contains(#""dirs":["/tmp/allegati"]"#))
     }
 
+    // #165: the residue of the tightest Budget goes as the turn's cap; at the cap the turn ends apart.
+    @Test func askWithABudgetCarriesItsCap() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         maxBudget: Decimal(string: "2.5")).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""maxBudget":2.5"#))
+        let event = try JSONDecoder().decode(BridgeEvent.self,
+                                             from: Data(#"{"v":4,"type":"budgetExhausted","id":"a1"}"#.utf8))
+        #expect(event == .budgetExhausted(id: "a1"))
+    }
+
     @Test func askInAWorktreeCarriesTheMainCheckout() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                          settingSources: ["user"], projectConfigRoot: URL(filePath: "/tmp/repo/")).line()

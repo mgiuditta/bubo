@@ -9,6 +9,7 @@ import { createInterface } from "node:readline";
 import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
+import { budgetOf } from "./budget";
 import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
@@ -36,7 +37,7 @@ import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usag
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -72,6 +73,7 @@ type Event =
   | ({ type: "error"; id?: string; message: string } & TurnFailure)
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
+  | { type: "budgetExhausted"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
   | ({ type: "claude"; id: string } & ClaudeInfo)
   | { type: "outdated"; id: string; version?: string }
@@ -341,11 +343,13 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // dell'Automazione come regole di sessione, e prima di `done` un evento `denial` per ogni azione negata. Con `init`
 // arriva `mode`, la modalità che `claude` ha scelto davvero: `auto` può non essere disponibile.
 // `dirs` sono le cartelle che `claude` legge oltre a `cwd`, come `--add-dir`: quelle degli Allegati di una Domanda.
+// `maxBudget` è il residuo in dollari del Budget più stretto, con l'API key (spec 18): diventa `maxBudgetUsd`, e al
+// tetto il turno finisce con `budgetExhausted`. Senza, nessun tetto.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
                    permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended,
-                   dirs: string[] = []) {
+                   dirs: string[] = [], maxBudget?: number) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
   const restored = resumed?.restored;
   const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
@@ -381,6 +385,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     options: {
       cwd,
       ...(dirs.length > 0 ? { additionalDirectories: dirs } : {}),
+      ...(maxBudget !== undefined ? { maxBudgetUsd: maxBudget } : {}),
       projectConfigRoot,
       model,
       effort,
@@ -485,6 +490,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         // Fermato da `MainAgent`: l'errore va dopo l'ultimo messaggio, uno solo.
         if (mainAgent?.isWrong) continue;
         if (message.subtype === "success" && !message.is_error) succeeded = true;
+        else if (message.subtype === "error_max_budget_usd") send({ type: "budgetExhausted", id });
         else if (limit) send({ type: "limit", id, ...limit });
         else if (failure === "authentication_failed") send({ type: "signInRequired", id });
         else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype,
@@ -750,7 +756,7 @@ lines.on("line", (line) => {
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
                command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended),
-               directoriesOf(command.dirs));
+               directoriesOf(command.dirs), budgetOf(command.maxBudget));
       break;
     }
     case "config": {
