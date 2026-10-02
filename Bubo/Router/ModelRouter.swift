@@ -17,6 +17,11 @@ nonisolated struct ModelRouter {
         var localOutages: [String: LocalModelDetector.Availability] = [:]
         /// Whether the Mac has no network: the Domande go to the Modello locale, or else to Apple Foundation Models.
         var isOffline = false
+        /// The share of the 5-hour window used, from 0 to 1; `nil` when unknown: with the API key, never reported,
+        /// or past its reset. Unknown, the Quota changes nothing.
+        var fiveHourUsed: Double?
+        /// Past which share of the 5-hour window the router saves the Quota.
+        var quotaThresholds = QuotaThresholds()
 
         /// No preference: every Tipo takes its default.
         static let none = Self()
@@ -43,8 +48,10 @@ nonisolated struct ModelRouter {
             return route
         }
         guard let choice = preferences.choices[type] else {
-            return Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
-                                     readsOnDevice: readsOnDevice, in: catalog)
+            let route = Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
+                                          readsOnDevice: readsOnDevice, in: catalog)
+            return Self.savingQuota(route, for: type, fit: fit, hasAttachments: hasAttachments,
+                                    readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
         }
         guard let pause = Self.pause(of: choice, preferences: preferences, hasAttachments: hasAttachments,
                                      in: catalog) else {
@@ -96,6 +103,28 @@ nonisolated struct ModelRouter {
             case .available?, nil: return nil
             }
         }
+    }
+
+    /// `route`, the automatic choice for `type`, once the Quota is seen (spec 10): past `QuotaThresholds.onMac` the
+    /// Modello locale or Apple Foundation Models, as without a network; past `QuotaThresholds.stepDown`, or when
+    /// neither can answer, one step down the Scala. Never a block: at the bottom of the Scala `route` stays.
+    private static func savingQuota(_ route: Route, for type: RequestType, fit: OnDeviceFit, hasAttachments: Bool,
+                                    readsOnDevice: Bool, preferences: Preferences,
+                                    in catalog: ModelCatalog?) -> Route {
+        guard let used = preferences.fiveHourUsed, route.destination == .claude else { return route }
+        let thresholds = preferences.quotaThresholds
+        if used > thresholds.onMac,
+           let onMac = offlineRoute(for: type, fit: fit, hasAttachments: hasAttachments, readsOnDevice: readsOnDevice,
+                                    preferences: preferences) {
+            return Route(family: nil, model: nil, effort: nil, reason: .quota(type, threshold: thresholds.onMac),
+                         destination: onMac.destination)
+        }
+        guard used > thresholds.stepDown, let family = route.family,
+              let lower = Scala(catalog: catalog).step(below: Scala.Step(family: family, effort: route.effort))
+        else { return route }
+        return Route(family: lower.family, model: catalog?.entry(for: lower.family.alias)?.value ?? lower.family.alias,
+                     effort: lower.effort, reason: .quota(type, threshold: thresholds.stepDown),
+                     onDeviceFallback: route.onDeviceFallback)
     }
 
     /// Who answers `type` without a network: the Modello locale when it answers and nothing leaves the Mac with it,

@@ -6,6 +6,8 @@ struct ModelsSettingsView: View {
     @State private var settings = EndpointSettings.shared
     @State private var prices = PriceTable.shared
     @State private var preferences = TypePreferences.shared
+    @AppStorage(QuotaThresholds.stepDownKey) private var stepDown = QuotaThresholds().stepDown
+    @AppStorage(QuotaThresholds.onMacKey) private var onMac = QuotaThresholds().onMac
     @State private var newName = ""
     @State private var newAddress = ""
 
@@ -27,6 +29,18 @@ struct ModelsSettingsView: View {
             } footer: {
                 Text("Senza rete le Domande vanno al Modello locale invece che a Claude; se non risponde, ad Apple FM. In nessun altro caso Bubo lo sceglie da solo.")
             }
+            Section {
+                Stepper(value: $stepDown, in: 0.5...0.95, step: 0.05) {
+                    Text("Modello più leggero oltre: \(Self.percent(stepDown))")
+                }
+                Stepper(value: $onMac, in: 0.5...1, step: 0.01) {
+                    Text("Domande sul Mac oltre: \(Self.percent(onMac))")
+                }
+            } header: {
+                Text("Quota di 5 ore")
+            } footer: {
+                Text("Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale.")
+            }
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
             }
@@ -47,6 +61,11 @@ struct ModelsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    /// A threshold as the settings show it, such as «80%».
+    private static func percent(_ share: Double) -> String {
+        share.formatted(.percent.precision(.fractionLength(0)))
     }
 
     private var localModelBinding: Binding<String?> {

@@ -100,6 +100,11 @@ struct RouterLine: View {
         case let .offline(type):
             return LocalizedStringResource("\(String(localized: type.label)) → \(family), senza rete",
                                            comment: Self.comment)
+        case let .quota(type, threshold):
+            let percent = threshold.formatted(.percent.precision(.fractionLength(0)))
+            return LocalizedStringResource(
+                "\(String(localized: type.label)) → \(family), quota di 5 ore oltre la soglia (\(percent))",
+                comment: Self.comment)
         }
     }
 
