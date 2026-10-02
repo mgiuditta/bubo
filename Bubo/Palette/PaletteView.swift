@@ -152,8 +152,14 @@ struct PaletteView: View {
             Text("⌘↩ continua da qui")
             Text("esc chiudi")
             Spacer()
-            // Until the embedding model exists (#112) the Indice matches words only, and the Palette says so.
-            Text("Per ora trova le parole, non il significato.")
+            if model.searchesByMeaning {
+                // A key by example: the same dotted underline as the fragments found by meaning.
+                Text("Trovato per significato")
+                    .underline(pattern: .dot, color: Palette.textSecondary)
+            } else {
+                // Without the embedding model, or before its vectors, the Indice matches words only, and the Palette says so.
+                Text("Per ora trova le parole, non il significato.")
+            }
         }
         .font(Typography.mono(size: 10, weight: .medium))
         .foregroundStyle(Palette.textSecondary)

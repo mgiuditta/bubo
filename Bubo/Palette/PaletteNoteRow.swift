@@ -9,7 +9,7 @@ struct PaletteNoteRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            HighlightedText(text: excerpt, words: words)
+            HighlightedText(text: excerpt, words: words, isFoundByMeaning: note.best.isFoundByMeaningOnly)
                 .font(Typography.body(size: 13))
                 .lineLimit(2)
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
@@ -36,6 +36,7 @@ struct PaletteNoteRow: View {
     /// What VoiceOver reads: the Secondo cervello, the note, the section, the other matches.
     private var spokenLabel: String {
         var parts = [String(localized: "Secondo cervello"), note.title, excerpt]
+        if note.best.isFoundByMeaningOnly { parts.append(String(localized: "Trovato per significato")) }
         if note.otherMatches > 0 { parts.append(String(localized: "Altri \(note.otherMatches) punti")) }
         return parts.joined(separator: ", ")
     }

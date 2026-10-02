@@ -9470,6 +9470,16 @@
         }
       }
     },
+    "Trovato per significato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found by meaning"
+          }
+        }
+      }
+    },
     "Tu" : {
       "localizations" : {
         "en" : {
