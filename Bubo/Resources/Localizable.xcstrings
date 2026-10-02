@@ -205,6 +205,22 @@
         }
       }
     },
+    "%@ · %@ · %lld negate" : {
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · %3$lld negate"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · %2$@ · %3$lld denied"
+          }
+        }
+      }
+    },
     "%@ · %lld" : {
       "localizations" : {
         "en" : {
@@ -592,6 +608,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "%lld blocchi di ragionamento" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld reasoning blocks"
+          }
+        }
+      }
+    },
+    "%lld caratteri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld characters"
           }
         }
       }
@@ -1020,6 +1056,16 @@
         }
       }
     },
+    "A chi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To"
+          }
+        }
+      }
+    },
     "Accoppia" : {
       "localizations" : {
         "en" : {
@@ -1046,6 +1092,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paired on %@"
+          }
+        }
+      }
+    },
+    "Agente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agent"
+          }
+        }
+      }
+    },
+    "Aggiungi con un Biglietto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add with a Ticket…"
           }
         }
       }
@@ -1723,6 +1789,16 @@
         }
       }
     },
+    "Apre il Condividi di macOS" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the macOS Share menu"
+          }
+        }
+      }
+    },
     "Apre il Terminale con «%@» già scritto: premi Invio per eseguirlo" : {
       "localizations" : {
         "en" : {
@@ -1945,6 +2021,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open PR…"
+          }
+        }
+      }
+    },
+    "Apri Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Session"
           }
         }
       }
@@ -2237,6 +2323,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Automation %@"
+          }
+        }
+      }
+    },
+    "Automazione · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automation · %@"
           }
         }
       }
@@ -2973,6 +3069,88 @@
         }
       }
     },
+    "Cifro la Consegna…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encrypting the Delivery…"
+          }
+        }
+      }
+    },
+    "Con un altro account i %lld blocchi di ragionamento non si riprendono: %@ vede messaggi, strumenti e ramo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With another account the %lld reasoning blocks don't carry over: %@ sees messages, tools and branch."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Con un altro account i %1$lld blocchi di ragionamento non si riprendono: %2$@ vede messaggi, strumenti e ramo."
+          }
+        }
+      }
+    },
+    "Confronta il nuovo codice in Impostazioni › Consegne" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compare the new code in Settings › Deliveries"
+          }
+        }
+      }
+    },
+    "Consegna «%@»" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deliver “%@”"
+          }
+        }
+      }
+    },
+    "Consegna «%@»…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deliver “%@”…"
+          }
+        }
+      }
+    },
+    "Consegnata con %@ a %@ · %@. La Sessione resta tua; da qui in poi le due copie vanno ognuna per conto suo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivered with %1$@ to %2$@ · %3$@. The Session stays yours; from here on the two copies go their own way."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Consegnata con %1$@ a %2$@ · %3$@. La Sessione resta tua; da qui in poi le due copie vanno ognuna per conto suo."
+          }
+        }
+      }
+    },
+    "Consegna…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deliver…"
+          }
+        }
+      }
+    },
     "Continua solo questa volta" : {
       "localizations" : {
         "en" : {
@@ -2993,12 +3171,252 @@
         }
       }
     },
+    "Conversazione ripulita" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cleaned conversation"
+          }
+        }
+      }
+    },
+    "Conversazione: %lld messaggi, con strumenti e risultati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversation: %lld messages, with tools and results"
+          }
+        }
+      }
+    },
+    "Cosa esce" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What goes out"
+          }
+        }
+      }
+    },
+    "Da decidere (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To decide (%lld)"
+          }
+        }
+      }
+    },
+    "Da decidere: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To decide: %lld"
+          }
+        }
+      }
+    },
+    "Decidi i possibili segreti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Decide the possible secrets"
+          }
+        }
+      }
+    },
+    "Email e organizzazione dell'account" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The account's email and organization"
+          }
+        }
+      }
+    },
+    "Grande (%@): Messaggi potrebbe non mandarla. Usa AirDrop o Salva sul disco." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Large (%@): Messages may not send it. Use AirDrop or Save to disk."
+          }
+        }
+      }
+    },
+    "Il Condividi non l'ha mandata. Riprova, anche con un altro mezzo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share didn't send it. Try again, or use another way."
+          }
+        }
+      }
+    },
+    "Il ragionamento non passa." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reasoning doesn't carry over."
+          }
+        }
+      }
+    },
+    "Il ramo della Sessione non si legge con git." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "git can't read the Session's branch."
+          }
+        }
+      }
+    },
+    "La Consegna non si scrive. Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Delivery couldn't be written. Try again."
+          }
+        }
+      }
+    },
     "La Sessione si è fermata: riparte solo con una tua scelta." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The session stopped. It starts again only when you choose."
+          }
+        }
+      }
+    },
+    "La conversazione di questa Sessione non è nella copia di Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Session's conversation isn't in Bubo's copy."
+          }
+        }
+      }
+    },
+    "La copia delle conversazioni di Bubo non si legge." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo's copy of the conversations can't be read."
+          }
+        }
+      }
+    },
+    "Lascia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep"
+          }
+        }
+      }
+    },
+    "Lasciato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kept"
+          }
+        }
+      }
+    },
+    "Lo scanner non trova tutto: guarda anche la conversazione qui sotto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The scanner doesn't find everything: check the conversation below too."
+          }
+        }
+      }
+    },
+    "Mancano le regole per cercare i segreti. Reinstalla Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The rules for finding secrets are missing. Reinstall Bubo."
+          }
+        }
+      }
+    },
+    "Modifiche non salvate di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uncommitted changes of %@"
+          }
+        }
+      }
+    },
+    "Mostra nella conversazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in conversation"
+          }
+        }
+      }
+    },
+    "Nessun Biglietto ricevuto. Fatti mandare il Biglietto del Mac a cui consegnare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Tickets received. Ask for the Ticket of the Mac you want to deliver to."
+          }
+        }
+      }
+    },
+    "Niente ramo: il Progetto non è un repo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No branch: the Project isn't a repo"
+          }
+        }
+      }
+    },
+    "Non si revoca, non scade e non avvisa quando la apre." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It can't be revoked, doesn't expire and doesn't tell you when it's opened."
+          }
+        }
+      }
+    },
+    "Non si sceglie finché non confrontate il nuovo codice in Impostazioni › Consegne." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't be chosen until you compare the new code in Settings › Deliveries."
           }
         }
       }
@@ -3023,6 +3441,134 @@
         }
       }
     },
+    "Percorsi del Mac, diventati %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paths on this Mac, now %@"
+          }
+        }
+      }
+    },
+    "Possibile segreto %@, inizia con %@, %lld caratteri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Possible secret %1$@, starts with %2$@, %3$lld characters"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Possibile segreto %1$@, inizia con %2$@, %3$lld caratteri"
+          }
+        }
+      }
+    },
+    "Prompt di sistema (prompt_snapshot) e %lld righe di metadati fuori dalla conversazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System prompt (prompt_snapshot) and %lld metadata lines outside the conversation"
+          }
+        }
+      }
+    },
+    "Pronta: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready: %@"
+          }
+        }
+      }
+    },
+    "Questa Sessione non ha ancora una conversazione da consegnare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Session has no conversation to deliver yet."
+          }
+        }
+      }
+    },
+    "Ramo %@: %lld commit, %lld file" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch %1$@: %2$lld commits, %3$lld files"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ramo %1$@: %2$lld commit, %3$lld file"
+          }
+        }
+      }
+    },
+    "Ramo %@: %lld commit, %lld file, con le modifiche non salvate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch %1$@: %2$lld commits, %3$lld files, with the uncommitted changes"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ramo %1$@: %2$lld commit, %3$lld file, con le modifiche non salvate"
+          }
+        }
+      }
+    },
+    "Ramo %@: niente di nuovo rispetto alla base" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch %@: nothing new since the base"
+          }
+        }
+      }
+    },
+    "Ripulisco la Sessione e cerco i segreti…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cleaning the Session and looking for secrets…"
+          }
+        }
+      }
+    },
+    "Scegli a chi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose who it goes to"
+          }
+        }
+      }
+    },
+    "Si consegna a una Macchina, non a una persona." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You deliver to a Machine, not to a person."
+          }
+        }
+      }
+    },
     "Solo questa volta si spende oltre il limite. Per i turni dopo il Budget resta com'è." : {
       "localizations" : {
         "en" : {
@@ -3033,12 +3579,72 @@
         }
       }
     },
+    "Subagent: %lld, ripuliti allo stesso modo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subagents: %lld, cleaned the same way"
+          }
+        }
+      }
+    },
+    "Tolto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed"
+          }
+        }
+      }
+    },
+    "Tolto da Bubo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Removed by Bubo"
+          }
+        }
+      }
+    },
+    "Un segreto da togliere è anche nelle modifiche non salvate: toglilo dal file e riapri, oppure scegli Lascia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A secret to remove is also in the uncommitted changes: remove it from the file and reopen, or choose Keep."
+          }
+        }
+      }
+    },
+    "Una volta consegnata, è sua." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Once delivered, it's theirs."
+          }
+        }
+      }
+    },
     "Vuoi andare oltre il Budget?" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Go Past the Budget?"
+          }
+        }
+      }
+    },
+    "chi riceve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the recipient"
           }
         }
       }
@@ -5171,6 +5777,16 @@
         }
       }
     },
+    "Fatta, da guardare. Azioni negate: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done, ready to review. Actions denied: %lld."
+          }
+        }
+      }
+    },
     "Fatto breve" : {
       "localizations" : {
         "en" : {
@@ -5277,6 +5893,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Filter: %@"
+          }
+        }
+      }
+    },
+    "Finita con un errore. Azioni negate: %lld." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ended with an error. Actions denied: %lld."
           }
         }
       }
@@ -6727,6 +7353,16 @@
         }
       }
     },
+    "Le Sessioni di un Progetto solo Mac non escono dal Mac: l'iPhone non le vede." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Sessions of a Mac-only Project never leave this Mac: the iPhone doesn't see them."
+          }
+        }
+      }
+    },
     "Leggetevi il codice a voce o in chiamata. Deve essere uguale sul Mac di %@." : {
       "localizations" : {
         "en" : {
@@ -6787,6 +7423,16 @@
         }
       }
     },
+    "Nessun Progetto: compaiono qui con la prima Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Projects yet: they appear here with their first Session."
+          }
+        }
+      }
+    },
     "Non coincide" : {
       "localizations" : {
         "en" : {
@@ -6833,6 +7479,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Now send yours: without your Ticket, %@ can’t open your Deliveries or send you any."
+          }
+        }
+      }
+    },
+    "Progetti solo Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mac-only Projects"
           }
         }
       }
@@ -12299,6 +12955,16 @@
         }
       }
     },
+    "Storico (%lld)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History (%lld)"
+          }
+        }
+      }
+    },
     "Striscia" : {
       "localizations" : {
         "en" : {
@@ -13115,6 +13781,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "User"
+          }
+        }
+      }
+    },
+    "in un subagent" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in a subagent"
+          }
+        }
+      }
+    },
+    "nei risultati degli strumenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in the tool results"
+          }
+        }
+      }
+    },
+    "nella conversazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in the conversation"
+          }
+        }
+      }
+    },
+    "nelle modifiche non salvate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "in the uncommitted changes"
           }
         }
       }

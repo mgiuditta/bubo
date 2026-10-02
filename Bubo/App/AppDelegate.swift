@@ -10,6 +10,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let panel = OrbPanelController()
     /// The pairing of the Telecomando, in Impostazioni › iPhone (spec 21).
     let remote = PairingController.live()
+    /// The Progetti whose Sessioni never reach the iPhone, in Impostazioni › iPhone.
+    let macOnlyProjects = MacOnlyProjects()
+    /// Lets the Sessioni and the Battito out to the paired iPhones.
+    private(set) lazy var remoteBridge = RemoteBridge.live(remote: remote, macOnly: macOnlyProjects, sessions: sessions)
+    /// Keeps the iPhones up to date while Bubo runs.
+    private var remoteUpdates: Task<Void, Never>?
     /// This Macchina's key and the Biglietti of the Consegne, in Impostazioni › Consegne (spec 24).
     let deliveries = DeliveriesController.live()
     /// The Indice, kept fresh while Bubo runs; `nil` when its database cannot be opened.
@@ -58,7 +64,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
-    private(set) lazy var executions: ExecutionRunner? = sessions.map { ExecutionRunner(automations: $0.automations, sessions: $0) }
+    private(set) lazy var executions: ExecutionRunner? = sessions.map { sessions in
+        let runner = ExecutionRunner(automations: sessions.automations, sessions: sessions)
+        runner.onFinish = { [notifier] automation, execution in
+            Task { await notifier.announceResult(of: execution, from: automation) }
+        }
+        return runner
+    }
     /// Starts the Esecuzioni at the times of their Ripetizioni; `nil` without the Sessioni.
     private lazy var scheduler: AutomationScheduler? = sessions.flatMap { sessions in
         executions.map { runner in
@@ -91,7 +103,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return flow
     }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.
-    private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
+    private lazy var notifier = Notifier { [hud] session in
+        if let session { hud.show(session: session) } else { hud.show() }
+    } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
     }
     /// The notifications of a Budget past its threshold, read at each turn the ledger records.
@@ -225,6 +239,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sweeper?.start()
         // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
         summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
+        remoteUpdates = Task { [remote, remoteBridge, sessions] in
+            await remote.loadDevices()
+            guard let sessions else { return await remoteBridge.cleanUp() }
+            await remoteBridge.run(sessions: sessions)
+        }
         // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
         priceUpdates = Task {
             while !Task.isCancelled {

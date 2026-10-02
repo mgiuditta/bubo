@@ -209,6 +209,7 @@ private struct CLIConversationRow: View {
 struct SessionRow: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(SessionSummarizer.self) private var summarizer: SessionSummarizer?
+    @Environment(DeliveriesController.self) private var deliveries: DeliveriesController?
     let session: Session
     let store: SessionStore
     /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
@@ -252,6 +253,9 @@ struct SessionRow: View {
         }
         return true
     }
+
+    /// Whether the Sessione can go to another Macchina: live, with a conversation of the agent (spec 24).
+    private var canDeliver: Bool { !isArchived && !session.conversations.isEmpty && session.workspace != nil }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
@@ -503,6 +507,10 @@ struct SessionRow: View {
                 SummaryNoticeRow(notice: notice, summarizer: summarizer)
                     .padding(.top, Spacing.xxSmall)
             }
+            if let deliveries, let notice = deliveries.deliveredNotices[session.id] {
+                DeliveredNoticeRow(notice: notice) { deliveries.dismissDeliveryNotice(of: session.id) }
+                    .padding(.top, Spacing.xxSmall)
+            }
         }
         .padding(Spacing.xSmall)
         .opacity(isArchived ? 0.6 : 1)
@@ -520,6 +528,10 @@ struct SessionRow: View {
             }
             if !isArchived {
                 SessionModelMenu(model: session.model) { store.setModel($0, in: session.id) }
+            }
+            if canDeliver {
+                Button("Consegna…") { hud.deliver(session) }
+                    .disabled(session.activity == .lavora)
             }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
@@ -543,6 +555,7 @@ struct SessionRow: View {
             if !isArchived, let showInGalaxy = hud.showInGalaxy {
                 Button("Mostra nella Galassia") { showInGalaxy(session) }
             }
+            if canDeliver && session.activity != .lavora { Button("Consegna…") { hud.deliver(session) } }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
             if !session.isRunning {
