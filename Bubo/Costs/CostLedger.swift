@@ -7,7 +7,7 @@ import os
 @Observable
 final class CostLedger {
     /// One turn of a Sessione, with its Progetto, or of a Domanda, in the group "Domande".
-    struct Entry: Codable, Equatable, Identifiable, Sendable {
+    nonisolated struct Entry: Codable, Equatable, Identifiable, Sendable {
         /// The turn: the id Bubo gave the agent's conversation, or a Domanda's turn.
         let id: String
         /// The Sessione, or the Domanda.

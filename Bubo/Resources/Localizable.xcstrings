@@ -3825,12 +3825,12 @@
         }
       }
     },
-    "Contano i turni passati da Bubo. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori." : {
+    "Contano i turni passati da Bubo e la Cronologia CLI di Claude. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Only turns that went through Bubo count. Other command-line tools, such as Codex and Gemini CLI, are left out."
+            "value" : "Turns that went through Bubo count, and so does Claude's CLI history. Other command-line tools, such as Codex and Gemini CLI, are left out."
           }
         }
       }
@@ -6230,6 +6230,36 @@
         }
       }
     },
+    "La copia della Cronologia CLI è spenta: qui c'è solo ciò che la riga di comando conserva ancora, di solito gli ultimi 30 giorni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The CLI history copy is off: only what the command line still keeps is shown here, usually the last 30 days."
+          }
+        }
+      }
+    },
+    "La riga di comando è una stima a listino: il transcript non dice se il turno era in abbonamento o con la chiave API. Resta fuori dai Budget." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The command line is a list-price estimate: the transcript doesn't say whether a turn used the subscription or the API key. It stays out of Budgets."
+          }
+        }
+      }
+    },
+    "Leggo la Cronologia CLI…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the CLI history…"
+          }
+        }
+      }
+    },
     "Mostra nella Galassia" : {
       "localizations" : {
         "en" : {
@@ -6246,6 +6276,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New Session on ${project}: ${text}"
+          }
+        }
+      }
+    },
+    "Riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line"
+          }
+        }
+      }
+    },
+    "Riga di comando %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line %@"
+          }
+        }
+      }
+    },
+    "Riga di comando, a listino" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Command line, list price"
           }
         }
       }
