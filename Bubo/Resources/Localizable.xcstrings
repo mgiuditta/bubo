@@ -260,6 +260,16 @@
         }
       }
     },
+    "%lld da sistemare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs attention: %lld"
+          }
+        }
+      }
+    },
     "%lld di %lld" : {
       "localizations" : {
         "en" : {
@@ -1304,6 +1314,16 @@
         }
       }
     },
+    "Attivo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On"
+          }
+        }
+      }
+    },
     "Attivo nelle Impostazioni di Sistema, in Accessibilità › Display." : {
       "localizations" : {
         "en" : {
@@ -1908,6 +1928,16 @@
         }
       }
     },
+    "Cerca plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search Plugins"
+          }
+        }
+      }
+    },
     "Cerca…" : {
       "localizations" : {
         "en" : {
@@ -2308,6 +2338,26 @@
         }
       }
     },
+    "Componenti installati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed Components"
+          }
+        }
+      }
+    },
+    "Componenti sconosciuti: può eseguire codice sul Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown components: it may run code on this Mac"
+          }
+        }
+      }
+    },
     "Condividi con la squadra…" : {
       "localizations" : {
         "en" : {
@@ -2638,6 +2688,16 @@
         }
       }
     },
+    "Cosa installa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What It Installs"
+          }
+        }
+      }
+    },
     "Cosa è cambiato nell'ultima settimana?" : {
       "localizations" : {
         "en" : {
@@ -2734,6 +2794,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "To start"
+          }
+        }
+      }
+    },
+    "Da sistemare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs Attention"
           }
         }
       }
@@ -2964,6 +3034,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Run Claude's commands in the Sandbox"
+          }
+        }
+      }
+    },
+    "Eseguibili" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Executables"
           }
         }
       }
@@ -3290,6 +3370,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Managed"
+          }
+        }
+      }
+    },
+    "Gestito dall'organizzazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Managed by your organization"
           }
         }
       }
@@ -3940,6 +4030,16 @@
         }
       }
     },
+    "Installati" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed"
+          }
+        }
+      }
+    },
     "Irreversibile esterno" : {
       "localizations" : {
         "en" : {
@@ -4360,6 +4460,16 @@
         }
       }
     },
+    "Leggo i plugin…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading plugins…"
+          }
+        }
+      }
+    },
     "Leggo i report…" : {
       "localizations" : {
         "en" : {
@@ -4556,6 +4666,16 @@
         }
       }
     },
+    "Marketplace" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Marketplaces"
+          }
+        }
+      }
+    },
     "Memoria automatica" : {
       "localizations" : {
         "en" : {
@@ -4742,6 +4862,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Edit…"
+          }
+        }
+      }
+    },
+    "Monitor" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monitors"
           }
         }
       }
@@ -5116,6 +5246,26 @@
         }
       }
     },
+    "Nessun plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Plugins"
+          }
+        }
+      }
+    },
+    "Nessun plugin installato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Plugins Installed"
+          }
+        }
+      }
+    },
     "Nessun plugin." : {
       "localizations" : {
         "en" : {
@@ -5412,6 +5562,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't delete the copies of the command-line conversations."
+          }
+        }
+      }
+    },
+    "Non riesco a chiedere a claude l'elenco dei plugin: mostro quello che c'è nei file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't get the plugin list from claude: showing what's in the files."
           }
         }
       }
@@ -5987,6 +6147,16 @@
         }
       }
     },
+    "Per me" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For Me"
+          }
+        }
+      }
+    },
     "Per ora trova le parole, non il significato." : {
       "localizations" : {
         "en" : {
@@ -6003,6 +6173,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "For this Session"
+          }
+        }
+      }
+    },
+    "Per questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For This Project"
           }
         }
       }
@@ -6053,6 +6233,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Plugin %@"
+          }
+        }
+      }
+    },
+    "Plugin di Progetto non installato su questo Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project plugin not installed on this Mac"
           }
         }
       }
@@ -7075,6 +7265,16 @@
         }
       }
     },
+    "Scegli un plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Plugin"
+          }
+        }
+      }
+    },
     "Scegli un'altra app…" : {
       "localizations" : {
         "en" : {
@@ -7345,6 +7545,16 @@
         }
       }
     },
+    "Server LSP" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "LSP servers"
+          }
+        }
+      }
+    },
     "Server MCP" : {
       "localizations" : {
         "en" : {
@@ -7451,12 +7661,42 @@
         }
       }
     },
+    "Sincronizzato da claude.ai" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synced from claude.ai"
+          }
+        }
+      }
+    },
+    "Skill" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skills"
+          }
+        }
+      }
+    },
     "Skill · %lld" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skills · %lld"
+          }
+        }
+      }
+    },
+    "Solo io in questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only Me in This Project"
           }
         }
       }
@@ -8266,6 +8506,16 @@
         }
       }
     },
+    "Versione %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        }
+      }
+    },
     "Vince" : {
       "localizations" : {
         "en" : {
@@ -8594,6 +8844,16 @@
         }
       }
     },
+    "componenti sconosciuti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "unknown components"
+          }
+        }
+      }
+    },
     "dall'Indice: «%@»" : {
       "localizations" : {
         "en" : {
@@ -8620,6 +8880,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "esc close"
+          }
+        }
+      }
+    },
+    "esegue codice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "runs code"
           }
         }
       }
@@ -8681,6 +8951,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "fps"
+          }
+        }
+      }
+    },
+    "gira fuori dalla sandbox" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "runs outside the sandbox"
           }
         }
       }
@@ -8812,6 +9092,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "summary of memories"
+          }
+        }
+      }
+    },
+    "solo testo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "text only"
           }
         }
       }

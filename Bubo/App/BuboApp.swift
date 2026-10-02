@@ -86,6 +86,12 @@ struct BuboApp: App {
         }
         .defaultLaunchBehavior(.suppressed)
 
+        // In the Finestra menu and the Palette, with no shortcut (spec 20).
+        Window("Plugin", id: PluginsWindow.windowID) {
+            PluginsWindow(store: appDelegate.sessions)
+        }
+        .defaultLaunchBehavior(.suppressed)
+
         Settings {
             SettingsView()
                 .environment(appDelegate.sessions)
