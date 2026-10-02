@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Bubo's settings window.
 struct SettingsView: View {
-    /// The tab shown: the last one chosen, or the one a button elsewhere asked for, such as Impostazioni › Consegne.
+    /// The tab shown, kept across launches; another window may choose it before opening the settings.
     @AppStorage(SettingsTab.defaultsKey) private var tab = SettingsTab.general
 
     var body: some View {
@@ -31,7 +31,7 @@ struct SettingsView: View {
             Tab("Voce", systemImage: "waveform", value: SettingsTab.voice) {
                 VoiceSettingsView()
             }
-            Tab("iPhone", systemImage: "iphone", value: SettingsTab.iphone) {
+            Tab("iPhone", systemImage: "iphone", value: SettingsTab.iPhone) {
                 RemoteSettingsView()
             }
             // A Group: the builder takes at most 10 tabs.

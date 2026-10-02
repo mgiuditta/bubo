@@ -123,6 +123,46 @@ struct QuestionModelRetryWithTests {
         #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
     }
 
+    /// A ledger with the Budget of OpenAI, $10, spent in full.
+    func spentLedger() -> CostLedger {
+        let ledger = CostLedger()
+        ledger.record(TurnUsage(mode: .apiKey, cost: 10, basis: .list, isComplete: true, models: [], origin: .reported),
+                      turn: "t", question: UUID(), provider: "OpenAI")
+        budgets.budgets.providers["OpenAI"] = 10
+        return ledger
+    }
+
+    // Acceptance of #165: at 100% no automatic choice goes to the provider, whatever the Tipo prefers.
+    @Test(arguments: RequestType.allCases)
+    func aPreferredCloudAtItsLimitIsNeverChosen(type: RequestType) async throws {
+        let ledger = spentLedger()
+        settings.grantConsent(to: endpoint)
+        preferences.set(.endpoint(id: endpoint.id), for: type)
+
+        let model = await answeredModel(ledger: ledger, type: type)
+
+        #expect(model.routedAnswer?.endpoint == nil)
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
+    }
+
+    // Acceptance of #165: an explicit choice at 100% stops and asks; Continua solo questa volta sends it, once.
+    @Test func anExplicitChoiceAtTheLimitGoesOnlyOnceConfirmed() async throws {
+        let model = await answeredModel(ledger: spentLedger())
+        settings.grantConsent(to: endpoint)
+
+        model.retry(with: try alternative(in: model))
+        await model.answering?.value
+        #expect(model.failure == .budgetExhausted(QuestionBudgetStop(scope: .provider("OpenAI"), route: .retriedElsewhere,
+                                                                     endpoint: endpoint)))
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).isEmpty)
+
+        model.continueOverBudget()
+        await model.answering?.value
+        #expect(model.failure == nil)
+        #expect(model.answer == "dal cloud")
+        #expect(FakeChatServer.requests(at: endpoint.baseURL).count == 1)
+    }
+
     @Test func withConsentTheCloudAnswersWithTheTextOnly() async throws {
         let model = await answeredModel()
         settings.grantConsent(to: endpoint)

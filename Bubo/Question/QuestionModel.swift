@@ -292,6 +292,48 @@ final class QuestionModel {
         return Set(paid.filter(guarded.isAvoided))
     }
 
+    /// What a Domanda to `provider`, as the CostLedger names it, may still spend; no cap without a ledger.
+    private func allowance(for provider: String) -> BudgetGuard.Allowance {
+        guard let ledger else { return .unlimited }
+        return BudgetGuard(budgets: budgets.budgets, entries: ledger.entries).allowance(provider: provider)
+    }
+
+    /// What a Domanda to `endpoint` may still spend: nothing counts on the Mac.
+    private func allowance(for endpoint: OpenAICompatibleEndpoint) -> BudgetGuard.Allowance {
+        endpoint.isOnMac ? .unlimited : allowance(for: endpoint.name)
+    }
+
+    /// The spent Budget a turn of `provider` counts in, the tightest; `nil` when none is spent.
+    private func spentScope(of provider: String) -> BudgetGuard.Scope? {
+        guard let ledger else { return nil }
+        let status = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries).tightest(provider: provider)
+        return status.map(\.scope)
+    }
+
+    /// Asks the Domanda a spent Budget stopped again, past the Budget, this time only: the user confirmed it.
+    func continueOverBudget() {
+        guard case let .budgetExhausted(stop) = failure else { return }
+        if let endpoint = stop.endpoint {
+            start(lastPrompt, endpoint: endpoint, ignoringBudget: true)
+        } else {
+            start(lastPrompt, route: stop.route, ignoringBudget: true)
+        }
+    }
+
+    /// Asks the Domanda a spent Budget stopped again with the Modello locale, on the Mac and free.
+    func askLocalModelOverBudget() {
+        guard case .budgetExhausted = failure, let local = endpoints.localModel else { return }
+        start(lastPrompt, endpoint: local)
+    }
+
+    /// Moves the Domande and the Sessioni back to the subscription, then asks the Domanda that the Budget of Claude
+    /// stopped again (ADR 0003): only on the user's choice.
+    func askWithSubscriptionOverBudget() {
+        guard case let .budgetExhausted(stop) = failure, stop.isClaude, usesAPIKey else { return }
+        moveToSubscription()
+        start(lastPrompt, route: stop.route)
+    }
+
     /// What the reason line says of the Budgets after `usage`, a turn of `provider` the ledger already has.
     private func budgetNotice(after usage: TurnUsage, of provider: String) -> BudgetNotice? {
         guard let ledger else { return nil }
@@ -593,8 +635,9 @@ final class QuestionModel {
     ///   - route: The user's choice for this turn; `nil` for the router's.
     ///   - endpoint: The OpenAI-compatible endpoint that answers instead of `claude`, picked in "Rifai con…".
     ///   - speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata of the answer.
+    ///   - ignoringBudget: Whether the Domanda goes even with a Budget spent: the user chose Continua solo questa volta.
     private func start(_ text: String, route: Route? = nil, endpoint: OpenAICompatibleEndpoint? = nil,
-                       speaksAnswer: Bool = false) {
+                       speaksAnswer: Bool = false, ignoringBudget: Bool = false) {
         answering?.cancel()
         stopSpeaking()
         answer = ""
@@ -606,17 +649,24 @@ final class QuestionModel {
         let attachments = lastAttachments
         answering = Task {
             if let endpoint {
-                await stream(text, attachments: attachments, from: endpoint)
+                await stream(text, attachments: attachments, from: endpoint, ignoringBudget: ignoringBudget)
             } else {
-                await stream(Richiesta(text: text, attachments: attachments), route: route, speaksAnswer: speaksAnswer)
+                await stream(Richiesta(text: text, attachments: attachments), route: route, speaksAnswer: speaksAnswer,
+                             ignoringBudget: ignoringBudget)
             }
         }
     }
 
     /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text, and the text of its Allegati when they
     /// fit the endpoint's cap and the user confirmed them, straight from the Mac.
-    private func stream(_ text: String, attachments: [Allegato], from endpoint: OpenAICompatibleEndpoint) async {
+    private func stream(_ text: String, attachments: [Allegato], from endpoint: OpenAICompatibleEndpoint,
+                        ignoringBudget: Bool) async {
         defer { isAnswering = false }
+        // An explicit choice too: at 100% it asks first (spec 18).
+        if !ignoringBudget, case let .exhausted(scope) = allowance(for: endpoint) {
+            failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: .retriedElsewhere, endpoint: endpoint))
+            return
+        }
         // Not a byte of an Allegato leaves without its confirmation, nor is any of it cut to fit.
         guard await attachmentVerdict(for: endpoint) == .allowed else {
             failure = .attachmentsHeld
@@ -685,7 +735,7 @@ final class QuestionModel {
         }
     }
 
-    private func stream(_ richiesta: Richiesta, route chosen: Route?, speaksAnswer: Bool) async {
+    private func stream(_ richiesta: Richiesta, route chosen: Route?, speaksAnswer: Bool, ignoringBudget: Bool) async {
         defer { isAnswering = false }
         let signpostID = Signposts.signposter.makeSignpostID()
         var waitingForFirstToken: OSSignpostIntervalState? =
@@ -701,6 +751,11 @@ final class QuestionModel {
         var route = chosen ?? submission.route
         if let endpoint = route.endpoint {
             guard !Task.isCancelled else { return }
+            // Neither the router nor a choice sends to a provider at 100% without asking (spec 18).
+            if !ignoringBudget, case let .exhausted(scope) = allowance(for: endpoint) {
+                failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
+                return
+            }
             await answer(text, from: endpoint, route: route, submission: submission, speaksAnswer: speaksAnswer)
             return
         }
@@ -751,6 +806,17 @@ final class QuestionModel {
                 intake.answer(submission, movedTo: .anthropic)
             }
         }
+        // Claude with the API key gets the shared residue as its cap; spent, nothing is sent.
+        var maxBudget: Decimal?
+        if usesAPIKey, !ignoringBudget {
+            switch allowance(for: Budgets.claude) {
+            case .unlimited: break
+            case let .upTo(residue): maxBudget = residue
+            case let .exhausted(scope):
+                failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
+                return
+            }
+        }
         let started = ContinuousClock.now
         let windowBefore = quotaReports > 0 ? quota.fiveHour : nil
         let reportsBefore = quotaReports
@@ -771,6 +837,7 @@ final class QuestionModel {
             let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     readableDirectories: Self.readableDirectories(for: richiesta.attachments),
+                                    maxBudget: maxBudget,
                                     progress: { [orb] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                     },
@@ -815,6 +882,9 @@ final class QuestionModel {
             // With no network `claude` gives up with a generic error: say why instead.
             if case .failed = error, !(await cli.isOnline()) {
                 failure = .offline
+            } else if error == .budgetExhausted {
+                failure = .budgetExhausted(QuestionBudgetStop(scope: spentScope(of: Budgets.claude) ?? .provider(Budgets.claude),
+                                                              route: route))
             } else {
                 failure = .bridge(error)
             }

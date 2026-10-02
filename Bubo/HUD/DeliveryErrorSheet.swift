@@ -20,7 +20,7 @@ struct DeliveryErrorSheet: View {
                 Spacer()
                 if failure == .unknownSender {
                     Button("Impostazioni › Consegne") {
-                        UserDefaults.standard.set(SettingsTab.deliveries.rawValue, forKey: SettingsTab.defaultsKey)
+                        SettingsTab.deliveries.select()
                         openSettings()
                         close()
                     }
