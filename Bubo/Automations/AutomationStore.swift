@@ -9,6 +9,9 @@ final class AutomationStore {
     /// The Automazioni, oldest first.
     private(set) var automations: [Automation] = []
 
+    /// Called after each change to the Automazioni or to their Esecuzioni: the timer of the Ripetizioni follows it.
+    @ObservationIgnored var onChange: () -> Void = {}
+
     @ObservationIgnored private let file: URL?
 
     /// Creates a store kept in `file`; `nil` keeps the Automazioni only in memory.
@@ -65,10 +68,33 @@ final class AutomationStore {
         return true
     }
 
-    /// Records `execution` as the latest of the Automazione `id`.
+    /// Records `execution` in the history of the Automazione `id`: in place of the one in the same Sessione, else as
+    /// the latest.
     func record(_ execution: Execution, for id: Automation.ID) {
         guard let index = automations.firstIndex(where: { $0.id == id }) else { return }
-        automations[index].lastExecution = execution
+        if let session = execution.session,
+           let same = automations[index].executions.lastIndex(where: { $0.session == session }) {
+            automations[index].executions[same] = execution
+        } else {
+            automations[index].executions.append(execution)
+            automations[index].executions.removeFirst(max(0, automations[index].executions.count - Automation.historyLimit))
+        }
+        save()
+    }
+
+    /// Puts the Automazione `id` in pausa: none of its Esecuzioni starts by itself; `reason` says why Bubo did it.
+    func pause(_ id: Automation.ID, reason: Automation.PauseReason? = nil) {
+        guard let index = automations.firstIndex(where: { $0.id == id }) else { return }
+        automations[index].isPaused = true
+        automations[index].pauseReason = reason
+        save()
+    }
+
+    /// Riprendi: the Automazione `id` runs by its Ripetizione again, from its next time.
+    func resume(_ id: Automation.ID) {
+        guard let index = automations.firstIndex(where: { $0.id == id }) else { return }
+        automations[index].isPaused = false
+        automations[index].pauseReason = nil
         save()
     }
 
@@ -83,6 +109,7 @@ final class AutomationStore {
     }
 
     private func save() {
+        onChange()
         guard let file else { return }
         do {
             try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)

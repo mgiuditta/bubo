@@ -1,20 +1,28 @@
 import SwiftUI
 
-/// Nuova Automazione: Progetto, name, request, model and Modalità autonoma (spec 19).
+/// Nuova Automazione, or Modifica of one: Progetto, name, request, Ripetizione, model and Modalità autonoma (spec 19).
+/// A Modifica counts from the next Esecuzione; the Regole and the history stay.
 ///
 /// Outside git the Modalità autonoma is off, since the Esecuzioni have no copy of their own; in a Progetto not trusted
 /// its rules do not apply. Both are said before Crea.
 struct AutomationSheet: View {
     /// The Progetti of the Sessioni, most recent first, to pick from.
     let projects: [URL]
-    /// Saves the new Automazione.
-    let create: (Automation) -> Void
+    /// The Automazione to change; `nil` for a new one.
+    let editing: Automation?
+    /// Saves the new or changed Automazione.
+    let save: (Automation) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var project: URL?
-    @State private var name = ""
-    @State private var request = ""
-    @State private var model = Automation.ModelChoice.router
-    @State private var isAutonomous = true
+    @State private var name: String
+    @State private var request: String
+    @State private var model: Automation.ModelChoice
+    @State private var isAutonomous: Bool
+    @State private var kind: RecurrenceKind
+    /// The time of the Ripetizione; its day too for Una volta.
+    @State private var time: Date
+    /// The day of Un giorno della settimana, as `Calendar` counts them (1 is Sunday).
+    @State private var weekday: Int
     @State private var isChoosingFolder = false
     /// Whether the chosen Progetto is in a git repo; read again when it changes.
     @State private var isGit = true
@@ -24,9 +32,25 @@ struct AutomationSheet: View {
     /// The `claude` aliases offered besides the router.
     private static let aliases = ["opus", "sonnet", "haiku"]
 
+    init(projects: [URL], editing: Automation? = nil, save: @escaping (Automation) -> Void) {
+        self.projects = projects
+        self.editing = editing
+        self.save = save
+        _project = State(initialValue: editing?.project)
+        _name = State(initialValue: editing?.name ?? "")
+        _request = State(initialValue: editing?.request ?? "")
+        _model = State(initialValue: editing?.model ?? .router)
+        _isAutonomous = State(initialValue: editing?.isAutonomous ?? true)
+        let recurrence = editing?.recurrence ?? .daily(hour: 9, minute: 0)
+        _kind = State(initialValue: RecurrenceKind(recurrence))
+        _time = State(initialValue: RecurrenceKind.time(of: recurrence))
+        let weekday = if case let .weekly(day, _, _) = recurrence { day } else { Calendar.autoupdatingCurrent.firstWeekday }
+        _weekday = State(initialValue: weekday)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.medium) {
-            Text("Nuova Automazione")
+            Text(editing == nil ? "Nuova Automazione" : "Modifica Automazione")
                 .font(Typography.body(size: 15, weight: .semibold))
                 .accessibilityAddTraits(.isHeader)
             Form {
@@ -46,6 +70,20 @@ struct AutomationSheet: View {
                         .background(Palette.surface)
                         .accessibilityLabel(Text("Richiesta"))
                 }
+                Picker("Ripetizione", selection: $kind) {
+                    ForEach(RecurrenceKind.allCases) { kind in
+                        Text(kind.title).tag(kind)
+                    }
+                }
+                if kind == .weekly {
+                    Picker("Giorno", selection: $weekday) {
+                        ForEach(Self.weekdays, id: \.self) { day in
+                            Text(verbatim: Calendar.autoupdatingCurrent.weekdaySymbols[day - 1]).tag(day)
+                        }
+                    }
+                }
+                DatePicker(kind == .hourly ? "Minuto" : "Ora", selection: $time,
+                           displayedComponents: kind == .once ? [.date, .hourAndMinute] : .hourAndMinute)
                 Picker("Modello", selection: $model) {
                     Text("Router").tag(Automation.ModelChoice.router)
                     ForEach(Self.aliases, id: \.self) { alias in
@@ -70,7 +108,7 @@ struct AutomationSheet: View {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Crea", action: save)
+                Button(editing == nil ? "Crea" : "Salva", action: confirm)
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canCreate)
             }
@@ -87,16 +125,28 @@ struct AutomationSheet: View {
         }
     }
 
+    /// The days of the week, from the first one of the Mac's calendar.
+    private static var weekdays: [Int] {
+        let first = Calendar.autoupdatingCurrent.firstWeekday
+        return (0..<7).map { (first - 1 + $0) % 7 + 1 }
+    }
+
     private var canCreate: Bool {
         project != nil && !name.trimmingCharacters(in: .whitespaces).isEmpty
             && !request.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (kind != .once || time > .now)
     }
 
-    private func save() {
+    private func confirm() {
         guard let project else { return }
-        create(Automation(id: UUID(), name: name.trimmingCharacters(in: .whitespaces), project: project,
-                          request: request.trimmingCharacters(in: .whitespacesAndNewlines), model: model,
-                          isAutonomous: isAutonomous && AutomationStore.isGitRepository(project)))
+        var automation = editing ?? Automation(id: UUID(), name: "", project: project, request: "")
+        automation.name = name.trimmingCharacters(in: .whitespaces)
+        automation.project = project
+        automation.request = request.trimmingCharacters(in: .whitespacesAndNewlines)
+        automation.model = model
+        automation.isAutonomous = isAutonomous && AutomationStore.isGitRepository(project)
+        automation.recurrence = kind.recurrence(at: time, on: weekday)
+        save(automation)
         dismiss()
     }
 }
