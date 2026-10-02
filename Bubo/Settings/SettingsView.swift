@@ -25,6 +25,9 @@ struct SettingsView: View {
             Tab("Voce", systemImage: "waveform") {
                 VoiceSettingsView()
             }
+            Tab("iPhone", systemImage: "iphone") {
+                RemoteSettingsView()
+            }
             Tab("Scorciatoie", systemImage: "keyboard") {
                 ShortcutSettingsView()
             }

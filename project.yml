@@ -3,10 +3,14 @@ options:
   bundleIdPrefix: com.mgiuditta
   deploymentTarget:
     macOS: "26.0"
+    iOS: "26.0"
   developmentLanguage: it
   createIntermediateGroups: true
 
 packages:
+  # Tipi, cifratura e firma del Telecomando, condivisi da Mac e iPhone (spec 21).
+  RemoteKit:
+    path: Packages/RemoteKit
   # Solo la vista del terminale, versione fissata: dopo la 1.20 arrivano cambi di API (spec 15).
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm
@@ -58,6 +62,7 @@ targets:
       - path: bridge/compat.json
         buildPhase: resources
     dependencies:
+      - package: RemoteKit
       - package: SwiftTerm
       - package: MLXSwiftLM
         product: MLXEmbedders
@@ -161,6 +166,27 @@ targets:
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.metallib
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.mtl4archive
+  # Il Telecomando: l'app iPhone di Bubo (spec 21, ADR 0007).
+  BuboRemote:
+    type: application
+    platform: iOS
+    sources:
+      - path: BuboRemote
+    dependencies:
+      - package: RemoteKit
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote
+        PRODUCT_NAME: Bubo
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: Bubo
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: "Bubo usa la fotocamera solo per leggere il QR di accoppiamento del Mac."
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID protegge la chiave con cui il Telecomando firma le tue decisioni."
   BuboTests:
     type: bundle.unit-test
     platform: macOS
@@ -220,6 +246,10 @@ schemes:
       targets:
         - BuboTests
         - BuboUITests
+  BuboRemote:
+    build:
+      targets:
+        BuboRemote: all
   BuboPerf:
     build:
       targets:
