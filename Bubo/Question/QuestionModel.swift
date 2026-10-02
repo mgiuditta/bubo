@@ -120,6 +120,8 @@ final class QuestionModel {
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
     @ObservationIgnored private var lastPrompt = ""
+    /// The Allegati of the last prompt, asked again with it; only "Chiedi a Bubo" brings them, for now.
+    @ObservationIgnored private var lastAttachments: [Allegato] = []
     /// Whether the Quota was asked for, or reported by `claude`, since launch.
     @ObservationIgnored private var hasFreshQuota = false
     /// How many times `claude` reported the Quota since launch, to tell whether a turn moved the 5-hour window.
@@ -200,8 +202,10 @@ final class QuestionModel {
     var retryAlternatives: [RetryAlternative] {
         guard !isAnswering, !lastPrompt.isEmpty, let routedAnswer else { return [] }
         let current = routedAnswer.endpoint == nil ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
+        // The endpoints receive the text alone: a Domanda with Allegati stays with Claude until their consent (#99).
+        let offered = lastAttachments.isEmpty ? endpoints.ready.filter { !declinedEndpoints.contains($0.id) } : []
         return RetryAlternative.alternatives(around: current, on: Scala(catalog: catalog, effortCaps: effortCaps),
-                                             endpoints: endpoints.ready.filter { !declinedEndpoints.contains($0.id) },
+                                             endpoints: offered,
                                              answeredBy: routedAnswer.endpoint?.id)
             .map { alternative in
                 var alternative = alternative
@@ -254,6 +258,20 @@ final class QuestionModel {
 
     private static let betterVoiceDismissedKey = "voice.betterVoiceDismissed"
 
+    /// Asks `text` with `attachments`, from outside the HUD, replacing any answer in progress; what is typed in the
+    /// prompt stays there.
+    ///
+    /// The Allegati go only to Claude or to the model on the Mac, as their content.
+    func ask(_ text: String, attachments: [Allegato]) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        lastPrompt = text
+        lastAttachments = attachments
+        declinedEndpoints = []
+        question = UUID()
+        start(text)
+    }
+
     private func ask(speaksAnswer: Bool) {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
@@ -266,6 +284,7 @@ final class QuestionModel {
             return
         }
         lastPrompt = text
+        lastAttachments = []
         declinedEndpoints = []
         question = UUID()
         start(text, route: choice, speaksAnswer: speaksAnswer)
@@ -393,11 +412,12 @@ final class QuestionModel {
         savedNote = nil
         routedAnswer = nil
         isAnswering = true
+        let attachments = lastAttachments
         answering = Task {
             if let endpoint {
                 await stream(text, from: endpoint)
             } else {
-                await stream(text, route: route, speaksAnswer: speaksAnswer)
+                await stream(Richiesta(text: text, attachments: attachments), route: route, speaksAnswer: speaksAnswer)
             }
         }
     }
@@ -443,14 +463,14 @@ final class QuestionModel {
         }
     }
 
-    private func stream(_ text: String, route chosen: Route?, speaksAnswer: Bool) async {
+    private func stream(_ richiesta: Richiesta, route chosen: Route?, speaksAnswer: Bool) async {
         defer { isAnswering = false }
         let signpostID = Signposts.signposter.makeSignpostID()
         var waitingForFirstToken: OSSignpostIntervalState? =
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
-        let richiesta = Richiesta(text: text)
+        let text = richiesta.text
         let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog)
         defer { intake.finish(submission) }
         var route = chosen ?? submission.route
@@ -517,7 +537,8 @@ final class QuestionModel {
             let bridge = try await readyBridge()
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
-            let stream = bridge.ask(asked, in: try Self.directory(), model: route.model, effort: route.effort,
+            let prompt = Self.prompt(asked, attachments: richiesta.attachments)
+            let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     progress: { [orb] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
@@ -568,6 +589,13 @@ final class QuestionModel {
             Logger.agent.error("Domanda failed: \(error)")
             failure = .unexpected
         }
+    }
+
+    /// What `claude` reads of a Domanda: `question`, then each Allegato under its name.
+    private static func prompt(_ question: String, attachments: [Allegato]) -> String {
+        guard !attachments.isEmpty else { return question }
+        let attached = attachments.map { "--- \($0.name) ---\n\($0.text)" }.joined(separator: "\n\n")
+        return question + "\n\n" + attached
     }
 
     /// Records the turn Apple FM answered: gratis, with the tokens the model counts of what it read and wrote.

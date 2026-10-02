@@ -169,6 +169,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         MetricsCollector.shared.extendLaunch()
         FontRegistry.registerBundledFonts()
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
+        // Before any App Intent runs: "Chiedi a Bubo" asks the Domanda of the HUD.
+        AskBuboIntent.questions = questions
         notifier.start()
     }
 
