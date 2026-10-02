@@ -1,4 +1,4 @@
-/// The per-frame parameters of the Orb shader; the layout matches `Uniforms` in `Orb.metal`.
+/// The per-frame parameters of the Orb shader; the layout matches `Uniforms` in `OrbShading.h`.
 struct OrbUniforms {
     var resolution: SIMD2<Float> = .zero
     var time: Float = 0

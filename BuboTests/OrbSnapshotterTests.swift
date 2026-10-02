@@ -32,6 +32,13 @@ struct OrbSnapshotterTests {
         #expect(image.width == Self.size && image.height == Self.size)
     }
 
+    @Test func aVarianteWithoutAFormaIsDrawnAsTheBlob() async throws {
+        let drago = Variante(nome: "drago", forma: "drago", categoria: .creativo, descrizione: "", parole: [])
+        let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: drago, pixelSize: Self.size)))
+        #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
+        #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
+    }
+
     @Test func theLenteIsSolidAtItsGlassAndClearAtTheCorner() async throws {
         let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: lente, pixelSize: Self.size)))
         #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
