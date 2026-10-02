@@ -27,9 +27,11 @@ final class PushToTalk {
     ///   - show: Runs when the Ascolto opens: brings the prompt to the front.
     ///   - dictate: Gets the text heard so far, then the final text; `sends` is true only for the final text of a
     ///     push-to-talk, which sends it.
+    ///   - predict: Gets the text heard so far of a push-to-talk that sends, for the prediction of Tipo and Variante;
+    ///     never the sola dettatura's.
     init(listener: any VoiceListener, microphone: MicrophoneAccess = .system, orb: OrbControls = .shared,
          holdThreshold: Duration = PushToTalk.holdThreshold, interrupt: @escaping () -> Void = {}, tap: @escaping () -> Void, show: @escaping () -> Void,
-         dictate: @escaping (_ text: String, _ sends: Bool) -> Void) {
+         dictate: @escaping (_ text: String, _ sends: Bool) -> Void, predict: @escaping (_ text: String) -> Void = { _ in }) {
         self.listener = listener
         self.microphone = microphone
         self.orb = orb
@@ -38,6 +40,7 @@ final class PushToTalk {
         self.tap = tap
         self.show = show
         self.dictate = dictate
+        self.predict = predict
     }
 
     @ObservationIgnored private let listener: any VoiceListener
@@ -48,6 +51,7 @@ final class PushToTalk {
     @ObservationIgnored private let tap: () -> Void
     @ObservationIgnored private let show: () -> Void
     @ObservationIgnored private let dictate: (String, Bool) -> Void
+    @ObservationIgnored private let predict: (String) -> Void
     /// Whether the shortcut is down.
     @ObservationIgnored private var isHeld = false
     /// Whether the final text of this hold is sent, or only dictated into the prompt.
@@ -171,6 +175,7 @@ final class PushToTalk {
     private func heard(_ text: String) {
         guard isListening else { return }
         dictate(text, false)
+        if sends { predict(text) }
     }
 
     private func heardLevel(_ level: Float) {

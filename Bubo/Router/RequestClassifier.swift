@@ -46,6 +46,18 @@ nonisolated struct RequestClassifier {
         return classification
     }
 
+    /// The verdict of the first engine on the Mac, within its budget, for the prediction on the partial text of the
+    /// Ascolto (spec 08); `nil` when no such engine answers in time.
+    ///
+    /// Never a remote engine such as Jev, and never the rules: without Apple Foundation Models there is no
+    /// prediction, and the Morph waits for `classification(of:)`.
+    func prediction(of input: ClassifierInput) async -> RequestClassification? {
+        guard let engine = engines.first(where: \.runsOnDevice),
+              case .success(let classification) = await Self.outcome(of: engine, input: input)
+        else { return nil }
+        return classification
+    }
+
     /// The engine's answer, or why there is none: the first of the answer and the end of the budget wins.
     ///
     /// The deadline holds even if the engine ignores cancellation: the late answer is dropped, not awaited.

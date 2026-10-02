@@ -75,6 +75,8 @@ enum Signpost {
     case formaCompilation
     /// Interval: from opening the Plugin window to its first snapshot, read from the files.
     case pluginsFirstDraw
+    /// The final text of push-to-talk confirmed the prediction on the partial: the Morph starts without the classifier.
+    case voicePredictionHeld
     /// Interval: from a drop on the Orb to its Allegati in the prompt, with the Orb in Ascolto.
     case dropToListening
 
@@ -96,6 +98,7 @@ enum Signpost {
         case .voiceInterruption: "Interruzione della voce"
         case .formaCompilation: "Compilazione Forma"
         case .pluginsFirstDraw: "Primo disegno dei Plugin"
+        case .voicePredictionHeld: "Previsione della voce confermata"
         case .dropToListening: "Rilascio sull'Orb"
         }
     }

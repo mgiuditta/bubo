@@ -41,6 +41,7 @@ struct PushToTalkTests {
         var interrupts = 0
         var shows = 0
         var dictated: [(text: String, sends: Bool)] = []
+        var predicted: [String] = []
     }
 
     let listener = FakeListener()
@@ -64,6 +65,8 @@ struct PushToTalkTests {
             recorder.shows += 1
         } dictate: {
             recorder.dictated.append(($0, $1))
+        } predict: {
+            recorder.predicted.append($0)
         }
     }
 
@@ -97,6 +100,7 @@ struct PushToTalkTests {
         #expect(recorder.taps == 0)
         #expect(recorder.dictated.map(\.text) == ["ciao", "ciao Bubo"])
         #expect(recorder.dictated.map(\.sends) == [false, true])
+        #expect(recorder.predicted == ["ciao"])
         #expect(!voice.isListening)
         #expect(orb.voiceLevel == nil)
         #expect(orb.questionState == nil)
@@ -115,6 +119,7 @@ struct PushToTalkTests {
 
         #expect(recorder.dictated.map(\.text) == ["ciao", "ciao Bubo"])
         #expect(recorder.dictated.map(\.sends) == [false, false])
+        #expect(recorder.predicted.isEmpty, "the sola dettatura sends nothing, so nothing is predicted")
         #expect(recorder.taps == 0)
     }
 

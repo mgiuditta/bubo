@@ -141,6 +141,7 @@ Architettura comune in [INDEX.md](INDEX.md). La voce è un **ingresso**: dopo il
   - "Bubo" trascritto male in inglese: nessuna correzione nella v1, il nome non serve all'attivazione;
   - Riduci movimento: Orb fermo, resta un indicatore di livello;
   - un Morph già iniziato arriva sempre in fondo, anche se l'utente interrompe;
+  - Apple FM non disponibile (Apple Intelligence spenta, Mac non idoneo, modello non pronto, lingua non supportata): nessuna previsione sul parziale, il Morph aspetta il classificatore finale ([#106](https://github.com/mgiuditta/bubo/issues/106)). La previsione regge quando il testo finale ha le stesse parole dell'ultimo parziale previsto, senza contare maiuscole e punteggiatura, e gli stessi Allegati: allora la sua classificazione vale anche per il router e il classificatore non riparte. Signpost "Previsione della voce confermata".
   - ⌥Spazio condiviso con un'altra app installata dopo l'onboarding: si aprono entrambe; il registratore resta in Impostazioni › Voce, nessun rilevamento automatico.
 - **Test**:
   - latenze p95 con audio registrato a tempo reale (rilascio → testo finale, primo testo → primo audio, interruzione → audio fermo);

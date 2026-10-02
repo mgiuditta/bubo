@@ -72,9 +72,17 @@ nonisolated struct RequestClassification: Equatable, Sendable {
 nonisolated protocol ClassificationEngine: Sendable {
     /// How long the router waits for this engine before falling back to the next one.
     var budget: Duration { get }
+    /// Whether the engine runs on the Mac, sending nothing over the network: only such an engine predicts on the
+    /// partial text of the Ascolto (spec 08).
+    var runsOnDevice: Bool { get }
 
     /// Classifies `input`.
     ///
     /// - Throws: `RequestClassification.Fallback` when the engine cannot or will not answer.
     func classification(of input: ClassifierInput) async throws -> RequestClassification
+}
+
+nonisolated extension ClassificationEngine {
+    /// An engine runs elsewhere unless it says otherwise.
+    var runsOnDevice: Bool { false }
 }

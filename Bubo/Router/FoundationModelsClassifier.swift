@@ -23,6 +23,9 @@ nonisolated struct FoundationModelsClassifier: ClassificationEngine {
         instructions = Self.instructions(for: catalogo)
     }
 
+    /// Apple's model never leaves the Mac.
+    var runsOnDevice: Bool { true }
+
     /// Whether the model can run now: Apple Intelligence on, the Mac eligible and the model downloaded.
     var isAvailable: Bool {
         model.availability == .available
