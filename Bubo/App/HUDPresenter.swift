@@ -39,6 +39,8 @@ final class HUDPresenter {
 
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
+    /// Shows the Galassia of a Sessione's Progetto, filtered on it with its comet followed; `nil` in previews.
+    @ObservationIgnored var showInGalaxy: ((Session) -> Void)?
 
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()

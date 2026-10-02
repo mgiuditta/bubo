@@ -11,5 +11,9 @@ struct BuboShortcuts: AppShortcutsProvider {
                     phrases: ["Nuova Sessione in \(.applicationName)", "Avvia una Sessione in \(.applicationName)"],
                     shortTitle: "Nuova Sessione",
                     systemImageName: "arrow.triangle.branch")
+        AppShortcut(intent: OpenGalaxyIntent(),
+                    phrases: ["Apri la Galassia di \(.applicationName)", "Mostra la Galassia in \(.applicationName)"],
+                    shortTitle: "Apri Galassia",
+                    systemImageName: "sparkles")
     }
 }

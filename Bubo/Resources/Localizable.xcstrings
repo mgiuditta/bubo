@@ -1704,6 +1704,16 @@
         }
       }
     },
+    "Apre la Galassia di un Progetto: la mappa dei suoi file con le Sessioni al lavoro." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens a Project's Galaxy: the map of its files with the Sessions at work."
+          }
+        }
+      }
+    },
     "Apre la PR come bozza, che non si può ancora fondere" : {
       "localizations" : {
         "en" : {
@@ -1794,12 +1804,32 @@
         }
       }
     },
+    "Apri Galassia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Galaxy"
+          }
+        }
+      }
+    },
     "Apri Impostazioni" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open Settings"
+          }
+        }
+      }
+    },
+    "Apri la Galassia di ${target}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the Galaxy of ${target}"
           }
         }
       }
@@ -6176,6 +6206,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send to %@"
+          }
+        }
+      }
+    },
+    "Mostra nella Galassia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show in Galaxy"
           }
         }
       }

@@ -203,7 +203,7 @@ private struct CLIConversationRow: View {
 }
 
 /// A Sessione in every Vista: title, how long it has been in its Attività, the one-line summary, and
-/// the issue (`#42`) · Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Archivia, Cancella…
+/// the issue (`#42`) · Progetto · branch · Fase, then the cost, or `+n −m` on the Board; Riprendi after Bubo's quitting interrupted it, Rivedi le modifiche…, Mostra nella Galassia, Archivia, Cancella…
 /// and the configuration
 /// of Claude in its Progetto in its menu; under it, the agent's questions and its oldest Richiesta di permesso.
 struct SessionRow: View {
@@ -506,6 +506,9 @@ struct SessionRow: View {
         .contextMenu {
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
+            if !isArchived, let showInGalaxy = hud.showInGalaxy {
+                Button("Mostra nella Galassia") { showInGalaxy(session) }
+            }
             if !isArchived {
                 SessionModelMenu(model: session.model) { store.setModel($0, in: session.id) }
             }
@@ -528,6 +531,9 @@ struct SessionRow: View {
             }
             if canReview { Button("Rivedi le modifiche…") { isReviewing = true } }
             if session.terminalFolder != nil { Button("Apri il terminale", action: openTerminal) }
+            if !isArchived, let showInGalaxy = hud.showInGalaxy {
+                Button("Mostra nella Galassia") { showInGalaxy(session) }
+            }
             Button("Configurazione di Claude…") { isShowingConfiguration = true }
             Button("Memoria del Progetto…") { isShowingMemory = true }
             if !session.isRunning {

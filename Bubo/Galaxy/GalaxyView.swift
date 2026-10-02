@@ -41,6 +41,8 @@ struct GalaxyView: View {
         .task(id: model.sessions.filter(\.isReviewable).map(\.folder)) {
             await store.followChanges(of: model.sessions, into: model)
         }
+        // With the window in focus, the Orb's Stato follows the filtered Sessione.
+        .onChange(of: model.filter) { store.filterChanged(in: model) }
         .sheet(item: $review) { target in
             ReviewSheet(sessionID: target.id, store: target.store, file: target.path)
         }

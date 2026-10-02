@@ -1,7 +1,7 @@
 import AppIntents
 import Foundation
 
-/// A Progetto as the parameter of "Nuova Sessione": its folder, named after it.
+/// A Progetto as the parameter of "Nuova Sessione" and "Apri Galassia": its folder, named after it.
 ///
 /// The known Progetti are those with Sessioni; a saved shortcut keeps the folder's path even after it is gone, so
 /// the intent can say so.
@@ -30,7 +30,7 @@ struct ProjectEntity: AppEntity {
     }
 }
 
-/// The Progetti "Nuova Sessione" offers: those with Sessioni, most recent first.
+/// The Progetti "Nuova Sessione" and "Apri Galassia" offer: those with Sessioni, most recent first.
 struct ProjectQuery: EntityQuery {
     func entities(for identifiers: [ProjectEntity.ID]) async throws -> [ProjectEntity] {
         identifiers.map(ProjectEntity.init(id:))

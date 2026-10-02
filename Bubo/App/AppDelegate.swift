@@ -182,6 +182,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
         // Before any App Intent runs: "Chiedi a Bubo" asks the Domanda of the HUD.
         AskBuboIntent.questions = questions
+        // "Apri Galassia" opens the Galassia windows; with one in focus, the Orb follows its filtered Sessione.
+        OpenGalaxyIntent.galaxies = galaxies
+        galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
+        hud.showInGalaxy = { [galaxies] session in galaxies.show(session) }
         // "Nuova Sessione" starts its Sessioni in the HUD's store; the Domanda proposes them on the same Progetti.
         if let sessions {
             NewSessionIntent.starter = IntentSessionStarter(store: sessions, hud: hud, panel: panel)

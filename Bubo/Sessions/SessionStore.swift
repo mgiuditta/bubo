@@ -1301,9 +1301,14 @@ final class SessionStore {
         followActivity()
     }
 
+    /// The Sessione the Orb's Stato follows alone: the one the Galassia in focus filters on; `nil` for all of them.
+    var orbFocus: UUID? {
+        didSet { if orbFocus != oldValue { followActivity() } }
+    }
+
     /// Gives the Orb the Stato of the Sessioni's Attività, and tells the user which ones wait.
     private func followActivity() {
-        let state = OrbState(following: sessions)
+        let state = OrbState(following: sessions, focus: orbFocus)
         if orb?.state != state { orb?.state = state }
         alerts?.follow(sessions, requests: permissions)
     }
@@ -1334,9 +1339,12 @@ nonisolated enum SessionError: LocalizedError, Equatable {
 extension OrbState {
     /// The Stato for these Sessioni: Ascolto while an open one is in Attende te, since it waits for the user;
     /// Lavora while one works; Riposo otherwise.
+    /// With a `focus` among the open Sessioni, such as the one the Galassia in focus filters on, the Stato follows
+    /// that one alone.
     // ponytail: the HUD has no Sessione in front of the user yet; then the Stato follows that one alone.
-    init(following sessions: [Session]) {
-        let open = sessions.filter { $0.isLive }
+    init(following sessions: [Session], focus: UUID? = nil) {
+        var open = sessions.filter { $0.isLive }
+        if let focused = open.first(where: { $0.id == focus }) { open = [focused] }
         if open.contains(where: { $0.activity == .attende }) {
             self = .listening
         } else if open.contains(where: { $0.activity == .lavora }) {

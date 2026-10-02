@@ -105,6 +105,9 @@ final class GalaxyModel {
     @ObservationIgnored private(set) var activityVersion = 0
     /// Whether the camera follows the filtered Sessione's comet; a drag lets it go.
     @ObservationIgnored private(set) var isFollowing = false
+    /// Whether the camera still has to fly to the followed comet: "Mostra nella Galassia" arrived before the layout,
+    /// the map's size or the comet's head.
+    @ObservationIgnored private var awaitsFollowFlight = false
     /// The comets moving now, by Sessione.
     @ObservationIgnored private(set) var cometMoves: [UUID: CometMove] = [:]
     /// The index of each file's star, by path.
@@ -219,6 +222,7 @@ final class GalaxyModel {
         activityVersion += 1
         updateMatches()
         if isShowingAll { fit() }
+        flyToFollowedCometIfAwaited()
     }
 
     @concurrent
@@ -327,6 +331,7 @@ final class GalaxyModel {
         guard size != viewSize else { return }
         viewSize = size
         if isShowingAll { fit() }
+        flyToFollowedCometIfAwaited()
         onRedraw?()
     }
 
@@ -354,6 +359,7 @@ final class GalaxyModel {
     func pan(by translation: CGSize) {
         flight = nil
         isFollowing = false
+        awaitsFollowFlight = false
         camera.pan(by: translation)
     }
 
@@ -415,6 +421,7 @@ final class GalaxyModel {
         if let filter, !sessions.contains(where: { $0.id == filter }) {
             self.filter = nil
             isFollowing = false
+            awaitsFollowFlight = false
         }
         let ids = Set(sessions.map(\.id))
         if changes.keys.contains(where: { !ids.contains($0) }) { changes = changes.filter { ids.contains($0.key) } }
@@ -449,6 +456,27 @@ final class GalaxyModel {
     func showAllSessions() {
         filter = nil
         isFollowing = false
+        awaitsFollowFlight = false
+    }
+
+    /// Filters the list on the Sessione `id` and makes the camera follow its comet, as "Mostra nella Galassia" does:
+    /// unlike ``toggleFilter(_:)`` it never shows every Sessione. The camera flies to the comet as soon as the map
+    /// has its layout, its size and the comet's head.
+    func follow(_ id: UUID) {
+        filter = id
+        isFollowing = true
+        awaitsFollowFlight = true
+        flyToFollowedCometIfAwaited()
+    }
+
+    /// Flies to the followed comet, if a flight to it is awaited and the map can make it now.
+    private func flyToFollowedCometIfAwaited() {
+        guard awaitsFollowFlight, isFollowing, viewSize != .zero, let layout,
+              let session = sessions.first(where: { $0.id == filter }),
+              let index = head(of: session).flatMap({ starIndex[$0] })
+        else { return }
+        awaitsFollowFlight = false
+        fly(to: camera(showing: index, in: layout))
     }
 
     /// The stars of the files the Sessione `id` wrote, in the list's order.
@@ -550,6 +578,7 @@ final class GalaxyModel {
             isMoving = true
         }
         activityVersion += 1
+        flyToFollowedCometIfAwaited()
         onRedraw?()
         if isMoving { onAnimation?() }
     }
