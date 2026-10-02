@@ -154,6 +154,13 @@ final class SessionStore {
     } cool: { [bridge] in
         try await bridge().coolConfiguration()
     }
+    /// Ricarica plugin for the turns in progress, once the plugins changed (spec 20).
+    @ObservationIgnored private(set) lazy var pluginReloader = PluginReloader { [weak self] session, isForced in
+        guard let self, let agent = turns[session], let answer = previewOffers[session]?.answer else {
+            throw CancellationError()
+        }
+        return try await agent.reloadPlugins(ofAnswer: answer, isForced: isForced)
+    }
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
@@ -1139,8 +1146,10 @@ final class SessionStore {
                 }
             }
             previewOffers[id] = (answerID, hasServer)
+            pluginReloader.turnDidStart(in: id)
             if maxBudget != nil { budgetedTurns[id] = session.project }
             defer {
+                pluginReloader.turnDidEnd(in: id)
                 budgetedTurns[id] = nil
                 turns[id] = nil
                 turnPrompts[id] = nil

@@ -31,6 +31,7 @@ import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
 import { allowedBuboTools } from "./tools";
+import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 4;
@@ -44,6 +45,7 @@ type Command =
   | { v: number; type: "warm"; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "cool" }
   | { v: number; type: "reconnect"; server?: unknown }
+  | { v: number; type: "reloadPlugins"; id: string; turn?: unknown; force?: unknown }
   | { v: number; type: "history"; id: string; all?: unknown }
   | { v: number; type: "transcript"; id: string; conversation: string; all?: unknown }
   | { v: number; type: "keep"; id: string }
@@ -94,7 +96,8 @@ type Event =
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
   | { type: "models"; models: CatalogEntry[] }
   | (Denial & { type: "denial"; id: string })
-  | { type: "mode"; id: string; permissionMode: PermissionMode };
+  | { type: "mode"; id: string; permissionMode: PermissionMode }
+  | ({ type: "pluginsReloaded"; id: string } & PluginReload);
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -775,6 +778,18 @@ lines.on("line", (line) => {
         for (const conversation of running.values()) void conversation.reconnectMcpServer(command.server).catch(() => {});
       }
       break;
+    case "reloadPlugins": {
+      // Ricarica plugin del turno in corso `turn`: un turno finito non ha niente da ricaricare, il prossimo li legge da sé.
+      const conversation = typeof command.turn === "string" ? running.get(command.turn) : undefined;
+      if (!conversation) {
+        send({ type: "error", id: command.id, message: "turno finito" });
+        break;
+      }
+      conversation.reloadPlugins(reloadOptions(command.force))
+        .then((response) => send({ type: "pluginsReloaded", id: command.id, ...pluginReload(response) }))
+        .catch((error) => send({ type: "error", id: command.id, message: error instanceof Error ? error.message : String(error) }));
+      break;
+    }
     case "history": void history(command.id, command.all === true); break;
     case "transcript": void transcript(command.id, command.conversation, command.all === true); break;
     case "keep": void keepHistory(command.id); break;

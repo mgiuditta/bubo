@@ -948,6 +948,46 @@
         }
       }
     },
+    "%lld Sessioni al lavoro usano i plugin di prima" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld working Session uses the old plugins"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld working Sessions use the old plugins"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessione al lavoro usa i plugin di prima"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessioni al lavoro usano i plugin di prima"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld subagent" : {
       "localizations" : {
         "en" : {
@@ -3239,6 +3279,26 @@
         }
       }
     },
+    "Claude non ha ricaricato per non perdere la cache del prompt. Ricarica comunque la perde: il resto del turno costa più token." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude didn't reload, to keep the prompt cache. Reload anyway loses it: the rest of the turn costs more tokens."
+          }
+        }
+      }
+    },
+    "Claude non ha ricaricato per non perdere la cache del prompt. Ricarica comunque la perde: il resto del turno costa più token. Server MCP che cambiano: %@." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude didn't reload, to keep the prompt cache. Reload anyway loses it: the rest of the turn costs more tokens. MCP servers that change: %@."
+          }
+        }
+      }
+    },
     "Componenti nuovi" : {
       "localizations" : {
         "en" : {
@@ -3507,6 +3567,16 @@
         }
       }
     },
+    "Il turno in corso usa i plugin di prima delle ultime modifiche. Il prossimo turno prende quelli nuovi da solo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The turn in progress uses the plugins from before the latest changes. The next turn picks up the new ones by itself."
+          }
+        }
+      }
+    },
     "In pausa: l'agente «%@» non c'è più. Ripristina il file o scegli un altro agente in Modifica, poi Riprendi." : {
       "localizations" : {
         "en" : {
@@ -3757,6 +3827,16 @@
         }
       }
     },
+    "Plugin di prima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Old plugins"
+          }
+        }
+      }
+    },
     "Possibile segreto %@, inizia con %@, %lld caratteri" : {
       "localizations" : {
         "en" : {
@@ -3862,6 +3942,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Branch %@: nothing new since the base"
+          }
+        }
+      }
+    },
+    "Ricarica comunque (cache del prompt persa)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload anyway (prompt cache lost)"
+          }
+        }
+      }
+    },
+    "Ricarica plugin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload plugins"
+          }
+        }
+      }
+    },
+    "Ricarica tutte" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reload all"
+          }
+        }
+      }
+    },
+    "Ricaricare può invalidare la cache del prompt." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reloading can invalidate the prompt cache."
+          }
+        }
+      }
+    },
+    "Ricaricare può invalidare la cache del prompt: in quel caso Claude si ferma e chiede conferma." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reloading can invalidate the prompt cache: if so, Claude stops and asks you to confirm."
+          }
+        }
+      }
+    },
+    "Ricarico i plugin…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reloading plugins…"
           }
         }
       }

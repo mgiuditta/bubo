@@ -40,6 +40,7 @@ struct PluginsWindow: View {
             configuration = { project in try await store.currentConfiguration(of: project) }
         }
         _catalog = State(initialValue: PluginCatalog(reconnect: { store?.reconnectMCPServer(named: $0) },
+                                                     pluginsDidChange: { store?.pluginReloader.pluginsDidChange() },
                                                      configuration: configuration, updateStore: .standard,
                                                      updateChecker: .live()))
     }
@@ -91,6 +92,11 @@ struct PluginsWindow: View {
                 .id(entry.id)
             } else {
                 ContentUnavailableView("Scegli un plugin", systemImage: "puzzlepiece.extension")
+            }
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if let store {
+                PluginReloadBanner(store: store)
             }
         }
         .searchable(text: $query, placement: .toolbar, prompt: "Cerca plugin")

@@ -30,6 +30,8 @@ import os
     @ObservationIgnored private let login: MCPLogin
     /// Has the turns in progress connect again to an MCP server, after a login.
     @ObservationIgnored private let reconnect: @MainActor (String) -> Void
+    /// Tells the turns in progress that the plugins changed: a command that succeeded, or a change seen on disk.
+    @ObservationIgnored private let pluginsDidChange: @MainActor () -> Void
     /// The last `plugin_errors` read, merged into every later reading of the files.
     @ObservationIgnored private var errors: [ClaudeConfiguration.PluginError] = []
     /// The main checkout of the Progetto followed, which the commands run in.
@@ -49,9 +51,10 @@ import os
 
     /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` and MCP
     /// servers of the `configuration` of `claude`, and changed by `cli`; `login` logs in to an MCP server, after
-    /// which `reconnect` tells the turns in progress.
+    /// which `reconnect` tells the turns in progress; `pluginsDidChange` learns each change of the plugins.
     init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live(),
          login: MCPLogin = .live(), reconnect: @escaping @MainActor (String) -> Void = { _ in },
+         pluginsDidChange: @escaping @MainActor () -> Void = {},
          configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)? = nil,
          updateStore: PluginUpdateStore = .inMemory(), updateChecker: PluginUpdateChecker? = nil) {
         self.folders = folders
@@ -61,6 +64,7 @@ import os
         self.cli = cli
         self.login = login
         self.reconnect = reconnect
+        self.pluginsDidChange = pluginsDidChange
         self.configuration = configuration
     }
 
@@ -144,6 +148,8 @@ import os
             await refreshListing(project)
             throw error
         }
+        // Before the list, so that Ricarica plugin shows at once (#212).
+        if result.succeeded { pluginsDidChange() }
         await refreshListing(project)
         // A Sessione reads its errors only at its start, so they are read again, without holding up the window.
         Task { await refreshConfiguration(project) }
@@ -311,6 +317,7 @@ import os
             continuation.finish()
         }
         for await _ in changes {
+            pluginsDidChange()
             await reload(project)
         }
     }
