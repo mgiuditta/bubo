@@ -1,9 +1,12 @@
 import SwiftUI
 
-/// The Costi window: the CostLedger's turns of a period, grouped in a table, with the chart of one unit over time and
-/// the CSV of the table. Spesa, Valore a listino and Gratis stay apart everywhere (spec 18).
+/// The Costi window: the CostLedger's turns and the Cronologia CLI's of a period, grouped in a table, with the chart of
+/// one unit over time and the CSV of the table. Spesa, Valore a listino, the command line's estimate and Gratis stay
+/// apart everywhere (spec 18).
 struct CostsView: View {
     let ledger: CostLedger
+    /// The turns of the Cronologia CLI, outside the ledger.
+    let cliHistory: CLIHistoryCosts
     /// The title of a Sessione still in Bubo.
     let sessionTitle: (UUID) -> String?
     /// Saves the CSV of the table, asking where.
@@ -11,12 +14,14 @@ struct CostsView: View {
 
     @State private var grouping = CostHistory.Grouping.project
     @State private var period = CostHistory.Period.month
+    @State private var source = CostHistory.Source.all
     /// The unit the chart shows: one at a time, so its bars never mix two.
     @State private var chartUnit = CostUnit.spesa
+    @AppStorage(ConversationStore.keepsCLIHistoryKey) private var keepsCLIHistory = true
 
     var body: some View {
-        let history = CostHistory(entries: ledger.entries, grouping: grouping, period: period,
-                                  sessionTitle: sessionTitle)
+        let history = CostHistory(entries: ledger.entries + cliHistory.entries, grouping: grouping, period: period,
+                                  source: source, sessionTitle: sessionTitle)
         VStack(alignment: .leading, spacing: Spacing.medium) {
             filters(history)
             CostTotals(history: history)
@@ -28,6 +33,7 @@ struct CostsView: View {
         .frame(minWidth: 860, minHeight: 600)
         .foregroundStyle(Palette.textPrimary)
         .background(Palette.ink)
+        .onChange(of: keepsCLIHistory) { cliHistory.reload() }
     }
 
     private func filters(_ history: CostHistory) -> some View {
@@ -40,6 +46,13 @@ struct CostsView: View {
                 ForEach(CostHistory.Grouping.allCases) { Text($0.title) }
             }
             .fixedSize()
+            Picker("Fonte", selection: $source) {
+                ForEach(CostHistory.Source.allCases) { Text($0.title) }
+            }
+            .fixedSize()
+            if cliHistory.isReading {
+                LoadingLabel("Leggo la Cronologia CLI…")
+            }
             Spacer()
             Button("Esporta CSV…") { export(history.csv) }
                 .disabled(history.rows.isEmpty)
@@ -68,7 +81,11 @@ struct CostsView: View {
     /// What the window does not count, said rather than guessed (spec 18, Fonti dello storico).
     private var notes: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            Text("Contano i turni passati da Bubo. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori.")
+            Text("Contano i turni passati da Bubo e la Cronologia CLI di Claude. Gli altri strumenti a riga di comando, come Codex e Gemini CLI, sono fuori.")
+            Text("La riga di comando è una stima a listino: il transcript non dice se il turno era in abbonamento o con la chiave API. Resta fuori dai Budget.")
+            if !keepsCLIHistory {
+                Text("La copia della Cronologia CLI è spenta: qui c'è solo ciò che la riga di comando conserva ancora, di solito gli ultimi 30 giorni.")
+            }
             Text("La Quota dell'abbonamento è una percentuale, nell'HUD: non si somma a queste cifre.")
             Text("I crediti extra dell'abbonamento non compaiono: Bubo non li distingue ancora dagli altri consumi.")
         }
@@ -80,14 +97,25 @@ struct CostsView: View {
 
 extension CostUnit {
     /// The units the chart shows, in dollars; Gratis has only tokens.
-    static let charted: [CostUnit] = [.spesa, .valoreListino]
+    static let charted: [CostUnit] = [.spesa, .valoreListino, .rigaDiComando]
 
     /// The unit's name, as the glossary has it.
     var title: LocalizedStringResource {
         switch self {
         case .spesa: "Spesa"
         case .valoreListino: "Valore a listino"
+        case .rigaDiComando: "Riga di comando, a listino"
         case .gratis: "Gratis"
+        }
+    }
+}
+
+extension CostHistory.Source {
+    var title: LocalizedStringResource {
+        switch self {
+        case .all: "Tutte"
+        case .bubo: "Bubo"
+        case .commandLine: "Riga di comando"
         }
     }
 }
@@ -123,5 +151,6 @@ extension CostHistory.Period {
               cacheWriteTokens: 400, thinkingTokens: 0, cost: 0.42),
     ])
     ledger.record(usage, turn: "t1", session: UUID(), project: URL(filePath: "/tmp/bubo"))
-    return CostsView(ledger: ledger, sessionTitle: { _ in nil }, export: { _ in })
+    return CostsView(ledger: ledger, cliHistory: CLIHistoryCosts { CLIHistoryReader() }, sessionTitle: { _ in nil },
+                     export: { _ in })
 }

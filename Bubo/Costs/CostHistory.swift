@@ -2,14 +2,31 @@ import Foundation
 
 /// The CostLedger's turns of a period, grouped for the Costi window: rows, totals, the chart's points and the CSV.
 ///
-/// Spesa, Valore a listino and Gratis never meet: each row, total and point has one unit, and the CSV keeps Spesa and
-/// Valore a listino in columns of their own. The Quota is a share of the subscription, not a figure, and is not here.
+/// Spesa, Valore a listino, the command line's list estimate and Gratis never meet: each row, total and point has one
+/// unit, and the CSV keeps each figure in a column of its own. The Quota is a share of the subscription, not a figure,
+/// and is not here.
 struct CostHistory: Equatable {
     /// What the rows are grouped by.
     enum Grouping: String, CaseIterable, Identifiable, Sendable {
         case project, session, model, provider, period
 
         var id: Self { self }
+    }
+
+    /// Where the turns were made: in Bubo, or with the command line outside it (the Cronologia CLI).
+    enum Source: String, CaseIterable, Identifiable, Sendable {
+        case all, bubo, commandLine
+
+        var id: Self { self }
+
+        /// Whether the turn of `entry` was made where this source says.
+        func includes(_ entry: CostLedger.Entry) -> Bool {
+            switch self {
+            case .all: true
+            case .bubo: entry.usage.mode != .commandLine
+            case .commandLine: entry.usage.mode == .commandLine
+            }
+        }
     }
 
     /// How far back the turns go.
@@ -92,13 +109,15 @@ struct CostHistory: Equatable {
     /// The span of one bar.
     let bucket: Calendar.Component
 
-    /// Groups `entries` of `period`, ending at `now`, by `grouping`.
+    /// Groups `entries` of `period`, ending at `now`, made where `source` says, by `grouping`.
     ///
     /// - Parameter sessionTitle: The title of a Sessione still in Bubo; `nil` for one deleted.
-    init(entries: [CostLedger.Entry], grouping: Grouping, period: Period, now: Date = .now,
+    init(entries: [CostLedger.Entry], grouping: Grouping, period: Period, source: Source = .all, now: Date = .now,
          calendar: Calendar = .current, sessionTitle: (UUID) -> String? = { _ in nil }) {
         let start = period.start(endingAt: now, calendar: calendar)
-        let counted = entries.filter { entry in start.map { entry.date >= $0 } ?? true }
+        let counted = entries.filter { entry in
+            source.includes(entry) && (start.map { entry.date >= $0 } ?? true)
+        }
         bucket = period.bucket
         var rows: [String: Row] = [:]
         var totals: [CostUnit: CostLedger.Amount] = [:]
@@ -150,16 +169,18 @@ struct CostHistory: Equatable {
         }
     }
 
-    /// The rows as CSV, one line each, with Spesa and Valore a listino in separate columns, so adding up a column
-    /// never mixes them.
+    /// The rows as CSV, one line each, with Spesa, Valore a listino and the command line's estimate in separate
+    /// columns, so adding up a column never mixes them.
     var csv: String {
-        let header = "gruppo,unita,origine,spesa_usd,valore_listino_usd,incerta,incompleta,token_input,token_output,"
+        let header = "gruppo,unita,origine,spesa_usd,valore_listino_usd,riga_di_comando_usd,incerta,incompleta,"
+            + "token_input,token_output,"
             + "token_cache_lettura,token_cache_scrittura,turni,data_tabella_prezzi"
         let lines = rows.map { row in
             let figure = row.origin == .unpriced ? "" : "\(row.amount.value)"
             return [
                 Self.field(row.group), row.unit.rawValue, row.origin.rawValue,
                 row.unit == .spesa ? figure : "", row.unit == .valoreListino ? figure : "",
+                row.unit == .rigaDiComando ? figure : "",
                 "\(row.amount.isUncertain)", "\(row.amount.isIncomplete)",
                 "\(row.tokens.input)", "\(row.tokens.output)", "\(row.tokens.cacheRead)", "\(row.tokens.cacheWrite)",
                 "\(row.turns)", row.priceDate?.formatted(.iso8601.year().month().day()) ?? "",
@@ -182,9 +203,13 @@ struct CostHistory: Equatable {
         return "\"" + text.replacing("\"", with: "\"\"") + "\""
     }
 
-    /// The Sessione's title; for a Domanda, its first turn's day and time.
+    /// The Sessione's title; for a Domanda, its first turn's day and time; for a conversation of the Cronologia CLI,
+    /// the start of its id.
     private static func title(of entry: CostLedger.Entry, sessionTitle: (UUID) -> String?,
                               questions: inout [UUID: String]) -> String {
+        if entry.usage.mode == .commandLine {
+            return String(localized: "Riga di comando \(String(entry.session.uuidString.prefix(8)))")
+        }
         guard entry.project == nil else {
             return sessionTitle(entry.session) ?? String(localized: "Sessione \(String(entry.session.uuidString.prefix(8)))")
         }
