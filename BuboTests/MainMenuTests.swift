@@ -63,6 +63,12 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == nil)
     }
 
+    @Test func pluginIsInTheWindowMenuWithoutAShortcut() throws {
+        let windowMenu = try #require(NSApp.windowsMenu)
+        let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Plugin") })
+        #expect(Self.shortcut(of: item) == nil)
+    }
+
     @Test func cronologiaIsInTheWindowMenuWithoutAShortcut() throws {
         let windowMenu = try #require(NSApp.windowsMenu)
         let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Cronologia") })
@@ -88,6 +94,7 @@ struct MainMenuTests {
         #expect(commands.contains { $0.title == String(localized: "Mostra la Galassia") && $0.shortcut == "⌥⌘G" })
         #expect(commands.contains { $0.title == String(localized: "Sessione da issue GitHub…") && $0.shortcut == "⌘I" })
         #expect(commands.contains { $0.title == String(localized: "Agenti") && $0.shortcut == nil })
+        #expect(commands.contains { $0.title == String(localized: "Plugin") && $0.shortcut == nil })
         let editMenu = try #require(mainMenu.items.compactMap(\.submenu).first {
             $0.items.contains { $0.action == #selector(NSText.copy(_:)) }
         })

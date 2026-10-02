@@ -67,6 +67,8 @@ enum Signpost {
     case intakeDecision
     /// Interval: compiling the pipeline of a Forma on its first request (ADR 0010).
     case formaCompilation
+    /// Interval: from opening the Plugin window to its first snapshot, read from the files.
+    case pluginsFirstDraw
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -82,6 +84,7 @@ enum Signpost {
         case .onboardingFirstToken: "Primo token onboarding"
         case .intakeDecision: "Decisione della Richiesta"
         case .formaCompilation: "Compilazione Forma"
+        case .pluginsFirstDraw: "Primo disegno dei Plugin"
         }
     }
 }
