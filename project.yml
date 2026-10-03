@@ -187,9 +187,11 @@ targets:
           [[ -d $framework ]] || exit 0
           rm -rf "$framework/Versions/B/XPCServices" "$framework/XPCServices"
           codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$framework"
-        # Dopo la copia del framework nel bundle, mai in parallelo con lei.
+        # Dopo la copia del framework e dopo la sua firma da parte di Xcode (che produce _CodeSignature): senza la
+        # seconda dipendenza lo script toglie Installer.xpc mentre codesign lo legge, "cannot find code object" (#593).
         inputFiles:
           - $(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Sparkle.framework
+          - $(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Sparkle.framework/Versions/B/_CodeSignature
         basedOnDependencyAnalysis: false
       - name: Lanciatore del terminale
         shell: /bin/zsh
