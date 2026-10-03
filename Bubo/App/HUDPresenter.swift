@@ -40,6 +40,9 @@ final class HUDPresenter {
     /// Puts Allegati in the prompt of the Domanda, for a drop in the HUD with no open Sessione in front; set by the app.
     @ObservationIgnored var attachToQuestion: ([Allegato]) -> Void = { _ in }
 
+    /// Imports the dropped recordings and trascrizioni as Riunioni; set by the app.
+    @ObservationIgnored var importMeetings: ([URL]) -> Void = { _ in }
+
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
     /// Shows the Galassia of a Sessione's Progetto, filtered on it with its comet followed; `nil` in previews.

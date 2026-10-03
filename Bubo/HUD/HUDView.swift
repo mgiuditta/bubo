@@ -49,8 +49,13 @@ struct HUDView: View {
                     }
                 }
         }
-        // A drop with no Sessione in front: a new Domanda with the Allegati (regola "Sessione davanti").
+        // A drop with no Sessione in front: recordings and trascrizioni become Riunioni, the rest a new Domanda with the
+        // Allegati (regola "Sessione davanti").
         .dropDestination(for: URL.self) { urls, _ in
+            if MeetingImportFile.isMeetingDrop(urls) {
+                hud.importMeetings(urls)
+                return true
+            }
             let attachments = HUDDropDestination.attachments(from: urls)
             questions.attach(attachments)
             return !attachments.isEmpty
