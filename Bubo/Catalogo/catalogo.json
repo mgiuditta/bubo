@@ -832,6 +832,174 @@
       "categoria": "viaggi",
       "descrizione": "Quando si viaggia per mare: traghetti, crociere.",
       "parole": ["nave", "ship", "traghetto", "ferry", "crociera", "cruise", "mare", "sea voyage"]
+    },
+    {
+      "nome": "iceberg",
+      "forma": "iceberg",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di debito tecnico: problemi nascosti sotto la superficie.",
+      "parole": ["iceberg", "debito tecnico", "technical debt", "problemi nascosti", "hidden problems", "sotto la superficie"]
+    },
+    {
+      "nome": "tamburo",
+      "forma": "tamburo",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di percussioni a mano: bonghi, djembe, tamburi.",
+      "parole": ["tamburo", "bonghi", "bongo", "djembe", "percussioni", "percussion", "drum"]
+    },
+    {
+      "nome": "giorno-notte",
+      "forma": "giorno_notte",
+      "categoria": "tempo",
+      "descrizione": "Quando si confrontano fusi orari e ore nel mondo.",
+      "parole": ["fusi orari", "time zones", "fuso orario", "time zone", "ore nel mondo", "world clock", "giorno e notte"]
+    },
+    {
+      "nome": "grafico-barre",
+      "forma": "grafico_barre",
+      "categoria": "finanza",
+      "descrizione": "Quando si guardano bilanci, report e numeri in un grafico.",
+      "parole": ["grafico", "chart", "bilancio", "balance sheet", "report", "grafico a barre", "bar chart", "numeri"]
+    },
+    {
+      "nome": "sipario",
+      "forma": "sipario",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di teatro e spettacoli dal vivo.",
+      "parole": ["sipario", "teatro", "theatre", "theater", "spettacolo", "show", "palcoscenico", "stage"]
+    },
+    {
+      "nome": "chiave-inglese",
+      "forma": "chiave_inglese",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo fa una correzione piccola e mirata.",
+      "parole": ["chiave inglese", "wrench", "correzione piccola", "quick fix", "hotfix", "aggiusta", "patch*"]
+    },
+    {
+      "nome": "girasole",
+      "forma": "girasole",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di fiori e giardini fioriti.",
+      "parole": ["girasole", "sunflower", "fiori", "flowers", "giardino", "garden", "fiorito"]
+    },
+    {
+      "nome": "trofeo",
+      "forma": "trofeo",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano risultati sportivi: partite, classifiche, campionati.",
+      "parole": ["trofeo", "trophy", "partita", "match", "classifica", "standings", "campionato", "league"]
+    },
+    {
+      "nome": "chiocciola",
+      "forma": "chiocciola",
+      "categoria": "mail",
+      "descrizione": "Quando si parla di indirizzi email e account di posta.",
+      "parole": ["chiocciola", "at sign", "indirizzo email", "email address", "account di posta", "mail account", "@"]
+    },
+    {
+      "nome": "bicicletta",
+      "forma": "bicicletta",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di ciclismo e uscite in bici.",
+      "parole": ["bicicletta", "bici", "bike", "bicycle", "ciclismo", "cycling", "pedalare", "uscita in bici"]
+    },
+    {
+      "nome": "spina",
+      "forma": "spina",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo collega servizi esterni: API, integrazioni, webhook.",
+      "parole": ["spina", "plug", "api", "integrazione", "integration", "webhook", "servizi esterni"]
+    },
+    {
+      "nome": "fiocco-di-neve",
+      "forma": "fiocco_di_neve",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di neve e nevicate.",
+      "parole": ["fiocco di neve", "snowflake", "neve", "snow", "nevicata", "nevica", "snowfall"]
+    },
+    {
+      "nome": "drone",
+      "forma": "drone",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo manda un subagente a esplorare e riferire.",
+      "parole": ["drone", "subagente", "subagent", "esplora e riferisci", "explore and report", "ricognizione", "scout"]
+    },
+    {
+      "nome": "auto",
+      "forma": "automobile",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia in auto: noleggio, strade, pedaggi.",
+      "parole": ["auto", "automobile", "car", "noleggio", "car rental", "pedaggio", "toll", "in macchina"]
+    },
+    {
+      "nome": "fotocopiatrice",
+      "forma": "fotocopiatrice",
+      "categoria": "codice",
+      "descrizione": "Quando si cerca o si toglie codice duplicato.",
+      "parole": ["fotocopiatrice", "copier", "codice duplicato", "duplicate code", "duplicazione", "deduplic*", "copia e incolla"]
+    },
+    {
+      "nome": "pizza",
+      "forma": "pizza",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di pizza e cibo da asporto.",
+      "parole": ["pizza", "pizzeria", "asporto", "takeaway", "take-out", "margherita", "cibo da asporto"]
+    },
+    {
+      "nome": "calcolatrice",
+      "forma": "calcolatrice",
+      "categoria": "finanza",
+      "descrizione": "Quando si fanno calcoli con i soldi: rate, interessi, percentuali.",
+      "parole": ["calcolatrice", "calculator", "rata", "rate", "interessi", "interest", "percentuale", "percentage"]
+    },
+    {
+      "nome": "rocchetto",
+      "forma": "rocchetto",
+      "categoria": "creativo",
+      "descrizione": "Quando si cuce o si fa artigianato con stoffa e filo.",
+      "parole": ["rocchetto", "filo", "thread", "cucire", "sewing", "ago", "needle", "stoffa"]
+    },
+    {
+      "nome": "segnaposto",
+      "forma": "segnaposto",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cerca un luogo vicino: negozi, ristoranti, servizi.",
+      "parole": ["segnaposto", "map pin", "vicino a me", "near me", "negozi", "shops", "ristoranti", "restaurants"]
+    },
+    {
+      "nome": "lumaca",
+      "forma": "lumaca",
+      "categoria": "codice",
+      "descrizione": "Quando qualcosa è lento: app, build, query, avvio.",
+      "parole": ["lumaca", "snail", "lento", "slow", "lentezza", "build lenta", "slow build", "query lenta"]
+    },
+    {
+      "nome": "microfono",
+      "forma": "microfono",
+      "categoria": "musica",
+      "descrizione": "Quando si canta o si registra la voce: karaoke, podcast, canto.",
+      "parole": ["microfono", "microphone", "karaoke", "podcast", "canto", "singing", "registrare la voce"]
+    },
+    {
+      "nome": "foglia",
+      "forma": "foglia",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla delle stagioni e dei loro cambi.",
+      "parole": ["foglia", "leaf", "stagioni", "seasons", "autunno", "autumn", "cambio di stagione"]
+    },
+    {
+      "nome": "megafono",
+      "forma": "megafono",
+      "categoria": "mail",
+      "descrizione": "Quando si scrive per molte persone: annunci, newsletter, comunicazioni.",
+      "parole": ["megafono", "megaphone", "annuncio", "announcement", "newsletter", "comunicazione", "comunicazioni"]
+    },
+    {
+      "nome": "siringa",
+      "forma": "siringa",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di vaccini e iniezioni.",
+      "parole": ["siringa", "syringe", "vaccino", "vaccine", "iniezione", "injection", "puntura"]
     }
   ]
 }
