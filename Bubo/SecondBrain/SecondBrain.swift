@@ -100,6 +100,22 @@ final class SecondBrain {
                                                   with: NoteWriter(root: location.url))
     }
 
+    /// Writes the Riunione `note` in `Bubo/Riunioni/`, off the main actor; the Indice finds it as any other note.
+    ///
+    /// - Throws: `NoteWriter.Failure.unreachable` also when no folder is chosen; a file system error when the note
+    ///   could not be written.
+    func writeMeeting(_ note: MeetingNote) async throws -> NoteWriter.WrittenNote {
+        guard let location else { throw NoteWriter.Failure.unreachable }
+        let written = try await Self.writeMeeting(note, with: NoteWriter(root: location.url))
+        Logger.index.notice("Riunione saved in the Secondo cervello")
+        return written
+    }
+
+    @concurrent
+    private static func writeMeeting(_ note: MeetingNote, with writer: NoteWriter) async throws -> NoteWriter.WrittenNote {
+        try writer.writeMeeting(note)
+    }
+
     @concurrent
     private static func writeSessionSummary(_ body: String, properties: SummaryProperties, replacing previous: SummaryNote?,
                                             with writer: NoteWriter) async throws -> SummaryNote? {

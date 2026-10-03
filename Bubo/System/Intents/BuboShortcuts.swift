@@ -19,5 +19,9 @@ struct BuboShortcuts: AppShortcutsProvider {
                     phrases: ["Cerca nella cronologia di \(.applicationName)", "Cerca nelle conversazioni di \(.applicationName)"],
                     shortTitle: "Cerca nella cronologia",
                     systemImageName: "clock.arrow.circlepath")
+        AppShortcut(intent: RecordMeetingIntent(),
+                    phrases: ["Registra una Riunione con \(.applicationName)", "Registra la Riunione in \(.applicationName)"],
+                    shortTitle: "Registra Riunione",
+                    systemImageName: "record.circle")
     }
 }

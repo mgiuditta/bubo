@@ -54,6 +54,9 @@ struct BuboApp: App {
                         .disabled(true)
                 }
                 Divider()
+                // In the File menu so the Palette lists it too; no shortcut.
+                MeetingMenuItems(recorder: appDelegate.meetings)
+                Divider()
                 // Only with Bubo in front: no global shortcut (spec 14).
                 Button("Cerca…") { appDelegate.togglePalette() }
                     .keyboardShortcut("k")
@@ -145,12 +148,20 @@ struct BuboApp: App {
         }
 
         MenuBarExtra {
-            MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions)
+            MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions, meetings: appDelegate.meetings)
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
         } label: {
             MenuBarLabel(sessions: appDelegate.sessions)
+        }
+
+        // Only while a Riunione is recorded: the indicator always in sight (#545).
+        MenuBarExtra(isInserted: Binding { appDelegate.meetings.isRecording } set: { _ in }) {
+            MeetingMenuItems(recorder: appDelegate.meetings)
+            Button("Mostra la Riunione") { appDelegate.meetingWindow.show() }
+        } label: {
+            MeetingIndicator()
         }
 
         #if DEBUG

@@ -46,6 +46,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac.</string>
 	<key>UTExportedTypeDeclarations</key>
 	<array>
 		<dict>

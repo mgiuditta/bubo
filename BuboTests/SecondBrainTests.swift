@@ -63,6 +63,23 @@ struct SecondBrainTests {
         #expect(try await index.hits(for: "quokka").allSatisfy { $0.source == .secondBrain && $0.project == nil })
     }
 
+    /// #545: a Riunione is a source, found by `cerca` as soon as it is written; the Riassunti di Sessione stay out.
+    @Test func aRiunioneIsFoundAndTheSessionSummariesStayOut() async throws {
+        try folder.write("ornitorinco in un riassunto", to: "Bubo/Sessioni/2026-10-01 Sessione.md")
+        let index = try folder.claude.open()
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+
+        let note = MeetingNote(title: "Fornitori", start: .now, duration: .seconds(300), app: "Zoom",
+                               transcript: [MeetingLine(speaker: .others, start: .seconds(12),
+                                                           text: "Il fornitore dell'ornitorinco consegna lunedì.")])
+        let written = try NoteWriter(root: folder.notes).writeMeeting(note)
+
+        #expect(try await waitUntil("ornitorinco", in: index))
+        let files = try await index.hits(for: "ornitorinco").map { URL(filePath: $0.path).lastPathComponent }
+        #expect(Set(files) == [written.file.lastPathComponent])
+    }
+
     @Test func aSourceLimitsTheSearch() async throws {
         try folder.claude.write("deploy dalla memoria", to: "projects/-p/memory/a.md")
         try folder.write("deploy dalle note", to: "a.md")
@@ -176,7 +193,8 @@ struct SecondBrainTests {
         #expect(SecondBrainNotes.skips(path))
     }
 
-    @Test(arguments: ["", "Diario/a.md", "Bubo", "Bubo/Note/a.md", "Sessioni/a.md", "Bubo/SessioniVecchie/a.md"])
+    @Test(arguments: ["", "Diario/a.md", "Bubo", "Bubo/Note/a.md", "Sessioni/a.md", "Bubo/SessioniVecchie/a.md",
+                      "Bubo/Riunioni", "Bubo/Riunioni/2026-10-01 Riunione.md"])
     func readPaths(path: String) {
         #expect(!SecondBrainNotes.skips(path))
     }

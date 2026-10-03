@@ -82,6 +82,8 @@ targets:
         # XcodeGen scriverebbe 1.0 e 1: si tengono le versioni dei build setting.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Il process tap di Core Audio, per l'audio dell'app di una Riunione (#545): senza, macOS non lo chiede.
+        NSAudioCaptureUsageDescription: "Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac."
         CFBundleURLTypes:
           - CFBundleURLName: com.mgiuditta.bubo
             CFBundleTypeRole: Viewer
@@ -123,7 +125,7 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Bubo ascolta solo mentre tieni premuta la scorciatoia e trascrive sul Mac."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Bubo ascolta mentre tieni premuta la scorciatoia o registri una Riunione, e trascrive sul Mac."
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Bubo trascrive sul Mac quello che dici mentre tieni premuta la scorciatoia."
     postBuildScripts:
       - name: Ponte agente

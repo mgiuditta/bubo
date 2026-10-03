@@ -8,6 +8,8 @@ struct MenuBarContent: View {
     let sessions: SessionStore?
     /// The Domanda's model, which keeps the latest Quota.
     let questions: QuestionModel
+    /// The Riunioni.
+    let meetings: MeetingRecorder
     @Environment(HUDPresenter.self) private var hud
     @Environment(HotKeyCenter.self) private var hotKeys
     @Environment(OrbPanelController.self) private var panel
@@ -50,6 +52,7 @@ struct MenuBarContent: View {
         Divider()
         Button("Nuova Sessione…") { hud.createSession() }
             .disabled(sessions == nil)
+        MeetingMenuItems(recorder: meetings)
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)

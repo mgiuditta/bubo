@@ -33,6 +33,7 @@ Architettura comune in [INDEX.md](INDEX.md). Dipende dall'Indice ([indice-semant
 - **Scrittura**: solo dentro `Bubo/` nella radice del Secondo cervello.
   - `Bubo/Sessioni/`: Riassunti di Sessione ([13-memoria.md](13-memoria.md#riassunto-di-sessione)).
   - `Bubo/Note/`: "Ricordati questo" detto in una Domanda. In una Sessione lo salva invece l'agente nella Memoria di Progetto.
+  - `Bubo/Riunioni/`: le Riunioni registrate (#545), con proprietà `titolo`, `data`, `ora`, `durata`, `app`, `partecipanti`, `fonte: Riunione`, poi Riassunto, Decisioni, Azioni e Trascrizione con «Io» e «Altri». L'Indice le legge: sono fonti, non riassunti di Bubo. L'audio resta in `Application Support/Bubo/Riunioni/`, 30 giorni o fino alla trascrizione (Impostazioni › Generale).
 - **Moduli**:
   - `SecondBrain/SecondBrainLocation`: cartella scelta, bookmark, suggerimento dei vault, raggiungibilità.
   - `SecondBrain/NoteWriter`: unico scrittore su disco. Scrive solo sotto `Bubo/`, nomi senza `/ : * ? " < > |`, frontmatter valido per Obsidian, scrittura atomica, hash della versione scritta per riconoscere le modifiche a mano.
