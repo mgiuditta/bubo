@@ -18507,6 +18507,26 @@
           }
         }
       }
+    },
+    "Automatico" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic"
+          }
+        }
+      }
+    },
+    "Modello: automatico" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Model: automatic"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
