@@ -1200,7 +1200,7 @@
       "testo": "Scrivi una mail cortese per rimandare la riunione di giovedì.",
       "tipo": "domanda.scrittura",
       "categoria": "mail",
-      "variante": "busta"
+      "variante": "aeroplanino"
     },
     {
       "id": "r142",
@@ -1216,7 +1216,7 @@
       "testo": "Rispondi a questa mail declinando l'offerta con gentilezza.",
       "tipo": "domanda.scrittura",
       "categoria": "mail",
-      "variante": "busta",
+      "variante": "aeroplanino",
       "allegati": [
         "offerta.eml"
       ]
@@ -1289,7 +1289,7 @@
       "testo": "Write a short follow-up email to a recruiter I haven't heard back from.",
       "tipo": "domanda.scrittura",
       "categoria": "mail",
-      "variante": "busta"
+      "variante": "aeroplanino"
     },
     {
       "id": "r152",
