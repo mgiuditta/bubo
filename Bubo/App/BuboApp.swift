@@ -141,6 +141,7 @@ struct BuboApp: App {
             SettingsView()
                 .environment(appDelegate.sessions)
                 .environment(appDelegate.secondBrain)
+                .environment(appDelegate.questions)
                 .environment(appDelegate.semanticSearch)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)

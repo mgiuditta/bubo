@@ -538,6 +538,19 @@ final class QuestionModel {
         start(text)
     }
 
+    /// Asks `text` from outside the HUD with the model picked in the chip, as a typed prompt would, replacing any
+    /// answer in progress; what is typed in the prompt stays there.
+    func askWithChosenModel(_ text: String) {
+        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { return }
+        lastPrompt = text
+        lastAttachments = []
+        confirmedAttachments = [:]
+        declinedEndpoints = []
+        question = UUID()
+        start(text, route: chipChoice)
+    }
+
     private func ask(speaksAnswer: Bool) {
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
