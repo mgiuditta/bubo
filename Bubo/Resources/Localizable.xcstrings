@@ -15270,26 +15270,6 @@
         }
       }
     },
-    "Usa" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use"
-          }
-        }
-      }
-    },
-    "Usa %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Use %@"
-          }
-        }
-      }
-    },
     "Usa la API key" : {
       "localizations" : {
         "en" : {
