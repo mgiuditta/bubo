@@ -12,6 +12,8 @@ struct MenuBarContent: View {
     @Environment(HotKeyCenter.self) private var hotKeys
     @Environment(OrbPanelController.self) private var panel
     @Environment(\.openWindow) private var openWindow
+    /// The Debug switch that shows the 1.1 areas off, as in a Release build.
+    @AppStorage(ReleaseArea.hidesUnreleasedKey) private var hidesUnreleased = false
 
     var body: some View {
         @Bindable var panel = panel
@@ -54,6 +56,7 @@ struct MenuBarContent: View {
             .disabled(!panel.isShown)
         #if DEBUG
         Button("Debug Orb…") { openWindow(id: OrbDebugView.windowID) }
+        Toggle("Aree 1.1 spente", isOn: $hidesUnreleased)
         #endif
         Divider()
         SettingsLink {

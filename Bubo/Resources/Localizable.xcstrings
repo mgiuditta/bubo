@@ -2396,6 +2396,26 @@
         }
       }
     },
+    "Aree 1.1 spente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1.1 Areas Off"
+          }
+        }
+      }
+    },
+    "Arriverà presto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coming soon"
+          }
+        }
+      }
+    },
     "Ascolto" : {
       "localizations" : {
         "en" : {
@@ -4022,6 +4042,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose who it goes to"
+          }
+        }
+      }
+    },
+    "Sessioni su un altro Mac o su un server via SSH, con la Macchina scelta nel Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions on another Mac or a server over SSH, with the Machine chosen in the Project."
           }
         }
       }
