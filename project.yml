@@ -34,6 +34,10 @@ packages:
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.0
+  # Diarizzazione delle Riunioni (#549), Apache 2.0: i modelli (CC-BY-4.0) li scarica al primo uso, mai nel bundle.
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio
+    exactVersion: 0.17.5
 
 settings:
   base:
@@ -80,6 +84,8 @@ targets:
       - package: SwiftTransformers
         product: Tokenizers
       - package: Sparkle
+      - package: FluidAudio
+        product: FluidAudio
     # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
     info:
       path: Bubo/Info.plist
