@@ -671,6 +671,167 @@
       "categoria": "meteo",
       "descrizione": "Quando si parla di quanta pioggia cade o di umidità.",
       "parole": ["goccia", "drop", "umidita", "humidity", "quanta pioggia", "rainfall", "precipitazioni"]
+    },
+    {
+      "nome": "elenco",
+      "forma": "elenco",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo tiene la lista dei compiti: todo, passi di un piano.",
+      "parole": ["elenco", "todo", "to-do", "lista dei compiti", "task list", "checklist", "passi del piano"]
+    },
+    {
+      "nome": "alveare",
+      "forma": "alveare",
+      "categoria": "agente",
+      "descrizione": "Quando lavorano più agenti insieme: subagenti e Sessioni in parallelo.",
+      "parole": ["alveare", "subagenti", "subagents", "in parallelo", "in parallel", "sciame"]
+    },
+    {
+      "nome": "gelato",
+      "forma": "gelato",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di dolci e dessert.",
+      "parole": ["gelato", "dolce", "dolci", "dessert", "ice cream", "sweet", "torta"]
+    },
+    {
+      "nome": "pinza",
+      "forma": "pinza",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo estrae un pezzo di codice in una funzione o un tipo a sé.",
+      "parole": ["pinza", "estrai", "extract", "estrarre", "funzione a parte", "extract method", "refactor*"]
+    },
+    {
+      "nome": "papera",
+      "forma": "papera",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo ragiona ad alta voce su un problema, passo per passo.",
+      "parole": ["papera", "rubber duck", "paperella", "passo per passo", "step by step", "ragiona ad alta voce"]
+    },
+    {
+      "nome": "ingranaggio",
+      "forma": "ingranaggio",
+      "categoria": "codice",
+      "descrizione": "Quando si cambia la configurazione: impostazioni di build, file di config.",
+      "parole": ["ingranaggio", "config*", "impostazioni di build", "build settings", "configurazione", "settings file", "ingranaggi"]
+    },
+    {
+      "nome": "container",
+      "forma": "container",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con container e immagini da avviare ovunque.",
+      "parole": ["container", "docker", "dockerfile", "immagine docker", "docker image", "kubernetes", "compose"]
+    },
+    {
+      "nome": "sega",
+      "forma": "sega",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo spezza un file troppo grande in più file o moduli.",
+      "parole": ["sega", "spezza il file", "split the file", "file troppo grande", "too large a file", "dividi in moduli", "split into modules"]
+    },
+    {
+      "nome": "ciak",
+      "forma": "ciak",
+      "categoria": "creativo",
+      "descrizione": "Quando si fanno video e film: riprese, montaggio, sceneggiature.",
+      "parole": ["ciak", "video", "film", "montaggio", "video editing", "sceneggiatura", "screenplay", "riprese"]
+    },
+    {
+      "nome": "lampadina",
+      "forma": "lampadina",
+      "categoria": "creativo",
+      "descrizione": "Quando si cercano idee: brainstorming, proposte, titoli.",
+      "parole": ["lampadina", "idea", "idee", "brainstorming", "light bulb", "proposte", "suggestions", "titoli"]
+    },
+    {
+      "nome": "carta-di-credito",
+      "forma": "carta_di_credito",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di pagamenti con carta e abbonamenti.",
+      "parole": ["carta di credito", "credit card", "carta", "pagamento con carta", "card payment", "abbonament*", "subscription*"]
+    },
+    {
+      "nome": "cassaforte",
+      "forma": "cassaforte",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di proteggere i soldi: assicurazioni, fondo emergenze.",
+      "parole": ["cassaforte", "safe", "assicurazione", "insurance", "fondo emergenze", "emergency fund", "proteggere i soldi"]
+    },
+    {
+      "nome": "vassoio",
+      "forma": "vassoio",
+      "categoria": "mail",
+      "descrizione": "Quando si riordina la casella: smistare, archiviare, svuotare.",
+      "parole": ["vassoio", "smista*", "sort the inbox", "archivia*", "archive", "svuota la casella", "inbox zero"]
+    },
+    {
+      "nome": "graffetta",
+      "forma": "graffetta",
+      "categoria": "mail",
+      "descrizione": "Quando si parla di allegati: aggiungerli, aprirli, trovarli.",
+      "parole": ["graffetta", "allegato", "allegati", "attachment", "attachments", "paper clip", "allega"]
+    },
+    {
+      "nome": "ombrello",
+      "forma": "ombrello",
+      "categoria": "meteo",
+      "descrizione": "Quando si chiede se serve l'ombrello o se pioverà mentre si esce.",
+      "parole": ["ombrello", "umbrella", "pioggia", "rain", "piove", "pioverà", "will it rain"]
+    },
+    {
+      "nome": "tromba",
+      "forma": "tromba",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di ottoni e fanfare.",
+      "parole": ["tromba", "trumpet", "ottoni", "brass", "fanfara", "fanfare", "jazz"]
+    },
+    {
+      "nome": "stella",
+      "forma": "stella",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano recensioni e valutazioni.",
+      "parole": ["stella", "recension*", "review*", "valutazion*", "rating", "ratings", "stelle", "stars"]
+    },
+    {
+      "nome": "carrello",
+      "forma": "carrello",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano prodotti da comprare e i loro prezzi.",
+      "parole": ["carrello", "shopping cart", "cart", "prodotti da comprare", "products to buy", "prezzi", "prices"]
+    },
+    {
+      "nome": "scarpa-da-corsa",
+      "forma": "scarpa_da_corsa",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di corsa e camminate: passi, chilometri, ritmo.",
+      "parole": ["scarpa da corsa", "running shoe", "corsa", "running", "correre", "passi", "chilometri", "kilometres"]
+    },
+    {
+      "nome": "pillola",
+      "forma": "pillola",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di farmaci: dosi, effetti, interazioni.",
+      "parole": ["pillola", "pill", "farmaco", "farmaci", "medicine", "dose", "dosi", "effetti collaterali"]
+    },
+    {
+      "nome": "meridiana",
+      "forma": "meridiana",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla di ora legale e ora solare.",
+      "parole": ["meridiana", "sundial", "ora legale", "daylight saving", "ora solare", "solar time", "fuso orario"]
+    },
+    {
+      "nome": "treno",
+      "forma": "treno",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia in treno: orari, abbonamenti, tratte.",
+      "parole": ["treno", "train", "locomotiva", "ferrovia", "railway", "binario", "tratta", "abbonamento ferroviario"]
+    },
+    {
+      "nome": "nave",
+      "forma": "nave",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia per mare: traghetti, crociere.",
+      "parole": ["nave", "ship", "traghetto", "ferry", "crociera", "cruise", "mare", "sea voyage"]
     }
   ]
 }
