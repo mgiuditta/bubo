@@ -1000,6 +1000,174 @@
       "categoria": "salute",
       "descrizione": "Quando si parla di vaccini e iniezioni.",
       "parole": ["siringa", "syringe", "vaccino", "vaccine", "iniezione", "injection", "puntura"]
+    },
+    {
+      "nome": "boomerang",
+      "forma": "boomerang",
+      "categoria": "agente",
+      "descrizione": "Quando un compito torna indietro: risultato di un subagente, nuovo tentativo.",
+      "parole": ["boomerang", "subagente", "subagent", "riprova", "retry", "torna indietro"]
+    },
+    {
+      "nome": "mano",
+      "forma": "mano",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo aspetta te: una risposta, una scelta, una conferma.",
+      "parole": ["mano", "aspetto", "waiting for you", "conferma", "confirm", "la tua scelta", "your call"]
+    },
+    {
+      "nome": "cornetta",
+      "forma": "cornetta",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di telefonate e numeri di telefono.",
+      "parole": ["cornetta", "telefonata", "phone call", "chiamare", "numero di telefono", "phone number", "squilla"]
+    },
+    {
+      "nome": "annaffiatoio",
+      "forma": "annaffiatoio",
+      "categoria": "chat",
+      "descrizione": "Quando si curano piante e orto: annaffiare, potare, seminare.",
+      "parole": ["annaffiatoio", "annaffia*", "watering", "giardino", "garden", "orto", "potare", "seminare"]
+    },
+    {
+      "nome": "pacco",
+      "forma": "pacco",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di pacchetti e dipendenze: aggiungerle, aggiornarle, togliere.",
+      "parole": ["pacco", "pacchett*", "package", "dependenc*", "dipendenz*", "npm", "brew", "cargo"]
+    },
+    {
+      "nome": "ragnatela",
+      "forma": "ragnatela",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con richieste di rete: HTTP, socket, connessioni.",
+      "parole": ["ragnatela", "http", "richiesta di rete", "network request", "socket", "connessione", "api rest"]
+    },
+    {
+      "nome": "carriola",
+      "forma": "carriola",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo sposta o rinomina molti file in una volta.",
+      "parole": ["carriola", "rinomina*", "rename", "sposta i file", "move files", "batch di file", "bulk"]
+    },
+    {
+      "nome": "palloncino",
+      "forma": "palloncino",
+      "categoria": "codice",
+      "descrizione": "Quando la memoria cresce troppo: leak, cicli di riferimento, consumo di RAM.",
+      "parole": ["palloncino", "memory leak", "perdita di memoria", "ram", "ciclo di riferimento", "retain cycle", "consumo di memoria"]
+    },
+    {
+      "nome": "etichetta",
+      "forma": "etichetta",
+      "categoria": "codice",
+      "descrizione": "Quando si gestiscono versioni e tag: numeri di versione, changelog.",
+      "parole": ["etichetta", "tag", "versione", "version number", "changelog", "semver", "numero di versione"]
+    },
+    {
+      "nome": "catena",
+      "forma": "catena",
+      "categoria": "codice",
+      "descrizione": "Quando si concatenano passaggi: middleware, callback, chiamate in sequenza.",
+      "parole": ["catena", "middleware", "callback", "in sequenza", "chain", "pipeline di chiamate", "promise"]
+    },
+    {
+      "nome": "bomboletta",
+      "forma": "bomboletta",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di arte di strada e grafica audace: graffiti, poster.",
+      "parole": ["bomboletta", "spray", "graffiti", "street art", "arte di strada", "poster", "murale"]
+    },
+    {
+      "nome": "cavalletto",
+      "forma": "cavalletto",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla d'arte: quadri, pittori, musei.",
+      "parole": ["cavalletto", "quadro", "pittore", "painting", "painter", "museo", "museum", "pittura"]
+    },
+    {
+      "nome": "scontrino",
+      "forma": "scontrino",
+      "categoria": "finanza",
+      "descrizione": "Quando si tengono le ricevute: spese da scaricare, note spese.",
+      "parole": ["scontrino", "ricevut*", "receipt", "nota spese", "expense report", "spese da scaricare", "fattura"]
+    },
+    {
+      "nome": "lingotto",
+      "forma": "lingotto",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di oro e materie prime.",
+      "parole": ["lingotto", "oro", "gold", "materie prime", "commodities", "argento", "silver", "metalli preziosi"]
+    },
+    {
+      "nome": "ceralacca",
+      "forma": "ceralacca",
+      "categoria": "mail",
+      "descrizione": "Quando un messaggio è ufficiale o riservato: posta certificata, firme.",
+      "parole": ["ceralacca", "sigillo", "seal", "pec", "posta certificata", "firma", "signature", "riservat*"]
+    },
+    {
+      "nome": "arcobaleno",
+      "forma": "arcobaleno",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di arcobaleni e fenomeni di luce nel cielo.",
+      "parole": ["arcobaleno", "rainbow", "arcobaleni", "iride", "luce nel cielo", "dopo la pioggia"]
+    },
+    {
+      "nome": "termometro",
+      "forma": "termometro",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di temperature: gradi, percepita, minime e massime.",
+      "parole": ["termometro", "temperatur*", "gradi", "degrees", "percepita", "feels like", "minima e massima"]
+    },
+    {
+      "nome": "cuffie",
+      "forma": "cuffie",
+      "categoria": "musica",
+      "descrizione": "Quando si ascolta con attenzione: audiolibri, podcast, cuffie.",
+      "parole": ["cuffie", "headphones", "audiolibr*", "audiobook*", "podcast", "ascolta", "listen"]
+    },
+    {
+      "nome": "scaffale",
+      "forma": "scaffale",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo cerca in una raccolta di documenti: archivi, PDF, biblioteche.",
+      "parole": ["scaffale", "biblioteca", "library", "archivio", "archive", "raccolta di documenti", "pdf"]
+    },
+    {
+      "nome": "segnalibro",
+      "forma": "segnalibro",
+      "categoria": "ricerca",
+      "descrizione": "Quando si ritrova qualcosa salvato: preferiti, segnalibri, link messi da parte.",
+      "parole": ["segnalibro", "segnalibri", "bookmark", "preferiti", "favorites", "salva per dopo", "read later"]
+    },
+    {
+      "nome": "carota",
+      "forma": "carota",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di alimentazione sana: dieta, verdure, calorie.",
+      "parole": ["carota", "carrot", "verdur*", "vegetables", "dieta", "diet", "calorie*", "alimentazione sana"]
+    },
+    {
+      "nome": "torta",
+      "forma": "torta",
+      "categoria": "tempo",
+      "descrizione": "Quando ci sono compleanni e anniversari.",
+      "parole": ["torta", "compleanno", "birthday", "anniversario", "anniversary", "candeline", "cake"]
+    },
+    {
+      "nome": "mongolfiera",
+      "forma": "mongolfiera",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cercano esperienze speciali in viaggio.",
+      "parole": ["mongolfiera", "hot air balloon", "volo in mongolfiera", "esperienza speciale", "special experience", "regalo di viaggio"]
+    },
+    {
+      "nome": "montagna",
+      "forma": "montagna",
+      "categoria": "viaggi",
+      "descrizione": "Quando si va in montagna: escursioni, sentieri, rifugi.",
+      "parole": ["montagna", "mountain", "escursion*", "hiking", "sentiero", "trail", "rifugio", "alpi"]
     }
   ]
 }
