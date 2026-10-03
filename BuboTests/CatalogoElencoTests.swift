@@ -164,7 +164,7 @@ struct CatalogoElencoTests {
         }
     }
 
-    @Test func theVariantiAlreadyDrawnComeFromTheFirstBlocks() throws {
+    @Test func theVariantiAlreadyDrawnAreInTheElenco() throws {
         let names = try Self.loaded.get().voci.map(\.nome)
         let drawn = try Catalogo(bundle: .main).varianti.map(\.nome)
         #expect(Set(drawn).isSubset(of: names))
