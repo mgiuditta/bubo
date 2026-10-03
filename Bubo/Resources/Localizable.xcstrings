@@ -110,6 +110,16 @@
         }
       }
     },
+    "%@ non sta riproducendo audio. Entra nella chiamata e riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ isn't playing any audio. Join the call and try again."
+          }
+        }
+      }
+    },
     "%@ non è JSON valido e Bubo non lo tocca. Correggilo o spostalo, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -2105,6 +2115,16 @@
         }
       }
     },
+    "Apre la finestra di Bubo per registrare una Riunione e salvarla nel Secondo cervello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Bubo's window to record a Meeting and save it in the Second Brain."
+          }
+        }
+      }
+    },
     "Apre la nota" : {
       "localizations" : {
         "en" : {
@@ -2512,6 +2532,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On in System Settings, under Accessibility › Display."
+          }
+        }
+      }
+    },
+    "Audio dei partecipanti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Participants' audio"
+          }
+        }
+      }
+    },
+    "Audio delle Riunioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting audio"
           }
         }
       }
@@ -3075,12 +3115,42 @@
         }
       }
     },
+    "Bubo non può sentire l'audio dell'app. Consentilo in Impostazioni di Sistema › Privacy e sicurezza › Registrazione schermo e audio di sistema." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't hear the app's audio. Allow it in System Settings › Privacy & Security › Screen & System Audio Recording."
+          }
+        }
+      }
+    },
+    "Bubo non può trascrivere la lingua del Mac. L'audio è salvato sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't transcribe the Mac's language. The audio is saved on the Mac."
+          }
+        }
+      }
+    },
     "Bubo non può usare il microfono" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo can't use the microphone"
+          }
+        }
+      }
+    },
+    "Bubo non può usare il microfono. Consentilo in Impostazioni di Sistema › Privacy e sicurezza › Microfono." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't use the microphone. Allow it in System Settings › Privacy & Security › Microphone."
           }
         }
       }
@@ -3101,6 +3171,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo is speaking with a basic voice"
+          }
+        }
+      }
+    },
+    "Bubo registra il tuo microfono e l'audio dell'app scelta, senza bot nella chiamata. Trascrive sul Mac e nel Secondo cervello salva solo la nota, non l'audio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo records your microphone and the chosen app's audio, with no bot in the call. It transcribes on the Mac and saves only the note in the Second Brain, not the audio."
           }
         }
       }
@@ -3151,6 +3231,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo is starting up. Try again in a moment."
+          }
+        }
+      }
+    },
+    "Bubo trascrive e riassume la Riunione sul Mac…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo is transcribing and summarizing the Meeting on the Mac…"
           }
         }
       }
@@ -4362,6 +4452,16 @@
         }
       }
     },
+    "Cartella del Secondo cervello non trovata: la nota non è stata salvata. L'audio è salvato sul Mac. Controlla la cartella in Impostazioni › Generale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Second Brain folder not found: the note wasn't saved. The audio is saved on the Mac. Check the folder in Settings › General."
+          }
+        }
+      }
+    },
     "Cartelle aggiuntive" : {
       "localizations" : {
         "en" : {
@@ -5363,6 +5463,16 @@
         }
       }
     },
+    "Conserva per 30 giorni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep for 30 days"
+          }
+        }
+      }
+    },
     "Consigliata con la Modalità autonoma: i comandi e le modifiche di Claude restano nella copia del Progetto. Vale per tutto il Progetto, dal prossimo turno." : {
       "localizations" : {
         "en" : {
@@ -6200,6 +6310,16 @@
         }
       }
     },
+    "Elimina dopo la trascrizione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete after transcription"
+          }
+        }
+      }
+    },
     "Elimina il modello" : {
       "localizations" : {
         "en" : {
@@ -6446,6 +6566,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stop"
+          }
+        }
+      }
+    },
+    "Ferma e salva" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop and Save"
+          }
+        }
+      }
+    },
+    "Ferma e salva la Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop and Save Meeting"
           }
         }
       }
@@ -7006,6 +7146,16 @@
         }
       }
     },
+    "Ho avvisato i partecipanti della registrazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I told the participants I'm recording"
+          }
+        }
+      }
+    },
     "Ho letto il comando e mi fido" : {
       "localizations" : {
         "en" : {
@@ -7495,6 +7645,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This check's log doesn't come from GitHub Actions: Bubo can't read it."
+          }
+        }
+      }
+    },
+    "Il microfono non risponde. Controlla che sia collegato e riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The microphone isn't responding. Check that it's connected and try again."
           }
         }
       }
@@ -9707,6 +9867,16 @@
         }
       }
     },
+    "Mostra la Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Meeting"
+          }
+        }
+      }
+    },
     "Mostra nel Finder" : {
       "localizations" : {
         "en" : {
@@ -10103,6 +10273,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No Edit, Write or WebFetch rules in Claude's settings."
+          }
+        }
+      }
+    },
+    "Nessuna app, solo il microfono" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No app, microphone only"
           }
         }
       }
@@ -11219,6 +11399,16 @@
         }
       }
     },
+    "Per salvare la Riunione, scegli la cartella del Secondo cervello in Impostazioni › Generale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To save the Meeting, choose the Second Brain folder in Settings › General."
+          }
+        }
+      }
+    },
     "Per spegnerlo e basta, usa Disattiva." : {
       "localizations" : {
         "en" : {
@@ -11783,6 +11973,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Record a new shortcut. Esc cancels."
+          }
+        }
+      }
+    },
+    "Registrazione della Riunione in corso" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording a Meeting"
+          }
+        }
+      }
+    },
+    "Registrazione della Riunione iniziata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting recording started"
+          }
+        }
+      }
+    },
+    "Registrazione fermata. Bubo trascrive la Riunione sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording stopped. Bubo is transcribing the Meeting on the Mac."
+          }
+        }
+      }
+    },
+    "Registrazione in corso: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording: %@"
           }
         }
       }
@@ -12581,6 +12811,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Answer ready"
+          }
+        }
+      }
+    },
+    "Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting"
+          }
+        }
+      }
+    },
+    "Riunione salvata in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting saved in %@"
+          }
+        }
+      }
+    },
+    "Riunione salvata nel Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting saved in the Second Brain"
           }
         }
       }
@@ -14116,6 +14376,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Total"
+          }
+        }
+      }
+    },
+    "Trascrizione non riuscita. L'audio è salvato sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcription failed. The audio is saved on the Mac."
           }
         }
       }
@@ -16624,6 +16894,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Catching up on the run due %@: it was missed while the Mac slept or Bubo was closed."
+          }
+        }
+      }
+    },
+    "Registra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record"
+          }
+        }
+      }
+    },
+    "Registra Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record Meeting"
+          }
+        }
+      }
+    },
+    "Registra una Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record a Meeting"
+          }
+        }
+      }
+    },
+    "Registra una Riunione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record a Meeting…"
           }
         }
       }

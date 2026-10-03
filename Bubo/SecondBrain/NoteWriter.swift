@@ -92,6 +92,19 @@ nonisolated struct NoteWriter: Sendable {
                            createdOn: previous.createdOn, isEditedByHand: isEditedByHand)
     }
 
+    /// Writes the Riunione `note` as a new file in `Bubo/Riunioni/AAAA-MM-GG Titolo.md`, dated by its start.
+    ///
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/Riunioni` leads out of it; a file
+    ///   system error when the note cannot be written.
+    func writeMeeting(_ note: MeetingNote) throws -> WrittenNote {
+        let day = note.start.formatted(Date.ISO8601FormatStyle(timeZone: timeZone).year().month().day())
+        return try write(Data(note.markdown(in: timeZone).utf8), named: "\(day) \(Self.fileName(for: note.title))",
+                         in: Self.meetingFolder)
+    }
+
+    /// Where the Riunioni go: in the Indice, unlike the Riassunti, since they are sources and not Bubo's summaries.
+    static let meetingFolder = "Bubo/Riunioni"
+
     /// Where the Riassunti di Sessione go: excluded from the Indice, since the conversations already are in it.
     static let summaryFolder = "Bubo/Sessioni"
 

@@ -80,6 +80,26 @@
           }
         }
       }
+    },
+    "Registra la Riunione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record the Meeting in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Registra una Riunione con ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record a Meeting with ${applicationName}"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

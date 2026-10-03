@@ -70,6 +70,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }()
     /// The Riassunti di Sessione, written in the Secondo cervello at Fondi and Archivia; `nil` without Sessioni.
     private(set) lazy var summarizer: SessionSummarizer? = makeSummarizer()
+    /// The Riunioni: recorded, transcribed and summarized on the Mac, saved in the Secondo cervello. Only Apple's
+    /// on-device model summarizes them: a Riunione never reaches a new recipient.
+    private(set) lazy var meetings = MeetingRecorder(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()],
+                                                     store: try? MeetingAudioStore.makeDefault())
+    /// The window of the Riunioni.
+    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings)
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
@@ -224,6 +230,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         OpenGalaxyIntent.galaxies = galaxies
         // "Cerca nella cronologia" opens the Palette, as ⌘K does.
         SearchHistoryIntent.palette = self
+        // "Registra una Riunione" opens the window of the Riunioni.
+        meetings.showWindow = { [weak self] in self?.meetingWindow.show() }
+        RecordMeetingIntent.recorder = meetings
         galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
         // At once, within the turn that passes a Budget's threshold.
         ledger.didRecord = { [weak self] entry in self?.budgetAlerts.check(after: entry) }
@@ -265,12 +274,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         pluginUpdates.start()
+        Task { [meetings] in await meetings.removeExpiredAudio() }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
             Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
-        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions)
+        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions, meetings: meetings)
             .environment(hud)
             .environment(hotKeys)
             .environment(panel))
