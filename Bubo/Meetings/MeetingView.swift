@@ -40,12 +40,15 @@ struct MeetingView: View {
             }
             hasInformed = false
         }
-        // The first Riunione is the first use of the Secondo cervello for many: the whole setup without a folder,
-        // else only the questions about the Riunioni (#563).
+        // The first Riunione is the first use of the Secondo cervello for many: the conversation that sets it up
+        // without a folder, else only the questions about the Riunioni (#563).
         .task { isSettingUp = !wereMeetingQuestionsShown }
         .sheet(isPresented: $isSettingUp) {
-            SecondBrainSetupSheet(steps: secondBrain.location == nil ? SecondBrainSetupStep.allCases
-                                                                     : SecondBrainSetupStep.meetings)
+            if secondBrain.location == nil {
+                SecondBrainConversationSheet()
+            } else {
+                SecondBrainSetupSheet(steps: SecondBrainSetupStep.meetings)
+            }
         }
     }
 
