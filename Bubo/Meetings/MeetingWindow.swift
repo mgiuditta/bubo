@@ -5,12 +5,15 @@ import SwiftUI
 final class MeetingWindow {
     private let recorder: MeetingRecorder
     private let secondBrain: SecondBrain
+    private let questions: QuestionModel
     private lazy var window = makeWindow()
 
-    /// Creates the window of `recorder`, writing in `secondBrain`, built at its first opening.
-    init(recorder: MeetingRecorder, secondBrain: SecondBrain) {
+    /// Creates the window of `recorder`, writing in `secondBrain`, built at its first opening; `questions` holds the
+    /// conversation that sets up the Secondo cervello when there is none.
+    init(recorder: MeetingRecorder, secondBrain: SecondBrain, questions: QuestionModel) {
         self.recorder = recorder
         self.secondBrain = secondBrain
+        self.questions = questions
     }
 
     /// Brings the window forward.
@@ -20,7 +23,7 @@ final class MeetingWindow {
     }
 
     private func makeWindow() -> NSWindow {
-        let view = MeetingView(recorder: recorder).environment(secondBrain)
+        let view = MeetingView(recorder: recorder).environment(secondBrain).environment(questions)
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))
         window.styleMask = [.titled, .closable]
         window.title = String(localized: "Riunione")
