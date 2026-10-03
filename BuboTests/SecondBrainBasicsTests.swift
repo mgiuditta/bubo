@@ -24,6 +24,11 @@ struct SecondBrainBasicsTests {
         #expect(prompt.contains("## Bubo/Regole.md\n\nLe ricette vanno in Cucina/."))
         #expect(prompt.contains("Salva da solo"))
         #expect(!prompt.contains("usa cerca per il resto"))
+        // The notes come as the user's data, after Bubo's own instructions, which they never change.
+        let data = try #require(prompt.range(of: "<note-utente>"))
+        #expect(prompt[data.upperBound...].contains("Si chiama Matteo."))
+        #expect(!prompt[..<data.lowerBound].contains("Si chiama Matteo."))
+        #expect(prompt.hasSuffix("</note-utente>"))
     }
 
     @Test func withSalvaDaSoloOffItSavesOnlyWhenAsked() throws {
@@ -35,12 +40,21 @@ struct SecondBrainBasicsTests {
         #expect(!prompt.contains("Salva da solo"))
     }
 
+    @Test func aProfiloThatIsALinkDoesNotComeIn() throws {
+        try "segreto fuori".write(to: folder.claude.folder.appending(path: "fuori.md"), atomically: true, encoding: .utf8)
+        try FileManager.default.createDirectory(at: folder.notes.appending(path: "Bubo"), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: folder.notes.appending(path: "Bubo/Profilo.md"),
+                                                   withDestinationURL: folder.claude.folder.appending(path: "fuori.md"))
+
+        #expect(SecondBrainBasics.prompt(in: folder.notes, savesOnItsOwn: true) == nil)
+    }
+
     @Test func pastTheLimitOnlyTheBeginningComesInWithCercaForTheRest() throws {
         try folder.write(String(repeating: "parola ", count: 3_000), to: "Bubo/Profilo.md")
 
         let prompt = try #require(SecondBrainBasics.prompt(in: folder.notes, savesOnItsOwn: true))
 
-        #expect(prompt.hasSuffix("usa cerca per il resto."))
+        #expect(prompt.contains("usa cerca per il resto.\n</note-utente>"))
         #expect(prompt.count < SecondBrainBasics.characterLimit + 1_000)
     }
 

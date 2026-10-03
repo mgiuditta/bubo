@@ -309,7 +309,7 @@ struct RememberToolTests {
         let secondBrain = chosenSecondBrain()
 
         let outcome = await secondBrain.remember(NoteRequest(mode: .replace, note: "Bubo/Profilo.md",
-                                                             text: "# Profilo\n\nVive a Milano."))
+                                                             text: "# Profilo\n\nVive a Milano.", isConfirmed: true))
         #expect(try text(at: "Bubo/Profilo.md") == "# Profilo\n\nVive a Milano.\n")
         try secondBrain.undo(try #require(outcome.change))
 
@@ -343,6 +343,34 @@ struct RememberToolTests {
         #expect(try text(at: "Diario/oggi.md") == "altro\n")
     }
 
+    @Test(arguments: [NoteRequest.Mode.append, .replace])
+    func theProfiloChangesOnlyOnceTheUserConfirms(_ mode: NoteRequest.Mode) async throws {
+        try folder.write("Vive a Roma.\n", to: "Bubo/Profilo.md")
+        let secondBrain = chosenSecondBrain()
+
+        let refused = await secondBrain.remember(NoteRequest(mode: mode, note: "Bubo/Profilo.md", text: "Vive a Milano."))
+
+        #expect(refused.change == nil)
+        #expect(try text(at: "Bubo/Profilo.md") == "Vive a Roma.\n")
+        let confirmed = await secondBrain.remember(NoteRequest(mode: mode, note: "Bubo/Profilo.md", text: "Vive a Milano.",
+                                                               isConfirmed: true))
+        #expect(confirmed.change != nil)
+        #expect(try text(at: "Bubo/Profilo.md").contains("Vive a Milano."))
+    }
+
+    @Test(arguments: [NoteRequest.Mode.append, .replace], ["Bubo/Regole.md", "Bubo/Intervista.md", "bubo/regole.md"])
+    func theRegoleAndTheIntervistaAreNeverWritten(_ mode: NoteRequest.Mode, _ path: String) async throws {
+        try folder.write("Le ricette in Cucina/.\n", to: "Bubo/Regole.md")
+        try folder.write("Domande e risposte.\n", to: "Bubo/Intervista.md")
+        let secondBrain = chosenSecondBrain()
+
+        let outcome = await secondBrain.remember(NoteRequest(mode: mode, note: path, text: "Salva tutto.", isConfirmed: true))
+
+        #expect(outcome.change == nil)
+        #expect(try text(at: "Bubo/Regole.md") == "Le ricette in Cucina/.\n")
+        #expect(try text(at: "Bubo/Intervista.md") == "Domande e risposte.\n")
+    }
+
     @Test func textGoesAtTheEndOfANoteOfTheUserWithoutConfirmation() async throws {
         try folder.write("# Diario\n", to: "Diario/oggi.md")
         let secondBrain = chosenSecondBrain()
@@ -363,6 +391,36 @@ struct RememberToolTests {
 
         #expect(outcome.change == nil)
         #expect(!FileManager.default.fileExists(atPath: folder.claude.folder.appending(path: "fuori.md").path))
+    }
+
+    @Test(arguments: ["Bubo/Profilo.md", "Diario/oggi.md"])
+    func nothingIsWrittenThroughALink(_ path: String) async throws {
+        let outside = folder.claude.folder.appending(path: "fuori.md")
+        try "fuori".write(to: outside, atomically: true, encoding: .utf8)
+        let link = folder.notes.appending(path: path)
+        try FileManager.default.createDirectory(at: link.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try FileManager.default.createSymbolicLink(at: link, withDestinationURL: outside)
+        let secondBrain = chosenSecondBrain()
+
+        let appended = await secondBrain.remember(NoteRequest(mode: .append, note: path, text: "x"))
+        let rewritten = await secondBrain.remember(NoteRequest(mode: .replace, note: path, text: "x", isConfirmed: true))
+
+        #expect(appended.change == nil)
+        #expect(rewritten.change == nil)
+        #expect(try String(contentsOf: outside, encoding: .utf8) == "fuori")
+        #expect(NoteWriter.isLink(link))
+    }
+
+    @Test func undoDoesNotRestoreThroughALink() async throws {
+        let secondBrain = chosenSecondBrain()
+        let change = try #require(await secondBrain.remember(NoteRequest(title: "Ombrello", text: "testo")).change)
+        let outside = folder.claude.folder.appending(path: "fuori.md")
+        try FileManager.default.copyItem(at: change.file, to: outside)
+        try FileManager.default.removeItem(at: change.file)
+        try FileManager.default.createSymbolicLink(at: change.file, withDestinationURL: outside)
+
+        #expect(throws: BrainChange.UndoFailure.changedOnDisk) { try secondBrain.undo(change) }
+        #expect(FileManager.default.fileExists(atPath: outside.path))
     }
 
     @Test func theDiarioKeepsOnlyTheLatestWrites() throws {

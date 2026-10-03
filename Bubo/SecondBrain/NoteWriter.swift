@@ -18,9 +18,19 @@ nonisolated struct NoteWriter: Sendable {
         case outsideSecondBrain
         /// The note to add to, outside `Bubo/`, does not exist.
         case notFound
-        /// Rewriting a note of the user's, outside `Bubo/`, needs their confirmation first.
+        /// Changing a note of the user's, or the Profilo, needs their confirmation first.
         case needsConfirmation
+        /// The Regole and the Intervista are written only by the user: never by `ricorda`.
+        case protectedNote
     }
+
+    /// The Profilo: who the user is. It comes into every turn, so the agent changes it only once the user confirms.
+    static let profilePath = "Bubo/Profilo.md"
+    /// The Regole: what the agent saves, where and how. Only the user writes them.
+    static let rulesPath = "Bubo/Regole.md"
+    /// The Intervista the Regole come from. Only the user writes it.
+    static let interviewPath = "Bubo/Intervista.md"
+
 
     /// A note Bubo wrote.
     struct WrittenNote: Equatable, Sendable {
@@ -110,13 +120,14 @@ nonisolated struct NoteWriter: Sendable {
     }
 
     /// Adds `text` at the end of the note at `relativePath`, after a blank line; a note under `Bubo/` that is not
-    /// there yet is created.
+    /// there yet is created. The Profilo changes only when `isConfirmed`.
     ///
     /// - Returns: The write, with the note as it was before.
-    /// - Throws: `Failure` when the Secondo cervello cannot be reached, the note is outside it, or a note outside
-    ///   `Bubo/` is not there; a file system error when the note cannot be written.
-    func append(_ text: String, to relativePath: String) throws -> BrainChange {
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached, the note is outside it or protected, the
+    ///   Profilo is not confirmed, or a note outside `Bubo/` is not there; a file system error.
+    func append(_ text: String, to relativePath: String, isConfirmed: Bool = false) throws -> BrainChange {
         let (file, isBubo) = try note(at: relativePath)
+        guard !Self.isProfile(relativePath) || isConfirmed else { throw Failure.needsConfirmation }
         let previous = try? Data(contentsOf: file)
         guard previous != nil || isBubo else { throw Failure.notFound }
         let current = previous ?? Data()
@@ -127,14 +138,16 @@ nonisolated struct NoteWriter: Sendable {
 
     /// Replaces the whole note at `relativePath` with `text`, creating it under `Bubo/` when it is not there.
     ///
-    /// A note outside `Bubo/` is the user's: it is rewritten only when `isConfirmed`.
+    /// A note outside `Bubo/` is the user's, and the Profilo comes into every turn: they are rewritten only when
+    /// `isConfirmed`.
     ///
     /// - Returns: The write, with the note as it was before.
-    /// - Throws: `Failure.needsConfirmation` for a note of the user's not confirmed; another `Failure` when the
-    ///   Secondo cervello cannot be reached, the note is outside it, or is not there; a file system error.
+    /// - Throws: `Failure.needsConfirmation` for a note of the user's or the Profilo not confirmed; another `Failure`
+    ///   when the Secondo cervello cannot be reached, the note is outside it, protected, or not there; a file system
+    ///   error.
     func rewrite(_ relativePath: String, with text: String, isConfirmed: Bool) throws -> BrainChange {
         let (file, isBubo) = try note(at: relativePath)
-        guard isBubo || isConfirmed else { throw Failure.needsConfirmation }
+        guard isBubo && !Self.isProfile(relativePath) || isConfirmed else { throw Failure.needsConfirmation }
         let previous = try? Data(contentsOf: file)
         guard previous != nil || isBubo else { throw Failure.notFound }
         return try replace(file, previous: previous,
@@ -147,22 +160,41 @@ nonisolated struct NoteWriter: Sendable {
         guard let name = components.last, name.lowercased().hasSuffix(".md"), name.count > 3,
               !components.contains(where: { $0.hasPrefix(".") })
         else { throw Failure.outsideSecondBrain }
-        if components.count > 1, components[0] == "Bubo" {
-            return (try folder(components.dropLast().joined(separator: "/")).appending(path: name), true)
+        if components.count > 1, components[0].lowercased() == "bubo" {
+            let path = components.joined(separator: "/").lowercased()
+            guard path != Self.rulesPath.lowercased(), path != Self.interviewPath.lowercased() else {
+                throw Failure.protectedNote
+            }
+            let file = try folder(components.dropLast().joined(separator: "/")).appending(path: name)
+            // Written through a link, the note would land wherever the link points.
+            guard !Self.isLink(file) else { throw Failure.outsideSecondBrain }
+            return (file, true)
         }
         var isDirectory: ObjCBool = false
         guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
             throw Failure.unreachable
         }
         let file = root.appending(path: components.joined(separator: "/"))
-        guard FileManager.default.fileExists(atPath: file.path) else { throw Failure.notFound }
-        // A link could take the note out of the Secondo cervello, or into `Bubo/` under another name.
+        guard FileManager.default.fileExists(atPath: file.path, isDirectory: &isDirectory) else { throw Failure.notFound }
+        guard !isDirectory.boolValue, !Self.isLink(file) else { throw Failure.outsideSecondBrain }
+        // A link among the folders could take the note out of the Secondo cervello, or into `Bubo/` under another name.
         let realRoot = root.resolvingSymlinksInPath().standardizedFileURL.path
         let realFile = file.resolvingSymlinksInPath().standardizedFileURL.path
-        guard realFile.hasPrefix(realRoot + "/"), !realFile.hasPrefix(realRoot + "/Bubo/") else {
+        guard realFile.hasPrefix(realRoot + "/"), !realFile.lowercased().hasPrefix((realRoot + "/Bubo/").lowercased()) else {
             throw Failure.outsideSecondBrain
         }
         return (file, false)
+    }
+
+    /// Whether `relativePath` names the Profilo.
+    private static func isProfile(_ relativePath: String) -> Bool {
+        relativePath.split(separator: "/").joined(separator: "/").lowercased() == profilePath.lowercased()
+    }
+
+    /// Whether `file` is a symbolic link, without following it.
+    static func isLink(_ file: URL) -> Bool {
+        var status = stat()
+        return lstat(file.path, &status) == 0 && status.st_mode & S_IFMT == S_IFLNK
     }
 
     /// Replaces `file`, which held `previous`, with `data` atomically.

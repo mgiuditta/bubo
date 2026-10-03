@@ -30,9 +30,11 @@ nonisolated struct BrainChange: Codable, Equatable, Sendable, Identifiable {
 
     /// Puts the note back as it was before the write: the previous text, or no note when the write created it.
     ///
-    /// - Throws: ``UndoFailure/changedOnDisk`` when the note is no longer the one Bubo wrote, or a file system error.
+    /// - Throws: ``UndoFailure/changedOnDisk`` when the note is no longer the one Bubo wrote, or became a link; a file
+    ///   system error.
     func undo() throws {
-        guard (try? Data(contentsOf: file)).map(NoteWriter.hash(of:)) == hash else { throw UndoFailure.changedOnDisk }
+        // Restored through a link, the note would land wherever the link points.
+        guard !NoteWriter.isLink(file), (try? Data(contentsOf: file)).map(NoteWriter.hash(of:)) == hash else { throw UndoFailure.changedOnDisk }
         if let previous {
             let temporary = file.deletingLastPathComponent().appending(path: ".\(UUID().uuidString).tmp")
             try previous.write(to: temporary)

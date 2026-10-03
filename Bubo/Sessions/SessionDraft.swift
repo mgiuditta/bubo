@@ -4,10 +4,8 @@ import Foundation
 nonisolated struct SessionDraft: Equatable, Sendable {
     /// What the Sessione should do.
     var prompt = ""
-    /// The Domanda the Sessione continues; empty when there is none.
-    var question = ""
-    /// What arrived of the Domanda's answer; empty when there is none.
-    var answer = ""
+    /// The answered turns of the Domanda the Sessione continues, in order; empty when there is none.
+    var turns: [QuestionTurn] = []
     /// The conversation the Sessione continues as a fork, if any: from the Cronologia CLI, or a Sessione's turn.
     var conversation: CLIConversation?
     /// The message of `conversation` the fork stops at, included: Continua da qui. `nil` for all of it.
@@ -18,12 +16,15 @@ nonisolated struct SessionDraft: Equatable, Sendable {
     var files: [URL] = []
 
     /// Whether the Sessione continues a Domanda that got an answer.
-    var continuesQuestion: Bool { !answer.isEmpty }
+    var continuesQuestion: Bool { !turns.isEmpty }
+
+    /// The first prompt of the Domanda the Sessione continues, which names it; empty when there is none.
+    var question: String { turns.first?.prompt ?? "" }
 
     /// Whether the Sessione can start with nothing typed: it continues a Domanda or a conversation.
     var canStartEmpty: Bool { continuesQuestion || conversation != nil }
 
-    /// The Sessione's first prompt: the Domanda and its answer, if any, then `request`.
+    /// The Sessione's first prompt: the Domanda's turns, if any, then `request`.
     ///
     /// Continuing a conversation, `claude` already has it: an empty `request` asks to go on from there.
     func firstPrompt(_ request: String) -> String {
@@ -46,6 +47,6 @@ nonisolated struct SessionDraft: Equatable, Sendable {
         }
         guard continuesQuestion else { return request }
         let request = request.isEmpty ? String(localized: "Continua da qui, lavorando nel Progetto.") : request
-        return String(localized: "Prima ti ho chiesto: \(question)\n\nMi hai risposto: \(answer)\n\n\(request)")
+        return QuestionTurn.transcript(turns, then: request)
     }
 }

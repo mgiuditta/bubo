@@ -152,9 +152,10 @@ final class SecondBrain {
             return ("Nota non salvata: la cartella del Secondo cervello non è raggiungibile (disco scollegato o "
                 + "cartella spostata).", nil)
         } catch NoteWriter.Failure.needsConfirmation {
-            return ("Nota non riscritta: è una nota dell'utente, fuori da Bubo/. Chiedigli se puoi riscriverla e, solo "
-                + "se dice di sì, richiama ricorda con confermato: true. Per aggiungere in coda usa modo \"aggiungi\".",
-                nil)
+            return ("Nota non scritta: è una nota dell'utente fuori da Bubo/, o il suo Profilo. Mostragli cosa vuoi "
+                + "scrivere, chiedigli se può e, solo se dice di sì, richiama ricorda con confermato: true.", nil)
+        } catch NoteWriter.Failure.protectedNote {
+            return ("Nota non scritta: Bubo/Regole.md e Bubo/Intervista.md li scrive solo l'utente.", nil)
         } catch NoteWriter.Failure.notFound {
             return ("Nota non salvata: la nota indicata non esiste. Cercala con cerca, o crea una nota nuova.", nil)
         } catch NoteWriter.Failure.outsideSecondBrain, NoteWriter.Failure.outsideBubo {
@@ -223,7 +224,7 @@ final class SecondBrain {
             let note = try writer.remember(request.text, titled: request.title ?? "Nota")
             return BrainChange(file: note.file, previous: nil, hash: note.hash)
         case .append:
-            return try writer.append(request.text, to: request.note ?? "")
+            return try writer.append(request.text, to: request.note ?? "", isConfirmed: request.isConfirmed)
         case .replace:
             return try writer.rewrite(request.note ?? "", with: request.text, isConfirmed: request.isConfirmed)
         }

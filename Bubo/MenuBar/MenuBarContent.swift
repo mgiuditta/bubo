@@ -62,6 +62,7 @@ struct MenuBarContent: View {
             .disabled(!panel.isShown)
         Button("Chiedi nel Panel  \(hotKeys.askShortcut.displayName)", action: panel.askInPanel)
             .disabled(!panel.isShown)
+        Button("Allega finestra…  \(hotKeys.attachWindowShortcut.displayName)", action: panel.attachWindow)
         #if DEBUG
         Button("Debug Orb…") { openWindow(id: OrbDebugView.windowID) }
         Toggle("Aree 1.1 spente", isOn: $hidesUnreleased)

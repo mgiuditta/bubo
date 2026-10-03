@@ -79,6 +79,16 @@
         }
       }
     },
+    "%@ allega già una finestra. Scegline un'altra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ already attaches a window. Choose a different one."
+          }
+        }
+      }
+    },
     "%@ della finestra di 5 ore" : {
       "comment" : "Cost of an answer as a share of the subscription's 5-hour window.",
       "localizations" : {
@@ -123,6 +133,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ used up"
+          }
+        }
+      }
+    },
+    "%@ mostra la scelta della finestra: fai clic su quella da allegare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ shows the window picker: click the window to attach."
           }
         }
       }
@@ -361,6 +381,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is left out for this question: you didn’t give consent."
+          }
+        }
+      }
+    },
+    "%@ è già una scorciatoia di Bubo. Scegline un'altra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is already a Bubo shortcut. Choose a different one."
           }
         }
       }
@@ -1534,6 +1564,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add a Folder…"
+          }
+        }
+      }
+    },
+    "Allega finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach Window"
+          }
+        }
+      }
+    },
+    "Allega finestra…  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach Window…  %@"
           }
         }
       }
@@ -4229,6 +4279,38 @@
         }
       }
     },
+    "Finestra" : {
+      "comment" : "File name of a window shot, before .png",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
+    "Finestra di %@" : {
+      "comment" : "File name of a window shot of an app, before .png",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Window"
+          }
+        }
+      }
+    },
+    "Finestra non allegata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window Not Attached"
+          }
+        }
+      }
+    },
     "Forse c'è un aggiornamento: il repository è passato a %@" : {
       "localizations" : {
         "en" : {
@@ -5659,6 +5741,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Always use for this Project"
+          }
+        }
+      }
+    },
+    "macOS non ha mostrato la scelta della finestra o non ha dato lo scatto. Premi ⌃⌘⇧4, poi Spazio, fai clic sulla finestra e incollala nel prompt con ⌘V." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS didn't show the window picker or didn't take the shot. Press ⌃⌘⇧4, then Space, click the window and paste it into the prompt with ⌘V."
           }
         }
       }
@@ -7837,16 +7929,6 @@
         }
       }
     },
-    "Elimina il modello" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete the Model"
-          }
-        }
-      }
-    },
     "Eliminare «%@»?" : {
       "localizations" : {
         "en" : {
@@ -9232,16 +9314,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The model didn’t answer"
-          }
-        }
-      }
-    },
-    "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model is downloaded once from Hugging Face, then runs only on this Mac: your notes never leave it. Changing the model recalculates the Index."
           }
         }
       }
@@ -12554,6 +12626,26 @@
         }
       }
     },
+    "Nuova Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Question"
+          }
+        }
+      }
+    },
+    "Nuova Domanda (⌘N)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Question (⌘N)"
+          }
+        }
+      }
+    },
     "Nuova Sessione" : {
       "localizations" : {
         "en" : {
@@ -12751,16 +12843,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time"
-          }
-        }
-      }
-    },
-    "Ora l'Indice cerca solo per parole." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For now the Index searches by words only."
           }
         }
       }
@@ -13222,18 +13304,13 @@
         }
       }
     },
-    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
+    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@" : {
+      "comment" : "A previous turn of a Domanda, sent to the model as context: what the user asked, then what the model answered",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@\n\n%3$@"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
+            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@"
           }
         }
       }
@@ -13861,16 +13938,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Search failed. Try again shortly."
-          }
-        }
-      }
-    },
-    "Ricerca per significato" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search by Meaning"
           }
         }
       }
@@ -14578,16 +14645,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sandbox off from the next turn"
-          }
-        }
-      }
-    },
-    "Scarica il modello (%@)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download the Model (%@)"
           }
         }
       }
@@ -18769,6 +18826,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ opens the bubble: dictation only is off."
+          }
+        }
+      }
+    },
+    "Capisce il senso anche con altre parole. Scarica un modello locale (%@) e usa GPU e batteria." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Understands meaning, even in other words. Downloads a local model (%@) and uses the GPU and battery."
+          }
+        }
+      }
+    },
+    "Come grep: preciso su nomi e frasi esatte, non trova i sinonimi. Niente da scaricare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like grep: precise on names and exact phrases, but doesn’t find synonyms. Nothing to download."
+          }
+        }
+      }
+    },
+    "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice; tornare a Per parole lo elimina." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model is downloaded once from Hugging Face, then runs only on this Mac: your notes never leave it. Changing the model recalculates the Index; going back to By Words deletes it."
+          }
+        }
+      }
+    },
+    "Per parole" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Words"
+          }
+        }
+      }
+    },
+    "Per significato (RAG)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Meaning (RAG)"
+          }
+        }
+      }
+    },
+    "Ricerca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
           }
         }
       }

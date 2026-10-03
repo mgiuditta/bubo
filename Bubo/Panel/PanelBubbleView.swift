@@ -27,6 +27,8 @@ struct PanelBubbleView: View {
                     .onChange(of: bubble.takesKeyboard, initial: true) { _, takesKeyboard in
                         if takesKeyboard { promptHasFocus = true }
                     }
+                    // A Domanda still for 15 minutes is over: the bubble opens on a new one.
+                    .onAppear(perform: model.resetIfIdle)
             }
         }
         .animation(bubble.appearance == .grow ? Motion.emphasized : Motion.quick, value: bubble.isOpen)
@@ -59,14 +61,14 @@ struct PanelBubbleView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityHidden(true)
                     }
-                    // What was dropped on the Orb, waiting for the Domanda about it.
-                    if !model.attachments.isEmpty {
-                        AttachmentChips(attachments: model.attachments, remove: model.detach)
+                    // The Domanda's turns in a column: each prompt as a small line, its whole answer under it.
+                    ForEach(Array(model.turns.enumerated()), id: \.offset) { _, turn in
+                        turnPrompt(turn.prompt)
+                        AnswerProse(prose: SecondBrainProposal.prose(of: turn.answer))
                     }
-                    SessionProposalButton(model: model, hud: hud)
-                    prompt
-                    // On its own line, so a long reason truncates instead of pushing the bubble past its width.
-                    ModelPicker(model: model)
+                    if !model.lastPrompt.isEmpty {
+                        turnPrompt(model.lastPrompt)
+                    }
                     if let notice = bubble.notice {
                         ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
                             .transition(.opacity)
@@ -84,6 +86,15 @@ struct PanelBubbleView: View {
                     if let savedChange = model.savedChange {
                         SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
                     }
+                    // What was dropped on the Orb, waiting for the Domanda about it.
+                    if !model.attachments.isEmpty {
+                        AttachmentChips(attachments: model.attachments, remove: model.detach)
+                    }
+                    SessionProposalButton(model: model, hud: hud)
+                    // Under the turns, as the next one follows them.
+                    prompt
+                    // On its own line, so a long reason truncates instead of pushing the bubble past its width.
+                    ModelPicker(model: model)
                 }
                 .padding(Spacing.large)
                 .animation(Motion.isReduced ? nil : Motion.standard, value: contentPhase)
@@ -121,6 +132,15 @@ struct PanelBubbleView: View {
         else { 0 }
     }
 
+    /// A turn's prompt, as a small line above its answer.
+    private func turnPrompt(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(Typography.body(size: 12))
+            .foregroundStyle(Palette.textSecondary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
     private var prompt: some View {
         // At the bottom, beside the last line, once a long prompt wraps.
         HStack(alignment: .bottom, spacing: Spacing.xSmall) {
@@ -143,6 +163,11 @@ struct PanelBubbleView: View {
                     .help("Ferma la risposta")
                     .transition(.opacity)
             }
+            // The turns so far go; the next prompt asks without them.
+            Button("Nuova Domanda", systemImage: "square.and.pencil", action: model.startNewQuestion)
+                .keyboardShortcut("n", modifiers: .command)
+                .help("Nuova Domanda (⌘N)")
+                .accessibilityIdentifier("bubble.newQuestion")
             // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD.
             Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
                 hud.createSession(from: model.turnIntoSession())

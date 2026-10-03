@@ -285,7 +285,7 @@ function buboTools(conversation: string, remembers = false) {
   );
   const remember = tool(
     "ricorda",
-    "Scrive nel Secondo cervello dell'utente, la sua cartella di note Markdown. Usalo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\") o quando il prompt di sistema ti dice di salvare da solo. Modi: \"nuova\" crea una nota in Bubo/Note con titolo; \"aggiungi\" mette il testo in coda alla nota indicata; \"riscrivi\" sostituisce tutta la nota indicata (per esempio Bubo/Profilo.md). Le note fuori da Bubo/ sono dell'utente: per riscriverle chiedigli prima e passa confermato solo se ha detto di sì. Non cancella note. L'utente può annullare ogni scrittura. Restituisce dove ha scritto, o perché non l'ha fatto.",
+    "Scrive nel Secondo cervello dell'utente, la sua cartella di note Markdown. Usalo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\") o quando il prompt di sistema ti dice di salvare da solo. Modi: \"nuova\" crea una nota in Bubo/Note con titolo; \"aggiungi\" mette il testo in coda alla nota indicata; \"riscrivi\" sostituisce tutta la nota indicata. Le note fuori da Bubo/ sono dell'utente: per riscriverle chiedigli prima e passa confermato solo se ha detto di sì. Anche ogni modifica di Bubo/Profilo.md vuole la conferma dell'utente; Bubo/Regole.md e Bubo/Intervista.md non si scrivono mai. Non cancella note. L'utente può annullare ogni scrittura. Restituisce dove ha scritto, o perché non l'ha fatto.",
     {
       testo: z.string().describe("Cosa scrivere, in Markdown, comprensibile anche letto da solo tra mesi"),
       modo: z.enum(["nuova", "aggiungi", "riscrivi"]).optional().describe("Come scrivere; senza, \"nuova\""),
