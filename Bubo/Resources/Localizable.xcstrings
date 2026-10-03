@@ -3378,6 +3378,16 @@
         }
       }
     },
+    "Bubo non può usare Copilot Free: con quel piano il modello lo sceglie GitHub. Serve un piano a pagamento." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't use Copilot Free: on that plan, GitHub picks the model. You need a paid plan."
+          }
+        }
+      }
+    },
     "Bubo non può usare il microfono" : {
       "localizations" : {
         "en" : {
@@ -3524,6 +3534,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo uses the claude CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Bubo usa il login della CLI copilot e non vede mai i tuoi token." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo uses the copilot CLI's login and never sees your tokens."
           }
         }
       }
@@ -3702,6 +3722,46 @@
         }
       }
     },
+    "Come scollegare Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Disconnect Copilot"
+          }
+        }
+      }
+    },
+    "Collega Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect Copilot"
+          }
+        }
+      }
+    },
+    "Collegato come %@ con Copilot Free" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in as %@ with Copilot Free"
+          }
+        }
+      }
+    },
+    "Collegato con Copilot Free" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signed in with Copilot Free"
+          }
+        }
+      }
+    },
     "Componenti nuovi" : {
       "localizations" : {
         "en" : {
@@ -3854,6 +3914,16 @@
         }
       }
     },
+    "Controllo Copilot…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking Copilot…"
+          }
+        }
+      }
+    },
     "Conversazione ripulita" : {
       "localizations" : {
         "en" : {
@@ -3880,6 +3950,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copilot neither reads nor writes Project Memory."
+          }
+        }
+      }
+    },
+    "Copilot non è collegato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot isn't connected."
           }
         }
       }
@@ -4298,6 +4378,26 @@
         }
       }
     },
+    "Installala dal Terminale con Homebrew, poi torna qui." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install it in Terminal with Homebrew, then come back here."
+          }
+        }
+      }
+    },
+    "Installa nel Terminale" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install in Terminal"
+          }
+        }
+      }
+    },
     "L'agente «%@» non c'è più in questo Progetto: l'Automazione andrebbe in pausa. Scegline un altro." : {
       "localizations" : {
         "en" : {
@@ -4459,6 +4559,16 @@
         }
       }
     },
+    "Manca la CLI copilot." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The copilot CLI is missing."
+          }
+        }
+      }
+    },
     "Mancano le regole per cercare i segreti. Reinstalla Bubo." : {
       "localizations" : {
         "en" : {
@@ -4495,6 +4605,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show in conversation"
+          }
+        }
+      }
+    },
+    "Nel Terminale avvia copilot e scrivi /logout. Vale per la CLI copilot in ogni terminale." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Terminal, start copilot and type /logout. This signs out the copilot CLI in every terminal."
           }
         }
       }
@@ -5041,6 +5161,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose the PDFs and Word documents to import."
+          }
+        }
+      }
+    },
+    "Scrive copilot login nel Terminale: premi Invio per avviarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Types copilot login in Terminal: press Return to start it."
+          }
+        }
+      }
+    },
+    "Scollega…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect…"
           }
         }
       }

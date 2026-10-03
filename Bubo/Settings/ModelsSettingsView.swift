@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Impostazioni › Modelli: the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
+/// Impostazioni › Modelli: GitHub Copilot (ADR 0012), the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
 /// Claude (spec 10), and the PriceTable their Spesa is estimated with (spec 18).
 struct ModelsSettingsView: View {
     @State private var settings = EndpointSettings.shared
@@ -18,6 +18,7 @@ struct ModelsSettingsView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+            CopilotSettingsSection()
             TypePreferencesSection(preferences: preferences, settings: settings)
             Section {
                 Picker("Modello locale", selection: localModelBinding) {
