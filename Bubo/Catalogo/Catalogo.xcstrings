@@ -19,6 +19,42 @@
         }
       }
     },
+    "antenna" : {
+      "comment" : "Etichetta della Variante antenna (Categoria Ricerca): un'antenna a traliccio con due onde ai lati.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antenna"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antenna"
+          }
+        }
+      }
+    },
+    "banca" : {
+      "comment" : "Etichetta della Variante banca (Categoria Finanza): un edificio con il frontone e quattro colonne.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bank"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Banca"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -109,6 +145,24 @@
         }
       }
     },
+    "campanello" : {
+      "comment" : "Etichetta della Variante campanello (Categoria Viaggi): un campanello da reception a cupola.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Service bell"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Campanello"
+          }
+        }
+      }
+    },
     "carte" : {
       "comment" : "Etichetta della Variante carte (Categoria Chat): un ventaglio di tre carte da gioco.",
       "extractionState" : "manual",
@@ -127,6 +181,24 @@
         }
       }
     },
+    "cartone-latte" : {
+      "comment" : "Etichetta della Variante cartone-latte (Categoria Salute): un cartone del latte con il tetto a punta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Milk carton"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cartone del latte"
+          }
+        }
+      }
+    },
     "cavalluccio-marino" : {
       "comment" : "Etichetta della Variante cavalluccio-marino (Categoria Chat): un cavalluccio marino di profilo.",
       "extractionState" : "manual",
@@ -141,6 +213,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cavalluccio marino"
+          }
+        }
+      }
+    },
+    "cerniera" : {
+      "comment" : "Etichetta della Variante cerniera (Categoria Codice): un tratto di cerniera lampo con il cursore a metà.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zipper"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerniera"
           }
         }
       }
@@ -253,6 +343,78 @@
         }
       }
     },
+    "dado" : {
+      "comment" : "Etichetta della Variante dado (Categoria Chat): un dado cubico con gli angoli arrotondati.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dado"
+          }
+        }
+      }
+    },
+    "dischetto" : {
+      "comment" : "Etichetta della Variante dischetto (Categoria Codice): un dischetto quadrato con la finestrella e l'etichetta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Floppy disk"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dischetto"
+          }
+        }
+      }
+    },
+    "elefante" : {
+      "comment" : "Etichetta della Variante elefante (Categoria Agente): un elefante di profilo con la proboscide alzata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elephant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elefante"
+          }
+        }
+      }
+    },
+    "elmetto" : {
+      "comment" : "Etichetta della Variante elmetto (Categoria Codice): un elmetto da cantiere con visiera e cresta centrale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hard hat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elmetto da cantiere"
+          }
+        }
+      }
+    },
     "elmo" : {
       "comment" : "Etichetta della Variante elmo (Categoria Chat): un elmo da cavaliere con la visiera a fessura.",
       "extractionState" : "manual",
@@ -289,6 +451,42 @@
         }
       }
     },
+    "fisarmonica" : {
+      "comment" : "Etichetta della Variante fisarmonica (Categoria Musica): una fisarmonica con il mantice aperto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accordion"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fisarmonica"
+          }
+        }
+      }
+    },
+    "flauto" : {
+      "comment" : "Etichetta della Variante flauto (Categoria Musica): un flauto traverso con i fori e le chiavi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flute"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flauto"
+          }
+        }
+      }
+    },
     "fulmine" : {
       "comment" : "Etichetta della Variante fulmine (Categoria Meteo): una saetta.",
       "extractionState" : "manual",
@@ -321,6 +519,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fumetto"
+          }
+        }
+      }
+    },
+    "furgone" : {
+      "comment" : "Etichetta della Variante furgone (Categoria Mail): un furgone per le consegne, di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delivery van"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Furgone"
           }
         }
       }
@@ -451,6 +667,78 @@
         }
       }
     },
+    "letto" : {
+      "comment" : "Etichetta della Variante letto (Categoria Salute): un letto di profilo con il cuscino.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bed"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letto"
+          }
+        }
+      }
+    },
+    "linea-del-tempo" : {
+      "comment" : "Etichetta della Variante linea-del-tempo (Categoria Tempo): una linea orizzontale con tre pallini e tacche regolari.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timeline"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linea del tempo"
+          }
+        }
+      }
+    },
+    "macchina-da-scrivere" : {
+      "comment" : "Etichetta della Variante macchina-da-scrivere (Categoria Creativo): una macchina da scrivere con il foglio inserito.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Typewriter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Macchina da scrivere"
+          }
+        }
+      }
+    },
+    "manichino" : {
+      "comment" : "Etichetta della Variante manichino (Categoria Codice): un manichino da sarto: busto su un'asta con piede a tre punte.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dummy"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manichino"
+          }
+        }
+      }
+    },
     "matita" : {
       "comment" : "Etichetta della Variante matita (Categoria Codice): una matita che traccia un segno.",
       "extractionState" : "manual",
@@ -465,6 +753,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Matita"
+          }
+        }
+      }
+    },
+    "microchip" : {
+      "comment" : "Etichetta della Variante microchip (Categoria Codice): un chip quadrato con i piedini sui quattro lati.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microchip"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microchip"
           }
         }
       }
@@ -537,6 +843,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nuvola"
+          }
+        }
+      }
+    },
+    "palma" : {
+      "comment" : "Etichetta della Variante palma (Categoria Viaggi): una palma con il tronco curvo e cinque foglie.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palm tree"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Palma"
           }
         }
       }
@@ -649,6 +973,24 @@
         }
       }
     },
+    "puntatore" : {
+      "comment" : "Etichetta della Variante puntatore (Categoria Agente): la freccia del puntatore del mouse, inclinata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pointer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntatore"
+          }
+        }
+      }
+    },
     "punto-interrogativo" : {
       "comment" : "Etichetta della Variante punto-interrogativo (Categoria Chat): un punto interrogativo.",
       "extractionState" : "manual",
@@ -663,6 +1005,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Punto interrogativo"
+          }
+        }
+      }
+    },
+    "pupazzo-di-neve" : {
+      "comment" : "Etichetta della Variante pupazzo-di-neve (Categoria Meteo): un pupazzo di neve a due sfere con il cappello.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Snowman"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pupazzo di neve"
           }
         }
       }
@@ -775,6 +1135,24 @@
         }
       }
     },
+    "sdraio" : {
+      "comment" : "Etichetta della Variante sdraio (Categoria Tempo): una sedia a sdraio di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deck chair"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sdraio"
+          }
+        }
+      }
+    },
     "sfigmomanometro" : {
       "comment" : "Etichetta della Variante sfigmomanometro (Categoria Salute): un bracciale con il tubo e la pompetta.",
       "extractionState" : "manual",
@@ -789,6 +1167,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "taccuino" : {
+      "comment" : "Etichetta della Variante taccuino (Categoria Ricerca): un taccuino con la spirale in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notebook"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taccuino"
           }
         }
       }
@@ -843,6 +1239,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminale"
+          }
+        }
+      }
+    },
+    "torre-di-carte" : {
+      "comment" : "Etichetta della Variante torre-di-carte (Categoria Codice): una torre di carte a tre piani, triangoli appoggiati.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "House of cards"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torre di carte"
+          }
+        }
+      }
+    },
+    "vulcano" : {
+      "comment" : "Etichetta della Variante vulcano (Categoria Chat): un vulcano a cono con il cratere fumante.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volcano"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vulcano"
           }
         }
       }
