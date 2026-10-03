@@ -1,12 +1,15 @@
 // Le Sessioni su `copilot` (ADR 0012): il Copilot SDK lancia il `copilot` dell'utente, con il suo login, sul worktree
 // che crea Bubo. Verso Bubo gli stessi messaggi neutri delle Sessioni Claude: testo, stato, Richieste di permesso, fine.
+import type { SessionMessage, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
 import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionRequest as CopilotRequest,
-  type PermissionRequestResult, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
+  type PermissionRequestResult, type ResumeSessionConfig, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import type { Progress } from "./activity";
 import { CopilotUsage } from "./copilot-question";
+import { dates, messages, transcriptLimit, type Message } from "./history";
+import type { ConversationStore } from "./store";
 import type { TurnUsage } from "./usage";
 
 type ReasoningEffort = NonNullable<SessionConfig["reasoningEffort"]>;
@@ -28,7 +31,35 @@ export type CopilotTurn = {
   copilot: string;
   model?: string;
   effort?: ReasoningEffort;
+  /** La conversazione che Bubo conserva (ADR 0006): è anche l'id della sessione di `copilot`. */
+  keep?: string;
+  /** Riprende `keep` con `resumeSession`, invece di aprirla. */
+  resume?: boolean;
 };
+
+// La copia delle conversazioni Copilot nello store di Bubo, separata da quelle di Claude da questo Progetto.
+export const copilotProject = "copilot";
+
+type Copy = Pick<ConversationStore, "append" | "load">;
+
+// Un messaggio di una conversazione Copilot nello stesso formato delle voci di Claude: `messages` di history.ts lo legge
+// come le altre, e l'Indice non vede differenze.
+export function copiedEntry(role: "user" | "assistant", text: string, uuid: string = randomUUID(),
+                            timestamp = new Date().toISOString()): SessionStoreEntry {
+  return { type: role, uuid, timestamp, message: { role, content: text } };
+}
+
+// I messaggi di una conversazione Copilot copiata, come quelli di `transcript` per Claude.
+export function copiedMessages(entries: SessionStoreEntry[], limit = transcriptLimit): Message[] {
+  return messages(entries as unknown as SessionMessage[], dates(entries), limit);
+}
+
+// Se `copilot` non ha più la sessione, il turno riparte dalla copia di Bubo: la conversazione fin qui, poi il prompt.
+export function withEarlier(earlier: Message[], prompt: string): string {
+  if (!earlier.length) return prompt;
+  const lines = earlier.map((message) => `${message.role === "user" ? "Utente" : "Assistente"}: ${message.text}`);
+  return `La conversazione fin qui:\n\n${lines.join("\n\n")}\n\nOra: ${prompt}`;
+}
 
 // Le variabili che farebbero usare a `copilot` un token al posto del login dell'utente (ADR 0012): mai al figlio.
 const tokens = ["GH_TOKEN", "GITHUB_TOKEN", "COPILOT_GITHUB_TOKEN"];
@@ -71,7 +102,8 @@ export class CopilotTurns {
   private readonly permissions = new Map<string, (allowed: boolean) => void>();
 
   constructor(private readonly send: (event: CopilotEvent) => void,
-              private readonly environment: Record<string, string>) {}
+              private readonly environment: Record<string, string>,
+              private readonly copy?: Copy) {}
 
   has(id: string): boolean {
     return this.running.has(id);
@@ -114,17 +146,30 @@ export class CopilotTurns {
       },
     });
     try {
-      session = await client.createSession({
+      const config: ResumeSessionConfig = {
         clientName: "bubo",
         workingDirectory: turn.cwd,
         model: turn.model,
         reasoningEffort: turn.effort,
         streaming: true,
         onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal),
-      });
+      };
+      let prompt = turn.prompt;
+      const { keep } = turn;
+      const resumed = keep && turn.resume ? await client.resumeSession(keep, config).catch(() => undefined) : undefined;
+      if (keep && turn.resume && !resumed) prompt = withEarlier(await this.earlier(keep), prompt);
+      session = resumed ?? await client.createSession({ ...config, sessionId: keep });
       if (stopped.signal.aborted) return;
+      const record = (entry: SessionStoreEntry) => {
+        if (keep) void this.copy?.append({ projectKey: copilotProject, sessionId: keep }, [entry]).catch(() => {});
+      };
+      record(copiedEntry("user", turn.prompt));
       session.on((event: SessionEvent) => {
-        if (event.type === "assistant.message_delta") {
+        if (event.type === "assistant.message") {
+          if (!event.data.parentToolCallId && event.data.content.trim()) {
+            record(copiedEntry("assistant", event.data.content, event.id, event.timestamp));
+          }
+        } else if (event.type === "assistant.message_delta") {
           if (event.data.deltaContent) this.send({ type: "text", id, text: event.data.deltaContent });
         } else if (event.type === "assistant.usage") {
           usage.add(event.data);
@@ -135,7 +180,7 @@ export class CopilotTurns {
         }
       });
       this.send({ type: "state", id, state: "running" });
-      await session.send({ prompt: turn.prompt });
+      await session.send({ prompt });
       const end = await finished.promise;
       const tokens = usage.turn();
       if (tokens) this.send({ type: "usage", id, ...tokens, complete: end === "done" });
@@ -152,6 +197,12 @@ export class CopilotTurns {
       this.running.delete(id);
       await close(client, session);
     }
+  }
+
+  // La conversazione `keep` come l'ha copiata Bubo.
+  private async earlier(keep: string): Promise<Message[]> {
+    const entries = await this.copy?.load({ projectKey: copilotProject, sessionId: keep }).catch(() => null);
+    return entries ? copiedMessages(entries) : [];
   }
 
   // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude.

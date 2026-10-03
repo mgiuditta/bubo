@@ -201,12 +201,16 @@ final class AgentBridge {
     ///   - consents: The clouds the user allowed, from ``EndpointSettings/consents``.
     ///   - model: A Copilot model id; `nil` for the user's own choice.
     ///   - effort: The reasoning effort; `nil` for the model's default.
+    ///   - conversation: The conversation Bubo keeps a copy of (ADR 0006), also the id of the session of `copilot`;
+    ///     `nil` for none.
+    ///   - resuming: Whether `copilot` resumes `conversation` with what was said in it, instead of starting it.
     ///   - progress: Receives the state of the conversation, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens of the turn, with no figure, when it ends: Bubo prices them (#542).
     func askCopilot(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>, model: String? = nil,
-                    effort: Effort? = nil, id: String = UUID().uuidString,
+                    effort: Effort? = nil, keeping conversation: String? = nil, resuming: Bool = false,
+                    id: String = UUID().uuidString,
                     progress: @escaping (AgentProgress) -> Void = { _ in },
                     permissions: ((PermissionEvent) -> Void)? = nil,
                     usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
@@ -226,7 +230,8 @@ final class AgentBridge {
             permissionHandlers[id] = permissions
             usageHandlers[id] = usage
             let command = BridgeCommand.askCopilot(id: id, prompt: prompt, directory: directory, copilot: copilot,
-                                                   model: model, effort: effort)
+                                                   model: model, effort: effort, keeping: conversation,
+                                                   resumes: resuming)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

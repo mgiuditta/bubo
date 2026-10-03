@@ -19,6 +19,9 @@ struct BridgeMessageTests {
         let chosen = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                                   copilot: URL(filePath: "/c"), model: "gpt-6", effort: .high).line()
         #expect(String(decoding: chosen, as: UTF8.self).contains(#""effort":"high","id":"a1","model":"gpt-6""#))
+        let resumed = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                   copilot: URL(filePath: "/c"), keeping: "k-1", resumes: true).line()
+        #expect(String(decoding: resumed, as: UTF8.self).contains(#""keep":"k-1","prompt":"Ciao","resume":true"#))
     }
 
     @Test func askWithAllegatiCarriesTheirFolders() throws {

@@ -252,6 +252,70 @@ struct SessionTests {
         #expect(session.forkedFrom == "c-1")
     }
 
+    /// The `keep` and `resume` of each `copilot` command in `log`, in order.
+    static func copilotTurns(in log: URL) throws -> [(keep: String?, resumes: Bool)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "copilot" else { return nil }
+            return (command?["keep"] as? String, command?["resume"] as? Bool == true)
+        }
+    }
+
+    // #553: a Sessione on Copilot keeps one conversation, which each turn resumes, also after Bubo restarts.
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func aCopilotSessionResumesItsConversationAfterARestart() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"type":"ask"'*|*'"type":"copilot"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#
+        // Each store is Bubo after a restart: a new bridge, the Sessioni read from `file`.
+        func restarted() -> SessionStore {
+            let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                                     environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+            let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+                bridge
+            }
+            store.locateCopilot = { URL(filePath: "/c") }
+            store.copilotConsents = { [EndpointSettings.copilotConsentID] }
+            return store
+        }
+        let first = restarted()
+        let id = try first.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { first.sessions.first?.activity == .ferma }
+        let claude = try #require(first.sessions.first?.continuedConversation)
+        // The engine as #551 will set it.
+        var saved = try JSONDecoder().decode([Session].self, from: Data(contentsOf: file))
+        saved[0].engine = .copilot
+        try JSONEncoder().encode(saved).write(to: file)
+
+        for (count, prompt) in ["Uno", "Due"].enumerated() {
+            let store = restarted()
+            store.sendBack(prompt, to: id, keepingAcceptedAmong: [])
+            try await Self.wait { (try? Self.copilotTurns(in: log).count) == count + 1 }
+            try await Self.wait { store.sessions.first?.activity == .ferma }
+        }
+
+        let session = try #require(try JSONDecoder().decode([Session].self, from: Data(contentsOf: file)).first)
+        let copilot = try #require(session.copilotConversation)
+        #expect(session.conversations == [claude, copilot])
+        #expect(session.continuedConversation == claude)
+        let turns = try Self.copilotTurns(in: log)
+        #expect(turns.map(\.keep) == [copilot, copilot])
+        #expect(turns.map(\.resumes) == [false, true])
+    }
+
     @Test func aSessionSavedBeforeTheChainResumesWhatItForked() throws {
         let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma","forkedFrom":"c-1","conversations":["t-1"]}]"#
         let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
