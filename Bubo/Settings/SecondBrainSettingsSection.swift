@@ -1,5 +1,4 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// The choice of the Secondo cervello: any folder of notes, with the Obsidian vaults on this Mac suggested (spec 12).
 struct SecondBrainSettingsSection: View {
@@ -7,7 +6,6 @@ struct SecondBrainSettingsSection: View {
     @State private var isReachable = true
     @State private var isObsidianVault = false
     @State private var vaultCount = 0
-    @State private var isChoosingFolder = false
     @State private var isSettingUp = false
     @AppStorage(SessionSummarizer.defaultsKey) private var writesSummaries = true
     @AppStorage(MeetingAudioRetention.defaultsKey) private var meetingAudio = MeetingAudioRetention.thirtyDays
@@ -32,7 +30,6 @@ struct SecondBrainSettingsSection: View {
                 }
                 HStack {
                     Button("Rivedi la configurazione…") { isSettingUp = true }
-                    Button("Cambia cartella…") { isChoosingFolder = true }
                     Button("Non usare più") { secondBrain.stopUsing() }
                 }
             } else {
@@ -56,10 +53,6 @@ struct SecondBrainSettingsSection: View {
             Text("Secondo cervello")
         } footer: {
             Text("Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso.")
-        }
-        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
-            guard case let .success(folder) = result else { return }
-            secondBrain.choose(folder)
         }
         .sheet(isPresented: $isSettingUp) { SecondBrainConversationSheet() }
         .task(id: secondBrain.location) { refresh() }
