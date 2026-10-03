@@ -80,6 +80,19 @@ nonisolated protocol ClassificationEngine: Sendable {
     ///
     /// - Throws: `RequestClassification.Fallback` when the engine cannot or will not answer.
     func classification(of input: ClassifierInput) async throws -> RequestClassification
+
+    /// The Variante of `categoria` that clearly fits `input`, for an engine whose classification leaves it to a second
+    /// step; `nil` when none does.
+    ///
+    /// - Throws: `RequestClassification.Fallback` when the engine cannot or will not answer.
+    func variante(of input: ClassifierInput, in categoria: Categoria) async throws -> Variante?
+}
+
+nonisolated extension ClassificationEngine {
+    /// An engine whose classification already holds the Variante has no second step: the rules answer it.
+    func variante(of input: ClassifierInput, in categoria: Categoria) async throws -> Variante? {
+        throw RequestClassification.Fallback.unavailable
+    }
 }
 
 nonisolated extension ClassificationEngine {

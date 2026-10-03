@@ -30,9 +30,9 @@ struct OrbPipelinesTests {
 
     /// The renderer draws the Blob while a Forma has no pipeline.
     @Test func aFormaWithoutItsFileHasNoPipeline() async {
-        let drago = Forma(rawValue: "drago")
-        #expect(!pipelines.canDraw(drago))
-        #expect(await pipelines.loadedPipeline(for: drago) == nil)
-        #expect(pipelines.pipeline(for: drago) == nil)
+        let assente = Forma(rawValue: "fenice_di_prova")
+        #expect(!pipelines.canDraw(assente))
+        #expect(await pipelines.loadedPipeline(for: assente) == nil)
+        #expect(pipelines.pipeline(for: assente) == nil)
     }
 }

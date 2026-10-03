@@ -46,6 +46,22 @@ nonisolated struct RequestClassifier {
         return classification
     }
 
+    /// The Variante of `categoria` for `input`, after a classification that left it to a second step: the first engine
+    /// that answers in time, otherwise the words of the rules.
+    func variante(of input: ClassifierInput, in categoria: Categoria) async -> Variante? {
+        let interval = Self.signposter.beginInterval("Variante", id: Self.signposter.makeSignpostID())
+        defer { Self.signposter.endInterval("Variante", interval) }
+        for engine in engines {
+            if case .success(let variante) = await Self.outcome(within: engine.budget, of: {
+                try await engine.variante(of: input, in: categoria)
+            }) {
+                Self.logger.info("Variante \(variante?.nome ?? "-", privacy: .public) in a second step")
+                return variante
+            }
+        }
+        return rules.variante(matching: input, in: categoria)
+    }
+
     /// The verdict of the first engine on the Mac, within its budget, for the prediction on the partial text of the
     /// Ascolto (spec 08); `nil` when no such engine answers in time.
     ///
@@ -58,16 +74,23 @@ nonisolated struct RequestClassifier {
         return classification
     }
 
-    /// The engine's answer, or why there is none: the first of the answer and the end of the budget wins.
-    ///
-    /// The deadline holds even if the engine ignores cancellation: the late answer is dropped, not awaited.
+    /// The engine's classification, or why there is none.
     private static func outcome(of engine: any ClassificationEngine,
                                 input: ClassifierInput) async -> Result<RequestClassification, RequestClassification.Fallback> {
+        await outcome(within: engine.budget) { try await engine.classification(of: input) }
+    }
+
+    /// The answer of `work`, or why there is none: the first of the answer and the end of `budget` wins.
+    ///
+    /// The deadline holds even if the engine ignores cancellation: the late answer is dropped, not awaited.
+    private static func outcome<Answer: Sendable>(
+        within budget: Duration, of work: @escaping @Sendable () async throws -> Answer
+    ) async -> Result<Answer, RequestClassification.Fallback> {
         await withCheckedContinuation { continuation in
             let race = Race(continuation)
             let work = Task {
                 do {
-                    race.finish(.success(try await engine.classification(of: input)))
+                    race.finish(.success(try await work()))
                 } catch let reason as RequestClassification.Fallback {
                     race.finish(.failure(reason))
                 } catch {
@@ -75,7 +98,7 @@ nonisolated struct RequestClassifier {
                 }
             }
             Task {
-                try? await Task.sleep(for: engine.budget)
+                try? await Task.sleep(for: budget)
                 work.cancel()
                 race.finish(.failure(.timedOut))
             }
@@ -96,14 +119,14 @@ nonisolated struct RequestClassifier {
 }
 
 /// Resumes a continuation once, with whichever result arrives first.
-nonisolated private final class Race: Sendable {
-    private let continuation: Mutex<CheckedContinuation<Result<RequestClassification, RequestClassification.Fallback>, Never>?>
+nonisolated private final class Race<Answer: Sendable>: Sendable {
+    private let continuation: Mutex<CheckedContinuation<Result<Answer, RequestClassification.Fallback>, Never>?>
 
-    init(_ continuation: CheckedContinuation<Result<RequestClassification, RequestClassification.Fallback>, Never>) {
+    init(_ continuation: CheckedContinuation<Result<Answer, RequestClassification.Fallback>, Never>) {
         self.continuation = Mutex(continuation)
     }
 
-    func finish(_ result: Result<RequestClassification, RequestClassification.Fallback>) {
+    func finish(_ result: Result<Answer, RequestClassification.Fallback>) {
         continuation.withLock { $0.take() }?.resume(returning: result)
     }
 }
