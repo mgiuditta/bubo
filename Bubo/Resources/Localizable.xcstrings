@@ -1490,6 +1490,16 @@
         }
       }
     },
+    "Aggiungi una cartella…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a Folder…"
+          }
+        }
+      }
+    },
     "Allegati a «%@»: %@" : {
       "localizations" : {
         "en" : {
@@ -2840,6 +2850,16 @@
         }
       }
     },
+    "Avanti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        }
+      }
+    },
     "Avvia" : {
       "localizations" : {
         "en" : {
@@ -3554,6 +3574,16 @@
         }
       }
     },
+    "Cartelle prioritarie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Priority Folders"
+          }
+        }
+      }
+    },
     "Cerca nella cronologia" : {
       "localizations" : {
         "en" : {
@@ -3777,12 +3807,32 @@
         }
       }
     },
+    "Dove sono le tue note?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Where are your notes?"
+          }
+        }
+      }
+    },
     "Email e organizzazione dell'account" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "The account's email and organization"
+          }
+        }
+      }
+    },
+    "Fine" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         }
       }
@@ -4023,6 +4073,26 @@
         }
       }
     },
+    "Le cartelle spente restano dove sono, ma non le leggo. Di solito si spengono archivi e allegati." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Folders you turn off stay where they are, but I don't read them. Archives and attachments are usually turned off."
+          }
+        }
+      }
+    },
+    "Leggo le note solo quando le cerco e scrivo solo nella cartella Bubo. Obsidian può restare chiuso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I read your notes only when I search them, and I write only in the Bubo folder. Obsidian can stay closed."
+          }
+        }
+      }
+    },
     "Lo scanner non trova tutto: guarda anche la conversazione qui sotto." : {
       "localizations" : {
         "en" : {
@@ -4073,6 +4143,46 @@
         }
       }
     },
+    "Nessuna cartella prioritaria: cerco in tutte allo stesso modo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No priority folders: I search them all the same way."
+          }
+        }
+      }
+    },
+    "Nessuna cartella scelta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No folder chosen"
+          }
+        }
+      }
+    },
+    "Nessuna sottocartella da mettere prima: cerco in tutte le note allo stesso modo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No subfolders to put first: I search all your notes the same way."
+          }
+        }
+      }
+    },
+    "Nessuna sottocartella: leggo tutte le note." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No subfolders: I'll read all your notes."
+          }
+        }
+      }
+    },
     "Niente ramo: il Progetto non è un repo" : {
       "localizations" : {
         "en" : {
@@ -4109,6 +4219,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't be chosen until you compare the new code in Settings › Deliveries."
+          }
+        }
+      }
+    },
+    "Non trovo vault di Obsidian su questo Mac. Va bene qualunque cartella di note Markdown." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can't find an Obsidian vault on this Mac. Any folder of Markdown notes works."
           }
         }
       }
@@ -4169,6 +4289,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deliver a Session to another Bubo user in an encrypted .bubo file."
+          }
+        }
+      }
+    },
+    "Passo %lld di %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %1$lld of %2$lld"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passo %1$lld di %2$lld"
           }
         }
       }
@@ -4235,6 +4371,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready: %@"
+          }
+        }
+      }
+    },
+    "Quali cartelle contano di più?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which folders matter most?"
+          }
+        }
+      }
+    },
+    "Quali cartelle leggo?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which folders should I read?"
+          }
+        }
+      }
+    },
+    "Quando la ricerca trova note in cartelle diverse, quelle scelte qui vengono prima. Puoi cambiarle in Impostazioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When a search finds notes in different folders, the ones you choose here come first. You can change them in Settings."
+          }
+        }
+      }
+    },
+    "Quando la ricerca trova note in cartelle diverse, queste vengono prima." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When a search finds notes in different folders, these come first."
           }
         }
       }
@@ -4413,6 +4589,36 @@
         }
       }
     },
+    "Rivedi la configurazione…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Review Setup…"
+          }
+        }
+      }
+    },
+    "Salta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        }
+      }
+    },
+    "Salta tutto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip All"
+          }
+        }
+      }
+    },
     "Scegli a chi" : {
       "localizations" : {
         "en" : {
@@ -4494,6 +4700,16 @@
         }
       }
     },
+    "Tre passi, meno di un minuto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Three steps, under a minute."
+          }
+        }
+      }
+    },
     "Tutti i plugin sono aggiornati" : {
       "localizations" : {
         "en" : {
@@ -4520,6 +4736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Once delivered, it's theirs."
+          }
+        }
+      }
+    },
+    "Vault di Obsidian trovati: %lld. Tre passi, meno di un minuto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsidian vaults found: %lld. Three steps, under a minute."
           }
         }
       }

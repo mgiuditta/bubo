@@ -130,6 +130,8 @@ actor SearchIndex {
     private var wasBeyondLimit = false
     /// Folders of the Secondo cervello left out of the Indice, relative to it.
     private var excludedFolders: Set<String> = []
+    /// Folders of the Secondo cervello whose notes a search puts first, relative to it.
+    private var priorityFolders: Set<String> = []
     /// The real path of the `~/.claude` folder.
     private let root: String
     private let connection: OpaquePointer
@@ -160,7 +162,36 @@ actor SearchIndex {
     ///
     /// - Parameter project: A Progetto's folder; when given, only its memory is searched.
     /// - Parameter source: When given, only the files from there are searched.
+    /// - Parameter limit: At most this many fragments. The notes in the folders put first come before the others,
+    ///   each group keeping its order.
     func hits(for text: String, project: String? = nil, source: SearchSource? = nil, limit: Int = 8) async throws -> [SearchHit] {
+        guard !priorityFolders.isEmpty, let secondBrain else {
+            return try await rankedHits(for: text, project: project, source: source, limit: limit)
+        }
+        let folder = Self.realPath(secondBrain)
+        let ranked = try await rankedHits(for: text, project: project, source: source, limit: Self.candidates)
+        let first = ranked.filter { Self.isNote($0, inside: priorityFolders, of: folder) }
+        let rest = ranked.filter { !Self.isNote($0, inside: priorityFolders, of: folder) }
+        return Array((first + rest).prefix(limit))
+    }
+
+    /// Makes ``hits(for:project:source:limit:)`` put first the notes of `folders`, relative to the Secondo cervello.
+    func prioritize(_ folders: Set<String>) {
+        priorityFolders = folders
+    }
+
+    /// Whether `hit` is a note of the Secondo cervello at `folder` inside one of `folders`, relative to it.
+    ///
+    /// Folders compare by whole names: `Lavoro` does not hold `Lavoro2/a.md`.
+    private static func isNote(_ hit: SearchHit, inside folders: Set<String>, of folder: String) -> Bool {
+        guard hit.source == .secondBrain, hit.path.hasPrefix(folder + "/") else { return false }
+        let parts = hit.path.dropFirst(folder.count + 1).split(separator: "/").dropLast()
+        return folders.contains { parts.starts(with: $0.split(separator: "/")) }
+    }
+
+    /// Returns up to `limit` fragments matching `text`, best first, as ``hits(for:project:source:limit:)`` does
+    /// without the folders put first.
+    private func rankedHits(for text: String, project: String?, source: SearchSource?, limit: Int) async throws -> [SearchHit] {
         let words = text.split { !$0.isLetter && !$0.isNumber }
         guard !words.isEmpty else { return [] }
         let filter = (project == nil ? "" : "AND project = ?3 ") + (source == nil ? "" : "AND source = ?4")
@@ -260,8 +291,12 @@ actor SearchIndex {
             let folder = secondBrain.map { Self.realPath($0) }
             let found = hits.map { "### \(Self.heading(of: $0, inSecondBrain: folder))\n\n\($0.text)" }
                 .joined(separator: "\n\n---\n\n")
+            let notes = hits.filter { $0.source == .secondBrain }.compactMap { hit in
+                folder.flatMap { NoteCitation(path: hit.path, inFolder: $0) }
+            }
+            let clarification = SimilarNotes.clarification(among: notes.map(\.note)).map { "\n\n---\n\n" + $0 } ?? ""
             let citesNotes = hits.contains { $0.source == .secondBrain }
-            return notice + found + (citesNotes ? "\n\n---\n\n" + Self.citationRule : "")
+            return notice + found + clarification + (citesNotes ? "\n\n---\n\n" + Self.citationRule : "")
         } catch {
             Logger.index.error("Search failed: \(error)")
             return "L'Indice non ha potuto cercare."

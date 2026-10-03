@@ -10,6 +10,8 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
     var bookmark: Data?
     /// Folders left out of the Indice, relative to the Secondo cervello, sorted.
     var excludedFolders: [String] = []
+    /// Folders whose notes `cerca` puts first, relative to the Secondo cervello, sorted.
+    var priorityFolders: [String] = []
 
     /// Creates the location of `folder`.
     init(folder: URL) {
@@ -17,12 +19,13 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
         bookmark = try? folder.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
     }
 
-    /// Decodes a saved choice, also one saved before folders could be excluded.
+    /// Decodes a saved choice, also one saved before folders could be excluded or put first.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         path = try container.decode(String.self, forKey: .path)
         bookmark = try container.decodeIfPresent(Data.self, forKey: .bookmark)
         excludedFolders = try container.decodeIfPresent([String].self, forKey: .excludedFolders) ?? []
+        priorityFolders = try container.decodeIfPresent([String].self, forKey: .priorityFolders) ?? []
     }
 
     /// The folder.
@@ -54,6 +57,7 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
         guard path != self.path || isStale else { return self }
         var moved = SecondBrainLocation(folder: folder)
         moved.excludedFolders = excludedFolders
+        moved.priorityFolders = priorityFolders
         return moved
     }
 
@@ -63,6 +67,18 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
         let parts = folder.resolvingSymlinksInPath().standardizedFileURL.pathComponents
         guard parts.count > root.count, parts.starts(with: root) else { return nil }
         return parts.dropFirst(root.count).joined(separator: "/")
+    }
+
+    /// The folders at the top of the Secondo cervello the user can include, exclude or put first, by name:
+    /// hidden folders and `Bubo/` left out.
+    func topFolders() -> [String] {
+        let entries = (try? FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: [.isDirectoryKey],
+                                                                     options: [.skipsHiddenFiles])) ?? []
+        return entries
+            .filter { (try? $0.resourceValues(forKeys: [.isDirectoryKey]).isDirectory) == true }
+            .map(\.lastPathComponent)
+            .filter { $0 != "Bubo" }
+            .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
     }
 
     // MARK: Saved choice

@@ -6,8 +6,9 @@ struct SecondBrainSettingsSection: View {
     @Environment(SecondBrain.self) private var secondBrain
     @State private var isReachable = true
     @State private var isObsidianVault = false
-    @State private var vaults: [URL] = []
+    @State private var vaultCount = 0
     @State private var isChoosingFolder = false
+    @State private var isSettingUp = false
     @AppStorage(SessionSummarizer.defaultsKey) private var writesSummaries = true
     @AppStorage(MeetingAudioRetention.defaultsKey) private var meetingAudio = MeetingAudioRetention.thirtyDays
 
@@ -30,21 +31,21 @@ struct SecondBrainSettingsSection: View {
                         .font(.callout)
                 }
                 HStack {
+                    Button("Rivedi la configurazione…") { isSettingUp = true }
                     Button("Cambia cartella…") { isChoosingFolder = true }
                     Button("Non usare più") { secondBrain.stopUsing() }
                 }
             } else {
-                ForEach(vaults, id: \.self) { vault in
-                    LabeledContent {
-                        Button("Usa") { secondBrain.choose(vault) }
-                            .accessibilityLabel("Usa \(vault.lastPathComponent)")
-                    } label: {
-                        Text(verbatim: vault.lastPathComponent)
-                        Text("Vault di Obsidian")
+                LabeledContent {
+                    Button("Configura…") { isSettingUp = true }
+                } label: {
+                    Text("Nessuna cartella scelta")
+                    if vaultCount == 0 {
+                        Text("Tre passi, meno di un minuto.")
+                    } else {
+                        Text("Vault di Obsidian trovati: \(vaultCount). Tre passi, meno di un minuto.")
                     }
-                    .help(vault.path)
                 }
-                Button("Scegli una cartella…") { isChoosingFolder = true }
             }
             Toggle("Scrivi un riassunto quando una Sessione è Fusa o Archiviata", isOn: $writesSummaries)
             Picker("Audio delle Riunioni", selection: $meetingAudio) {
@@ -60,6 +61,7 @@ struct SecondBrainSettingsSection: View {
             guard case let .success(folder) = result else { return }
             secondBrain.choose(folder)
         }
+        .sheet(isPresented: $isSettingUp) { SecondBrainSetupSheet() }
         .task(id: secondBrain.location) { refresh() }
     }
 
@@ -67,6 +69,6 @@ struct SecondBrainSettingsSection: View {
     private func refresh() {
         isReachable = secondBrain.location?.isReachable ?? true
         isObsidianVault = secondBrain.location?.isObsidianVault ?? false
-        vaults = secondBrain.location == nil ? SecondBrainLocation.suggestedVaults() : []
+        vaultCount = secondBrain.location == nil ? SecondBrainLocation.suggestedVaults().count : 0
     }
 }

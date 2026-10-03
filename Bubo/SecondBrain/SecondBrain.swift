@@ -21,6 +21,7 @@ final class SecondBrain {
     @ObservationIgnored private let index: SearchIndex?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var following: Task<Void, Never>?
+    @ObservationIgnored private var prioritizing: Task<Void, Never>?
 
     /// Starts following the chosen folder, at its new path when it was moved while Bubo was closed.
     func start() {
@@ -56,6 +57,32 @@ final class SecondBrain {
         location.excludedFolders.removeAll { $0 == relativePath }
         remember(location)
         follow()
+    }
+
+    /// Leaves out of the Indice exactly the folders at `relativePaths`, relative to the Secondo cervello, as the
+    /// guided setup answers; the others come back.
+    func excludeOnly(_ relativePaths: Set<String>) {
+        guard var location, Set(location.excludedFolders) != relativePaths else { return }
+        location.excludedFolders = relativePaths.sorted()
+        location.priorityFolders.removeAll { relativePaths.contains($0) }
+        remember(location)
+        follow()
+    }
+
+    /// Makes `cerca` put first the notes of `folder`, inside the Secondo cervello.
+    ///
+    /// - Throws: ``SecondBrainExclusionError/outsideSecondBrain`` for a folder outside it, or the Secondo cervello itself.
+    func prioritize(_ folder: URL) throws(SecondBrainExclusionError) {
+        guard let location, let relativePath = location.relativePath(of: folder) else { throw .outsideSecondBrain }
+        prioritizeOnly(Set(location.priorityFolders + [relativePath]))
+    }
+
+    /// Makes `cerca` put first exactly the notes of the folders at `relativePaths`, relative to the Secondo cervello.
+    func prioritizeOnly(_ relativePaths: Set<String>) {
+        guard var location, Set(location.priorityFolders) != relativePaths else { return }
+        location.priorityFolders = relativePaths.sorted()
+        remember(location)
+        sendPriorityFolders()
     }
 
     /// How full the Indice is; `nil` until first read.
@@ -138,8 +165,19 @@ final class SecondBrain {
         following?.cancel()
         let folder = location?.url
         let excludedFolders = Set(location?.excludedFolders ?? [])
+        sendPriorityFolders()
         following = Task(priority: .utility) { [index] in
             await index?.keepSecondBrainFresh(at: folder, excluding: excludedFolders)
+        }
+    }
+
+    /// Hands the Indice the folders `cerca` puts first, without reading the notes again.
+    private func sendPriorityFolders() {
+        let priorityFolders = Set(location?.priorityFolders ?? [])
+        // Chained, so the Indice ends with the last choice even when two are sent in a row.
+        prioritizing = Task { [index, previous = prioritizing] in
+            await previous?.value
+            await index?.prioritize(priorityFolders)
         }
     }
 }
