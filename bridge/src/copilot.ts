@@ -3,6 +3,7 @@
 import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionRequest as CopilotRequest,
   type PermissionRequestResult, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
 import { randomUUID } from "node:crypto";
+import { dirname } from "node:path";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import type { Progress } from "./activity";
 
@@ -94,7 +95,7 @@ export class CopilotTurns {
     const stopped = new AbortController();
     let session: CopilotSession | undefined;
     const client = new CopilotClient({
-      connection: RuntimeConnection.forStdio({ path: turn.copilot, env: this.environment }),
+      connection: RuntimeConnection.forStdio({ path: turn.copilot, env: withFolderFirst(this.environment, turn.copilot) }),
       useLoggedInUser: true,
       workingDirectory: turn.cwd,
     });
@@ -167,6 +168,12 @@ export class CopilotTurns {
     this.permissions.delete(request);
     return decision(allowed, reached ? deniedByUser : deniedWithoutBubo);
   }
+}
+
+// La cartella di `copilot` prima nel PATH, come in `ChildEnvironment.makeForCopilot`: un'installazione npm vi trova `node`.
+export function withFolderFirst(environment: Record<string, string>, copilot: string): Record<string, string> {
+  const path = [dirname(copilot), ...(environment.PATH?.split(":") ?? [])].filter(Boolean).join(":");
+  return { ...environment, PATH: path };
 }
 
 // La sessione si stacca e `copilot` si chiude; se non risponde entro `abortGrace`, si chiude a forza.

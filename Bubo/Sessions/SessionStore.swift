@@ -142,7 +142,7 @@ final class SessionStore {
     /// `~/.claude/projects`, where Avvia of a Consegna writes its conversation for `claude` to resume.
     @ObservationIgnored var claudeProjects = URL.homeDirectory.appending(path: ".claude/projects", directoryHint: .isDirectory)
     /// The user's `copilot`, for the Sessioni that run on it (ADR 0012); `nil` when there is none.
-    @ObservationIgnored var locateCopilot: () async -> URL? = { nil }
+    @ObservationIgnored var locateCopilot: () async -> URL? = { await CopilotLocator().executableURL() }
     /// Called when a turn did not start because `claude` is too old, with its version if known.
     @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
     /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.

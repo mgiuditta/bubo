@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, copilotEnvironment, decision, permissionRequest, reasoningEffortOf, type CopilotEvent } from "./copilot";
+import { CopilotTurns, copilotEnvironment, decision, permissionRequest, reasoningEffortOf, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
@@ -119,4 +119,9 @@ test("solo l'approvazione esplicita approva; sforzi validi soltanto", () => {
   expect(decision(false)).toEqual({ kind: "reject", feedback: deniedByUser });
   expect(reasoningEffortOf("high")).toBe("high");
   expect(reasoningEffortOf("ultra")).toBeUndefined();
+});
+
+test("la cartella di copilot va prima nel PATH", () => {
+  expect(withFolderFirst({ PATH: "/usr/bin:/bin" }, "/Users/u/.npm-global/bin/copilot").PATH).toBe("/Users/u/.npm-global/bin:/usr/bin:/bin");
+  expect(withFolderFirst({}, "/opt/homebrew/bin/copilot").PATH).toBe("/opt/homebrew/bin");
 });
