@@ -52,6 +52,7 @@ struct CopilotSessionTests {
             return nil
         }
         store.locateCopilot = { URL(filePath: "/c") }
+        store.copilotConsents = { [EndpointSettings.copilotConsentID] }
 
         store.resume(saved.id)
         try await waitForCondition { (try? String(contentsOf: log, encoding: .utf8))?.contains(#""type":"copilot""#) == true }
