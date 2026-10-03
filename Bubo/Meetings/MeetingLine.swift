@@ -27,7 +27,7 @@ nonisolated struct MeetingLine: Equatable, Sendable {
     var start: Duration?
     var text: String
     /// How long the sentence lasts; zero when unknown.
-    var duration: Duration = .zero
+    var length: Duration = .zero
 
     /// The line in the note, such as `**[0:01:23] Io:** Partiamo dal budget.`, `**[0:01:23]** Anna: Partiamo.`, or
     /// the text alone without time nor speaker.

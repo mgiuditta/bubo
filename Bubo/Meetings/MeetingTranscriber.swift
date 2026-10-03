@@ -22,7 +22,7 @@ nonisolated enum MeetingTranscriber {
                 for try await result in transcriber.results where result.isFinal {
                     let text = String(result.text.characters).trimmingCharacters(in: .whitespacesAndNewlines)
                     lines.append(MeetingLine(speaker: speaker, start: .seconds(result.range.start.seconds), text: text,
-                                             duration: .seconds(result.range.duration.seconds)))
+                                             length: .seconds(result.range.duration.seconds)))
                 }
                 return lines
             }

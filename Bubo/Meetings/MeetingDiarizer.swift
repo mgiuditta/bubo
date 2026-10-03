@@ -54,7 +54,7 @@ nonisolated enum MeetingDiarizer {
 
     /// How well `line` falls in `turn`: first by how long they overlap, then by how close they are.
     private static func fit(of line: MeetingLine, in turn: Turn) -> (Duration, Duration) {
-        let end = line.start + line.duration
+        let end = line.start + line.length
         let overlap = min(end, turn.end) - max(line.start, turn.start)
         let distance = max(turn.start - end, line.start - turn.end, .zero)
         return (max(overlap, .zero), .zero - distance)

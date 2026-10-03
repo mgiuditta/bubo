@@ -7,8 +7,8 @@ struct MeetingDiarizerTests {
         MeetingDiarizer.Turn(speaker: speaker, start: .seconds(start), end: .seconds(end))
     }
 
-    private func line(_ start: Int, lasting duration: Int = 0) -> MeetingLine {
-        MeetingLine(speaker: .others, start: .seconds(start), text: "…", duration: .seconds(duration))
+    private func line(_ start: Int, lasting length: Int = 0) -> MeetingLine {
+        MeetingLine(speaker: .others, start: .seconds(start), text: "…", length: .seconds(length))
     }
 
     @Test func voicesAreNumberedInTheOrderTheyFirstSpeak() {
