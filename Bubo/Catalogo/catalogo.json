@@ -131,7 +131,7 @@
       "forma": "punto_interrogativo",
       "categoria": "chat",
       "descrizione": "Quando si fa una domanda breve su un fatto: chi, cosa, quando.",
-      "parole": ["curiosita", "domanda veloce", "quick question", "capitale", "come si dice", "how do you say", "plurale", "plural"]
+      "parole": ["curiosita", "domanda veloce", "quick question", "trivia", "come si dice", "how do you say", "plurale", "plural"]
     },
     {
       "nome": "imbuto",
