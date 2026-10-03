@@ -91,6 +91,24 @@
         }
       }
     },
+    "calamita" : {
+      "comment" : "Etichetta della Variante calamita (Categoria Agente): una calamita a ferro di cavallo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Magnet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calamita"
+          }
+        }
+      }
+    },
     "calendario" : {
       "comment" : "Etichetta della Variante calendario (Categoria Tempo): un calendario da tavolo.",
       "extractionState" : "manual",
@@ -109,6 +127,42 @@
         }
       }
     },
+    "camper" : {
+      "comment" : "Etichetta della Variante camper (Categoria Viaggi): un camper di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camper Van"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camper"
+          }
+        }
+      }
+    },
+    "cappello-detective" : {
+      "comment" : "Etichetta della Variante cappello-detective (Categoria Creativo): un cappello da investigatore a due falde.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Detective Hat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cappello da detective"
+          }
+        }
+      }
+    },
     "carte" : {
       "comment" : "Etichetta della Variante carte (Categoria Chat): un ventaglio di tre carte da gioco.",
       "extractionState" : "manual",
@@ -123,6 +177,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carte"
+          }
+        }
+      }
+    },
+    "cassetta" : {
+      "comment" : "Etichetta della Variante cassetta (Categoria Musica): un'audiocassetta con due bobine.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cassette"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audiocassetta"
           }
         }
       }
@@ -181,6 +253,24 @@
         }
       }
     },
+    "cestino-picnic" : {
+      "comment" : "Etichetta della Variante cestino-picnic (Categoria Chat): un cestino da picnic con il manico.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Picnic Basket"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cestino da picnic"
+          }
+        }
+      }
+    },
     "clessidra" : {
       "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
       "extractionState" : "manual",
@@ -195,6 +285,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clessidra"
+          }
+        }
+      }
+    },
+    "colonna" : {
+      "comment" : "Etichetta della Variante colonna (Categoria Chat): una colonna classica con il capitello.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Column"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Colonna"
           }
         }
       }
@@ -253,6 +361,24 @@
         }
       }
     },
+    "dinosauro" : {
+      "comment" : "Etichetta della Variante dinosauro (Categoria Chat): un dinosauro dal collo lungo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinosaur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinosauro"
+          }
+        }
+      }
+    },
     "elmo" : {
       "comment" : "Etichetta della Variante elmo (Categoria Chat): un elmo da cavaliere con la visiera a fessura.",
       "extractionState" : "manual",
@@ -285,6 +411,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Evidenziatore"
+          }
+        }
+      }
+    },
+    "fantasma" : {
+      "comment" : "Etichetta della Variante fantasma (Categoria Creativo): un fantasma che fluttua.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ghost"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fantasma"
+          }
+        }
+      }
+    },
+    "formica" : {
+      "comment" : "Etichetta della Variante formica (Categoria Agente): una formica di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ant"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formica"
+          }
+        }
+      }
+    },
+    "formina" : {
+      "comment" : "Etichetta della Variante formina (Categoria Codice): una formina per biscotti a stella.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cookie Cutter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formina"
+          }
+        }
+      }
+    },
+    "frigorifero" : {
+      "comment" : "Etichetta della Variante frigorifero (Categoria Chat): un frigorifero a due ante.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fridge"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frigorifero"
           }
         }
       }
@@ -379,6 +577,24 @@
         }
       }
     },
+    "guantone" : {
+      "comment" : "Etichetta della Variante guantone (Categoria Salute): un guantone da boxe.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boxing Glove"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guantone da boxe"
+          }
+        }
+      }
+    },
     "imbuto" : {
       "comment" : "Etichetta della Variante imbuto (Categoria Chat): un imbuto da cui scende una goccia.",
       "extractionState" : "manual",
@@ -411,6 +627,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Insetto"
+          }
+        }
+      }
+    },
+    "interruttore" : {
+      "comment" : "Etichetta della Variante interruttore (Categoria Codice): un interruttore a levetta con il pomello tondo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Switch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Interruttore"
           }
         }
       }
@@ -451,6 +685,24 @@
         }
       }
     },
+    "maschera" : {
+      "comment" : "Etichetta della Variante maschera (Categoria Creativo): una maschera da carnevale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mask"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maschera"
+          }
+        }
+      }
+    },
     "matita" : {
       "comment" : "Etichetta della Variante matita (Categoria Codice): una matita che traccia un segno.",
       "extractionState" : "manual",
@@ -483,6 +735,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moneta"
+          }
+        }
+      }
+    },
+    "motocicletta" : {
+      "comment" : "Etichetta della Variante motocicletta (Categoria Viaggi): una motocicletta di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motorcycle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motocicletta"
+          }
+        }
+      }
+    },
+    "naso" : {
+      "comment" : "Etichetta della Variante naso (Categoria Salute): un naso di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nose"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Naso"
           }
         }
       }
@@ -541,6 +829,24 @@
         }
       }
     },
+    "onda-sonora" : {
+      "comment" : "Etichetta della Variante onda-sonora (Categoria Musica): una forma d'onda sonora.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound Wave"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Onda sonora"
+          }
+        }
+      }
+    },
     "pappagallo" : {
       "comment" : "Etichetta della Variante pappagallo (Categoria Chat): un pappagallo su un ramo.",
       "extractionState" : "manual",
@@ -555,6 +861,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pappagallo"
+          }
+        }
+      }
+    },
+    "parcheggio" : {
+      "comment" : "Etichetta della Variante parcheggio (Categoria Viaggi): un cartello con la lettera P.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parking"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parcheggio"
           }
         }
       }
@@ -631,6 +955,24 @@
         }
       }
     },
+    "prisma" : {
+      "comment" : "Etichetta della Variante prisma (Categoria Chat): un prisma che scompone un raggio di luce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prism"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prisma"
+          }
+        }
+      }
+    },
     "provetta" : {
       "comment" : "Etichetta della Variante provetta (Categoria Codice): una provetta a metà.",
       "extractionState" : "manual",
@@ -649,6 +991,24 @@
         }
       }
     },
+    "pulsante" : {
+      "comment" : "Etichetta della Variante pulsante (Categoria Agente): un grosso pulsante tondo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Button"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pulsante"
+          }
+        }
+      }
+    },
     "punto-interrogativo" : {
       "comment" : "Etichetta della Variante punto-interrogativo (Categoria Chat): un punto interrogativo.",
       "extractionState" : "manual",
@@ -663,6 +1023,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Punto interrogativo"
+          }
+        }
+      }
+    },
+    "racchetta" : {
+      "comment" : "Etichetta della Variante racchetta (Categoria Salute): una racchetta da tennis con una pallina.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Racket"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Racchetta"
+          }
+        }
+      }
+    },
+    "radio" : {
+      "comment" : "Etichetta della Variante radio (Categoria Musica): una radio portatile con antenna.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radio"
           }
         }
       }
@@ -739,6 +1135,24 @@
         }
       }
     },
+    "rosa" : {
+      "comment" : "Etichetta della Variante rosa (Categoria Creativo): una rosa con lo stelo e due foglie.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rose"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rosa"
+          }
+        }
+      }
+    },
     "scimmia" : {
       "comment" : "Etichetta della Variante scimmia (Categoria Chat): una scimmia seduta con la coda arrotolata.",
       "extractionState" : "manual",
@@ -789,6 +1203,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "skyline" : {
+      "comment" : "Etichetta della Variante skyline (Categoria Viaggi): un profilo di città con tre grattacieli.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skyline"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skyline"
           }
         }
       }

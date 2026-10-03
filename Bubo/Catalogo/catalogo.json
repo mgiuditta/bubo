@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "camper",
+      "forma": "camper",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia in camper o furgone attrezzato.",
+      "parole": ["camper", "van", "furgone", "campeggio", "camping", "roulotte", "vanlife", "itinerario on the road"]
+    },
+    {
+      "nome": "prisma",
+      "forma": "prisma",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di fisica: luce, energia, forze.",
+      "parole": ["prisma", "prism", "fisica", "physics", "luce", "light", "energia", "forze"]
+    },
+    {
+      "nome": "cappello-detective",
+      "forma": "cappello_detective",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di gialli e misteri.",
+      "parole": ["detective", "investigatore", "investigator", "giallo", "mystery", "indagine", "whodunit", "enigma"]
+    },
+    {
+      "nome": "interruttore",
+      "forma": "interruttore",
+      "categoria": "codice",
+      "descrizione": "Quando si accendono o spengono funzioni: feature flag, opzioni, preferenze.",
+      "parole": ["interruttore", "switch", "toggle", "attiva", "disattiva", "impostazione", "setting", "on e off"]
+    },
+    {
+      "nome": "racchetta",
+      "forma": "racchetta",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di tennis e padel.",
+      "parole": ["racchetta", "tennis", "racket", "padel", "badminton", "sport con la racchetta", "partita"]
+    },
+    {
+      "nome": "formina",
+      "forma": "formina",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo genera codice da un modello: template, macro, codegen.",
+      "parole": ["formina", "cookie cutter", "stampo", "template", "modello", "scheletro", "boilerplate", "scaffold"]
+    },
+    {
+      "nome": "radio",
+      "forma": "radio",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di radio e stazioni.",
+      "parole": ["radio", "podcast", "trasmissione", "broadcast", "stazione radio", "radio station", "fm"]
+    },
+    {
+      "nome": "cestino-picnic",
+      "forma": "cestino_picnic",
+      "categoria": "chat",
+      "descrizione": "Quando si organizza un picnic o una gita fuori porta.",
+      "parole": ["picnic", "cestino", "basket", "pranzo al sacco", "gita fuori porta", "merenda", "packed lunch"]
+    },
+    {
+      "nome": "formica",
+      "forma": "formica",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo lavora a lungo in background, senza disturbare.",
+      "parole": ["formica", "ant", "automazione", "ciclo di lavoro", "pipeline", "instancabile"]
+    },
+    {
+      "nome": "motocicletta",
+      "forma": "motocicletta",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia in moto.",
+      "parole": ["moto", "motocicletta", "motorcycle", "motorbike", "scooter", "viaggio in moto", "motorcycle trip"]
+    },
+    {
+      "nome": "fantasma",
+      "forma": "fantasma",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di storie di paura.",
+      "parole": ["fantasma", "ghost", "spettro", "halloween", "spooky", "spaventoso", "storia di paura"]
+    },
+    {
+      "nome": "colonna",
+      "forma": "colonna",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di storia antica: Greci, Romani, civiltà antiche.",
+      "parole": ["colonna", "column", "architettura", "architecture", "storia antica", "ancient history", "classico", "greco"]
+    },
+    {
+      "nome": "naso",
+      "forma": "naso",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di raffreddore e allergie del naso.",
+      "parole": ["naso", "nose", "raffreddore", "cold", "starnuto", "sneeze", "allergia", "allergy"]
+    },
+    {
+      "nome": "cassetta",
+      "forma": "cassetta",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica del passato e di nostalgia: anni '80 e '90.",
+      "parole": ["cassetta", "audiocassetta", "cassette", "nastro", "tape", "mixtape", "anni 80", "retro"]
+    },
+    {
+      "nome": "rosa",
+      "forma": "rosa",
+      "categoria": "creativo",
+      "descrizione": "Quando si scrive d'amore: lettere, poesie romantiche, dediche.",
+      "parole": ["rosa", "rose", "fiore", "flower", "romantico", "romantic", "san valentino", "poesia d'amore"]
+    },
+    {
+      "nome": "pulsante",
+      "forma": "pulsante",
+      "categoria": "agente",
+      "descrizione": "Quando si avvia un'azione rapida: Comandi rapidi, scorciatoie.",
+      "parole": ["pulsante", "bottone", "button", "premi", "avvia", "esegui subito", "run now"]
+    },
+    {
+      "nome": "skyline",
+      "forma": "skyline",
+      "categoria": "viaggi",
+      "descrizione": "Quando si visita una città: quartieri, cosa vedere, musei.",
+      "parole": ["skyline", "grattacielo", "grattacieli", "skyscraper", "city break", "citta", "new york", "metropoli"]
+    },
+    {
+      "nome": "dinosauro",
+      "forma": "dinosauro",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di dinosauri e preistoria.",
+      "parole": ["dinosauro", "dinosaur", "preistoria", "prehistoric", "fossile", "fossil", "giurassico", "jurassic"]
+    },
+    {
+      "nome": "guantone",
+      "forma": "guantone",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di boxe e sport da combattimento.",
+      "parole": ["guantone", "boxe", "boxing", "pugilato", "combattimento", "sport da combattimento", "kickboxing", "allenamento duro"]
+    },
+    {
+      "nome": "onda-sonora",
+      "forma": "onda_sonora",
+      "categoria": "musica",
+      "descrizione": "Quando si lavora con l'audio: registrazioni, mixaggio, effetti.",
+      "parole": ["onda sonora", "sound wave", "waveform", "forma d'onda", "audio", "frequenza", "frequency", "volume"]
+    },
+    {
+      "nome": "frigorifero",
+      "forma": "frigorifero",
+      "categoria": "chat",
+      "descrizione": "Quando si cucina con quello che c'è: avanzi, conservazione del cibo.",
+      "parole": ["frigorifero", "frigo", "fridge", "refrigerator", "conservare il cibo", "food storage", "cosa cucino"]
+    },
+    {
+      "nome": "maschera",
+      "forma": "maschera",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di carnevale, costumi e travestimenti.",
+      "parole": ["maschera", "mask", "carnevale", "carnival", "travestimento", "costume", "teatro", "veneziana"]
+    },
+    {
+      "nome": "calamita",
+      "forma": "calamita",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo raccoglie il contesto: file, appunti, allegati da usare.",
+      "parole": ["calamita", "magnete", "magnet", "attira", "recupera", "contesto rilevante", "relevant context"]
+    },
+    {
+      "nome": "parcheggio",
+      "forma": "parcheggio",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cerca parcheggio.",
+      "parole": ["parcheggio", "parcheggiare", "parking", "park the car", "posteggio", "garage", "dove lascio l'auto"]
     }
   ]
 }
