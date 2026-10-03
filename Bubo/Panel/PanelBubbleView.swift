@@ -10,6 +10,8 @@ struct PanelBubbleView: View {
     /// Called with the content's size whenever it changes, to fit the window around it.
     var onResize: (CGSize) -> Void = { _ in }
     @FocusState private var promptHasFocus: Bool
+    @Environment(\.accessibilityReduceTransparency) private var reducesTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
 
     /// The bubble's width, in points; the height follows the content.
     static let width: CGFloat = 460
@@ -84,13 +86,31 @@ struct PanelBubbleView: View {
             .defaultScrollAnchor(.bottom, for: .sizeChanges)
             .frame(maxHeight: bubble.maxHeight)
             .frame(width: Self.width, alignment: .leading)
-            .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
+            .background {
+                // Opaque graphite with Riduci trasparenza or Aumenta contrasto, as the status pill: a bright desktop
+                // could show through the glass behind the answer.
+                if isOpaque {
+                    RoundedRectangle(cornerRadius: CornerRadius.panel).fill(Palette.ink)
+                    RoundedRectangle(cornerRadius: CornerRadius.panel).fill(Palette.surface)
+                }
+            }
+            .glassEffect(isOpaque ? .identity : .regular, in: .rect(cornerRadius: CornerRadius.panel))
+            .overlay {
+                if isOpaque {
+                    RoundedRectangle(cornerRadius: CornerRadius.panel).strokeBorder(Palette.lineStrong)
+                }
+            }
         }
     }
 
+    private var isOpaque: Bool { reducesTransparency || contrast == .increased }
+
     private var prompt: some View {
-        HStack(spacing: Spacing.xSmall) {
-            TextField("Chiedi qualcosa a Claude", text: $model.prompt)
+        // At the bottom, beside the last line, once a long prompt wraps.
+        HStack(alignment: .bottom, spacing: Spacing.xSmall) {
+            // Wraps up to six lines, then scrolls; Invio sends.
+            TextField("Chiedi qualcosa a Claude", text: $model.prompt, axis: .vertical)
+                .lineLimit(1...6)
                 .textFieldStyle(.plain)
                 .font(Typography.body(size: 15))
                 .focused($promptHasFocus)
@@ -98,9 +118,12 @@ struct PanelBubbleView: View {
                 // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
                 .accessibilityLabel("Chiedi qualcosa a Claude")
                 .accessibilityIdentifier("bubble.prompt")
+                .onKeyPress(phases: .down, action: promptKeyPress)
+                // Esc closes and the answer goes on; ⌘. stops it, from the Ferma button.
                 .onExitCommand(perform: bubble.close)
             if model.isAnswering {
                 Button("Ferma", systemImage: "stop.fill", action: model.stop)
+                    .keyboardShortcut(".", modifiers: .command)
                     .help("Ferma la risposta")
             }
             // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD.
@@ -115,10 +138,26 @@ struct PanelBubbleView: View {
         .buttonStyle(.plain)
         .foregroundStyle(Palette.textSecondary)
         .padding(Spacing.small)
-        .background(Palette.surface, in: .capsule)
+        // A rectangle rather than a capsule, which would bulge around several lines.
+        .background(Palette.surface, in: .rect(cornerRadius: CornerRadius.large))
         .overlay {
-            Capsule().strokeBorder(promptHasFocus ? Palette.lineStrong : Palette.line)
+            RoundedRectangle(cornerRadius: CornerRadius.large)
+                .strokeBorder(promptHasFocus || isOpaque ? Palette.lineStrong : Palette.line)
         }
+    }
+
+    /// The prompt's keys: ⇧Invio a new line, and the chip's Tab, ⇧Tab, ⌥↑ and ⌥↓ as in the HUD; Esc keeps closing the
+    /// bubble, so it never hands the chip back to the router here.
+    private func promptKeyPress(_ press: KeyPress) -> KeyPress.Result {
+        if press.key == .return, press.modifiers.contains(.shift) {
+            // Through the field editor, so the line goes where the cursor is.
+            NSApp.sendAction(#selector(NSResponder.insertNewlineIgnoringFieldEditor(_:)), to: nil, from: nil)
+            return .handled
+        }
+        guard !model.prompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              model.handleChipKey(press.key, modifiers: press.modifiers, escapeReturnsToRouter: false)
+        else { return .ignored }
+        return .handled
     }
 }
 

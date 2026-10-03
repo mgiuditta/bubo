@@ -1,6 +1,6 @@
 import MetalKit
 
-/// The Metal view inside the Panel: a click opens the HUD, a drag moves the Panel, a right click opens the menu, and
+/// The Metal view inside the Panel: a click opens the bubble, a drag moves the Panel, a right click opens the menu, and
 /// what is dropped on it becomes an Allegato.
 ///
 /// Reads as a button to VoiceOver, with the same menu as its secondary action and "Apri HUD", "Chiedi nel Panel" and the

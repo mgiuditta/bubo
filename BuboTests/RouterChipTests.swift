@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import Testing
 @testable import Bubo
 
@@ -94,5 +95,18 @@ struct RouterChipTests {
         model.chooseModel(forward: true)
         model.prompt = ""
         #expect(model.chipChoice != nil)
+    }
+
+    @Test func inTheBubbleTabPicksAndEscIsLeftToClosing() throws {
+        let model = try QuestionModelTests.routedModel(.writing)
+        model.prompt = "Scrivi una mail"
+        #expect(model.handleChipKey(.tab, modifiers: [], escapeReturnsToRouter: false))
+        #expect(model.chipChoice != nil)
+
+        #expect(!model.handleChipKey(.escape, modifiers: [], escapeReturnsToRouter: false))
+        #expect(model.chipChoice != nil)
+        #expect(!model.handleChipKey(.upArrow, modifiers: [], escapeReturnsToRouter: false))
+        #expect(model.handleChipKey(.escape, modifiers: [], escapeReturnsToRouter: true))
+        #expect(model.chipChoice == nil)
     }
 }

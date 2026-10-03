@@ -98,7 +98,7 @@ Cosa se ne ricava:
 |---|---|---|
 | **Orb** | sempre | Stato e Tinta come oggi. Clic apre l'HUD, trascinamento sposta, tasto destro il menu. |
 | **Pillola di stato** (capsula alta 24 pt, finestra figlia come la bolla, verso il centro) | solo con Sessioni in **Attende te**, con **Errore**, o con una risposta pronta e non letta mentre la bolla è chiusa | Testo breve in SF Mono: «2 ti attendono», «Risposta pronta». Punto Lume per Attende te (unico uso del segnale, come in barra), mai solo colore. Clic: apre l'HUD sulla Sessione (`HUDPresenter.show(session:)`) o riapre la bolla. Sparisce da sola quando lo stato si risolve. |
-| **Bolla** | come oggi: «Chiedi nel Panel», drop, «Chiedi a Bubo», voce | La stessa `PanelBubbleView`, larga 360 pt; nella ridotta con altezza massima al 40% di `visibleFrame` e scorrimento, per gli schermi da 13". |
+| **Bolla** | come oggi: «Chiedi nel Panel», drop, «Chiedi a Bubo», voce | La stessa `PanelBubbleView`, larga 360 pt; con altezza massima al 50% di `visibleFrame` e scorrimento, in entrambe le taglie. |
 
 Non contiene: elenco delle Sessioni, cronologia, router, costi. Sono dell'HUD.
 
