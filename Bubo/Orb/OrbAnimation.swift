@@ -44,6 +44,15 @@ nonisolated struct OrbAnimation {
     /// The Tinta at the current instant.
     private(set) var tinta: Tinta
 
+    /// Whether the motion has reached its Stato, the Tinta its target and the voice ripple zero: from here on only
+    /// the shader clock moves.
+    var isSettled: Bool {
+        let tolerance: Float = 0.001
+        let target = state.motion
+        return targetTinta == tintaDestination && tintaProgress == 1 && audio < tolerance
+            && OrbMotion.components.allSatisfy { abs(motion[keyPath: $0] - target[keyPath: $0]) < tolerance }
+    }
+
     private var tintaOrigin: Tinta
     private var tintaDestination: Tinta
     private var tintaProgress: Double = 1

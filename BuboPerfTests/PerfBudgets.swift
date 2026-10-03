@@ -65,8 +65,15 @@ nonisolated enum PerfBudgets {
     /// The Orb's GPU time per frame, p95, over `orbFrames` Morph frames.
     static let orbGPUTime = Measurement(value: 4, unit: UnitDuration.milliseconds)
 
-    /// Orb frames measured for the GPU time: 10 s at 60 fps.
+    /// Orb frames measured for the GPU time: Morphs at 60 fps and the holds between them at 30, about 14 s.
     static let orbFrames = 600
+
+    /// The Orb's frame rate in Ascolto, Pensiero, Parla and Lavora, and during a Morph (#519).
+    static let orbFrameRate = 60
+
+    /// The Orb's frame rate in Riposo, and in every Stato with Risparmio energia (#519). With Riduci movimento the
+    /// Orb in Riposo stops and draws only when the Stato or the Tinta changes.
+    static let orbRestFrameRate = 30
 
     /// Orb frames drawn while the Panel is covered: an invariant.
     static let framesWhileCovered = 0

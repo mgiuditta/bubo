@@ -3,7 +3,7 @@
 Ticket: [#181](https://github.com/mgiuditta/bubo/issues/181) (ricerca), [#186](https://github.com/mgiuditta/bubo/issues/186) (soglie e misura), [#184](https://github.com/mgiuditta/bubo/issues/184) (finestra Plugin), [#185](https://github.com/mgiuditta/bubo/issues/185) (Sandbox), [#187](https://github.com/mgiuditta/bubo/issues/187) (onboarding). Mappa: [#178](https://github.com/mgiuditta/bubo/issues/178).
 Ricerca del 2026-09-30 su MacBook Pro M4 Max (14 core, 36 GB), macOS **26.7**, Xcode **26.6**, CLI `claude` **2.1.285**, Agent SDK TS **0.3.282**, Bun **1.3.10**. Claude Desktop **2.16120.0** (Electron 44.4.3), Cursor **3.20.21** (Electron 42.10.0).
 
-> **Nota sulla ricerca.** È scritta prima delle decisioni e in alcuni punti è superata. Le baseline XCTest non servono a bloccare: sui runner di GitHub non sono stabili, quindi la CI blocca solo oltre **2× il budget** o su un invariante rotto, e i budget esatti si verificano sul Mac di riferimento con `scripts/perf.sh` ([#186](https://github.com/mgiuditta/bubo/issues/186)). MetricKit si usa anche se la consegna con Developer ID non è confermata, ma i report restano sul Mac e non si inviano mai. Il modello di Conductor (chiudere gli agenti inattivi) diventa la **sospensione dopo 10 minuti**. L'Orb non punta ai 120 fps di Zed: resta a **60 fps** come nel brief, con tempo GPU p95 ≤ 4 ms. Gli obiettivi per un M1 base sono stime riportate dalla CI, non soglie. Le misure della ricerca sono fatte con `settingSources: []`: i budget di RAM totali valgono con configurazione vuota, e i Server MCP dell'utente restano fuori. Valgono la Mappa e la Specifica qui sotto.
+> **Nota sulla ricerca.** È scritta prima delle decisioni e in alcuni punti è superata. Le baseline XCTest non servono a bloccare: sui runner di GitHub non sono stabili, quindi la CI blocca solo oltre **2× il budget** o su un invariante rotto, e i budget esatti si verificano sul Mac di riferimento con `scripts/perf.sh` ([#186](https://github.com/mgiuditta/bubo/issues/186)). MetricKit si usa anche se la consegna con Developer ID non è confermata, ma i report restano sul Mac e non si inviano mai. Il modello di Conductor (chiudere gli agenti inattivi) diventa la **sospensione dopo 10 minuti**. L'Orb non punta ai 120 fps di Zed: **60 fps** come nel brief quando agisce o fa un Morph, **30 fps** in Riposo e con Risparmio energia ([#519](https://github.com/mgiuditta/bubo/issues/519)), con tempo GPU p95 ≤ 4 ms. Gli obiettivi per un M1 base sono stime riportate dalla CI, non soglie. Le misure della ricerca sono fatte con `settingSources: []`: i budget di RAM totali valgono con configurazione vuota, e i Server MCP dell'utente restano fuori. Valgono la Mappa e la Specifica qui sotto.
 
 In sintesi: nessun concorrente pubblica numeri misurati con un metodo ripetibile. **Claude Desktop** a riposo pesa **670 MB** di footprint in 12 processi, misurati qui; le issue parlano di 2,4 GB con una sola sessione. **Codex Desktop** e **Cursor** hanno issue aperte con il Mac in crisi di memoria, fino al crash di `WindowServer`. **Zed**, l'unico nativo, dichiara avvio sotto 1 s e fotogrammi sotto 4 ms a 120 fps, senza dire come misura. **Conductor** chiude i processi agente inattivi e li riprende quando servono. Il peso vero di Bubo non è l'app: è un `claude` per Sessione, **~135 MB** di footprint a riposo e pronto in **~0,5 s**, più il ponte `bun` da 36–41 MB. Con 10 Sessioni il totale è **1,38 GB**, e le sessioni lunghe crescono. Apple ha tutto per misurare su macOS 26: signpost, sette metriche XCTest (con la nuova `XCTHitchMetric`), MetricKit con metriche giornaliere, Metal HUD con log per fotogramma e `xctrace` da riga di comando. Swift Testing invece **non ha test di prestazione**. La 25 fissa il Mac di riferimento, una **tabella unica dei budget** di tutte le feature, gli strumenti di misura e due meccanismi di prodotto: la sospensione delle Sessioni inattive e l'avviso delle Sessioni pesanti.
 
@@ -158,7 +158,7 @@ Colonna **CI**: *2×* = misurato in CI, blocca la PR solo oltre il doppio del bu
 | 10 Sessioni sospese | **≤ 200 MB** in totale (Bubo + ponte, 0 `claude`) | `footprint` | 25 | perf.sh |
 | Riserva del pannello della configurazione | **230–260 MB**, un solo `claude`; mai nei primi 10 s dopo l'HUD interattivo, chiusa con la pressione di memoria ([#311](https://github.com/mgiuditta/bubo/issues/311)) | `footprint` | 25, 04 | perf.sh |
 | Sessione pesante | avviso oltre **2 GB** per `claude`, letto ogni **30 s** | `ProcessFootprintMonitor` | 25 | feature |
-| Orb | **60 fps**, tempo GPU **p95 ≤ 4 ms** | `gpuStartTime`/`gpuEndTime`, log del Metal HUD | 25, fase 1–2 | 2× |
+| Orb | **60 fps** in Ascolto, Pensiero, Parla, Lavora e nel Morph; **30 fps** in Riposo e con Risparmio energia; tempo GPU **p95 ≤ 4 ms** | `gpuStartTime`/`gpuEndTime`, log del Metal HUD | 25, fase 1–2 | 2× |
 | Orb nascosto o coperto | **0 fotogrammi** | contatore dei fotogrammi | 25 | invariante |
 | Galassia | **120 fps**, fotogramma **p95 < 8 ms** con Orb aperto; prima immagine **< 500 ms** su 10.000 file; stella accesa **< 100 ms** | log del Metal HUD, signpost | 11 | feature |
 | Galassia su M1 base | **60 fps** (stima) | runner CI standard | 11 | solo report |
@@ -205,7 +205,12 @@ Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#18
 
 ### Fotogrammi e reattività (deciso)
 
-- **Orb**: 60 fps come nel brief, tempo GPU **p95 ≤ 4 ms**. Nascosto o coperto: **0 fotogrammi** (già fatto nel Panel da `OrbPanelController`, che mette in pausa la vista quando il Panel non è visibile; lo stesso vale per l'Orb dell'HUD).
+- **Orb**: tempo GPU **p95 ≤ 4 ms**. Nascosto o coperto: **0 fotogrammi** (`OrbPanelController` e l'Orb dell'HUD dicono a `OrbRenderer` quando la vista non si vede, e lui la mette in pausa).
+- **Frequenza dell'Orb** ([#519](https://github.com/mgiuditta/bubo/issues/519), ricerca `docs/research/487-modalita-ridotta.md`, Costo Metal: sulla batteria pesa la frequenza, non la taglia). La decide `OrbPace` a ogni fotogramma:
+  - in **Ascolto, Pensiero, Parla, Lavora** e durante un **Morph** (o la sua dissolvenza con Riduci movimento): **60 fps**;
+  - in **Riposo**: **30 fps**; il passaggio a un altro Stato torna a 60 al fotogramma dopo, e il moto non salta perché l'animazione avanza col tempo trascorso;
+  - con **Risparmio energia**: **30 fps** in ogni Stato, anche nel Morph;
+  - con **Riduci movimento**, in Riposo: finiti il moto verso lo Stato, il cambio di Tinta e il ritorno al Blob dopo 5 s, l'Orb **si ferma** (0 fotogrammi) e ridisegna solo quando cambiano Stato, Tinta o Variante, o quando si spegne Riduci movimento.
 - **Galassia**: i numeri della 11 (120 fps su M4 Max, p95 < 8 ms con Orb aperto).
 - **0 hang > 100 ms** nei flussi principali.
 - **Hitch < 1%** durante le animazioni Notte (`XCTHitchMetric`).
@@ -290,7 +295,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Server MCP pesanti dell'utente**: non contano nel budget di 1,6 GB (configurazione vuota), ma la sospensione li ferma insieme al `claude`.
 - **Runner CI senza Metal**: test di fotogrammi saltati con avviso nel report.
 - **MetricKit che non consegna** (Developer ID): la sezione Diagnostica dice "Nessun report ancora" e il resto funziona.
-- **ProMotion**: l'Orb resta a 60 fps anche su schermi a 120 Hz; la Galassia sale a 120.
+- **ProMotion**: l'Orb non supera i 60 fps anche su schermi a 120 Hz; la Galassia sale a 120.
 
 ### Test
 
@@ -300,6 +305,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Sospensione** con orologio finto: tabella di condizioni (turno in corso, Richiesta aperta, figlio vivo, subagent in background, niente di questi) → sospende sì o no. Su Mac vero: 10 Sessioni ferme per 10 minuti → totale ≤ 200 MB; messaggio a una sospesa → `Ripresa Sessione` ≤ 1 s, risposta corretta con il contesto di prima.
 - **Ripresa fallita**: worktree cancellato a Sessione sospesa → Errore con motivo, messaggio ancora nel prompt.
 - **Sessione pesante**: `ProcessFootprintMonitor` con un processo finto che alloca oltre 2 GB → avviso entro 30 s; [Riavvia] → nuovo `claude`, stessa Conversazione. 0 processi lanciati dal monitor.
+- **Frequenza dell'Orb**: `OrbPaceTests` controlla la regola per Stato, Morph, Risparmio energia e Riduci movimento contro `PerfBudgets.orbFrameRate` e `orbRestFrameRate`; l'impatto energetico si misura a mano con Energy Log di Instruments, Panel in Riposo, prima e dopo.
 - **Orb**: 600 fotogrammi di Morph → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi. In Release il pannello debug non c'è: lanciato con `-orbFrameLog <file>`, Bubo scrive il tempo GPU di ogni fotogramma del Panel in quel file, una riga per fotogramma, e fa passare l'Orb da una Variante del Catalogo all'altra.
 - **Hang e hitch**: `XCTOSSignpostMetric` su `Apertura Sessione`, `Palette`, `Cambio vista`: nessun intervallo sul main thread oltre 100 ms. `XCTHitchMetric` durante le animazioni Notte: rapporto < 1%.
 - **CI**: una PR con un ritardo finto di 1,2 s all'avvio fallisce (oltre 2× di 500 ms); una con 600 ms passa con avviso nel report.
@@ -331,7 +337,7 @@ Miglior concorrente: nessuno pubblica numeri ripetibili. **Claude Desktop** pesa
 | 2 | **App leggera** | Bubo a riposo **≤ 100 MB** | Claude Desktop **670 MB** | `XCTMemoryMetric`, `footprint` |
 | 3 | **Sessioni ferme quasi gratis** | 10 Sessioni sospese **≤ 200 MB** in totale; attive **≤ 1,6 GB** con configurazione vuota; ripresa **≤ 1 s** | Conductor sospende, senza numeri; Claude Desktop 2,4 GB con una | `footprint` deduplicato, signpost `Ripresa Sessione` |
 | 4 | **Nessuna crescita nascosta** | **0 Sessioni** oltre 2 GB senza avviso entro 30 s | issue fino a 4,6 GB e 14,6 GiB senza avviso | test di `ProcessFootprintMonitor` |
-| 5 | **Orb fluido e muto quando non si vede** | **60 fps**, tempo GPU **p95 ≤ 4 ms**; **0 fotogrammi** nascosto o coperto; hitch **< 1%** | Zed 120 fps dichiarati per l'editor | tempo GPU dei command buffer, contatore, `XCTHitchMetric` |
+| 5 | **Orb fluido e muto quando non si vede** | **60 fps** quando agisce, **30** in Riposo, tempo GPU **p95 ≤ 4 ms**; **0 fotogrammi** nascosto o coperto; hitch **< 1%** | Zed 120 fps dichiarati per l'editor | tempo GPU dei command buffer, contatore, `XCTHitchMetric` |
 | 6 | **Nessun hang** | **0 hang > 100 ms** in avvio, apertura Sessione, Palette, cambio vista | renderer di Claude Desktop all'87% della CPU | `XCTOSSignpostMetric`, modello Hangs |
 | 7 | **Metodo pubblicato e ripetibile** | test XCTest in CI (blocco a 2× e invarianti) + `scripts/perf.sh` sull'M4 Max prima di ogni rilascio | nessuno | presenza e verde della CI; report di `perf.sh` allegato al rilascio |
 

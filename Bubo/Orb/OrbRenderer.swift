@@ -1,6 +1,7 @@
 import AppKit
 import MetalKit
 import QuartzCore
+import os
 
 /// Draws the Orb into any `MTKView`; the Panel uses it now, the HUD will in phase 3.
 final class OrbRenderer: NSObject, MTKViewDelegate {
@@ -32,13 +33,30 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         view.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
         view.clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
         view.layer?.isOpaque = false
+        view.preferredFramesPerSecond = pace.framesPerSecond
         view.delegate = self
+        self.view = view
+    }
+
+    /// Whether the view is on screen and not covered; its owner keeps it current. Hidden, the Orb draws no frames.
+    var isVisible = true {
+        didSet {
+            guard isVisible != oldValue else { return }
+            // Shown again: one frame tells whether something changed while it was hidden.
+            if isVisible, pace == .still { pace = .full }
+            updateLoop()
+        }
     }
 
     private let queue: MTLCommandQueue
     private let pipelines: OrbPipelines
     private let controls: OrbControls
     private let frameLog: OrbFrameLog?
+    private weak var view: MTKView?
+    /// How often the Orb draws now; decided again at every frame.
+    private var pace = OrbPace.full
+    /// While the Orb is still: the tasks that wait for what makes it draw again.
+    private var wakers: [Task<Void, Never>] = []
     private var uniforms = OrbUniforms()
     private var animation: OrbAnimation
     private var director = MorphDirector()
@@ -51,9 +69,13 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
     private var meter = FrameMeter()
     #endif
 
-    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
+    func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {
+        // A still Orb draws again at its new size.
+        if pace == .still { resume() }
+    }
 
     func draw(in view: MTKView) {
+        guard isVisible else { return }
         let now = CACurrentMediaTime()
         let reducesMotion = Motion.isReduced
         animation.state = controls.displayedState
@@ -81,6 +103,10 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
             requestedVariante = nil
             controls.variante = nil
         }
+        follow(OrbPace(state: controls.displayedState, isMorphing: director.isMorphing,
+                       isSettled: animation.isSettled && director.isAtRest,
+                       isLowPowerModeEnabled: ProcessInfo.processInfo.isLowPowerModeEnabled,
+                       reducesMotion: reducesMotion))
         let frame = director.frame
         // A Forma still loading, or not drawn yet, leaves the Orb Blob.
         let formaPipeline = pipelines.pipeline(for: frame.forma)
@@ -112,6 +138,75 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         commands.commit()
     }
 
+    /// Switches the view's frame rate to `newPace`; this frame is drawn either way.
+    private func follow(_ newPace: OrbPace) {
+        guard newPace != pace else { return }
+        Logger.orb.debug("Orb pace \(self.pace.framesPerSecond) → \(newPace.framesPerSecond) fps")
+        pace = newPace
+        updateLoop()
+    }
+
+    /// Runs the view's loop at the pace, or stops it while the Orb is hidden or still.
+    private func updateLoop() {
+        guard let view else { return }
+        if pace != .still, view.preferredFramesPerSecond != pace.framesPerSecond {
+            view.preferredFramesPerSecond = pace.framesPerSecond
+        }
+        let isPaused = !isVisible || pace == .still
+        if view.isPaused != isPaused { view.isPaused = isPaused }
+        if isVisible, pace == .still {
+            waitForChange()
+        } else {
+            stopWaiting()
+        }
+    }
+
+    /// Draws again, at least one frame that decides the pace anew.
+    private func resume() {
+        pace = .full
+        updateLoop()
+    }
+
+    /// Resumes drawing at the first change of Stato, Tinta or Variante, or of the settings that can stop the Orb.
+    private func waitForChange() {
+        guard wakers.isEmpty else { return }
+        let controls = controls
+        wakers = [
+            Task { [weak self] in
+                // The first value is the current one, not a change.
+                for await _ in Observations({ (controls.displayedState, controls.provider, controls.variante) })
+                    .dropFirst() {
+                    self?.wakeUp()
+                    return
+                }
+            },
+            // Riduci movimento, in Aspetto or in the system's settings.
+            Task { [weak self] in
+                for await _ in NotificationCenter.default.notifications(named: UserDefaults.didChangeNotification) {
+                    self?.wakeUp()
+                    return
+                }
+            },
+            Task { [weak self] in
+                let name = NSWorkspace.accessibilityDisplayOptionsDidChangeNotification
+                for await _ in NSWorkspace.shared.notificationCenter.notifications(named: name) {
+                    self?.wakeUp()
+                    return
+                }
+            },
+        ]
+    }
+
+    private func stopWaiting() {
+        wakers.forEach { $0.cancel() }
+        wakers = []
+    }
+
+    private func wakeUp() {
+        stopWaiting()
+        resume()
+    }
+
     #if DEBUG
     /// Counts the frame and, once it completes, its GPU time; publishes a reading every window.
     private func measure(_ commands: MTLCommandBuffer, drawnAt time: CFTimeInterval) {
@@ -130,4 +225,8 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
 enum OrbRendererError: Error {
     /// No Metal device, command queue or compiled shader library.
     case metalUnavailable
+}
+
+private extension Logger {
+    static let orb = Logger(subsystem: "com.mgiuditta.bubo", category: "orb")
 }
