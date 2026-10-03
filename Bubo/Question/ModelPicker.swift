@@ -40,3 +40,28 @@ struct ModelPicker: View {
         .accessibilityAction(named: "Torna al router") { model.returnToRouter() }
     }
 }
+
+extension QuestionModel {
+    /// Handles the chip's keys in the prompt: Tab and ⇧Tab the model, ⌥↑ and ⌥↓ the effort and, when
+    /// `escapeReturnsToRouter`, Esc back to the router; returns `false` for any other key, or one with nothing to
+    /// change, which keeps its usual meaning.
+    func handleChipKey(_ key: KeyEquivalent, modifiers: EventModifiers, escapeReturnsToRouter: Bool) -> Bool {
+        switch key {
+        case .tab:
+            chooseModel(forward: !modifiers.contains(.shift))
+            return true
+        // AppKit delivers ⇧Tab as the back-tab character.
+        case KeyEquivalent("\u{19}"):
+            chooseModel(forward: false)
+            return true
+        case .upArrow where modifiers.contains(.option):
+            return chooseEffort(stronger: true)
+        case .downArrow where modifiers.contains(.option):
+            return chooseEffort(stronger: false)
+        case .escape where escapeReturnsToRouter:
+            return returnToRouter()
+        default:
+            return false
+        }
+    }
+}
