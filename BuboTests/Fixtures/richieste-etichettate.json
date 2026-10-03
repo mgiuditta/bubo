@@ -1479,7 +1479,7 @@
       "testo": "Our team is split between San Francisco, Rome and Tokyo. Which weekly meeting time is fairest to all three?",
       "tipo": "domanda.ragionamento",
       "categoria": "tempo",
-      "variante": "clessidra"
+      "variante": "riunione"
     },
     {
       "id": "r175",
@@ -1554,7 +1554,7 @@
       "testo": "Com'è andato oggi il titolo Apple in borsa?",
       "tipo": "domanda.ricerca-web",
       "categoria": "finanza",
-      "variante": "moneta"
+      "variante": "toro"
     },
     {
       "id": "r184",
@@ -1690,7 +1690,7 @@
       "testo": "Find free fonts similar to Futura for commercial use.",
       "tipo": "domanda.ricerca-web",
       "categoria": "creativo",
-      "variante": "pennello"
+      "variante": "carattere"
     }
   ]
 }
