@@ -15,7 +15,7 @@ struct MeetingDiarizerTests {
         let turns = [turn("SPEAKER_02", 0, 10), turn("SPEAKER_00", 10, 20), turn("SPEAKER_02", 20, 30)]
         let lines = MeetingDiarizer.lines([line(1), line(12), line(25)], attributedTo: turns)
         #expect(lines.map(\.speaker) == [.participant(1), .participant(2), .participant(1)])
-        #expect(lines.map(\.speaker.label) == ["Parlante 1", "Parlante 2", "Parlante 1"])
+        #expect(lines.map(\.speaker?.label) == ["Parlante 1", "Parlante 2", "Parlante 1"])
     }
 
     @Test func aLineGoesToTheTurnItOverlapsMost() {
