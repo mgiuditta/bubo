@@ -31,9 +31,9 @@ extension PanelZone {
 
 /// Where the bubble goes beside the Panel.
 nonisolated enum PanelBubbleLayout {
-    /// How far the bubble reaches into the Panel's transparent margin, as a share of the Panel's side: 24 pt of 240,
-    /// outside the click circle at both sizes.
-    static let overlapRatio: CGFloat = 0.1
+    /// How far the bubble reaches into the Panel, as a share of the Panel's side: none, so the Orb and its Varianti
+    /// stay in sight beside the answer.
+    static let overlapRatio: CGFloat = 0
     /// The bubble's tallest share of the visible frame in the reduced Panel; past it, the bubble scrolls.
     static let reducedHeightRatio: CGFloat = 0.4
 

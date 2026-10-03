@@ -50,6 +50,13 @@ struct PanelBubbleLayoutTests {
         #expect(hypot(nearest.x - panel.midX, nearest.y - panel.midY) > radius)
     }
 
+    @Test(arguments: PanelZone.allCases.filter { $0 != .center }, PanelSize.allCases)
+    func theBubbleLeavesTheOrbInSight(zone: PanelZone, size: PanelSize) {
+        let panel = panelFrame(in: zone, size: size)
+        let frame = PanelBubbleLayout.frame(ofSize: bubble, besidePanel: panel, in: zone, visibleFrame: screen)
+        #expect(!frame.intersects(panel))
+    }
+
     @Test func onlyTheReducedBubbleHasAMaxHeight() {
         #expect(PanelBubbleLayout.maxHeight(for: .normal, visibleFrame: screen) == nil)
         #expect(PanelBubbleLayout.maxHeight(for: .reduced, visibleFrame: screen) == 240)

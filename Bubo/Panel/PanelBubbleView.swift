@@ -65,6 +65,8 @@ struct PanelBubbleView: View {
                     }
                     SessionProposalButton(model: model, hud: hud)
                     prompt
+                    // On its own line, so a long reason truncates instead of pushing the bubble past its width.
+                    ModelPicker(model: model)
                     if let notice = bubble.notice {
                         ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
                     } else if let failure = model.failure {
@@ -95,7 +97,6 @@ struct PanelBubbleView: View {
                 .accessibilityLabel("Chiedi qualcosa a Claude")
                 .accessibilityIdentifier("bubble.prompt")
                 .onExitCommand(perform: bubble.close)
-            ModelPicker(model: model)
             if model.isAnswering {
                 Button("Ferma", systemImage: "stop.fill", action: model.stop)
                     .help("Ferma la risposta")

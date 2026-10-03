@@ -50,6 +50,21 @@ final class OrbControls {
         }
     }
 
+    /// Turns the Blob into the owl while the pointer is on the Orb, and back to the Blob when it leaves.
+    ///
+    /// A Variante at work and the Orbite stay as they are; the Regia del Morph keeps the owl at least 1.5 s.
+    /// - Parameter isPointerInside: Whether the pointer has just entered the Orb, or just left it.
+    func hover(isPointerInside: Bool) {
+        if isPointerInside {
+            guard variante == nil || variante == Gufo.variante else { return }
+            orbiteReturn?.cancel()
+            variante = Gufo.variante
+        } else if variante == Gufo.variante {
+            orbiteReturn?.cancel()
+            variante = nil
+        }
+    }
+
     /// The wait before the Orb goes back from the Orbite, or the owl, to the Blob.
     @ObservationIgnored private var orbiteReturn: Task<Void, Never>?
 

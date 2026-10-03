@@ -15,8 +15,8 @@ struct QuestionAnswer: View {
 
     var body: some View {
         ScrollView {
-            // The notes cited as `[[nota]]` become links that open them.
-            Text(NoteCitation.linking(model.answer))
+            // The notes cited as `[[nota]]` become links that open them; a Secondo cervello block never shows raw.
+            Text(NoteCitation.linking(SecondBrainProposal.prose(of: model.answer)))
                 .font(Typography.body(size: 14))
                 .foregroundStyle(Palette.textPrimary)
                 .textSelection(.enabled)
