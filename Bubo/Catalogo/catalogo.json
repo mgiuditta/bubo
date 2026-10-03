@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "nastro",
+      "forma": "nastro",
+      "categoria": "agente",
+      "descrizione": "Quando ci sono compiti in coda da fare uno dopo l'altro.",
+      "parole": ["coda", "queue", "compiti in coda", "uno dopo l'altro", "one by one", "pipeline di compiti", "batch"]
+    },
+    {
+      "nome": "fabbrica",
+      "forma": "fabbrica",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo produce in serie: tante modifiche uguali su molti file o repository.",
+      "parole": ["fabbrica", "factory", "in serie", "in bulk", "molti file", "many files", "produzione in serie", "codemod"]
+    },
+    {
+      "nome": "teiera",
+      "forma": "teiera",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di tè e infusi.",
+      "parole": ["tè", "tea", "infuso", "tisana", "camomilla", "herbal tea", "teiera", "tea time"]
+    },
+    {
+      "nome": "cravatta",
+      "forma": "cravatta",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di lavoro e carriera: colloqui, curriculum, offerte.",
+      "parole": ["lavoro", "job", "carriera", "career", "colloquio", "interview", "curriculum", "offerta di lavoro"]
+    },
+    {
+      "nome": "rotolo",
+      "forma": "rotolo",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo legge i log per capire cosa è successo.",
+      "parole": ["log", "registro", "logs", "cosa è successo", "what happened", "stack trace", "traccia", "storico"]
+    },
+    {
+      "nome": "sincronia",
+      "forma": "sincronia",
+      "categoria": "codice",
+      "descrizione": "Quando si sincronizzano dati tra dispositivi o server.",
+      "parole": ["sincronizza", "sync", "sincronizzazione", "synchronize", "allinea", "dispositivi", "icloud", "replica"]
+    },
+    {
+      "nome": "treccia",
+      "forma": "treccia",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con thread e concorrenza: async, attori, race condition.",
+      "parole": ["thread", "concorrenza", "concurrency", "async", "race condition", "attori", "actor", "parallelismo"]
+    },
+    {
+      "nome": "radar",
+      "forma": "radar",
+      "categoria": "codice",
+      "descrizione": "Quando si osserva l'app in funzione: metriche, telemetria, allarmi.",
+      "parole": ["metriche", "metrics", "telemetria", "telemetry", "monitoraggio", "monitoring", "allarmi", "alerting"]
+    },
+    {
+      "nome": "cestino",
+      "forma": "cestino",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo cancella file, rami o dati.",
+      "parole": ["cancella", "delete", "elimina", "remove", "butta", "cestino", "svuota", "trash"]
+    },
+    {
+      "nome": "matrioska",
+      "forma": "matrioska",
+      "categoria": "codice",
+      "descrizione": "Quando c'è ricorsione o struttura annidata: alberi, componenti dentro componenti.",
+      "parole": ["ricorsione", "recursion", "annidato", "nested", "albero", "tree", "ricorsivo", "struttura annidata"]
+    },
+    {
+      "nome": "lanterna",
+      "forma": "lanterna",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo esplora codice che non conosce per orientarsi.",
+      "parole": ["esplora", "explore", "orientarsi", "get oriented", "codice sconosciuto", "unfamiliar code", "mappa il codice", "lanterna"]
+    },
+    {
+      "nome": "busto",
+      "forma": "busto",
+      "categoria": "creativo",
+      "descrizione": "Quando si scrive di una persona: biografie, profili, ritratti.",
+      "parole": ["biografia", "biography", "profilo", "ritratto", "portrait", "persona", "personaggio", "chi era"]
+    },
+    {
+      "nome": "contatore",
+      "forma": "contatore",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di bollette: luce, gas, acqua.",
+      "parole": ["bolletta", "utility bill", "luce", "electricity", "gas", "acqua", "consumi", "contatore"]
+    },
+    {
+      "nome": "tramonto",
+      "forma": "tramonto",
+      "categoria": "meteo",
+      "descrizione": "Quando si chiedono gli orari della luce: alba, tramonto, ore di sole.",
+      "parole": ["alba", "sunrise", "tramonto", "sunset", "ore di luce", "daylight", "ore di sole", "golden hour"]
+    },
+    {
+      "nome": "soffione",
+      "forma": "soffione",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di pollini e allergie stagionali nell'aria.",
+      "parole": ["polline", "pollen", "allergia", "allergy", "allergie stagionali", "hay fever", "primavera", "soffione"]
+    },
+    {
+      "nome": "maracas",
+      "forma": "maracas",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica latina e balli caraibici.",
+      "parole": ["maracas", "latino", "latin", "salsa", "reggaeton", "caraibi", "caribbean", "ballo"]
+    },
+    {
+      "nome": "triangolo",
+      "forma": "triangolo",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di orchestra e di come è fatta.",
+      "parole": ["orchestra", "orchestral", "percussioni", "percussion", "triangolo", "sezioni dell'orchestra", "strumenti a percussione"]
+    },
+    {
+      "nome": "pozzo",
+      "forma": "pozzo",
+      "categoria": "ricerca",
+      "descrizione": "Quando si attinge a dati pubblici: statistiche ufficiali, dati aperti.",
+      "parole": ["dati aperti", "open data", "dati pubblici", "public data", "statistiche ufficiali", "official statistics", "istat", "fonti"]
+    },
+    {
+      "nome": "metal-detector",
+      "forma": "metal_detector",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cerca qualcosa di perso: un file, una mail, un documento che non si trova.",
+      "parole": ["perso", "lost", "non trovo", "can't find", "ritrova", "recupera", "dov'è finito", "misplaced"]
+    },
+    {
+      "nome": "rete-da-pesca",
+      "forma": "rete_da_pesca",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo raccoglie molti risultati in una volta sola.",
+      "parole": ["raccogli", "gather", "molti risultati", "many results", "aggrega", "aggregate", "tutto insieme", "all at once"]
+    },
+    {
+      "nome": "tazza",
+      "forma": "tazza",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di pause e di staccare durante il giorno.",
+      "parole": ["pausa", "break", "staccare", "take a break", "caffè", "coffee", "relax", "tazza"]
+    },
+    {
+      "nome": "limone",
+      "forma": "limone",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di vitamine e integratori.",
+      "parole": ["vitamine", "vitamins", "integratori", "supplements", "vitamina c", "vitamin c", "agrumi", "limone"]
+    },
+    {
+      "nome": "sci",
+      "forma": "sci",
+      "categoria": "viaggi",
+      "descrizione": "Quando si va a sciare: piste, impianti, settimane bianche.",
+      "parole": ["sci", "ski", "sciare", "skiing", "piste", "slopes", "settimana bianca", "ski holiday"]
+    },
+    {
+      "nome": "cactus",
+      "forma": "cactus",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di deserti e mete calde e aride.",
+      "parole": ["deserto", "desert", "caldo secco", "arid", "meta calda", "hot destination", "arido", "cactus"]
     }
   ]
 }
