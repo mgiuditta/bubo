@@ -220,6 +220,10 @@ _Avoid_: vault (quando non è Obsidian), wiki, archivio
 La nota Markdown che Bubo scrive nel **Secondo cervello** quando una **Sessione** diventa Fusa o Archiviata; una per Sessione.
 _Avoid_: recap, log, diario
 
+**Riunione**:
+Una conversazione registrata da Bubo (microfono e audio di un'app) o importata (audio, video, trascrizione), che diventa una nota nel **Secondo cervello** con trascrizione, riassunto, decisioni e azioni; l'**Indice** la cerca come le altre note.
+_Avoid_: meeting, call, verbale
+
 **Indice**:
 La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.
 _Avoid_: database vettoriale, vector store, indice semantico

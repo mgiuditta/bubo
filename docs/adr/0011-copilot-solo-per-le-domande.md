@@ -1,6 +1,6 @@
 # Copilot solo per le Domande, le Sessioni restano Claude
 
-**Stato: Proposto** (2026-10-03). Ricerca: [486 — Claude e Copilot: insieme o uno solo?](../research/486-copilot-insieme-o-uno.md), che segue [486 — Bubo con GitHub Copilot](../research/486-copilot.md).
+**Stato: Accettato** (2026-10-03, il fondatore ha delegato le scelte aperte). Ricerca: [486 — Claude e Copilot: insieme o uno solo?](../research/486-copilot-insieme-o-uno.md), che segue [486 — Bubo con GitHub Copilot](../research/486-copilot.md).
 
 Molti utenti hanno già GitHub Copilot, e il fondatore voleva capire se Bubo deve lavorare con Claude e Copilot insieme o con uno solo. GitHub Models è stato ritirato e `api.githubcopilot.com` non è documentato. L'unica strada consentita è il binario `copilot` dell'utente, pilotato dal Copilot SDK. Abbiamo valutato tre forme:
 
@@ -20,3 +20,12 @@ Abbiamo scelto:
 Scartate: (b), perché raddoppia ogni spec e dà alla stessa finestra due agenti con poteri diversi, appoggiandosi a sandbox e ACP ancora in preview; (c), perché costa quanto (b) e divide Bubo in due prodotti, in competizione con la GitHub Copilot app, che è gratuita su tutti i piani. Non serve nemmeno come copertura verso Anthropic. La pagina Legal di Claude Code ammette il login dell'utente nel binario intatto, e il ripiego resta l'API key di ADR 0003.
 
 Si riapre (b) se si verifica una di queste condizioni: Anthropic chiude il login dell'abbonamento nel binario intatto; ACP e il sandbox locale di Copilot diventano GA; c'è una domanda misurabile di Sessioni su Copilot.
+
+## Scelte sulle domande aperte
+
+1. **Utenti solo Copilot**: in 1.x Bubo richiede Claude (abbonamento o API key) per le Sessioni. Chi ha solo Copilot può fare Domande.
+2. **Tinta**: quella del vendor del modello (GPT via Copilot = Tinta OpenAI). "via Copilot" va nella riga del motivo.
+3. **Claude via Copilot**: Claude passa sempre da `claude`. Copilot serve per i modelli non Anthropic, salvo scelta esplicita dell'utente in "Rifai con…".
+4. **Copilot Free**: escluso, come in Zed e opencode. Senza scelta del modello il router non serve. Bubo lo rileva e lo spiega.
+5. **1.0**: Copilot compare in Impostazioni › Modelli come «Arriverà presto», con il cancello di rilascio (#516). Niente codice Copilot.
+6. **Partnership con GitHub**: per ora no. Si rivaluta se il processo `copilot` per le Domande si dimostra troppo lento (misura nel ticket del bridge).
