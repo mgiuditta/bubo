@@ -17,7 +17,7 @@ final class RemoteModel {
         /// The response is sent: the user confirms the code on the Mac.
         case sent(macName: String)
         /// The pairing stopped, with the reason to show.
-        case failed(String)
+        case failed(LocalizedStringResource)
     }
 
     /// A QR read and the secrets derived from it, before Face ID.
@@ -263,7 +263,7 @@ final class RemoteModel {
         }
     }
 
-    private static func message(for error: any Error) -> String {
+    private static func message(for error: any Error) -> LocalizedStringResource {
         switch error {
         case PairingError.unreadableCode:
             "Questo QR non è di Bubo. Inquadra quello in Bubo › Impostazioni › iPhone sul Mac."
