@@ -185,4 +185,29 @@ nonisolated struct NoteWriter: Sendable {
     static func hash(of data: Data) -> String {
         SHA256.hash(data: data).map { ($0 < 0x10 ? "0" : "") + String($0, radix: 16) }.joined()
     }
+
+    /// Where the imported documents go: in the Indice, since they are sources and not Bubo's summaries.
+    static let documentFolder = "Bubo/Documenti"
+
+    /// Writes the document `note` as a new file in `Bubo/Documenti/Titolo.md`, dated today in its properties.
+    ///
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/Documenti` leads out of it; a file
+    ///   system error when the note cannot be written.
+    func writeDocument(_ note: DocumentNote) throws -> WrittenNote {
+        let day = now().formatted(Date.ISO8601FormatStyle(timeZone: timeZone).year().month().day())
+        return try write(Data(note.markdown(importedOn: day).utf8), named: Self.fileName(for: note.title),
+                         in: Self.documentFolder)
+    }
+
+    /// The note of `Bubo/Documenti/` made from the file whose SHA-256 is `fingerprint`; `nil` when there is none.
+    func documentNote(withFingerprint fingerprint: String) -> URL? {
+        let directory = root.appending(path: Self.documentFolder, directoryHint: .isDirectory)
+        let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+        return files.first { file in
+            file.pathExtension == "md"
+                && (try? String(contentsOf: file, encoding: .utf8)).map {
+                    DocumentNote.note($0, isOfFileWithFingerprint: fingerprint)
+                } == true
+        }
+    }
 }

@@ -36,6 +36,7 @@ Architettura comune in [INDEX.md](INDEX.md). Dipende dall'Indice ([indice-semant
   - `Bubo/Sessioni/`: Riassunti di Sessione ([13-memoria.md](13-memoria.md#riassunto-di-sessione)).
   - `Bubo/Note/`: "Ricordati questo" detto in una Domanda. In una Sessione lo salva invece l'agente nella Memoria di Progetto.
   - `Bubo/Riunioni/`: le Riunioni registrate (#545), con proprietà `titolo`, `data`, `ora`, `durata`, `app`, `partecipanti`, `fonte: Riunione`, poi Riassunto, Decisioni, Azioni e Trascrizione con «Io» e «Altri». L'Indice le legge: sono fonti, non riassunti di Bubo. L'audio resta in `Application Support/Bubo/Riunioni/`, 30 giorni o fino alla trascrizione (Impostazioni › Generale).
+  - `Bubo/Documenti/`: PDF e `.docx` importati con «Importa nel Secondo cervello…» nel menu della barra (#548). Testo con PDFKit, le pagine senza testo con l'OCR di Vision, `.docx` con `NSAttributedString`; proprietà `titolo`, `fonte`, `tipo`, `importata`, `pagine`, `ocr`, `impronta` (SHA-256 del file: lo stesso file non si importa due volte), poi Riassunto (solo modello sul Mac) e Testo. L'Indice le legge. Il drop sull'Orb resta agli Allegati della Domanda.
 - **Moduli**:
   - `SecondBrain/SecondBrainLocation`: cartella scelta, bookmark, suggerimento dei vault, raggiungibilità.
   - `SecondBrain/NoteWriter`: unico scrittore su disco. Scrive solo sotto `Bubo/`, nomi senza `/ : * ? " < > |`, frontmatter valido per Obsidian, scrittura atomica, hash della versione scritta per riconoscere le modifiche a mano.

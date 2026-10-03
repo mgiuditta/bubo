@@ -154,6 +154,7 @@ struct BuboApp: App {
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
+                .environment(appDelegate.documents)
         } label: {
             MenuBarLabel(sessions: appDelegate.sessions)
         }

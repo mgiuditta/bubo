@@ -40,7 +40,8 @@ nonisolated enum SecondBrainNotes {
     /// and folders, as `.obsidian/` and `.trash/`, `Bubo/Sessioni/`, whose Riassunti repeat conversations, and
     /// `excludedFolders` with all they hold.
     ///
-    /// The rest of `Bubo/` is read: `Bubo/Note/` and `Bubo/Riunioni/` are sources, not summaries of the Indice.
+    /// The rest of `Bubo/` is read: `Bubo/Note/`, `Bubo/Riunioni/` and `Bubo/Documenti/` are sources, not summaries
+    /// of the Indice.
     ///
     /// Folders compare by whole names: excluding `Archivio` leaves `Archivio2` in.
     static func skips(_ relativePath: String, excluding excludedFolders: Set<String> = []) -> Bool {

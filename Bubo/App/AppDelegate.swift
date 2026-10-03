@@ -35,6 +35,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var semanticSearch = SemanticSearch(index: searchIndex, store: try? TextEmbeddingModelStore.makeDefault())
     /// The folder of notes the Indice follows, chosen in the settings.
     private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
+    /// Imports PDF and Word documents in the Secondo cervello. Only Apple's on-device model summarizes them: a
+    /// document never reaches the network.
+    private(set) lazy var documents = DocumentImporter(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()])
     /// The record of every turn, of the Sessioni and of the Domande; in memory only when Application Support is
     /// unavailable.
     let ledger: CostLedger = {
@@ -279,7 +282,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions, meetings: meetings)
             .environment(hud)
             .environment(hotKeys)
-            .environment(panel))
+            .environment(panel)
+            .environment(documents))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
                     sessions: sessions, meetings: meetings)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
