@@ -129,6 +129,16 @@
         }
       }
     },
+    "Accoppiamento non riuscito. Riprova dal Mac con un nuovo QR." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Something went wrong. On the Mac, choose New QR Code and try again."
+          }
+        }
+      }
+    },
     "Ancora nessun Battito" : {
       "localizations" : {
         "en" : {
@@ -175,6 +185,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activity"
+          }
+        }
+      }
+    },
+    "Bubo sul Mac e il Telecomando hanno versioni diverse. Aggiorna entrambi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo on the Mac and the Remote are on different versions. Update both."
           }
         }
       }
@@ -359,6 +379,16 @@
         }
       }
     },
+    "Il QR è scaduto. Sul Mac scegli Nuovo QR e inquadralo di nuovo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This QR code has expired. On the Mac, choose New QR Code and scan the new one."
+          }
+        }
+      }
+    },
     "Inquadra di nuovo" : {
       "localizations" : {
         "en" : {
@@ -521,6 +551,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "This Mac is no longer paired."
+          }
+        }
+      }
+    },
+    "Questo QR non è di Bubo. Inquadra quello in Bubo › Impostazioni › iPhone sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This QR code isn't from Bubo. Scan the one in Bubo › Settings › iPhone on the Mac."
+          }
+        }
+      }
+    },
+    "Questo iPhone non può creare una chiave sicura: servono un codice e Face ID attivi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This iPhone can't create a secure key. Set up a passcode and Face ID."
           }
         }
       }

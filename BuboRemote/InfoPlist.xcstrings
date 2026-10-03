@@ -1,0 +1,68 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bubo"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "CFBundleName" : {
+      "comment" : "Bundle name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bubo"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo uses the camera only to scan the pairing QR code shown on your Mac."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bubo usa la fotocamera solo per leggere il QR di accoppiamento del Mac."
+          }
+        }
+      }
+    },
+    "NSFaceIDUsageDescription" : {
+      "comment" : "Privacy - Face ID Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Face ID protects the key the Remote uses to sign your decisions."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Face ID protegge la chiave con cui il Telecomando firma le tue decisioni."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

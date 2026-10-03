@@ -27,7 +27,8 @@ if ! diff -q <(jq -S . $catalog) <(jq -S . $work/Localizable.xcstrings) >/dev/nu
 fi
 
 # 2. Ogni lingua di ogni String Catalog ha tutte le voci tradotte, niente "da rivedere".
-catalogs=(Bubo/**/*.xcstrings)
+# Anche i cataloghi dell'app iPhone e della sua estensione delle notifiche (#505).
+catalogs=(Bubo/**/*.xcstrings BuboRemote/*.xcstrings RemoteNotificationService/*.xcstrings)
 languages=($(jq -r '.sourceLanguage as $source | .strings[].localizations // {} | keys[] | select(. != $source)' $catalogs | sort -u))
 for file in $catalogs; do
     for language in $languages; do
