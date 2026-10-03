@@ -1112,11 +1112,13 @@ final class SessionStore {
             session.budgetStop = nil
         }
         let environment = session.portEnvironment
+        // A Copilot turn never calls `claude`, nor has its Budget, Sandbox and plugins (ADR 0012).
+        let isCopilot = session.engine == .copilot && unattended == nil
         var conversation: String?
         var hasAnswered = false
         do {
             // Before the copy and the prompt: a `claude` too old starts nothing.
-            if let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
+            if !isCopilot, let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
             let workspace: Workspace
             if let prepared = session.workspace {
                 workspace = prepared
@@ -1136,9 +1138,9 @@ final class SessionStore {
             }
             let agent = try await bridge()
             // With the API key the turn gets the shared residue as its cap; spent, nothing is sent (spec 18).
-            let maxBudget = agent.usesAPIKey && !ignoringBudget ? try budgetCap(in: session.project) : nil
+            let maxBudget = agent.usesAPIKey && !ignoringBudget && !isCopilot ? try budgetCap(in: session.project) : nil
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
-            let isSandboxed = ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: session.project)
+            let isSandboxed = !isCopilot && ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: session.project)
             // The Anteprima's tools exist only while the Sessione has a server (spec 15).
             let answerID = UUID().uuidString
             let hasServer = servers.servers[id]?.isEmpty == false
@@ -1156,7 +1158,7 @@ final class SessionStore {
                 }
             }
             previewOffers[id] = (answerID, hasServer)
-            pluginReloader.turnDidStart(in: id, folder: workspace.folder)
+            if !isCopilot { pluginReloader.turnDidStart(in: id, folder: workspace.folder) }
             if maxBudget != nil { budgetedTurns[id] = session.project }
             defer {
                 pluginReloader.turnDidEnd(in: id)
@@ -1199,7 +1201,6 @@ final class SessionStore {
             let onPermission: (PermissionEvent) -> Void = { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             }
-            let isCopilot = current?.engine == .copilot && unattended == nil
             let copilot = isCopilot ? try await copilotURL() : nil
             let answer = if let copilot {
                 // ponytail: the Copilot model and effort come with the choice per Sessione (#551).

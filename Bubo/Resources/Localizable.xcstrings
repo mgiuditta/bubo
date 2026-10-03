@@ -3766,6 +3766,16 @@
         }
       }
     },
+    "Copilot non legge né scrive la Memoria di Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot neither reads nor writes Project Memory."
+          }
+        }
+      }
+    },
     "Cosa esce" : {
       "localizations" : {
         "en" : {
@@ -7610,6 +7620,16 @@
         }
       }
     },
+    "Gli Agenti funzionano solo con Claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agents work only with Claude."
+          }
+        }
+      }
+    },
     "Gli altri lo installano dal proprio Mac." : {
       "localizations" : {
         "en" : {
@@ -7846,6 +7866,16 @@
         }
       }
     },
+    "I Plugin installati valgono solo per Claude. Copilot non li carica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed Plugins work only with Claude. Copilot doesn't load them."
+          }
+        }
+      }
+    },
     "I blocchi non accettati restano fuori dal merge e se ne vanno con la Sessione. Subito dopo puoi ancora annullare il merge." : {
       "localizations" : {
         "en" : {
@@ -7892,6 +7922,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude's commands write only in the Session's folder, the temporary folders and the package caches, reach only the package registries and can't read ~/.ssh, ~/.aws, ~/.gnupg or ~/.netrc. A new host becomes a Request. If the Sandbox doesn't start, neither does the Session. The terminal and the servers aren't in the Sandbox. Applies from the next turn."
+          }
+        }
+      }
+    },
+    "I comandi di Copilot girano con i tuoi permessi, senza Sandbox." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot's commands run with your permissions, without the Sandbox."
           }
         }
       }
@@ -9315,6 +9355,16 @@
         }
       }
     },
+    "La Quota è dell'abbonamento Claude. Qui conta la Spesa stimata, in crediti." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quota belongs to the Claude subscription. Here the Estimated spend counts, in credits."
+          }
+        }
+      }
+    },
     "La Sessione di questo link è stata cancellata o non si trova su questo Mac." : {
       "localizations" : {
         "en" : {
@@ -10066,6 +10116,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Project Memory…"
+          }
+        }
+      }
+    },
+    "Memoria di Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Project Memory"
           }
         }
       }
@@ -11047,6 +11107,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Not loaded: the Project isn't trusted."
+          }
+        }
+      }
+    },
+    "Non disponibile con Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not available with Copilot"
           }
         }
       }
