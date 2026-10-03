@@ -13,6 +13,7 @@ struct MenuBarContent: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(HotKeyCenter.self) private var hotKeys
     @Environment(OrbPanelController.self) private var panel
+    @Environment(DocumentImporter.self) private var documents
     @Environment(\.openWindow) private var openWindow
     /// The Debug switch that shows the 1.1 areas off, as in a Release build.
     @AppStorage(ReleaseArea.hidesUnreleasedKey) private var hidesUnreleased = false
@@ -53,6 +54,8 @@ struct MenuBarContent: View {
         Button("Nuova Sessione…") { hud.createSession() }
             .disabled(sessions == nil)
         MeetingMenuItems(recorder: meetings)
+        Button("Importa nel Secondo cervello…", action: documents.chooseAndImport)
+            .disabled(!documents.canImport)
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)
