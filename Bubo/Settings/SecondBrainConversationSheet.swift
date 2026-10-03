@@ -1,8 +1,9 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// The setup of the Secondo cervello as a conversation with the model the user picks: it proposes a folder and its
-/// settings, applied only with "Applica". Without a model answering, the folder can still be chosen by hand.
+/// The setup of the Secondo cervello: the user chooses the folder (the current one, a vault, any folder or a new one),
+/// then talks about it with the model they pick, which proposes its settings, applied only with "Applica". Without a
+/// model answering, the folder alone can still be used.
 struct SecondBrainConversationSheet: View {
     @Environment(SecondBrain.self) private var secondBrain
     @Environment(QuestionModel.self) private var questions
@@ -11,8 +12,86 @@ struct SecondBrainConversationSheet: View {
     @State private var draft = ""
     @State private var isChoosingFolder = false
     @State private var applyFailed = false
+    /// The folders offered before the conversation: the current one first, then the Obsidian vaults on this Mac.
+    @State private var candidates: [URL] = []
+    @State private var chosen: URL?
+
+    /// Where a new Secondo cervello is created.
+    private static let newFolder = URL.documentsDirectory.appending(path: "Secondo cervello", directoryHint: .isDirectory)
 
     var body: some View {
+        Group {
+            if conversation?.folder == nil {
+                chooser
+            } else {
+                chat
+            }
+        }
+        .frame(width: 520, height: 520)
+        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
+            guard case let .success(folder) = result else { return }
+            if !candidates.contains(folder) { candidates.append(folder) }
+            chosen = folder
+        }
+        .task {
+            conversation = SecondBrainConversation(questions: questions, secondBrain: secondBrain)
+            let current = secondBrain.location?.url
+            candidates = (current.map { [$0] } ?? [])
+                + SecondBrainLocation.suggestedVaults().filter { $0.standardizedFileURL != current?.standardizedFileURL }
+            chosen = current ?? candidates.first
+        }
+        .onChange(of: questions.isAnswering) { conversation?.receive() }
+    }
+
+    /// The choice of the folder, which is the user's alone.
+    private var chooser: some View {
+        Form {
+            Section {
+                Picker("Cartella", selection: $chosen) {
+                    ForEach(candidates, id: \.self) { candidate in
+                        Group {
+                            if candidate.standardizedFileURL == secondBrain.location?.url.standardizedFileURL {
+                                Text("\(candidate.lastPathComponent) (configurata)")
+                            } else {
+                                Text(verbatim: candidate.lastPathComponent)
+                            }
+                        }
+                        .help(candidate.path)
+                        .tag(Optional(candidate))
+                    }
+                    Text("Nuovo Secondo cervello").tag(Optional(Self.newFolder))
+                }
+                .pickerStyle(.radioGroup)
+                .labelsHidden()
+                Button("Scegli un'altra cartella…") { isChoosingFolder = true }
+            } header: {
+                Text("Quale cartella?")
+                    .font(.title3.weight(.semibold))
+                    .accessibilityAddTraits(.isHeader)
+            } footer: {
+                Text("Poi ne parli con il modello che scegli: ti fa qualche domanda e propone come configurarla.")
+            }
+        }
+        .formStyle(.grouped)
+        .safeAreaInset(edge: .bottom) {
+            HStack {
+                ModelPicker(model: questions)
+                Spacer()
+                Button("Annulla") { dismiss() }
+                    .keyboardShortcut(.cancelAction)
+                Button("Avanti") {
+                    guard let chosen else { return }
+                    let isNew = chosen == Self.newFolder && !FileManager.default.fileExists(atPath: chosen.path)
+                    conversation?.start(with: chosen, isNew: isNew)
+                }
+                .keyboardShortcut(.defaultAction)
+                .disabled(chosen == nil)
+            }
+            .padding([.horizontal, .bottom], 20)
+        }
+    }
+
+    private var chat: some View {
         VStack(spacing: 0) {
             ScrollView {
                 if let conversation {
@@ -27,23 +106,6 @@ struct SecondBrainConversationSheet: View {
             }
             composer
         }
-        .frame(width: 520, height: 520)
-        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
-            guard case let .success(folder) = result else { return }
-            guard questions.failure == nil, let conversation else {
-                // No model answers: the folder is all the setup there can be.
-                secondBrain.choose(folder)
-                dismiss()
-                return
-            }
-            conversation.send(Self.chosen(folder))
-        }
-        .task {
-            let started = SecondBrainConversation(questions: questions, secondBrain: secondBrain)
-            conversation = started
-            started.start()
-        }
-        .onChange(of: questions.isAnswering) { conversation?.receive() }
     }
 
     private func messages(of conversation: SecondBrainConversation) -> some View {
@@ -63,7 +125,7 @@ struct SecondBrainConversationSheet: View {
                         .foregroundStyle(Palette.textSecondary)
                 }
             } else if questions.failure != nil {
-                Text("Il modello non risponde. Puoi scegliere la cartella a mano.")
+                Text("Il modello non risponde. Prova un altro modello o usa la cartella così com'è.")
                     .foregroundStyle(Palette.danger)
             }
         }
@@ -122,8 +184,12 @@ struct SecondBrainConversationSheet: View {
                     .disabled(conversation?.isWaiting != false || draft.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             HStack {
-                Button("Scegli la cartella a mano…") { isChoosingFolder = true }
-                    .disabled(conversation?.isWaiting == true)
+                if questions.failure != nil, let folder = conversation?.folder, conversation?.isNew == false {
+                    Button("Usa la cartella senza configurarla") {
+                        secondBrain.choose(folder)
+                        dismiss()
+                    }
+                }
                 Spacer()
                 Button("Chiudi") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -136,14 +202,6 @@ struct SecondBrainConversationSheet: View {
         guard conversation?.isWaiting == false else { return }
         conversation?.send(draft)
         draft = ""
-    }
-
-    /// What the user tells the model on choosing `folder` by hand, so it proposes the settings of that folder.
-    private static func chosen(_ folder: URL) -> String {
-        let folders = SecondBrainLocation(folder: folder).topFolders()
-        let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
-        // In Italian like the instructions the model reads, not shown as interface text.
-        return "Ho scelto la cartella \(folder.path) (cartelle in cima: \(listed)). Configuriamola insieme."
     }
 
     /// `text` with its inline Markdown, as the model writes it.
