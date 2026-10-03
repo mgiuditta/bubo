@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "telecomando",
+      "forma": "telecomando",
+      "categoria": "agente",
+      "descrizione": "Quando comandi Bubo da lontano, dal telefono.",
+      "parole": ["telecomando", "remote", "da remoto", "dal telefono", "approva", "approve"]
+    },
+    {
+      "nome": "castello",
+      "forma": "castello",
+      "categoria": "viaggi",
+      "descrizione": "Quando si visitano monumenti e luoghi storici.",
+      "parole": ["castello", "castle", "monumenti", "monument*", "fortezza", "luoghi storici"]
+    },
+    {
+      "nome": "cavallo-scacchi",
+      "forma": "cavallo_scacchi",
+      "categoria": "chat",
+      "descrizione": "Quando si risolvono rompicapo, indovinelli e giochi di logica.",
+      "parole": ["scacchi", "chess", "rompicapo", "puzzle", "indovinello", "enigma", "logica", "riddle"]
+    },
+    {
+      "nome": "pallino-notifica",
+      "forma": "pallino_notifica",
+      "categoria": "mail",
+      "descrizione": "Quando si parla di notifiche e avvisi di messaggi.",
+      "parole": ["notifica", "notifiche", "notification*", "avviso", "avvisi", "alert", "badge"]
+    },
+    {
+      "nome": "uovo",
+      "forma": "uovo",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di proteine e di cosa mangiare per i muscoli.",
+      "parole": ["uovo", "uova", "egg", "eggs", "proteine", "protein"]
+    },
+    {
+      "nome": "metro",
+      "forma": "metro",
+      "categoria": "codice",
+      "descrizione": "Quando si misura il codice: copertura dei test, righe, complessità.",
+      "parole": ["metro", "misura", "copertura", "coverage", "righe di codice", "complessita", "metrics"]
+    },
+    {
+      "nome": "podio",
+      "forma": "podio",
+      "categoria": "ricerca",
+      "descrizione": "Quando si confrontano opzioni e si stila una classifica.",
+      "parole": ["podio", "podium", "classifica", "ranking", "confronta", "compare", "top"]
+    },
+    {
+      "nome": "percentuale",
+      "forma": "percentuale",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di tassi: interessi, rendimenti, inflazione.",
+      "parole": ["percentuale", "percent*", "tasso", "tassi", "interessi", "interest", "inflazione", "rendimento"]
+    },
+    {
+      "nome": "origami",
+      "forma": "origami",
+      "categoria": "creativo",
+      "descrizione": "Quando si piega la carta o si fa artigianato di carta.",
+      "parole": ["origami", "carta", "paper", "gru", "piega", "artigianato", "crafts"]
+    },
+    {
+      "nome": "gerarchia",
+      "forma": "gerarchia",
+      "categoria": "codice",
+      "descrizione": "Quando si guarda come dipendono tra loro moduli e tipi.",
+      "parole": ["gerarchia", "dipendenze", "dependencies", "moduli", "organigramma", "architettura", "architecture"]
+    },
+    {
+      "nome": "pala-eolica",
+      "forma": "pala_eolica",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di energia: rinnovabili, pannelli solari, consumi.",
+      "parole": ["energia", "energy", "eolico", "pala eolica", "wind", "rinnovabili", "renewable*", "solare"]
+    },
+    {
+      "nome": "impronta",
+      "forma": "impronta",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora sull'accesso degli utenti: login, autenticazione, biometria.",
+      "parole": ["impronta", "fingerprint", "login", "autenticazione", "authentication", "biometria", "accesso"]
+    },
+    {
+      "nome": "ventaglio",
+      "forma": "ventaglio",
+      "categoria": "meteo",
+      "descrizione": "Quando fa caldo: afa, ondate di calore.",
+      "parole": ["ventaglio", "caldo", "afa", "heat", "heatwave", "ondata di calore", "hand fan"]
+    },
+    {
+      "nome": "sassofono",
+      "forma": "sassofono",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di jazz e sassofono.",
+      "parole": ["sassofono", "sax", "saxophone", "jazz", "blues", "swing"]
+    },
+    {
+      "nome": "zucca",
+      "forma": "zucca",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla di Halloween e feste d'autunno.",
+      "parole": ["zucca", "pumpkin", "halloween", "autunno", "autumn", "fall", "castagne"]
+    },
+    {
+      "nome": "satellite",
+      "forma": "satellite",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo lavora su un'altra Macchina: sessioni remote.",
+      "parole": ["satellite", "remoto", "remote session", "sessione remota", "macchina remota", "orbita", "cloud"]
+    },
+    {
+      "nome": "ombrellone",
+      "forma": "ombrellone",
+      "categoria": "viaggi",
+      "descrizione": "Quando si va al mare: spiagge, stabilimenti, vacanze balneari.",
+      "parole": ["ombrellone", "spiaggia", "beach", "mare", "sea", "balneare", "stabilimento", "seaside"]
+    },
+    {
+      "nome": "virgolette",
+      "forma": "virgolette",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano citazioni e fonti: chi l'ha detto, dove.",
+      "parole": ["virgolette", "citazione", "citazioni", "quote", "quotes", "fonte", "fonti", "source"]
+    },
+    {
+      "nome": "amo",
+      "forma": "amo",
+      "categoria": "mail",
+      "descrizione": "Quando una mail sembra una truffa: phishing, mittenti sospetti.",
+      "parole": ["amo", "phishing", "truffa", "scam", "mittente sospetto", "suspicious", "pesca", "spam"]
+    },
+    {
+      "nome": "loto",
+      "forma": "loto",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di mente e stress: meditazione, calma, ansia.",
+      "parole": ["loto", "lotus", "meditazione", "meditation", "calma", "calm", "ansia", "stress"]
+    },
+    {
+      "nome": "germoglio",
+      "forma": "germoglio",
+      "categoria": "codice",
+      "descrizione": "Quando nasce un progetto o un modulo nuovo: scaffolding, struttura iniziale.",
+      "parole": ["germoglio", "sprout", "nuovo progetto", "new project", "scaffolding", "inizializza", "bootstrap"]
+    },
+    {
+      "nome": "stretta-di-mano",
+      "forma": "stretta_di_mano",
+      "categoria": "finanza",
+      "descrizione": "Quando si chiude un accordo: trattative, contratti, prestiti tra persone.",
+      "parole": ["stretta di mano", "handshake", "accordo", "deal", "contratto", "contract", "trattativa", "prestito"]
+    },
+    {
+      "nome": "vaso",
+      "forma": "vaso",
+      "categoria": "creativo",
+      "descrizione": "Quando si modella: ceramica, scultura, argilla.",
+      "parole": ["vaso", "ceramica", "ceramics", "argilla", "clay", "scultura", "sculpture", "vase"]
+    },
+    {
+      "nome": "barbecue",
+      "forma": "barbecue",
+      "categoria": "chat",
+      "descrizione": "Quando si fa una grigliata.",
+      "parole": ["barbecue", "grigliata", "bbq", "griglia", "grill", "braciere", "carne alla brace"]
     }
   ]
 }
