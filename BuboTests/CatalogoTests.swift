@@ -83,8 +83,9 @@ struct CatalogoTests {
 
     @Test func everyBundledFormaHasItsSDFAndEverySDFIsUsed() throws {
         let required = try Self.bundled.get().formaNames
-        // The Blob is no Variante, and the Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
-        let drawn = try Self.drawnForme().subtracting([Forma.blob.rawValue, Forma.orbite.rawValue])
+        // The Blob is no Variante, and the Orbite's and the owl's Forme are drawn for the Orbite and the greeting
+        // alone, never through the Catalogo.
+        let drawn = try Self.drawnForme().subtracting([Forma.blob.rawValue, Forma.orbite.rawValue, Forma.gufo.rawValue])
         #expect(required == drawn)
     }
 
