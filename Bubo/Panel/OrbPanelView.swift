@@ -16,7 +16,17 @@ final class OrbPanelView: MTKView {
     /// none waits or fails.
     var sessionsDescription: String?
     /// The Panel's size, which names the action that switches it.
-    var size = PanelPlacement.defaultSize
+    var size = PanelPlacement.defaultSize {
+        didSet { placeRecordingDot() }
+    }
+    /// Whether a Riunione is being recorded: a red dot on the Orb, and VoiceOver hears it after the Orb's Stato.
+    var isRecordingMeeting = false {
+        didSet {
+            guard isRecordingMeeting != oldValue else { return }
+            recordingDot.isHidden = !isRecordingMeeting
+            placeRecordingDot()
+        }
+    }
     /// Called when a drag of the Panel ends, to snap it to the grid.
     var onDragEnd: () -> Void = {}
     /// Called when the pointer moves over the Panel or leaves it, to update the click circle.
@@ -32,6 +42,34 @@ final class OrbPanelView: MTKView {
     private var press: PanelPress?
     /// Where the pointer grabbed the Panel, from the window's origin.
     private var grabOffset = CGPoint.zero
+    /// The red dot of a Riunione being recorded, as in the menu bar; hidden otherwise.
+    private lazy var recordingDot: NSView = {
+        let dot = NSView()
+        dot.wantsLayer = true
+        dot.layer?.backgroundColor = NSColor(Palette.danger).cgColor
+        // A dark ring keeps the dot apart from a light Orb.
+        dot.layer?.borderColor = NSColor(Palette.ink).cgColor
+        dot.isHidden = true
+        addSubview(dot)
+        return dot
+    }()
+
+    override func setFrameSize(_ newSize: NSSize) {
+        super.setFrameSize(newSize)
+        placeRecordingDot()
+    }
+
+    /// Puts the dot at the top right of the Orb, sized for the Panel.
+    private func placeRecordingDot() {
+        guard isRecordingMeeting else { return }
+        let diameter: CGFloat = size == .reduced ? 9 : 14
+        // On the Orb's edge, at 45 degrees: the Orb fills about the click circle.
+        let offset = size.clickRadius * 0.62
+        recordingDot.frame = CGRect(x: bounds.midX + offset - diameter / 2, y: bounds.midY + offset - diameter / 2,
+                                    width: diameter, height: diameter)
+        recordingDot.layer?.cornerRadius = diameter / 2
+        recordingDot.layer?.borderWidth = size == .reduced ? 1.5 : 2
+    }
 
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 
@@ -91,7 +129,8 @@ final class OrbPanelView: MTKView {
     override func accessibilityHelp() -> String? { String(localized: "Apre l'HUD") }
     override func accessibilityValue() -> Any? {
         let state = String(localized: OrbControls.shared.displayedState.title)
-        return [state, sessionsDescription].compactMap(\.self).joined(separator: ", ")
+        let meeting = isRecordingMeeting ? String(localized: "Registrazione della Riunione in corso") : nil
+        return [state, meeting, sessionsDescription].compactMap(\.self).joined(separator: ", ")
     }
 
     override func accessibilityPerformPress() -> Bool {

@@ -60,6 +60,10 @@ struct MeetingView: View {
                 if let url = failure.settingsURL {
                     Button("Apri Impostazioni di Sistema") { openURL(url) }
                 }
+                if recorder.canRetry {
+                    Button("Riprova") { Task { await recorder.retry() } }
+                        .help("Trascrive e riassume di nuovo la Riunione dall'audio salvato sul Mac")
+                }
             }
         default:
             EmptyView()

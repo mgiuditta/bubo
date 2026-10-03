@@ -38,6 +38,15 @@ final class MeetingRecorder {
         if case .recording = phase { true } else { false }
     }
 
+    /// Whether the last Riunione failed after the recording with its audio kept, so ``retry()`` can start from it.
+    var canRetry: Bool {
+        guard case let .failed(failure) = phase else { return false }
+        return failure.keepsAudio && unsaved != nil
+    }
+
+    /// The Riunione recorded but not saved, with how long it lasted: what ``retry()`` starts from.
+    private var unsaved: (recording: Recording, duration: Duration)?
+
     /// Opens the window of the Riunioni; set at launch.
     @ObservationIgnored var showWindow: () -> Void = {}
 
@@ -46,6 +55,7 @@ final class MeetingRecorder {
     @ObservationIgnored private let store: MeetingAudioStore?
     @ObservationIgnored private let microphoneAccess: MicrophoneAccess
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let transcribe: Transcription
     @ObservationIgnored private let microphone = MicrophoneTrack()
     @ObservationIgnored private let appAudio = AppAudioTrack()
 
@@ -55,13 +65,16 @@ final class MeetingRecorder {
     ///   - secondBrain: Where the notes go.
     ///   - engines: The models that write the summary, tried in order.
     ///   - store: Where the audio goes; `nil` when Application Support is unavailable.
+    ///   - transcribe: What turns a track into sentences.
     init(secondBrain: SecondBrain, engines: [any SummaryEngine], store: MeetingAudioStore?,
-         microphoneAccess: MicrophoneAccess = .system, defaults: UserDefaults = .standard) {
+         microphoneAccess: MicrophoneAccess = .system, defaults: UserDefaults = .standard,
+         transcribe: @escaping Transcription = MeetingTranscriber.transcribe) {
         self.secondBrain = secondBrain
         self.engines = engines
         self.store = store
         self.microphoneAccess = microphoneAccess
         self.defaults = defaults
+        self.transcribe = transcribe
     }
 
     /// Deletes the audio past its retention, off the main actor.
@@ -101,11 +114,24 @@ final class MeetingRecorder {
         guard case let .recording(recording) = phase else { return }
         microphone.stop()
         appAudio.stop()
-        let duration = Duration.seconds(Date.now.timeIntervalSince(recording.start))
-        phase = .processing
         announce(String(localized: "Registrazione fermata. Bubo trascrive la Riunione sul Mac."))
+        await process(recording, lasting: .seconds(Date.now.timeIntervalSince(recording.start)))
+    }
+
+    /// Transcribes, summarizes and saves again the Riunione that failed, from its kept audio.
+    func retry() async {
+        guard canRetry, let unsaved else { return }
+        announce(String(localized: "Bubo trascrive di nuovo la Riunione sul Mac."))
+        await process(unsaved.recording, lasting: unsaved.duration)
+    }
+
+    /// Transcribes, summarizes and saves `recording`; kept for ``retry()`` until the note is written.
+    func process(_ recording: Recording, lasting duration: Duration) async {
+        phase = .processing
+        unsaved = (recording, duration)
         do throws(MeetingFailure) {
             let file = try await save(recording, lasting: duration)
+            unsaved = nil
             phase = .saved(file: file)
             announce(String(localized: "Riunione salvata nel Secondo cervello"))
         } catch {
@@ -115,9 +141,9 @@ final class MeetingRecorder {
 
     /// Transcribes both tracks, summarizes them and writes the note; deletes the audio when the user chose so.
     private func save(_ recording: Recording, lasting duration: Duration) async throws(MeetingFailure) -> URL {
-        let mine = try await MeetingTranscriber.transcribe(recording.folder.appending(path: Self.myTrack), as: .me)
+        let mine = try await transcribe(recording.folder.appending(path: Self.myTrack), .me)
         let others = recording.app == nil ? []
-            : try await MeetingTranscriber.transcribe(recording.folder.appending(path: Self.othersTrack), as: .others)
+            : try await transcribe(recording.folder.appending(path: Self.othersTrack), .others)
         let transcript = MeetingLine.merged(mine, others)
         let note = MeetingNote(title: recording.title, start: recording.start, duration: duration,
                                app: recording.app?.name, summary: await summary(of: transcript), transcript: transcript)
@@ -140,7 +166,7 @@ final class MeetingRecorder {
         let text = filter.redacting(transcript.map(\.markdown).joined(separator: "\n"))
         for engine in engines {
             do {
-                let answer = try await engine.shortText(for: text, following: MeetingSummary.instructions, session: UUID())
+                let answer = try await Self.summaryText(of: text, by: engine)
                 let summary = MeetingSummary(markdown: answer).redacted(by: filter)
                 if !summary.isEmpty { return summary }
             } catch {
@@ -149,6 +175,34 @@ final class MeetingRecorder {
         }
         return nil
     }
+
+    /// The summary `engine` writes of `text`, read in pieces of ``pieceLimit`` characters when longer: each piece
+    /// summarized, then the summaries of the pieces summarized together, until they fit.
+    ///
+    /// - Throws: When the engine does not answer about a piece.
+    static func summaryText(of text: String, by engine: any SummaryEngine) async throws -> String {
+        var text = text
+        var instructions = MeetingSummary.instructions
+        while text.count > pieceLimit {
+            var summaries: [String] = []
+            for piece in MeetingSummary.pieces(of: text, limit: pieceLimit) {
+                let answer = try await engine.shortText(for: piece, following: instructions, session: UUID())
+                let summary = MeetingSummary(markdown: answer)
+                if !summary.isEmpty { summaries.append(summary.markdown) }
+            }
+            let joined = summaries.joined(separator: "\n\n")
+            guard !joined.isEmpty else { throw SummaryEngineError.emptyAnswer }
+            // Summaries no shorter than their pieces would never fit: the engine reads what it can of them.
+            guard joined.count < text.count else { break }
+            text = joined
+            instructions = MeetingSummary.joiningInstructions
+        }
+        return try await engine.shortText(for: text, following: instructions, session: UUID())
+    }
+
+    /// The most characters the summary engine reads at once: below the on-device model's limit, to leave room to
+    /// the instructions.
+    static let pieceLimit = 5_000
 
     private func fail(_ failure: MeetingFailure) {
         phase = .failed(failure)
@@ -162,6 +216,9 @@ final class MeetingRecorder {
         NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
                              userInfo: [.announcement: text, .priority: NSAccessibilityPriorityLevel.high.rawValue])
     }
+
+    /// What turns the track at a URL, said by a speaker, into its sentences.
+    typealias Transcription = (URL, MeetingLine.Speaker) async throws(MeetingFailure) -> [MeetingLine]
 
     @concurrent
     private static func removeExpired(in store: MeetingAudioStore) async {

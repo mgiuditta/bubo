@@ -41,6 +41,14 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
         }
     }
 
+    /// Whether the recording is over and its audio kept, so the note can be tried again from it.
+    var keepsAudio: Bool {
+        switch self {
+        case .languageUnsupported, .transcriptionFailed, .noteNotWritten: true
+        default: false
+        }
+    }
+
     /// The pane of System Settings that fixes it; `nil` when none does.
     var settingsURL: URL? {
         switch self {
