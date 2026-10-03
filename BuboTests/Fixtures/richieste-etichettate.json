@@ -844,7 +844,7 @@
       "testo": "Come si dice \"arrivederci\" in giapponese?",
       "tipo": "domanda.fatto-breve",
       "categoria": "chat",
-      "variante": null
+      "variante": "punto-interrogativo"
     },
     {
       "id": "r105",
@@ -892,7 +892,7 @@
       "testo": "Qual è la capitale dell'Australia?",
       "tipo": "domanda.fatto-breve",
       "categoria": "chat",
-      "variante": null
+      "variante": "punto-interrogativo"
     },
     {
       "id": "r111",
@@ -972,7 +972,7 @@
       "testo": "What's the plural of cactus?",
       "tipo": "domanda.fatto-breve",
       "categoria": "chat",
-      "variante": null
+      "variante": "punto-interrogativo"
     },
     {
       "id": "r121",
@@ -991,7 +991,7 @@
       "testo": "Fammi il riassunto di questo PDF.",
       "tipo": "domanda.riassunto",
       "categoria": "chat",
-      "variante": null,
+      "variante": "imbuto",
       "allegati": [
         "relazione-trimestrale.pdf"
       ]
@@ -1002,7 +1002,7 @@
       "testo": "Di cosa parla questo articolo? In breve.",
       "tipo": "domanda.riassunto",
       "categoria": "chat",
-      "variante": null,
+      "variante": "imbuto",
       "allegati": [
         "articolo.html"
       ]
@@ -1046,7 +1046,7 @@
       "testo": "Riassumi gli appunti della riunione di oggi.",
       "tipo": "domanda.riassunto",
       "categoria": "chat",
-      "variante": null,
+      "variante": "imbuto",
       "allegati": [
         "riunione.md"
       ]
@@ -1068,7 +1068,7 @@
       "testo": "Accorcia questo testo a un paragrafo mantenendo il senso.",
       "tipo": "domanda.riassunto",
       "categoria": "chat",
-      "variante": null,
+      "variante": "imbuto",
       "allegati": [
         "bozza.txt"
       ]
@@ -1189,7 +1189,7 @@
       "testo": "Summarize the agenda for tomorrow's offsite.",
       "tipo": "domanda.riassunto",
       "categoria": "tempo",
-      "variante": null,
+      "variante": "calendario",
       "allegati": [
         "agenda.md"
       ]
@@ -1235,7 +1235,7 @@
       "testo": "Riscrivi questo paragrafo in tono più formale.",
       "tipo": "domanda.scrittura",
       "categoria": "chat",
-      "variante": null,
+      "variante": "gomma",
       "allegati": [
         "presentazione.txt"
       ]
@@ -1254,7 +1254,7 @@
       "testo": "Correggi grammatica e punteggiatura di questo testo.",
       "tipo": "domanda.scrittura",
       "categoria": "chat",
-      "variante": null,
+      "variante": "gomma",
       "allegati": [
         "lettera.txt"
       ]
@@ -1364,7 +1364,7 @@
       "testo": "Write a short, cheerful caption for a photo of a thunderstorm.",
       "tipo": "domanda.scrittura",
       "categoria": "meteo",
-      "variante": null
+      "variante": "fulmine"
     },
     {
       "id": "r161",
@@ -1380,7 +1380,7 @@
       "testo": "Anna dice che la torta l'ha presa Bruno, Bruno dice di no, Carlo dice che non è stato lui. Solo uno dice il vero: chi ha preso la torta?",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r163",
@@ -1399,7 +1399,7 @@
       "testo": "Aiutami a decidere tra due offerte di lavoro: pesa stipendio, crescita e distanza.",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r165",
@@ -1415,7 +1415,7 @@
       "testo": "Quali sono i pro e i contro della settimana corta di quattro giorni per una piccola azienda?",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r167",
@@ -1431,7 +1431,7 @@
       "testo": "Dimostra che la radice di 2 è irrazionale.",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r169",
@@ -1498,7 +1498,7 @@
       "testo": "A bat and a ball cost 1.10 and the bat costs 1.00 more. Explain the trap.",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r177",
@@ -1530,7 +1530,7 @@
       "testo": "Should a self-driving car protect its passengers before pedestrians? Lay out both sides.",
       "tipo": "domanda.ragionamento",
       "categoria": "chat",
-      "variante": null
+      "variante": "cervello"
     },
     {
       "id": "r181",

@@ -83,6 +83,90 @@
       "categoria": "agente",
       "descrizione": "Quando Bubo lavora da agente: avvia sessioni, usa strumenti, delega compiti.",
       "parole": ["agente", "robot", "automatizza", "sessione", "strumenti", "delega"]
+    },
+    {
+      "nome": "terminale",
+      "forma": "terminale",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo lancia comandi nel terminale.",
+      "parole": ["terminale", "terminal", "shell", "bash", "zsh", "riga di comando", "command line"]
+    },
+    {
+      "nome": "matita",
+      "forma": "matita",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo modifica righe di un file che esiste già.",
+      "parole": ["matita", "ritocca*", "tweak", "piccola modifica", "small edit", "cambia la riga"]
+    },
+    {
+      "nome": "insetto",
+      "forma": "insetto",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo caccia un bug: qualcosa non funziona come dovrebbe.",
+      "parole": ["insetto", "debug*", "non funziona", "not working", "malfunzion*", "baco"]
+    },
+    {
+      "nome": "provetta",
+      "forma": "provetta",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo scrive o lancia i test.",
+      "parole": ["provetta", "test suite", "unit test", "copertura dei test", "test coverage", "collaudo"]
+    },
+    {
+      "nome": "ramo",
+      "forma": "ramo",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con git: rami, commit, cronologia.",
+      "parole": ["git", "rebase", "cherry pick", "stash", "checkout", "cronologia git", "git log"]
+    },
+    {
+      "nome": "globo",
+      "forma": "globo",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo cerca sul web pagine e siti.",
+      "parole": ["web", "internet", "sito", "siti", "browser", "globo"]
+    },
+    {
+      "nome": "punto-interrogativo",
+      "forma": "punto_interrogativo",
+      "categoria": "chat",
+      "descrizione": "Quando si fa una domanda breve su un fatto: chi, cosa, quando.",
+      "parole": ["curiosita", "domanda veloce", "quick question", "trivia", "come si dice", "how do you say", "plurale", "plural"]
+    },
+    {
+      "nome": "imbuto",
+      "forma": "imbuto",
+      "categoria": "chat",
+      "descrizione": "Quando Bubo riassume o accorcia un testo.",
+      "parole": ["imbuto", "accorcia", "shorten", "in breve", "sintesi", "riassunto", "in short"]
+    },
+    {
+      "nome": "cervello",
+      "forma": "cervello",
+      "categoria": "chat",
+      "descrizione": "Quando Bubo ragiona su un problema difficile: logica, etica, filosofia.",
+      "parole": ["ragionamento", "logica", "etica", "filosofia", "dilemma", "pro e contro", "pros and cons", "dimostra"]
+    },
+    {
+      "nome": "gomma",
+      "forma": "gomma",
+      "categoria": "chat",
+      "descrizione": "Quando Bubo corregge o riscrive un testo: grammatica, tono, chiarezza.",
+      "parole": ["gomma", "riscrivi", "rewrite", "grammatica", "grammar", "punteggiatura", "tono", "rephrase"]
+    },
+    {
+      "nome": "calendario",
+      "forma": "calendario",
+      "categoria": "tempo",
+      "descrizione": "Quando si guardano date e appuntamenti: agenda, giorni, settimane.",
+      "parole": ["calendario", "calendar", "agenda", "appuntament*", "appointment*", "impegni"]
+    },
+    {
+      "nome": "fulmine",
+      "forma": "fulmine",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di temporali e fulmini.",
+      "parole": ["fulmine", "fulmini", "lightning", "temporale", "thunderstorm", "tuono", "saetta"]
     }
   ]
 }
