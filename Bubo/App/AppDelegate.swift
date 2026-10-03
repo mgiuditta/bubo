@@ -329,12 +329,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
     /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. `bubo://sessione`
-    /// shows its Sessione. A link never starts a Sessione: anyone can write one.
+    /// shows its Sessione. A link never starts a Sessione: anyone can write one. A folder from «Apri con» or dropped
+    /// on the Dock icon opens its Progetto, or the new Sessione sheet that creates it.
     func application(_ application: NSApplication, open urls: [URL]) {
-        let files = urls.filter(\.isFileURL)
-        for file in files {
+        let files = OpenedFiles(urls, projects: sessions?.projects ?? [])
+        for file in files.buboFiles {
             Task { await open(bubo: file) }
         }
+        if let folder = files.folder { open(folder) }
         guard let sessions else { return }
         var madeDrafts = false
         for url in urls where !url.isFileURL {
@@ -351,6 +353,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         if madeDrafts { hud.showDrafts() }
+    }
+
+    /// A folder from the Finder: the HUD on the latest Sessione of its Progetto, else the new Sessione sheet on it,
+    /// which asks for trust before creating the Progetto.
+    private func open(_ folder: OpenedFiles.Folder) {
+        switch folder {
+        case .project(let project):
+            if let latest = sessions?.sessions.last(where: { $0.project == project }) {
+                hud.show(session: latest.id)
+            } else {
+                hud.show()
+            }
+        case .newProject(let folder):
+            var draft = SessionDraft()
+            draft.project = folder
+            hud.createSession(from: draft)
+        }
     }
 
     /// A `.bubo` file opened from the Finder: a Biglietto shows its code in the HUD, a Consegna its foglio there (or

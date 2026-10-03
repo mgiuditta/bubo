@@ -122,6 +122,12 @@ targets:
             LSHandlerRank: Owner
             LSItemContentTypes:
               - com.mgiuditta.bubo.consegna
+          # Una cartella da «Apri con» o trascinata sull'icona del Dock apre il suo Progetto, o lo crea (#502).
+          - CFBundleTypeName: Cartella
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.folder
         UTExportedTypeDeclarations:
           - UTTypeIdentifier: com.mgiuditta.bubo.consegna
             UTTypeDescription: File Bubo
