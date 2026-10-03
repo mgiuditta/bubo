@@ -38,6 +38,9 @@ struct TypePreferencesSection: View {
         case let .endpoint(id):
             guard let endpoint = settings.endpoints.first(where: { $0.id == id }) else { return id }
             return endpoint.model.isEmpty ? endpoint.name : "\(endpoint.name) · \(endpoint.model)"
+        case let .copilot(_, name):
+            return String(localized: "\(name) via Copilot",
+                          comment: "A model of the user's GitHub Copilot plan, such as «GPT-6 via Copilot», or where it runs, such as «OpenAI via Copilot».")
         }
     }
 

@@ -8,6 +8,9 @@ nonisolated struct Route: Equatable, Sendable {
         case onDevice
         /// An OpenAI-compatible endpoint the user prefers for the Tipo, with the model they set for it.
         case endpoint(OpenAICompatibleEndpoint)
+        /// A model of the user's Copilot plan, through `copilot` (ADR 0011): only on the user's explicit choice, never
+        /// the router's own.
+        case copilot(CopilotModel)
     }
 
     /// Why a Domanda that Apple Foundation Models could answer went to Claude instead.
@@ -71,7 +74,8 @@ nonisolated struct Route: Equatable, Sendable {
     /// The effort asked for; `nil` for the model's default, and always for a model without effort.
     let effort: Effort?
     let reason: Reason
-    /// Who answers; with `.onDevice` and `.endpoint`, `family`, `model` and `effort` are `nil`.
+    /// Who answers; with `.onDevice` and `.endpoint`, `family`, `model` and `effort` are `nil`, and with `.copilot`
+    /// `family` and `model`: `effort` is what `copilot` gets.
     var destination: Destination = .claude
     /// Why Apple Foundation Models did not answer a Tipo it answers by default; `nil` when it did, or for other Tipi.
     var onDeviceFallback: OnDeviceFallback?
@@ -90,6 +94,18 @@ nonisolated struct Route: Equatable, Sendable {
     var endpoint: OpenAICompatibleEndpoint? {
         if case let .endpoint(endpoint) = destination { return endpoint }
         return nil
+    }
+
+    /// The Copilot model that answers, when the user picked or prefers one.
+    var copilotModel: CopilotModel? {
+        if case let .copilot(model) = destination { return model }
+        return nil
+    }
+
+    /// The route of `model` at `effort`, a Copilot model the user picked in "Rifai con…" or climbed to with "Rifai più
+    /// forte".
+    static func copilot(_ model: CopilotModel, effort: Effort?, reason: Reason) -> Route {
+        Route(family: nil, model: nil, effort: effort, reason: reason, destination: .copilot(model))
     }
 
     /// The route of a turn whose model the user picked, such as `sonnet` after a limit: no effort, `claude`'s default.

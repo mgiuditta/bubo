@@ -52,6 +52,9 @@ final class QuestionModel {
     let preferences: TypePreferences
     /// The Tipo di richiesta of the last Domanda, for "Usa sempre per «Tipo»"; `nil` when it could not be decided.
     private(set) var lastType: RequestType?
+    /// The models of the user's Copilot plan, as `listModels()` lists them; empty until "Rifai con…" first reads them,
+    /// and without a paid Copilot.
+    private(set) var copilotModels: [CopilotModel] = []
 
     /// Creates a model that finds `claude` with `cli`, answers its `cerca` tool with `index` and its `ricorda` tool
     /// with `secondBrain`.
@@ -75,6 +78,8 @@ final class QuestionModel {
     ///   - ledger: Where each turn's tokens and figure are recorded, in the group "Domande"; none when `nil`.
     ///   - prices: The prices the turns of other providers are estimated with.
     ///   - budgets: The Budgets the router avoids past their threshold, and the reason line warns of.
+    ///   - copilot: Finds the user's `copilot` when its plan is a paid one, and `nil` otherwise (ADR 0011); called only
+    ///     when the user opens "Rifai con…" or sends a Domanda to Copilot, never on its own.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -87,7 +92,8 @@ final class QuestionModel {
          localServers: LocalModelDetector = LocalModelDetector(),
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
-         ledger: CostLedger? = nil, prices: PriceTable = .shared, budgets: BudgetSettings = .shared) {
+         ledger: CostLedger? = nil, prices: PriceTable = .shared, budgets: BudgetSettings = .shared,
+         copilot: (() async -> URL?)? = nil) {
         quota = Quota.saved(in: defaults)
         self.defaults = defaults
         self.cli = cli
@@ -111,6 +117,10 @@ final class QuestionModel {
         self.localServers = localServers
         self.endpointKey = endpointKey ?? { try await APIKeyStore(account: $0.keychainAccount).key() }
         self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
+        self.findCopilot = copilot ?? {
+            guard case .ready = await CopilotReadiness.detect() else { return nil }
+            return await CopilotLocator().executableURL()
+        }
     }
 
     /// Where the note `citation` cites opens, with Obsidian on the Mac or not; `nil` without a Secondo cervello or
@@ -151,6 +161,11 @@ final class QuestionModel {
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
+    @ObservationIgnored private let findCopilot: () async -> URL?
+    /// The user's `copilot`, once found with a paid plan.
+    @ObservationIgnored private var copilot: URL?
+    /// The reading of `copilotModels` under way, or done: one at a time.
+    @ObservationIgnored private var readingCopilotModels: Task<Void, Never>?
     @ObservationIgnored private var lastPrompt = ""
     /// The Allegati of the last prompt, asked again with it; observed, since they decide the proposal of a Sessione.
     private var lastAttachments: [Allegato] = []
@@ -225,6 +240,12 @@ final class QuestionModel {
     /// Apple Foundation Models sits below the whole Scala: above it is the first step, Haiku.
     var strongerRoute: Route? {
         guard !isAnswering, !answer.isEmpty, let routedAnswer else { return nil }
+        if let copilot = routedAnswer.route.copilotModel {
+            // The Scala of a Copilot model is its own efforts, as `listModels()` lists them.
+            let model = copilotModels.first { $0.id == copilot.id } ?? copilot
+            let effort = routedAnswer.answeringModel?.effort ?? routedAnswer.route.effort
+            return model.effort(above: effort).map { .copilot(model, effort: $0, reason: .stronger) }
+        }
         let scala = Scala(catalog: catalog, effortCaps: effortCaps)
         let step = routedAnswer.route.destination == .onDevice
             ? scala.steps.first
@@ -236,17 +257,47 @@ final class QuestionModel {
     /// empty while answering and before the first Domanda.
     var retryAlternatives: [RetryAlternative] {
         guard !isAnswering, !lastPrompt.isEmpty, let routedAnswer else { return [] }
-        let current = routedAnswer.endpoint == nil ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
+        let answeredByCopilot = routedAnswer.route.copilotModel
+        let current = routedAnswer.endpoint == nil && answeredByCopilot == nil
+            ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
         // With Allegati too: picking one checks them first (`attachmentVerdict(for:)`).
         let offered = endpoints.ready.filter { !declinedEndpoints.contains($0.id) }
+        // Copilot gets only the Domanda's text: the Allegati go only to Claude, the Mac, or an endpoint that confirms them.
+        let copilotModels = lastAttachments.isEmpty ? copilotModels : []
+        let answeredBy = routedAnswer.endpoint?.id ?? answeredByCopilot.map { RetryAlternative(target: .copilot($0)).id }
         return RetryAlternative.alternatives(around: current, on: Scala(catalog: catalog, effortCaps: effortCaps),
-                                             endpoints: offered,
-                                             answeredBy: routedAnswer.endpoint?.id)
+                                             endpoints: offered, copilotModels: copilotModels, answeredBy: answeredBy)
             .map { alternative in
                 var alternative = alternative
                 alternative.firstToken = firstTokens[alternative.id]
                 return alternative
             }
+    }
+
+    /// Reads the models of the user's Copilot plan for "Rifai con…", once: an explicit request of the user, never a
+    /// turn of the model. Without a paid `copilot` they stay empty, and the next opening tries again.
+    func readCopilotModels() async {
+        if let readingCopilotModels { return await readingCopilotModels.value }
+        let reading = Task {
+            guard let copilot = await copilotExecutable() else { return }
+            do {
+                copilotModels = try await readyBridge().copilotModels(of: copilot)
+            } catch {
+                Logger.agent.notice("Copilot models not read: \(String(describing: error), privacy: .public)")
+                readingCopilotModels = nil
+            }
+        }
+        readingCopilotModels = reading
+        await reading.value
+    }
+
+    /// The user's `copilot` with a paid plan, found once; `nil` without one.
+    private func copilotExecutable() async -> URL? {
+        if let copilot { return copilot }
+        let found = await findCopilot()
+        copilot = found
+        if found == nil { readingCopilotModels = nil }
+        return found
     }
 
     /// The endpoints with a model that the user left out of "Rifai con…" for this Domanda.
@@ -256,8 +307,11 @@ final class QuestionModel {
 
     /// Whether picking `alternative` must first ask the user's consent: a cloud that is not Claude, never allowed.
     func needsConsent(for alternative: RetryAlternative) -> Bool {
-        guard case let .endpoint(endpoint) = alternative.target else { return false }
-        return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
+        switch alternative.target {
+        case .claude: false
+        case let .endpoint(endpoint): !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
+        case .copilot: !endpoints.allowsCopilot
+        }
     }
 
     /// The share of the 5-hour window used, for the router; `nil` with the API key, which has no Quota, and when the
@@ -274,6 +328,9 @@ final class QuestionModel {
             $0.isOnMac || endpoints.consents.contains($0.id)
         })
         routed.localModel = endpoints.localModel
+        // Read only when the user opened "Rifai con…": until then a Copilot preference is taken on trust. Without
+        // the user's consent it pauses, as a cloud endpoint does.
+        routed.copilotModels = endpoints.allowsCopilot ? (copilotModels.isEmpty ? nil : copilotModels) : []
         async let isOnline = cli.isOnline()
         var asked = Set(routed.choices.values.compactMap { choice -> String? in
             if case let .endpoint(id) = choice { id } else { nil }
@@ -385,11 +442,13 @@ final class QuestionModel {
             switch alternative.target {
             case let .claude(step): preferences.set(.claude(step), for: lastType)
             case let .endpoint(endpoint): preferences.set(.endpoint(id: endpoint.id), for: lastType)
+            case let .copilot(model): preferences.set(.copilot(id: model.id, name: model.name), for: lastType)
             }
         }
         switch alternative.target {
         case let .claude(step): start(lastPrompt, route: .retried(step))
         case let .endpoint(endpoint): start(lastPrompt, endpoint: endpoint)
+        case let .copilot(model): start(lastPrompt, route: .copilot(model, effort: nil, reason: .retried))
         }
     }
 
@@ -756,6 +815,14 @@ final class QuestionModel {
         defer { intake.finish(submission) }
         lastType = submission.classification?.type
         var route = chosen ?? submission.route
+        if let copilot = route.copilotModel {
+            guard !Task.isCancelled else { return }
+            // The Tinta of the model's vendor, whatever the router would choose (ADR 0011).
+            intake.answer(submission, movedTo: copilot.provider)
+            await answer(richiesta, withCopilot: copilot, route: route, submission: submission,
+                         speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
+            return
+        }
         if let endpoint = route.endpoint {
             guard !Task.isCancelled else { return }
             // Neither the router nor a choice sends to a provider at 100% without asking (spec 18).
@@ -897,6 +964,80 @@ final class QuestionModel {
             }
         } catch {
             Logger.agent.error("Domanda failed: \(error)")
+            failure = .unexpected
+        }
+    }
+
+    /// Streams the answer of `model`, a Copilot model the user picked or prefers, through the user's `copilot`: the
+    /// Domanda's text only, in a session without tools.
+    ///
+    /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
+    private func answer(_ richiesta: Richiesta, withCopilot model: CopilotModel, route: Route,
+                        submission: IntakePipeline.Submission, speaksAnswer: Bool, ignoringBudget: Bool) async {
+        // Not a byte of an Allegato goes to Copilot.
+        guard richiesta.attachments.isEmpty else {
+            failure = .attachmentsHeld
+            return
+        }
+        if !ignoringBudget, case let .exhausted(scope) = allowance(for: Budgets.copilot) {
+            failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
+            return
+        }
+        guard let copilot = await copilotExecutable() else {
+            failure = .copilotUnavailable
+            return
+        }
+        guard !Task.isCancelled else { return }
+        routedAnswer = RoutedAnswer(route: route, provider: model.provider)
+        let started = ContinuousClock.now
+        var waitingForFirstToken = true
+        let turn = UUID().uuidString, question = question
+        let asked = speaksAnswer ? richiesta.text + SpokenSummary.instruction : richiesta.text
+        var summary = speaksAnswer ? SpokenSummary() : nil
+        var firstAudio: OSSignpostIntervalState?
+        do {
+            let stream = try await readyBridge().askCopilotQuestion(
+                asked, copilot: copilot, consents: endpoints.consents, model: model.id, effort: route.effort,
+                usage: { [weak self] usage in
+                    guard let self else { return }
+                    // The Spesa estimated on GitHub's list prices, the same in the line and in the ledger.
+                    let spesa = CopilotPriceTable.bundled?.spesa(of: usage) ?? usage
+                    routedAnswer?.usage = spesa
+                    ledger?.record(spesa, turn: turn, question: question, provider: Budgets.copilot)
+                    routedAnswer?.budgetNotice = budgetNotice(after: spesa, of: Budgets.copilot)
+                },
+                answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
+            for try await chunk in stream {
+                if waitingForFirstToken {
+                    waitingForFirstToken = false
+                    firstTokens[RetryAlternative(target: .copilot(model)).id] = ContinuousClock.now - started
+                    intake.beginWorking(on: submission)
+                    if speaksAnswer { firstAudio = Signposts.beginInterval(.voiceFirstAudio) }
+                }
+                answer += summary?.read(chunk) ?? chunk
+                if let line = summary?.line {
+                    summary = nil
+                    say(line, for: submission, firstAudio: firstAudio)
+                }
+            }
+            if var summary {
+                answer += summary.finish()
+                if let line = summary.line { say(line, for: submission, firstAudio: firstAudio) }
+            }
+        } catch is CancellationError {
+        } catch let failure as QuestionFailure {
+            self.failure = failure
+        } catch CopilotFailure.consentMissing {
+            // Nothing was sent: the same notice as a cloud endpoint without consent.
+            failure = .endpoint(.consentMissing)
+        } catch let AgentBridgeError.failed(message) {
+            Logger.agent.error("Copilot failed: \(message, privacy: .public)")
+            failure = .copilotFailed(message)
+        } catch let error as AgentBridgeError {
+            Logger.agent.error("Copilot failed: \(String(describing: error), privacy: .public)")
+            failure = .bridge(error)
+        } catch {
+            Logger.agent.error("Copilot failed: \(String(describing: error), privacy: .public)")
             failure = .unexpected
         }
     }

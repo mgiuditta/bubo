@@ -67,6 +67,8 @@ struct RetryWithList: View {
                           comment: "Model and effort in the reason line, such as «Sonnet 5.5 · medio».")
         case let .endpoint(endpoint):
             return "\(endpoint.name) · \(endpoint.model)"
+        case let .copilot(model):
+            return model.name
         }
     }
 
@@ -86,6 +88,12 @@ struct RetryWithList: View {
         case let .endpoint(endpoint):
             place = String(localized: "\(endpoint.name), nel cloud", comment: "Where a model of «Rifai con…» runs: another provider's cloud.")
             cost = String(localized: "a consumo sulla tua chiave", comment: "Cost of another provider's model in «Rifai con…», paid on the user's key.")
+        case let .copilot(model):
+            place = model.provider.map {
+                String(localized: "\($0.name) via Copilot",
+                       comment: "A model of the user's GitHub Copilot plan, such as «GPT-6 via Copilot», or where it runs, such as «OpenAI via Copilot».")
+            } ?? String(localized: "via Copilot", comment: "Where a model of «Rifai con…» runs: through the user's GitHub Copilot plan, its vendor unknown.")
+            cost = String(localized: "dal tuo piano Copilot", comment: "Cost of a model of «Rifai con…» through GitHub Copilot: paid from the user's Copilot plan.")
         }
         guard let firstToken = alternative.firstToken else { return "\(place) · \(cost)" }
         let duration = firstToken.formatted(.units(allowed: [.seconds], width: .narrow, fractionalPart: .show(length: 1)))
@@ -104,6 +112,7 @@ struct RetryWithList: View {
         RetryAlternative(target: .claude(Scala.Step(family: .sonnet, effort: .low)), firstToken: .milliseconds(820)),
         RetryAlternative(target: .claude(Scala.Step(family: .opus, effort: .medium))),
         RetryAlternative(target: .endpoint(endpoint)),
+        RetryAlternative(target: .copilot(CopilotModel(id: "gpt-6", name: "GPT-6"))),
     ], excluded: [gemini], usesAPIKey: false, type: .writing, alwaysUse: .constant(false)) { _ in }
     .background(Palette.ink)
 }

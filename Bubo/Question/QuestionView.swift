@@ -10,6 +10,9 @@ struct QuestionView: View {
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
     @State private var askingConsent: RetryAlternative?
     @State private var isAskingConsent = false
+    /// The Copilot model picked in "Rifai con…" while Bubo asks the consent for Copilot.
+    @State private var askingCopilotConsent: RetryAlternative?
+    @State private var isAskingCopilotConsent = false
     /// The endpoint picked in "Rifai con…" whose Allegati wait for a confirmation, or cannot go to it.
     @State private var reviewedAlternative: RetryAlternative?
     /// What may go to that endpoint of the Allegati.
@@ -122,6 +125,8 @@ struct QuestionView: View {
         .popover(isPresented: $isPickingRetry, arrowEdge: .bottom) {
             RetryWithList(alternatives: model.retryAlternatives, excluded: model.excludedEndpoints,
                           usesAPIKey: model.usesAPIKey, type: model.lastType, alwaysUse: $alwaysUse, pick: pick)
+                // The models of the Copilot plan, read when the user asks for the list: never in the background.
+                .task { await model.readCopilotModels() }
         }
         // "Usa sempre per «Tipo»" starts off every time "Rifai con…" opens.
         .onChange(of: isPickingRetry) {
@@ -136,6 +141,13 @@ struct QuestionView: View {
         // A new answer under way leaves the Allegati's question behind.
         .onChange(of: model.isAnswering) {
             if model.isAnswering { closeAttachmentReview() }
+        }
+        .copilotConsentDialog(isPresented: $isAskingCopilotConsent, settings: model.endpoints)
+        // Allowed, the Copilot model picked answers; cancelled, nothing is sent.
+        .onChange(of: isAskingCopilotConsent) {
+            guard !isAskingCopilotConsent, let alternative = askingCopilotConsent else { return }
+            askingCopilotConsent = nil
+            if !model.needsConsent(for: alternative) { model.retry(with: alternative, alwaysUse: alwaysUse) }
         }
         .confirmationDialog(consentTitle, isPresented: $isAskingConsent, presenting: askingConsent) { alternative in
             Button("Consenti e invia") {
@@ -206,7 +218,10 @@ struct QuestionView: View {
 
     /// Asks again with `alternative`, or first asks the user's consent when it is a cloud that never had it.
     private func send(_ alternative: RetryAlternative) {
-        if model.needsConsent(for: alternative) {
+        if case .copilot = alternative.target, model.needsConsent(for: alternative) {
+            askingCopilotConsent = alternative
+            isAskingCopilotConsent = true
+        } else if model.needsConsent(for: alternative) {
             askingConsent = alternative
             isAskingConsent = true
         } else {

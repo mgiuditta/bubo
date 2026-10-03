@@ -11,6 +11,9 @@ nonisolated struct ModelRouter {
         var choices: [RequestType: TypePreference] = [:]
         /// The endpoints with a model that may receive a Domanda: on the Mac, or in a cloud with the user's consent.
         var endpoints: [OpenAICompatibleEndpoint] = []
+        /// The models of the user's Copilot plan, which a Copilot preference must be among; `nil` when not read yet,
+        /// and a preference is taken on trust. Copilot answers only a preference: never an automatic choice (ADR 0011).
+        var copilotModels: [CopilotModel]?
         /// The Modello locale the user set, which answers without a network; `nil` without one.
         var localModel: OpenAICompatibleEndpoint?
         /// The servers on the Mac, by endpoint id, found unable to answer just now; one not here is taken on trust.
@@ -86,6 +89,7 @@ nonisolated struct ModelRouter {
         case .claude: Budgets.claude
         case .onDevice: nil
         case let .endpoint(endpoint): endpoint.isOnMac ? nil : endpoint.name
+        case .copilot: Budgets.copilot
         }
     }
 
@@ -152,6 +156,10 @@ nonisolated struct ModelRouter {
             case .modelMissing?: return .localModelMissing(endpoint.name)
             case .available?, nil: return nil
             }
+        case let .copilot(id, _):
+            if hasAttachments { return .attachments }
+            guard let models = preferences.copilotModels, !models.contains(where: { $0.id == id }) else { return nil }
+            return .endpointUnavailable
         }
     }
 
@@ -208,6 +216,9 @@ nonisolated struct ModelRouter {
             let endpoint = preferences.endpoints.first { $0.id == id }
             return Route(family: nil, model: nil, effort: nil, reason: .preferred(type),
                          destination: endpoint.map(Route.Destination.endpoint) ?? .claude)
+        case let .copilot(id, name):
+            let model = preferences.copilotModels?.first { $0.id == id } ?? CopilotModel(id: id, name: name)
+            return .copilot(model, effort: nil, reason: .preferred(type))
         }
     }
 
