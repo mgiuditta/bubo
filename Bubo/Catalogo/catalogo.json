@@ -2848,6 +2848,174 @@
       "categoria": "viaggi",
       "descrizione": "Quando si visitano coste, isole e porti.",
       "parole": ["faro", "lighthouse", "costa", "coast", "scogliera", "navigazione", "marinaio", "sailor"]
+    },
+    {
+      "nome": "cornamusa",
+      "forma": "cornamusa",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musiche tradizionali dal mondo.",
+      "parole": ["cornamusa", "bagpipe", "musica celtica", "folk", "tradizionale", "musica etnica", "world music"]
+    },
+    {
+      "nome": "rasoio",
+      "forma": "rasoio",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di barba e rasatura.",
+      "parole": ["rasoio", "razor", "barba", "beard", "rasatura", "shave", "shaving", "lametta"]
+    },
+    {
+      "nome": "regalo",
+      "forma": "regalo",
+      "categoria": "chat",
+      "descrizione": "Quando si cercano idee regalo.",
+      "parole": ["regalo", "regali", "idea regalo", "gift", "present", "compleanno", "natale", "birthday"]
+    },
+    {
+      "nome": "secchiello",
+      "forma": "secchiello",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo lavora in una sandbox isolata, senza toccare il resto.",
+      "parole": ["sandbox", "isolato", "isolated", "secchiello", "senza toccare", "contenuto*"]
+    },
+    {
+      "nome": "barca-a-vela",
+      "forma": "barca_a_vela",
+      "categoria": "viaggi",
+      "descrizione": "Quando si va in barca a vela.",
+      "parole": ["barca a vela", "sailboat", "sailing", "veliero", "vela", "regata", "navigare", "crociera"]
+    },
+    {
+      "nome": "skateboard",
+      "forma": "skateboard",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di skateboard.",
+      "parole": ["skateboard", "skate", "skater", "monopattino", "tavola", "tricks", "half pipe"]
+    },
+    {
+      "nome": "scarpetta",
+      "forma": "scarpetta",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di danza: balletto, coreografie, passi.",
+      "parole": ["danza", "balletto", "ballet", "dance", "coreografia", "punta", "passi", "ballare"]
+    },
+    {
+      "nome": "farfalla",
+      "forma": "farfalla",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di insetti e piccoli animali.",
+      "parole": ["farfalla", "farfalle", "butterfly", "insetti", "bruco", "caterpillar", "animaletti"]
+    },
+    {
+      "nome": "trapano",
+      "forma": "trapano",
+      "categoria": "chat",
+      "descrizione": "Quando si fa fai da te in casa: riparazioni, montaggi.",
+      "parole": ["trapano", "drill", "fai da te", "diy", "avvitare", "forare", "tassello", "montare"]
+    },
+    {
+      "nome": "saponetta",
+      "forma": "saponetta",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di igiene personale.",
+      "parole": ["saponetta", "sapone", "soap", "igiene", "hygiene", "lavarsi", "lavarsi le mani", "doccia"]
+    },
+    {
+      "nome": "ruota-criceto",
+      "forma": "ruota_criceto",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo gira a vuoto: tentativi ripetuti senza progresso.",
+      "parole": ["gira a vuoto", "tentativi ripetuti", "in loop", "going in circles", "senza progresso", "ripete*"]
+    },
+    {
+      "nome": "elicottero",
+      "forma": "elicottero",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di voli panoramici e trasferimenti in elicottero.",
+      "parole": ["elicottero", "helicopter", "volo panoramico", "scenic flight", "eliski", "eliporto"]
+    },
+    {
+      "nome": "riflettore",
+      "forma": "riflettore",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di concerti dal vivo e tour.",
+      "parole": ["concerto", "concert", "tour", "live", "palco", "stage", "spettacolo dal vivo", "biglietti"]
+    },
+    {
+      "nome": "orsacchiotto",
+      "forma": "orsacchiotto",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di bambini: crescita, giochi, educazione.",
+      "parole": ["orsacchiotto", "peluche", "teddy bear", "bambino", "bambini", "figli", "kids", "educazione"]
+    },
+    {
+      "nome": "surf",
+      "forma": "surf",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di surf e sport sulle onde.",
+      "parole": ["surf", "surfing", "surfista", "tavola da surf", "onde", "waves", "kitesurf", "paddle"]
+    },
+    {
+      "nome": "morsa",
+      "forma": "morsa",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo compatta il contesto di una conversazione lunga.",
+      "parole": ["compatta", "compact*", "contesto", "conversazione lunga", "context window", "riassumi la chat"]
+    },
+    {
+      "nome": "funivia",
+      "forma": "funivia",
+      "categoria": "viaggi",
+      "descrizione": "Quando si sale in quota: funivie, impianti, panorami.",
+      "parole": ["funivia", "cable car", "gondola", "seggiovia", "impianti di risalita", "cabinovia", "skilift"]
+    },
+    {
+      "nome": "sintetizzatore",
+      "forma": "sintetizzatore",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica elettronica e sintetizzatori.",
+      "parole": ["sintetizzatore", "synth", "synthesizer", "musica elettronica", "electronic music", "techno", "tastiera", "house"]
+    },
+    {
+      "nome": "ape",
+      "forma": "ape",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di api e miele.",
+      "parole": ["ape", "api", "bee", "bees", "miele", "honey", "alveare", "apicoltura"]
+    },
+    {
+      "nome": "ambulanza",
+      "forma": "ambulanza",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di emergenze mediche e primo soccorso.",
+      "parole": ["ambulanza", "ambulance", "emergenza", "emergency", "primo soccorso", "first aid", "118", "pronto soccorso"]
+    },
+    {
+      "nome": "rubinetto",
+      "forma": "rubinetto",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di idraulica: perdite, scarichi, consumi d'acqua.",
+      "parole": ["rubinetto", "perdita", "gocciola", "leak", "dripping", "idraulico", "plumber", "scarico"]
+    },
+    {
+      "nome": "ricetrasmittente",
+      "forma": "ricetrasmittente",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo ti aggiorna mentre lavora: a che punto è, cosa sta facendo.",
+      "parole": ["aggiornami", "a che punto sei", "status update", "what are you doing", "stai facendo", "progresso"]
+    },
+    {
+      "nome": "taxi",
+      "forma": "taxi",
+      "categoria": "viaggi",
+      "descrizione": "Quando ci si sposta in taxi o con auto con conducente.",
+      "parole": ["taxi", "cab", "ncc", "tassista", "autista", "con conducente", "corsa", "ride"]
+    },
+    {
+      "nome": "batteria",
+      "forma": "batteria",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di batteria della band: groove, rock, pop.",
+      "parole": ["batteria", "drums", "drummer", "batterista", "groove", "rock", "ritmo", "band"]
     }
   ]
 }
