@@ -27,8 +27,11 @@ nonisolated struct Workspace: Codable, Equatable, Sendable {
 nonisolated struct WorktreeManager: Sendable {
     /// The folder that holds the worktrees, one subfolder per Progetto.
     var root: URL
-    /// Runs git.
-    var runner = ProcessRunner.live
+    /// Where git runs: the Mac, or the Macchina of the Progetto.
+    ///
+    /// The revisione, Fondi and the resolution of conflicts go only through it. Making, reopening and removing a
+    /// worktree, and its setup script, still work on the Mac's disk.
+    var shell: any MachineShell = LocalShell()
     /// Decides whether the Progetto's setup script may run: only in a trusted Progetto, like its hooks.
     var trustGate = TrustGate()
     /// How long the setup script may run before it is stopped.
@@ -40,8 +43,6 @@ nonisolated struct WorktreeManager: Sendable {
     /// Build caches that are never cloned, on top of `.worktreeignore`.
     static let excludedByDefault = [".build/", "build/", "DerivedData/", "dist/", ".next/", ".turbo/", ".cache/",
                                     ".parcel-cache/", "target/", ".gradle/", "__pycache__/", ".claude/worktrees/"]
-
-    private static let git = URL(filePath: "/usr/bin/git")
 
     /// The worktrees of Bubo, in its Application Support folder: on the same volume as most Progetti, so
     /// `clonefile` works.
@@ -128,16 +129,25 @@ nonisolated struct WorktreeManager: Sendable {
     /// - Throws: `WorktreeError` when git fails, also outside a repo.
     @concurrent func changes(in workspace: Workspace) async throws -> [ChangedFile] {
         let folder = workspace.folder
+        let base = try await reviewBase(of: workspace)
+        let diff = try await withIndexCopy(of: folder) { copy in
+            try await git(["add", "--intent-to-add", "--all"], in: folder, index: copy)
+            return try await git(["-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M", base],
+                                 in: folder, index: copy)
+        }
+        return ChangedFile.files(in: diff)
+    }
+
+    /// Runs `body` with a copy of the index of the worktree `folder`, in a temporary folder of ``shell`` removed
+    /// afterwards; with the path of a file not there yet when the worktree has no index.
+    func withIndexCopy<Result>(of folder: URL, _ body: (_ copy: URL) async throws -> Result) async throws -> Result {
         let index = try await git(["rev-parse", "--path-format=absolute", "--git-path", "index"], in: folder)
             .trimmingCharacters(in: .newlines)
-        let copy = FileManager.default.temporaryDirectory.appending(path: "bubo-review-\(UUID().uuidString).index")
-        defer { try? FileManager.default.removeItem(at: copy) }
-        if FileManager.default.fileExists(atPath: index) { try FileManager.default.copyItem(atPath: index, toPath: copy.path) }
-        let base = try await reviewBase(of: workspace)
-        try await git(["add", "--intent-to-add", "--all"], in: folder, index: copy)
-        let diff = try await git(["-c", "core.quotePath=false", "diff", "--no-color", "--no-ext-diff", "-M", base],
-                                 in: folder, index: copy)
-        return ChangedFile.files(in: diff)
+        return try await shell.withTemporaryFolder { temporary in
+            let copy = URL(filePath: temporary).appending(path: "index")
+            if await shell.fileExists(atPath: index) { try await shell.copyFile(atPath: index, toPath: copy.path) }
+            return try await body(copy)
+        }
     }
 
     /// What the revisione of `workspace` compares with: its base, or `HEAD` without one, or the empty tree.
@@ -308,19 +318,19 @@ nonisolated struct WorktreeManager: Sendable {
         if copyfile(from, to, nil, flags) != 0 { Logger.sessions.error("Copy failed, errno \(errno)") }
     }
 
-    /// Runs git in `folder`, on the index file `index` instead of the folder's own when given.
+    /// Runs git in `folder` through ``shell``, on the index file `index` instead of the folder's own when given;
+    /// standard input gets `input`.
     @discardableResult
-    func git(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> String {
-        let output = try await run(arguments, in: folder, index: index)
+    func git(_ arguments: [String], in folder: URL, index: URL? = nil, input: Data? = nil) async throws -> String {
+        let output = try await run(arguments, in: folder, index: index, input: input)
         guard output.exitCode == 0 else { throw WorktreeError.git(output.standardError) }
         return output.standardOutput
     }
 
-    /// Runs git in `folder` like `git(_:in:index:)`, leaving the exit code to the caller.
-    func run(_ arguments: [String], in folder: URL, index: URL? = nil) async throws -> ProcessOutput {
-        guard let index else { return try await runner.run(Self.git, ["-C", folder.path] + arguments) }
-        return try await runner.run(URL(filePath: "/usr/bin/env"),
-                                    ["GIT_INDEX_FILE=\(index.path)", Self.git.path, "-C", folder.path] + arguments)
+    /// Runs git in `folder` like `git(_:in:index:input:)`, leaving the exit code to the caller.
+    func run(_ arguments: [String], in folder: URL, index: URL? = nil, input: Data? = nil) async throws -> ProcessOutput {
+        try await shell.run(["git", "-C", folder.path] + arguments,
+                            environment: index.map { ["GIT_INDEX_FILE": $0.path] } ?? [:], input: input)
     }
 }
 

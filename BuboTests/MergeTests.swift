@@ -180,7 +180,7 @@ extension WorktreeManagerTests {
         let path = ["/usr/bin", "/bin"].map { URL(filePath: $0, directoryHint: .isDirectory) }
         #expect(GitHubCLI(searchPath: path).executable == nil)
         var offline = manager
-        offline.runner = .live(environment: ["PATH": "/usr/bin:/bin", "HOME": base.path])
+        offline.shell = LocalShell(environment: ["PATH": "/usr/bin:/bin", "HOME": base.path])
         var saved = Session(id: UUID(), title: "Prova", project: repo, workspace: workspace, activity: .ferma)
         for hunk in try await offline.changes(in: workspace).flatMap(\.hunks) { saved.decisions[hunk.id] = .accepted }
         let file = base.appending(path: "Sessioni.json")
