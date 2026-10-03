@@ -55,6 +55,42 @@
         }
       }
     },
+    "boccale" : {
+      "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beer mug"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Boccale"
+          }
+        }
+      }
+    },
+    "borsa-ghiaccio" : {
+      "comment" : "Etichetta della Variante borsa-ghiaccio (Categoria Salute): una borsa del ghiaccio con il tappo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ice pack"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borsa del ghiaccio"
+          }
+        }
+      }
+    },
     "busta" : {
       "comment" : "Etichetta della Variante busta (Categoria Mail): una busta chiusa.",
       "extractionState" : "manual",
@@ -69,6 +105,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Busta"
+          }
+        }
+      }
+    },
+    "cacciavite" : {
+      "comment" : "Etichetta della Variante cacciavite (Categoria Chat): un cacciavite con il manico scanalato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Screwdriver"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cacciavite"
           }
         }
       }
@@ -127,6 +181,42 @@
         }
       }
     },
+    "carte" : {
+      "comment" : "Etichetta della Variante carte (Categoria Chat): un ventaglio di tre carte da gioco.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Playing cards"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carte"
+          }
+        }
+      }
+    },
+    "cavalluccio-marino" : {
+      "comment" : "Etichetta della Variante cavalluccio-marino (Categoria Chat): un cavalluccio marino di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seahorse"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cavalluccio marino"
+          }
+        }
+      }
+    },
     "cervello" : {
       "comment" : "Etichetta della Variante cervello (Categoria Chat): un cervello di profilo.",
       "extractionState" : "manual",
@@ -145,6 +235,24 @@
         }
       }
     },
+    "cervo" : {
+      "comment" : "Etichetta della Variante cervo (Categoria Chat): un cervo di profilo con le corna ramificate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stag"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cervo"
+          }
+        }
+      }
+    },
     "clessidra" : {
       "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
       "extractionState" : "manual",
@@ -159,6 +267,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clessidra"
+          }
+        }
+      }
+    },
+    "conchiglia" : {
+      "comment" : "Etichetta della Variante conchiglia (Categoria Chat): una conchiglia a spirale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shell"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conchiglia"
           }
         }
       }
@@ -199,6 +325,24 @@
         }
       }
     },
+    "corda" : {
+      "comment" : "Etichetta della Variante corda (Categoria Salute): una corda per saltare con due manici.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jump rope"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corda per saltare"
+          }
+        }
+      }
+    },
     "cuore" : {
       "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
       "extractionState" : "manual",
@@ -217,6 +361,24 @@
         }
       }
     },
+    "elmo" : {
+      "comment" : "Etichetta della Variante elmo (Categoria Chat): un elmo da cavaliere con la visiera a fessura.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helmet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elmo"
+          }
+        }
+      }
+    },
     "estintore" : {
       "comment" : "Etichetta della Variante estintore (Categoria Codice): un estintore con la manichetta.",
       "extractionState" : "manual",
@@ -231,6 +393,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estintore"
+          }
+        }
+      }
+    },
+    "evidenziatore" : {
+      "comment" : "Etichetta della Variante evidenziatore (Categoria Chat): un evidenziatore con la punta a scalpello.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Highlighter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Evidenziatore"
           }
         }
       }
@@ -285,6 +465,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fumetto"
+          }
+        }
+      }
+    },
+    "giraffa" : {
+      "comment" : "Etichetta della Variante giraffa (Categoria Chat): una giraffa di profilo con il collo lungo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giraffe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giraffa"
           }
         }
       }
@@ -379,6 +577,24 @@
         }
       }
     },
+    "joystick" : {
+      "comment" : "Etichetta della Variante joystick (Categoria Chat): un joystick con la leva e un pulsante su una base.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joystick"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joystick"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -465,6 +681,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Neurone"
+          }
+        }
+      }
+    },
+    "nodo" : {
+      "comment" : "Etichetta della Variante nodo (Categoria Chat): un nodo di corda stretto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knot"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nodo"
           }
         }
       }
@@ -577,6 +811,24 @@
         }
       }
     },
+    "pappagallo" : {
+      "comment" : "Etichetta della Variante pappagallo (Categoria Chat): un pappagallo su un ramo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parrot"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pappagallo"
+          }
+        }
+      }
+    },
     "parentesi" : {
       "comment" : "Etichetta della Variante parentesi (Categoria Codice): una coppia di parentesi graffe.",
       "extractionState" : "manual",
@@ -627,6 +879,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pila"
+          }
+        }
+      }
+    },
+    "pinguino" : {
+      "comment" : "Etichetta della Variante pinguino (Categoria Chat): un pinguino in piedi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Penguin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinguino"
+          }
+        }
+      }
+    },
+    "pinne" : {
+      "comment" : "Etichetta della Variante pinne (Categoria Salute): due pinne da nuoto affiancate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swim fins"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinne"
           }
         }
       }
@@ -703,6 +991,24 @@
         }
       }
     },
+    "ragno" : {
+      "comment" : "Etichetta della Variante ragno (Categoria Chat): un ragno con otto zampe visto dall'alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spider"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ragno"
+          }
+        }
+      }
+    },
     "ramo" : {
       "comment" : "Etichetta della Variante ramo (Categoria Codice): un ramo di git con tre nodi.",
       "extractionState" : "manual",
@@ -717,6 +1023,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ramo"
+          }
+        }
+      }
+    },
+    "rana" : {
+      "comment" : "Etichetta della Variante rana (Categoria Chat): una rana seduta di fronte.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frog"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rana"
           }
         }
       }
@@ -757,6 +1081,42 @@
         }
       }
     },
+    "scimmia" : {
+      "comment" : "Etichetta della Variante scimmia (Categoria Chat): una scimmia seduta con la coda arrotolata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monkey"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scimmia"
+          }
+        }
+      }
+    },
+    "scoiattolo" : {
+      "comment" : "Etichetta della Variante scoiattolo (Categoria Chat): uno scoiattolo seduto con la coda alzata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squirrel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scoiattolo"
+          }
+        }
+      }
+    },
     "sedia-a-dondolo" : {
       "comment" : "Etichetta della Variante sedia-a-dondolo (Categoria Finanza): una sedia a dondolo di profilo.",
       "extractionState" : "manual",
@@ -789,6 +1149,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Semaforo"
+          }
+        }
+      }
+    },
+    "sfigmomanometro" : {
+      "comment" : "Etichetta della Variante sfigmomanometro (Categoria Salute): un bracciale con il tubo e la pompetta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blood pressure monitor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "tappetino" : {
+      "comment" : "Etichetta della Variante tappetino (Categoria Salute): un tappetino arrotolato, visto di lato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yoga mat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tappetino"
+          }
+        }
+      }
+    },
+    "tartaruga" : {
+      "comment" : "Etichetta della Variante tartaruga (Categoria Chat): una tartaruga di profilo con il guscio a cupola.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turtle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tartaruga"
           }
         }
       }
@@ -843,6 +1257,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Xilofono"
+          }
+        }
+      }
+    },
+    "zanzara" : {
+      "comment" : "Etichetta della Variante zanzara (Categoria Salute): una zanzara di profilo con le zampe lunghe.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mosquito"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zanzara"
           }
         }
       }
