@@ -27,7 +27,7 @@ final class HotKeyCenter {
     @ObservationIgnored private let askHotKey: GlobalHotKey
     @ObservationIgnored private let defaults: UserDefaults
 
-    /// Creates the center and registers the saved shortcuts, or ⌥Spazio and ⌥⇧Spazio.
+    /// Creates the center and registers the saved shortcuts, or ⌥Spazio and ⌃⌥Spazio.
     ///
     /// - Parameters:
     ///   - press: Runs when the shortcut goes down, with `sending` false for the sola dettatura.

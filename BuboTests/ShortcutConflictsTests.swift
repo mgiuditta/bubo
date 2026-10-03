@@ -8,7 +8,7 @@ struct ShortcutConflictsTests {
     private let optionShiftSpace = KeyShortcut(keyCode: UInt32(kVK_Space), carbonModifiers: UInt32(optionKey | shiftKey),
                                                keyLabel: "Spazio")
 
-    /// A «Chiedi nel Panel» nobody uses on `keyCode`, so the center does not take the real ⌥⇧Spazio.
+    /// A «Chiedi nel Panel» nobody uses on `keyCode`, so the center does not take the real ⌃⌥Spazio.
     private static func unusedAsk(_ keyCode: Int) -> KeyShortcut {
         KeyShortcut(keyCode: UInt32(keyCode), carbonModifiers: UInt32(controlKey | optionKey), keyLabel: "F")
     }
@@ -86,9 +86,10 @@ struct ShortcutConflictsTests {
         other.unregister()
     }
 
-    @Test func askInPanelDefaultsToTheDictationVariantOfTheHUD() {
-        #expect(KeyShortcut.askInPanel == KeyShortcut.showHUD.dictationVariant)
-        #expect(KeyShortcut.askInPanel.displayName == "⌥⇧Spazio")
+    @Test func askInPanelDefaultsToControlOptionSpaceLeavingTheSolaDettatura() {
+        #expect(KeyShortcut.askInPanel.displayName == "⌃⌥Spazio")
+        #expect(KeyShortcut.askInPanel != KeyShortcut.showHUD)
+        #expect(KeyShortcut.askInPanel != KeyShortcut.showHUD.dictationVariant)
     }
 
     @MainActor @Test func theBollaTakesTheSolaDettaturaAndGivesItBack() throws {
