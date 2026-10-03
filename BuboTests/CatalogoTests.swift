@@ -34,9 +34,10 @@ struct CatalogoTests {
 
     // MARK: - The rosa for the tag ⟦orb:nome⟧
 
-    @Test func theRosaOfTheBundledCatalogoNamesEveryVarianteToday() throws {
+    @Test func theRosaOfTheBundledCatalogoNamesTheVarianti() throws {
         let catalogo = try Self.bundled.get()
-        #expect(Set(catalogo.rosa()) == Set(catalogo.varianti))
+        #expect(Set(catalogo.rosa()).isSubset(of: Set(catalogo.varianti)))
+        #expect(catalogo.rosa().count == min(catalogo.varianti.count, Catalogo.rosaLimit))
     }
 
     @Test func theRosaKeepsTheFirstOfEachCategoriaThenTheCategoriaAskedFor() throws {
