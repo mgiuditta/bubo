@@ -45,13 +45,15 @@ struct BuboApp: App {
                     Button("Aggiorna PR") {}
                         .disabled(true)
                 }
-                // Off while the Sessione is in Lavora (spec 24).
-                if let session = appDelegate.sessions?.deliverySessionToOpen {
-                    Button("Consegna «\(session.title)»…") { appDelegate.hud.deliver(session) }
-                        .disabled(session.activity == .lavora)
-                } else {
-                    Button("Consegna…") {}
-                        .disabled(true)
+                // Off while the Sessione is in Lavora (spec 24); absent in a build without the Consegne.
+                if ReleaseArea.deliveries.isAvailable() {
+                    if let session = appDelegate.sessions?.deliverySessionToOpen {
+                        Button("Consegna «\(session.title)»…") { appDelegate.hud.deliver(session) }
+                            .disabled(session.activity == .lavora)
+                    } else {
+                        Button("Consegna…") {}
+                            .disabled(true)
+                    }
                 }
                 Divider()
                 // In the File menu so the Palette lists it too; no shortcut.

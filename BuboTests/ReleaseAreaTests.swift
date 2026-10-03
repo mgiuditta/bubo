@@ -8,9 +8,11 @@ struct ReleaseAreaTests {
         #expect(!area.isAvailable(isDebugBuild: false, hidesUnreleased: true))
     }
 
-    @Test("Machines are off in a Release build of 1.0")
-    func machinesAreOffInRelease() {
-        #expect(!ReleaseArea.machines.isAvailable(isDebugBuild: false, hidesUnreleased: false))
+    @Test("The areas left for 1.1 are off in a Release build of 1.0",
+          arguments: [ReleaseArea.machines, .remote, .deliveries, .sandbox])
+    func areasOfOnePointOneAreOffInRelease(area: ReleaseArea) {
+        #expect(!ReleaseArea.released.contains(area))
+        #expect(!area.isAvailable(isDebugBuild: false, hidesUnreleased: false))
     }
 
     @Test("A Debug build has every area on", arguments: ReleaseArea.allCases)

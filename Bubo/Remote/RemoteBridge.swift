@@ -62,12 +62,13 @@ final class RemoteBridge {
         self.diffStats = diffStats
     }
 
-    /// The bridge of the Telecomando of `remote`, with the switch in `defaults`.
+    /// The bridge of the Telecomando of `remote`, with the switch in `defaults`; always off in a build without the
+    /// Telecomando.
     static func live(remote: PairingController, macOnly: MacOnlyProjects, sessions: SessionStore?,
                      defaults: UserDefaults = .standard) -> RemoteBridge {
         RemoteBridge(macID: remote.macID, macName: remote.macName, channel: remote.channel,
                      devices: { [weak remote] in remote?.devices ?? [] },
-                     isOn: { defaults.bool(forKey: PairingController.isOnKey) }, macOnly: macOnly) { [weak sessions] id in
+                     isOn: { ReleaseArea.remote.isAvailable() && defaults.bool(forKey: PairingController.isOnKey) }, macOnly: macOnly) { [weak sessions] id in
             await sessions?.diffStats(of: id)
         }
     }

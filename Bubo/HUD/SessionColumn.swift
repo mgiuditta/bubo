@@ -229,6 +229,7 @@ struct SessionRow: View {
     @State private var launchServers: [LaunchConfig] = []
     /// Whether a drag from Finder or a browser is over the row.
     @State private var isDropTargeted = false
+    @AppStorage(ReleaseArea.hidesUnreleasedKey) private var hidesUnreleased = false
 
     private var isArchived: Bool { !session.isLive }
 
@@ -254,8 +255,15 @@ struct SessionRow: View {
         return true
     }
 
-    /// Whether the Sessione can go to another Macchina: live, with a conversation of the agent (spec 24).
-    private var canDeliver: Bool { !isArchived && !session.conversations.isEmpty && session.workspace != nil }
+    /// Whether the Sessione can go to another Macchina: live, with a conversation of the agent (spec 24), in a build
+    /// with the Consegne.
+    private var canDeliver: Bool {
+        ReleaseArea.deliveries.isAvailable(hidesUnreleased: hidesUnreleased)
+            && !isArchived && !session.conversations.isEmpty && session.workspace != nil
+    }
+
+    /// Whether this build has the Sandbox.
+    private var hasSandbox: Bool { ReleaseArea.sandbox.isAvailable(hidesUnreleased: hidesUnreleased) }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
@@ -284,7 +292,8 @@ struct SessionRow: View {
             // Outside the combined element, so each switch stays a control of its own.
             if !isArchived, session.allowsAutonomy {
                 AutonomyToggle(isAutonomous: session.isAutonomous,
-                               isSandboxed: store.sandbox.isEnabled(in: session.project)) { isOn in
+                               isSandboxed: store.sandbox.isEnabled(in: session.project),
+                               offersSandbox: hasSandbox) { isOn in
                     store.setAutonomous(isOn, in: session.id)
                 } setSandboxed: { isOn in
                     store.sandbox.setEnabled(isOn, in: session.project)
@@ -414,7 +423,7 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
-            if !isArchived {
+            if !isArchived && hasSandbox {
                 SandboxIndicator(state: SandboxState(isEnabled: store.sandbox.isEnabled(in: session.project),
                                                      currentTurn: store.sandboxedTurns[session.id])) {
                     isShowingConfiguration = true

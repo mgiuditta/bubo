@@ -34,12 +34,16 @@ struct SettingsView: View {
                 VoiceSettingsView()
             }
             Tab("iPhone", systemImage: "iphone", value: SettingsTab.iPhone) {
-                RemoteSettingsView()
+                ReleaseGated(.remote) {
+                    RemoteSettingsView()
+                }
             }
             // A Group: the builder takes at most 10 tabs.
             Group {
                 Tab("Consegne", systemImage: "shippingbox", value: SettingsTab.deliveries) {
-                    DeliveriesSettingsView()
+                    ReleaseGated(.deliveries) {
+                        DeliveriesSettingsView()
+                    }
                 }
                 Tab("Scorciatoie", systemImage: "keyboard", value: SettingsTab.shortcuts) {
                     ShortcutSettingsView()

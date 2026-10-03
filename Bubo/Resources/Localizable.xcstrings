@@ -622,6 +622,16 @@
         }
       }
     },
+    "%@: arriverà presto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: coming soon"
+          }
+        }
+      }
+    },
     "%lld aggiornamenti" : {
       "localizations" : {
         "en" : {
@@ -3807,6 +3817,16 @@
         }
       }
     },
+    "I comandi di Claude scrivono solo nella cartella della Sessione e raggiungono solo gli host consentiti." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude's commands write only in the Session's folder and reach only the allowed hosts."
+          }
+        }
+      }
+    },
     "Il Condividi non l'ha mandata. Riprova, anche con un altro mezzo." : {
       "localizations" : {
         "en" : {
@@ -4143,6 +4163,16 @@
         }
       }
     },
+    "Passa una Sessione a un'altra persona che usa Bubo, in un file .bubo cifrato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deliver a Session to another Bubo user in an encrypted .bubo file."
+          }
+        }
+      }
+    },
     "Per aggiornarlo, claude esegue questo comando sul Mac:" : {
       "localizations" : {
         "en" : {
@@ -4369,6 +4399,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cleaning the Session and looking for secrets…"
+          }
+        }
+      }
+    },
+    "Rispondi alle Sessioni e alle Richieste di permesso dall'iPhone, anche lontano dal Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer Sessions and Permission Requests from your iPhone, even away from the Mac."
           }
         }
       }
