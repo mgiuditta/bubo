@@ -160,7 +160,11 @@ final class SessionStore {
             throw CancellationError()
         }
         return try await agent.reloadPlugins(ofAnswer: answer, isForced: isForced)
+    } changes: { [weak self] folders in
+        (self?.pluginFolders ?? .current()).changes(in: folders, includingMarketplaces: false)
     }
+    /// Where Claude Code keeps the plugins, whose changes the turns in progress follow.
+    @ObservationIgnored var pluginFolders = PluginFolders.current()
     @ObservationIgnored private let ports = PortAllocator()
     /// The bridge of each Sessione's turn in progress, which its Richieste di permesso are answered on.
     @ObservationIgnored private var turns: [UUID: AgentBridge] = [:]
@@ -1146,7 +1150,7 @@ final class SessionStore {
                 }
             }
             previewOffers[id] = (answerID, hasServer)
-            pluginReloader.turnDidStart(in: id)
+            pluginReloader.turnDidStart(in: id, folder: workspace.folder)
             if maxBudget != nil { budgetedTurns[id] = session.project }
             defer {
                 pluginReloader.turnDidEnd(in: id)

@@ -159,6 +159,58 @@ struct PluginReloadTests {
         try await waitForCondition { reloader.generation > 0 }
     }
 
+    @Test func theChangesOnDiskAreFollowedOnlyWhileATurnIsInProgress() async throws {
+        let first = UUID(), second = UUID()
+        let one = URL(filePath: "/tmp/uno"), two = URL(filePath: "/tmp/due")
+        let watches = Mutex<[[URL]]>([]), stopped = Mutex(0)
+        let latest = Mutex<AsyncStream<Void>.Continuation?>(nil)
+        let reloader = PluginReloader(changes: { folders in
+            let (changes, continuation) = AsyncStream.makeStream(of: Void.self)
+            continuation.onTermination = { _ in stopped.withLock { $0 += 1 } }
+            watches.withLock { $0.append(folders) }
+            latest.withLock { $0 = continuation }
+            return changes
+        })
+        #expect(!reloader.isWatching)
+
+        reloader.turnDidStart(in: first, folder: one)
+        reloader.turnDidStart(in: second, folder: two)
+        #expect(watches.withLock { $0 } == [[one], [two, one]])
+        latest.withLock { _ = $0?.yield() }
+        try await waitForCondition { reloader.outdatedSessions == [first, second] }
+
+        reloader.turnDidEnd(in: first)
+        reloader.turnDidEnd(in: second)
+        #expect(!reloader.isWatching)
+        try await waitForCondition { stopped.withLock { $0 } == 2 }
+    }
+
+    @Test func anInstallationFromTheTerminalWithTheWindowClosedOffersRicarica() async throws {
+        let home = try PluginHome()
+        try home.addMarketplace("ufficiale", plugins: [["name": "revisore", "source": "./plugins/revisore"]])
+        let log = URL.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = URL.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.reloadingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: URL.temporaryDirectory)) { bridge }
+        store.pluginFolders = home.folders
+        let reloader = store.pluginReloader
+        #expect(!reloader.isWatching)
+        let id = try store.start("Lavora", title: "Prova", branch: "", in: home.project, onCheckout: true)
+        try await waitForCondition { reloader.isWatching }
+        // Time for FSEvents to start, then an installation from the terminal.
+        try await Task.sleep(for: .seconds(1))
+        try home.install(["revisore@ufficiale": [home.installation()]])
+
+        try await waitForCondition { reloader.state(of: id) == .outdated }
+        store.interrupt(id)
+        try await waitForCondition { store.sessions.first?.isRunning == false }
+        #expect(!reloader.isWatching)
+    }
+
     @Test func theBridgeLinesOfRicaricaPlugin() throws {
         let line = try BridgeCommand.reloadPlugins(id: "r", turn: "t", isForced: true).line()
         let object = try #require(try JSONSerialization.jsonObject(with: line) as? [String: Any])

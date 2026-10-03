@@ -1,4 +1,3 @@
-import CoreServices
 import Foundation
 import os
 
@@ -295,38 +294,9 @@ import os
 
     /// Reads again at each change of the files the snapshot comes from, until the task is cancelled.
     private func watch(_ project: URL?) async {
-        let claude = folders.userSettings.deletingLastPathComponent()
-        let roots = [folders.root, claude] + (project.map { [$0] } ?? [])
-        let settings = project.map { folders.projectSettings(of: $0) }
-        let files = Set(([folders.installedPlugins, folders.knownMarketplaces, folders.userSettings]
-                         + [settings?.shared, settings?.local].compactMap { $0 }).map { Self.normalized($0.path) })
-        let marketplaces = Self.normalized(folders.marketplaces.path) + "/"
-        let (changes, continuation) = AsyncStream.makeStream(of: Void.self, bufferingPolicy: .bufferingNewest(1))
-        let watcher = Task(priority: .utility) {
-            for await batch in FileEvents.batches(under: roots.map(\.path),
-                                                  since: FSEventStreamEventId(kFSEventStreamEventIdSinceNow))
-            where batch.needsRescan || batch.paths.contains(where: { path in
-                let path = Self.normalized(path)
-                return files.contains(path) || path.hasPrefix(marketplaces) && path.hasSuffix("/.claude-plugin/marketplace.json")
-            }) {
-                continuation.yield()
-            }
-        }
-        defer {
-            watcher.cancel()
-            continuation.finish()
-        }
-        for await _ in changes {
+        for await _ in folders.changes(in: project.map { [$0] } ?? [], includingMarketplaces: true) {
             pluginsDidChange()
             await reload(project)
         }
-    }
-
-    /// `path` without the `/private` FSEvents puts before `/var` and `/tmp`.
-    nonisolated private static func normalized(_ path: String) -> String {
-        for prefix in ["/private/var/", "/private/tmp/"] where path.hasPrefix(prefix) {
-            return String(path.dropFirst("/private".count))
-        }
-        return path
     }
 }
