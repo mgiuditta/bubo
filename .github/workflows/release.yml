@@ -91,7 +91,8 @@ jobs:
           ASC_API_ISSUER_ID: ${{ secrets.NOTARY_ISSUER }}
           MARKETING: ${{ steps.version.outputs.marketing }}
           BUILD_NUMBER: ${{ github.run_number }}
-        run: scripts/release/build.sh "$MARKETING" "$BUILD_NUMBER" "$RUNNER_TEMP/build"
+          NAME: ${{ steps.version.outputs.name }}
+        run: scripts/release/build.sh "$MARKETING" "$BUILD_NUMBER" "$RUNNER_TEMP/build" "$NAME"
 
       - name: Firma dall'interno verso l'esterno
         run: scripts/release/sign.sh "$RUNNER_TEMP/build/export/Bubo.app"

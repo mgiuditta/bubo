@@ -67,6 +67,7 @@ struct MenuBarContent: View {
         Toggle("Aree 1.1 spente", isOn: $hidesUnreleased)
         #endif
         Divider()
+        CheckForUpdatesButton()
         SettingsLink {
             Text("Impostazioni…")
         }

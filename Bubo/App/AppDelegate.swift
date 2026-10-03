@@ -22,6 +22,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var remoteUpdates: Task<Void, Never>?
     /// This Macchina's key and the Biglietti of the Consegne, in Impostazioni › Consegne (spec 24).
     let deliveries = DeliveriesController.live()
+    /// Sparkle, in Impostazioni › Aggiornamenti and in "Controlla aggiornamenti…" (spec 27).
+    let updates = UpdateController()
     /// The Indice, kept fresh while Bubo runs; `nil` when its database cannot be opened.
     let searchIndex: SearchIndex? = {
         do {
@@ -273,6 +275,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
         pluginUpdates.start()
+        updates.start()
         Task { [meetings] in await meetings.removeExpiredAudio() }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
@@ -283,7 +286,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(hud)
             .environment(hotKeys)
             .environment(panel)
-            .environment(documents))
+            .environment(documents)
+            .environment(updates))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
                     sessions: sessions, meetings: meetings)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }

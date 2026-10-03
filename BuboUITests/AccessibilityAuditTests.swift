@@ -25,6 +25,26 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
         try audit(app)
     }
 
+    @MainActor func testUpdatesSettingsHaveNoAccessibilityIssues() throws {
+        let app = launchBubo(showingPanel: false)
+        defer { app.terminate() }
+        XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
+        app.typeKey(",", modifierFlags: .command)
+        let settings = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 10), "Le Impostazioni non si sono aperte.")
+        settings.toolbars.buttons["Aggiornamenti"].click()
+        XCTAssertTrue(settings.checkBoxes["Ricevi le beta"].waitForExistence(timeout: 10), "Manca la scheda Aggiornamenti.")
+        try audit(app)
+    }
+
+    /// "Controlla aggiornamenti…" is in the app menu, where VoiceOver reads it.
+    @MainActor func testCheckForUpdatesIsInTheAppMenu() throws {
+        let app = launchBubo(showingPanel: false)
+        defer { app.terminate() }
+        XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
+        XCTAssertTrue(app.menuBars.menuItems["Controlla aggiornamenti…"].exists, "Manca Controlla aggiornamenti….")
+    }
+
     @MainActor func testPanelHasNoAccessibilityIssues() throws {
         let app = launchBubo(showingPanel: true)
         defer { app.terminate() }
