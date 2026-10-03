@@ -20,6 +20,11 @@ nonisolated struct KeyShortcut: Hashable, Sendable {
     static let askInPanel = KeyShortcut(keyCode: UInt32(kVK_Space), carbonModifiers: UInt32(controlKey | optionKey),
                                         keyLabel: "Spazio")
 
+    /// ⌃⌥⌘O, the default shortcut of «Allega finestra» (#485): clear of the system's ⌘⇧3/4/5 and of ⌘⇧O, the
+    /// Servizio «Chiedi a Bubo».
+    static let attachWindow = KeyShortcut(keyCode: UInt32(kVK_ANSI_O), carbonModifiers: UInt32(controlKey | optionKey | cmdKey),
+                                          keyLabel: "O")
+
     /// Esc alone, which stops Bubo's voice while it speaks (spec 08); never a shortcut the user records.
     static let escape = KeyShortcut(keyCode: UInt32(kVK_Escape), carbonModifiers: 0, keyLabel: "⎋")
 

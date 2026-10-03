@@ -7,6 +7,7 @@ struct ShortcutHints: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
+            Text("\(hotKeys.attachWindowShortcut.displayName) mostra la scelta della finestra: fai clic su quella da allegare.")
             if let dictation = hotKeys.dictationShortcut {
                 Text("Tieni premuto \(dictation.displayName) per dettare nel prompt senza inviare.")
             } else if hotKeys.shortcut.dictationVariant == nil {
@@ -24,9 +25,9 @@ struct ShortcutHints: View {
             }
         }
         .foregroundStyle(Palette.textSecondary)
-        .task(id: [hotKeys.shortcut, hotKeys.dictationShortcut, hotKeys.askShortcut]) {
+        .task(id: [hotKeys.shortcut, hotKeys.dictationShortcut, hotKeys.askShortcut, hotKeys.attachWindowShortcut]) {
             report = ShortcutConflicts.report(for: [hotKeys.shortcut] + [hotKeys.dictationShortcut].compactMap(\.self)
-                + [hotKeys.askShortcut])
+                + [hotKeys.askShortcut, hotKeys.attachWindowShortcut])
         }
     }
 }

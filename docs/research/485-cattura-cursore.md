@@ -48,6 +48,17 @@ Lo scatto in sé sta ben sotto i 500 ms di #103; il tempo vero è il clic dell'u
 
 `/usr/sbin/screencapture` ha l'entitlement privato `com.apple.private.tcc.check-allow-on-responsible-process` con `kTCCServiceScreenCapture` (letto con `codesign -d --entitlements -`): controlla la Registrazione schermo **del processo responsabile**. Lanciato da Bubo, `screencapture -i` userebbe quindi il permesso di Bubo, che non c'è. Non è una via senza permesso (comportamento esatto in modalità interattiva non provato, per non far partire un avviso).
 
+## Decisione (2026-10-03)
+
+Presa in autonomia, scelte reversibili; costruita nella v1 minima (PR di #485).
+
+- **Strada:** opzione 1. ⌃⌥⌘O apre `SCContentSharingPicker` in `singleWindow`, con Bubo escluso (`excludedBundleIDs`); il clic sulla finestra la scatta una volta con `SCScreenshotManager.captureImage(contentFilter:configuration:)`; `isActive = false` subito dopo, scattata o annullata. Il PNG va in `Domande/Allegati/<uuid>/Finestra di <App>.png` e diventa `Allegato(fileAt:)` `.image` nella Bolla, o nell'HUD se il Panel è nascosto. Codice: `Bubo/System/ScreenCapture/`.
+- **Permessi:** nessuno. Niente Accessibilità, quindi niente testo dell'elemento sotto il cursore: il testo selezionato arriva con ⌘⇧O (#100). Niente Registrazione schermo. Il testo dell'elemento "se c'è il permesso" è scartato: ADR 0005 esclude Accessibilità e Registrazione schermo anche come opzione.
+- **Finestra sotto il cursore:** `CGWindowListCopyWindowInfo`, senza permessi, saltando le finestre di Bubo e gli strati diversi da 0. Serve al nome della chip se il filtro non dice l'app, e a un log (`capture`) che dice se il clic è caduto sulla finestra che era sotto il cursore: risponde sul campo alla prima domanda di "Da verificare".
+- **Scorciatoia:** ⌃⌥⌘O, modificabile in Impostazioni › Scorciatoie come le altre due, con lo stesso controllo dei conflitti; c'è anche la voce "Allega finestra…" nel menu di Bubo. Lontana da ⌘⇧3/4/5, ⌥Spazio, ⌃⌥Spazio e ⌘⇧O.
+- **Senza selettore o senza scatto:** un avviso dice di usare ⌃⌘⇧4, Spazio, clic e ⌘V. Non apre Impostazioni di Sistema, perché non c'è un permesso da dare.
+- **Fuori dalla v1:** OCR con Vision su `Allegato.text`, la modalità automatica (opzioni 4–6) e l'azione nell'app (#488).
+
 ## Le API, una per una
 
 ### ScreenCaptureKit
