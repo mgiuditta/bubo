@@ -73,6 +73,24 @@
         }
       }
     },
+    "amo" : {
+      "comment" : "Etichetta della Variante amo (Categoria Mail): un amo da pesca ricurvo con l'occhiello.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fishing hook"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Amo"
+          }
+        }
+      }
+    },
     "annaffiatoio" : {
       "comment" : "Etichetta della Variante annaffiatoio (Categoria Chat): un annaffiatoio.",
       "extractionState" : "manual",
@@ -231,6 +249,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Barattolo"
+          }
+        }
+      }
+    },
+    "barbecue" : {
+      "comment" : "Etichetta della Variante barbecue (Categoria Chat): un barbecue a cupola su tre gambe.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barbecue"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barbecue"
           }
         }
       }
@@ -739,6 +775,24 @@
         }
       }
     },
+    "castello" : {
+      "comment" : "Etichetta della Variante castello (Categoria Viaggi): un castello con tre torri merlate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Castle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Castello"
+          }
+        }
+      }
+    },
     "catena" : {
       "comment" : "Etichetta della Variante catena (Categoria Codice): tre anelli di catena intrecciati.",
       "extractionState" : "manual",
@@ -771,6 +825,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cavalletto"
+          }
+        }
+      }
+    },
+    "cavallo-scacchi" : {
+      "comment" : "Etichetta della Variante cavallo-scacchi (Categoria Chat): un cavallo degli scacchi su una base tonda.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chess knight"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cavallo degli scacchi"
           }
         }
       }
@@ -1585,6 +1657,42 @@
         }
       }
     },
+    "gerarchia" : {
+      "comment" : "Etichetta della Variante gerarchia (Categoria Codice): un organigramma: un quadrato in alto collegato a tre quadrati sotto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hierarchy"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerarchia"
+          }
+        }
+      }
+    },
+    "germoglio" : {
+      "comment" : "Etichetta della Variante germoglio (Categoria Codice): un germoglio con due foglie tonde su un gambo corto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sprout"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Germoglio"
+          }
+        }
+      }
+    },
     "ghiacciolo" : {
       "comment" : "Etichetta della Variante ghiacciolo (Categoria Meteo): tre ghiaccioli appesi a una gronda, di lunghezze diverse.",
       "extractionState" : "manual",
@@ -1801,6 +1909,24 @@
         }
       }
     },
+    "impronta" : {
+      "comment" : "Etichetta della Variante impronta (Categoria Codice): un'impronta digitale ovale fatta di spire concentriche.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fingerprint"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Impronta digitale"
+          }
+        }
+      }
+    },
     "incudine" : {
       "comment" : "Etichetta della Variante incudine (Categoria Codice): un'incudine con il corno a sinistra e la base larga.",
       "extractionState" : "manual",
@@ -1959,6 +2085,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Livella"
+          }
+        }
+      }
+    },
+    "loto" : {
+      "comment" : "Etichetta della Variante loto (Categoria Salute): un fiore di loto a cinque petali.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lotus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loto"
           }
         }
       }
@@ -2157,6 +2301,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meridiana"
+          }
+        }
+      }
+    },
+    "metro" : {
+      "comment" : "Etichetta della Variante metro (Categoria Codice): un metro avvolgibile tondo con la linguetta di nastro estratta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tape measure"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metro"
           }
         }
       }
@@ -2377,6 +2539,42 @@
         }
       }
     },
+    "ombrellone" : {
+      "comment" : "Etichetta della Variante ombrellone (Categoria Viaggi): un ombrellone da spiaggia aperto, piantato inclinato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beach umbrella"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ombrellone"
+          }
+        }
+      }
+    },
+    "origami" : {
+      "comment" : "Etichetta della Variante origami (Categoria Creativo): una gru di origami.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Origami"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Origami"
+          }
+        }
+      }
+    },
     "orologio" : {
       "comment" : "Etichetta della Variante orologio (Categoria Tempo): un orologio da polso con il cinturino.",
       "extractionState" : "manual",
@@ -2463,6 +2661,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pagliaio"
+          }
+        }
+      }
+    },
+    "pala-eolica" : {
+      "comment" : "Etichetta della Variante pala-eolica (Categoria Chat): una pala eolica con tre pale su un palo alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wind turbine"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pala eolica"
+          }
+        }
+      }
+    },
+    "pallino-notifica" : {
+      "comment" : "Etichetta della Variante pallino-notifica (Categoria Mail): un cerchio con un numero in rilievo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notification badge"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pallino di notifica"
           }
         }
       }
@@ -2647,6 +2881,24 @@
         }
       }
     },
+    "percentuale" : {
+      "comment" : "Etichetta della Variante percentuale (Categoria Finanza): il simbolo di percentuale in rilievo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percent"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Percentuale"
+          }
+        }
+      }
+    },
     "periscopio" : {
       "comment" : "Etichetta della Variante periscopio (Categoria Ricerca): un periscopio a gomito con l'oculare in basso.",
       "extractionState" : "manual",
@@ -2823,6 +3075,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pizza"
+          }
+        }
+      }
+    },
+    "podio" : {
+      "comment" : "Etichetta della Variante podio (Categoria Ricerca): un podio a tre gradini.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podium"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Podio"
           }
         }
       }
@@ -3093,6 +3363,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Salvadanaio"
+          }
+        }
+      }
+    },
+    "sassofono" : {
+      "comment" : "Etichetta della Variante sassofono (Categoria Musica): un sassofono a forma di J con la campana in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saxophone"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sassofono"
+          }
+        }
+      }
+    },
+    "satellite" : {
+      "comment" : "Etichetta della Variante satellite (Categoria Agente): un satellite con un corpo cubico e due pannelli.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satellite"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Satellite"
           }
         }
       }
@@ -3493,6 +3799,24 @@
         }
       }
     },
+    "stretta-di-mano" : {
+      "comment" : "Etichetta della Variante stretta-di-mano (Categoria Finanza): due mani che si stringono.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Handshake"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stretta di mano"
+          }
+        }
+      }
+    },
     "sveglia" : {
       "comment" : "Etichetta della Variante sveglia (Categoria Tempo): una sveglia tonda con due campane e due piedini.",
       "extractionState" : "manual",
@@ -3597,6 +3921,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tavolozza"
+          }
+        }
+      }
+    },
+    "telecomando" : {
+      "comment" : "Etichetta della Variante telecomando (Categoria Agente): un telecomando allungato con tre tasti tondi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remote"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Telecomando"
           }
         }
       }
@@ -3781,6 +4123,24 @@
         }
       }
     },
+    "uovo" : {
+      "comment" : "Etichetta della Variante uovo (Categoria Salute): un uovo intero, verticale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Egg"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uovo"
+          }
+        }
+      }
+    },
     "valigia" : {
       "comment" : "Etichetta della Variante valigia (Categoria Viaggi): un trolley con il manico estratto.",
       "extractionState" : "manual",
@@ -3795,6 +4155,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Valigia"
+          }
+        }
+      }
+    },
+    "vaso" : {
+      "comment" : "Etichetta della Variante vaso (Categoria Creativo): un vaso panciuto con il collo stretto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vase"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaso"
           }
         }
       }
@@ -3817,6 +4195,24 @@
         }
       }
     },
+    "ventaglio" : {
+      "comment" : "Etichetta della Variante ventaglio (Categoria Meteo): un ventaglio aperto a semicerchio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hand fan"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ventaglio"
+          }
+        }
+      }
+    },
     "violino" : {
       "comment" : "Etichetta della Variante violino (Categoria Musica): un violino con le effe e l'archetto accanto.",
       "extractionState" : "manual",
@@ -3831,6 +4227,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Violino"
+          }
+        }
+      }
+    },
+    "virgolette" : {
+      "comment" : "Etichetta della Variante virgolette (Categoria Ricerca): due grandi virgolette alte, appaiate.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quotation marks"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Virgolette"
           }
         }
       }
@@ -3867,6 +4281,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zanzara"
+          }
+        }
+      }
+    },
+    "zucca" : {
+      "comment" : "Etichetta della Variante zucca (Categoria Tempo): una zucca tonda a spicchi con il picciolo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pumpkin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zucca"
           }
         }
       }
