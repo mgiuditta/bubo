@@ -1,9 +1,9 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// The guided setup of the Secondo cervello: one precise question per screen, each with a sensible default and
-/// each skippable (#554, #563). The answers become the folders the Indice reads, the folders, people and projects
-/// `cerca` puts first, and how the Riunioni are recorded.
+/// The guided setup of the Riunioni: one precise question per screen, each with a sensible default and each skippable
+/// (#554, #563), after the folder of the Secondo cervello when there is none. The rest of the Secondo cervello is set
+/// up in a conversation (``SecondBrainConversationSheet``).
 struct SecondBrainSetupSheet: View {
     /// The questions asked, in order.
     var steps = SecondBrainSetupStep.allCases
@@ -14,13 +14,6 @@ struct SecondBrainSetupSheet: View {
     @State private var candidates: [URL] = []
     @State private var folder: URL?
     @State private var isChoosingFolder = false
-    /// The folders at the top of the chosen Secondo cervello.
-    @State private var topFolders: [String] = []
-    @State private var includedFolders: Set<String> = []
-    @State private var priorityFolders: Set<String> = []
-    /// The people and projects, as typed: names separated by commas.
-    @State private var people = ""
-    @State private var projects = ""
     @State private var callServices: Set<CallService> = []
     @State private var meetingAudio = MeetingAudioRetention.thirtyDays
     /// A code of ``MeetingLanguage/offered``, or empty for the Mac's language.
@@ -72,7 +65,6 @@ struct SecondBrainSetupSheet: View {
         }
         .task {
             loadCandidates()
-            loadProfile()
             loadMeetingAnswers()
         }
     }
@@ -95,30 +87,6 @@ struct SecondBrainSetupSheet: View {
                 .labelsHidden()
             }
             Button("Scegli un'altra cartella…") { isChoosingFolder = true }
-        case .includedFolders:
-            if topFolders.isEmpty {
-                Text("Nessuna sottocartella: leggo tutte le note.")
-                    .foregroundStyle(Palette.textSecondary)
-            }
-            ForEach(topFolders, id: \.self) { name in
-                Toggle(isOn: membership(of: name, in: $includedFolders)) {
-                    Text(verbatim: name)
-                }
-            }
-        case .priorityFolders:
-            if includedFolders.isEmpty {
-                Text("Nessuna sottocartella da mettere prima: cerco in tutte le note allo stesso modo.")
-                    .foregroundStyle(Palette.textSecondary)
-            }
-            ForEach(topFolders.filter(includedFolders.contains), id: \.self) { name in
-                Toggle(isOn: membership(of: name, in: $priorityFolders)) {
-                    Text(verbatim: name)
-                }
-            }
-        case .people:
-            TextField("Persone", text: $people, prompt: Text("Giulia Rossi, Marco"))
-        case .projects:
-            TextField("Progetti", text: $projects, prompt: Text("Bubo, Sito nuovo"))
         case .callServices:
             ForEach(CallService.allCases) { service in
                 Toggle(isOn: membership(of: service, in: $callServices)) {
@@ -148,10 +116,6 @@ struct SecondBrainSetupSheet: View {
     private var title: LocalizedStringKey {
         switch step {
         case .folder: "Dove sono le tue note?"
-        case .includedFolders: "Quali cartelle leggo?"
-        case .priorityFolders: "Quali cartelle contano di più?"
-        case .people: "Con chi lavori più spesso?"
-        case .projects: "Quali progetti segui?"
         case .callServices: "Che app usi per le Riunioni?"
         case .meetingAudio: "Per quanto tengo l'audio delle Riunioni?"
         case .meetingLanguage: "In che lingua sono le Riunioni?"
@@ -161,10 +125,6 @@ struct SecondBrainSetupSheet: View {
     private var explanation: LocalizedStringKey {
         switch step {
         case .folder: "Leggo le note solo quando le cerco e scrivo solo nella cartella Bubo. Obsidian può restare chiuso."
-        case .includedFolders: "Le cartelle spente restano dove sono, ma non le leggo. Di solito si spengono archivi e allegati."
-        case .priorityFolders: "Quando la ricerca trova note in cartelle diverse, quelle scelte qui vengono prima. Puoi cambiarle in Impostazioni."
-        case .people: "Nomi separati da virgole. Le note che li nominano vengono prima nella ricerca."
-        case .projects: "Nomi separati da virgole. Le note che li nominano vengono prima nella ricerca."
         case .callServices: "Quando registri una Riunione, propongo prima queste app. Ho già attivato quelle installate."
         case .meetingAudio: "L'audio resta sul Mac, mai nel Secondo cervello. Nella nota c'è sempre la trascrizione."
         case .meetingLanguage: "Trascrivo le Riunioni sul Mac, in questa lingua. La prima volta scarico il modello."
@@ -188,20 +148,6 @@ struct SecondBrainSetupSheet: View {
         folder = candidates.first
     }
 
-    /// Reads the folders at the top of the Secondo cervello and the answers already given about them.
-    private func loadFolders() {
-        guard let location = secondBrain.location else { return }
-        topFolders = location.topFolders()
-        includedFolders = Set(topFolders).subtracting(location.excludedFolders)
-        priorityFolders = Set(location.priorityFolders).intersection(topFolders)
-    }
-
-    /// Reads the people and projects already named.
-    private func loadProfile() {
-        people = (secondBrain.location?.people ?? []).joined(separator: ", ")
-        projects = (secondBrain.location?.projects ?? []).joined(separator: ", ")
-    }
-
     /// Reads the answers about the Riunioni already given: the call services installed when none was chosen.
     private func loadMeetingAnswers() {
         let saved = CallService.saved()
@@ -213,24 +159,12 @@ struct SecondBrainSetupSheet: View {
         }
     }
 
-    /// Saves the answer to the current question. Folders deeper than the top, chosen in Impostazioni, stay as they are.
+    /// Saves the answer to the current question.
     private func applyAnswer() {
         switch step {
         case .folder:
             guard let folder, folder.standardizedFileURL != secondBrain.location?.url.standardizedFileURL else { return }
             secondBrain.choose(folder)
-        case .includedFolders:
-            guard let location = secondBrain.location else { return }
-            let deeper = location.excludedFolders.filter { !topFolders.contains($0) }
-            secondBrain.excludeOnly(Set(deeper).union(Set(topFolders).subtracting(includedFolders)))
-        case .priorityFolders:
-            guard let location = secondBrain.location else { return }
-            let deeper = location.priorityFolders.filter { !topFolders.contains($0) }
-            secondBrain.prioritizeOnly(Set(deeper).union(priorityFolders))
-        case .people:
-            secondBrain.prioritize(people: SecondBrainLocation.names(in: people), projects: secondBrain.location?.projects ?? [])
-        case .projects:
-            secondBrain.prioritize(people: secondBrain.location?.people ?? [], projects: SecondBrainLocation.names(in: projects))
         case .callServices:
             CallService.save(callServices)
         case .meetingAudio:
@@ -249,10 +183,6 @@ struct SecondBrainSetupSheet: View {
         guard !isLast, secondBrain.location != nil else {
             dismiss()
             return
-        }
-        if step == .folder {
-            loadFolders()
-            loadProfile()
         }
         position += 1
     }

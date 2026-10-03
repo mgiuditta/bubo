@@ -41,9 +41,9 @@ struct SecondBrainSettingsSection: View {
                 } label: {
                     Text("Nessuna cartella scelta")
                     if vaultCount == 0 {
-                        Text("Otto domande, meno di un minuto.")
+                        Text("Ne parli con il modello che scegli: propone, tu confermi.")
                     } else {
-                        Text("Vault di Obsidian trovati: \(vaultCount). Otto domande, meno di un minuto.")
+                        Text("Vault di Obsidian trovati: \(vaultCount). Ne parli con il modello che scegli: propone, tu confermi.")
                     }
                 }
             }
@@ -61,7 +61,7 @@ struct SecondBrainSettingsSection: View {
             guard case let .success(folder) = result else { return }
             secondBrain.choose(folder)
         }
-        .sheet(isPresented: $isSettingUp) { SecondBrainSetupSheet() }
+        .sheet(isPresented: $isSettingUp) { SecondBrainConversationSheet() }
         .task(id: secondBrain.location) { refresh() }
     }
 

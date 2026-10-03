@@ -3599,16 +3599,6 @@
         }
       }
     },
-    "Bubo, Sito nuovo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bubo, New website"
-          }
-        }
-      }
-    },
     "Budget" : {
       "localizations" : {
         "en" : {
@@ -3830,16 +3820,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New components"
-          }
-        }
-      }
-    },
-    "Con chi lavori più spesso?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Who do you work with most?"
           }
         }
       }
@@ -4215,16 +4195,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "GitHub Copilot not found: install the copilot CLI."
-          }
-        }
-      }
-    },
-    "Giulia Rossi, Marco" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Alex Chen, Sam"
           }
         }
       }
@@ -4673,16 +4643,6 @@
         }
       }
     },
-    "Le cartelle spente restano dove sono, ma non le leggo. Di solito si spengono archivi e allegati." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Folders you turn off stay where they are, but I don't read them. Archives and attachments are usually turned off."
-          }
-        }
-      }
-    },
     "Leggo le note solo quando le cerco e scrivo solo nella cartella Bubo. Obsidian può restare chiuso." : {
       "localizations" : {
         "en" : {
@@ -4833,26 +4793,6 @@
         }
       }
     },
-    "Nessuna sottocartella da mettere prima: cerco in tutte le note allo stesso modo." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No subfolders to put first: I search all your notes the same way."
-          }
-        }
-      }
-    },
-    "Nessuna sottocartella: leggo tutte le note." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No subfolders: I'll read all your notes."
-          }
-        }
-      }
-    },
     "Niente ramo: il Progetto non è un repo" : {
       "localizations" : {
         "en" : {
@@ -4869,16 +4809,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No branch: the Project isn't a repo, or the branch had no changes."
-          }
-        }
-      }
-    },
-    "Nomi separati da virgole. Le note che li nominano vengono prima nella ricerca." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Separate names with commas. Notes that mention them rank higher in search."
           }
         }
       }
@@ -4929,16 +4859,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A small Orb in a corner, with the chat in the bubble. Applies only to the screen the Panel is on now."
-          }
-        }
-      }
-    },
-    "Otto domande, meno di un minuto." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eight questions, under a minute."
           }
         }
       }
@@ -5091,46 +5011,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready: %@"
-          }
-        }
-      }
-    },
-    "Quali cartelle contano di più?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Which folders matter most?"
-          }
-        }
-      }
-    },
-    "Quali cartelle leggo?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Which folders should I read?"
-          }
-        }
-      }
-    },
-    "Quali progetti segui?" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Which projects are you working on?"
-          }
-        }
-      }
-    },
-    "Quando la ricerca trova note in cartelle diverse, quelle scelte qui vengono prima. Puoi cambiarle in Impostazioni." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "When a search finds notes in different folders, the ones you choose here come first. You can change them in Settings."
           }
         }
       }
@@ -5668,16 +5548,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Once delivered, it's theirs."
-          }
-        }
-      }
-    },
-    "Vault di Obsidian trovati: %lld. Otto domande, meno di un minuto." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obsidian vaults found: %lld. Eight questions, under a minute."
           }
         }
       }
@@ -18524,6 +18394,126 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Model: automatic"
+          }
+        }
+      }
+    },
+    "Il modello non risponde. Puoi scegliere la cartella a mano." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model isn't answering. You can choose the folder yourself."
+          }
+        }
+      }
+    },
+    "Usa %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use %@"
+          }
+        }
+      }
+    },
+    "Crea %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create %@"
+          }
+        }
+      }
+    },
+    "Non riesco a usare questa cartella. Chiedi un'altra proposta o sceglila a mano." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can't use this folder. Ask for another proposal or choose it yourself."
+          }
+        }
+      }
+    },
+    "Applica" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apply"
+          }
+        }
+      }
+    },
+    "Escluse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Excluded"
+          }
+        }
+      }
+    },
+    "Prioritarie" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prioritized"
+          }
+        }
+      }
+    },
+    "Invia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
+          }
+        }
+      }
+    },
+    "Scegli la cartella a mano…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the folder yourself…"
+          }
+        }
+      }
+    },
+    "Ne parli con il modello che scegli: propone, tu confermi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talk it through with the model you pick: it proposes, you confirm."
+          }
+        }
+      }
+    },
+    "Vault di Obsidian trovati: %lld. Ne parli con il modello che scegli: propone, tu confermi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsidian vaults found: %lld. Talk it through with the model you pick: it proposes, you confirm."
+          }
+        }
+      }
+    },
+    "Il modello scrive…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model is writing…"
           }
         }
       }
