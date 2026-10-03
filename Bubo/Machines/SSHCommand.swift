@@ -55,6 +55,12 @@ nonisolated enum SSHCommand {
         options(trust: trust, controlFolder: controlFolder) + ["-T", "--", machine.alias, command]
     }
 
+    /// Runs `command` on `machine` for work nobody watches, such as git: with a known host key only, and never a
+    /// question, so it fails at once instead of waiting for an answer when the connection needs one.
+    static func backgroundArguments(running command: String, on machine: Machine, controlFolder: URL) -> [String] {
+        ["-o", "BatchMode=yes"] + arguments(running: command, on: machine, trust: .known, controlFolder: controlFolder)
+    }
+
     /// Asks the ControlMaster of `machine` whether it is up; it never opens a connection.
     static func checkArguments(for machine: Machine, controlFolder: URL) -> [String] {
         ["-o", "ControlPath=\(controlPath(in: controlFolder))", "-O", "check", "--", machine.alias]
@@ -68,11 +74,16 @@ nonisolated enum SSHCommand {
     /// The environment of `ssh`: only what OpenSSH needs, so that a `SendEnv` of the user's configuration cannot
     /// send the host anything of Bubo's, plus the askpass helper, which shows the questions in Bubo's sheets.
     static func environment(askpass: Askpass, from inherited: [String: String]) -> [String: String] {
-        let kept = ["HOME", "USER", "LOGNAME", "PATH", "SHELL", "TMPDIR", "LANG", "SSH_AUTH_SOCK"]
-        var environment = inherited.filter { kept.contains($0.key) }
+        var environment = environment(from: inherited)
         environment["SSH_ASKPASS"] = askpass.script.path
         environment["SSH_ASKPASS_REQUIRE"] = "force"
         environment[Askpass.folderVariable] = askpass.folder.path
         return environment
+    }
+
+    /// The environment of `ssh` without the askpass helper: only what OpenSSH needs.
+    static func environment(from inherited: [String: String]) -> [String: String] {
+        let kept = ["HOME", "USER", "LOGNAME", "PATH", "SHELL", "TMPDIR", "LANG", "SSH_AUTH_SOCK"]
+        return inherited.filter { kept.contains($0.key) }
     }
 }

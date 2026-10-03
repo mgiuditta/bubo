@@ -146,10 +146,10 @@ nonisolated struct PullRequestFlow: Sendable {
     /// Pushes `branch` from `folder` to `remote` and makes it its upstream, never asking for a password: the login
     /// stays where the user put it.
     private func push(_ folder: URL, branch: String, to remote: String, on host: String) async throws {
-        let output = try await worktrees.runner.run(URL(filePath: "/usr/bin/env"), [
-            "GIT_TERMINAL_PROMPT=0", "/usr/bin/git", "-C", folder.path, "push", "--force-with-lease",
-            "--set-upstream", remote, "refs/heads/\(branch):refs/heads/\(branch)",
-        ])
+        let output = try await worktrees.shell.run([
+            "git", "-C", folder.path, "push", "--force-with-lease", "--set-upstream", remote,
+            "refs/heads/\(branch):refs/heads/\(branch)",
+        ], environment: ["GIT_TERMINAL_PROMPT": "0"])
         guard output.exitCode != 0 else { return }
         let message = output.standardError.trimmingCharacters(in: .whitespacesAndNewlines)
         if let scope = GitHubCLIError(pushError: message, host: host) { throw scope }

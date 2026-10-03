@@ -23,6 +23,14 @@ nonisolated extension ProcessRunner {
         }
     }
 
+    /// Runs real processes with `Process`, with `environment` instead of Bubo's own when given; standard input gets
+    /// `input`, then is closed.
+    static func live(environment: [String: String]?, input: Data) -> ProcessRunner {
+        ProcessRunner { executable, arguments in
+            try await runProcess(executable, arguments: arguments, environment: environment, input: input)
+        }
+    }
+
     /// Runs processes disclaimed (ADR 0005) with exactly `environment`, in `folder` when given; standard input gets
     /// `input`, then is closed.
     ///
@@ -40,12 +48,13 @@ nonisolated extension ProcessRunner {
 
 @concurrent
 private func runProcess(_ executable: URL, arguments: [String],
-                        environment: [String: String]? = nil) async throws -> ProcessOutput {
+                        environment: [String: String]? = nil, input: Data? = nil) async throws -> ProcessOutput {
     let process = Process()
     process.executableURL = executable
     process.arguments = arguments
     if let environment { process.environment = environment }
-    process.standardInput = FileHandle.nullDevice
+    let standardInput = input.map { _ in Pipe() }
+    process.standardInput = standardInput ?? FileHandle.nullDevice
     let output = Pipe()
     let error = Pipe()
     process.standardOutput = output
@@ -57,6 +66,15 @@ private func runProcess(_ executable: URL, arguments: [String],
     }
     try process.run()
     let pid = process.processIdentifier
+    if let input, let writer = standardInput?.fileHandleForWriting {
+        // Written apart from the reading, so a child that answers before it read everything never blocks on a
+        // full pipe; a child that exited early gives an error, never a SIGPIPE.
+        _ = fcntl(writer.fileDescriptor, F_SETNOSIGPIPE, 1)
+        Thread.detachNewThread {
+            try? writer.write(contentsOf: input)
+            try? writer.close()
+        }
+    }
     return try await withTaskCancellationHandler {
         async let standardOutput = readText(from: output.fileHandleForReading)
         async let standardError = readText(from: error.fileHandleForReading)
