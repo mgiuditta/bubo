@@ -26,6 +26,7 @@ struct GeneralSettingsView: View {
             ConversationSettingsSection()
             SecondBrainSettingsSection()
             ExcludedFoldersSection()
+            PriorityFoldersSection()
             SemanticSearchSettingsSection()
             EditorSettingsSection()
             LinearSettingsSection()
