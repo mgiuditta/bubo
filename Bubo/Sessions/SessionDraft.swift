@@ -24,7 +24,11 @@ nonisolated struct SessionDraft: Equatable, Sendable {
     /// Whether the Sessione can start with nothing typed: it continues a Domanda or a conversation.
     var canStartEmpty: Bool { continuesQuestion || conversation != nil }
 
-    /// The Sessione's first prompt: the Domanda's turns, if any, then `request`.
+    /// The Sessione's first prompt: the Domanda's turns, if any, quoted as context and never as instructions (see
+    /// ``QuestionTurn/transcript(_:then:)``), then `request`, the only instruction.
+    ///
+    /// It starts the Sessione like any other, through ``SessionStore/start(_:title:branch:in:onCheckout:forkingFrom:upTo:issue:choice:)``:
+    /// the trust dialog first, then the Progetto's Sandbox and the Modalità manuale.
     ///
     /// Continuing a conversation, `claude` already has it: an empty `request` asks to go on from there.
     func firstPrompt(_ request: String) -> String {
