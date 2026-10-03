@@ -14,6 +14,7 @@ struct Uniforms {
     float grain, bands, gloss; // Tinta character, 0…1; spikes are in `spike`
     float opacity;    // the whole Orb's, halo included; below 1 only in the Reduce Motion fade
     float diagramTime; // the Orbite diagram's clock, seconds; still at 0 with Reduce Motion
+    float2 pointer;   // the pointer over the Orb, eased, -1…1 from the centre, y up; 0 at rest
     float3 a, b;      // Tinta: base and highlight
 };
 
@@ -213,6 +214,10 @@ template <typename F>
 static inline float4 orbColor(VOut in, constant Uniforms &u) {
     float2 uv = orbUV(in, u);
     float3 ro = float3(0, 0, 3), rd = normalize(float3(uv * 0.72 * u.frame, -1.6));
+    // A little relief under the pointer: the camera turns toward it by at most ~11 degrees on each axis.
+    float2 lean = u.pointer * 0.2;
+    ro.xz = rot(lean.x) * ro.xz; rd.xz = rot(lean.x) * rd.xz;
+    ro.yz = rot(lean.y) * ro.yz; rd.yz = rot(lean.y) * rd.yz;
     float t = 0.0, md = 9.0;
     bool hit = false;
     bool march = true;
@@ -241,7 +246,7 @@ static inline float4 orbColor(VOut in, constant Uniforms &u) {
         float3 n = normalize(float3(map<F>(p + e.xyy, u) - map<F>(p - e.xyy, u),
                                     map<F>(p + e.yxy, u) - map<F>(p - e.yxy, u),
                                     map<F>(p + e.yyx, u) - map<F>(p - e.yyx, u)));
-        float3 L = normalize(float3(-0.5, 0.7, 0.6));
+        float3 L = normalize(float3(-0.5, 0.7, 0.6) + float3(u.pointer * 0.5, 0)); // the light follows the pointer
         float dif = clamp(dot(n, L), 0.0, 1.0);
         float fr = pow(1.0 - clamp(dot(n, -rd), 0.0, 1.0), 2.6);
         float band = sn(p * (2.6 + u.bands * 3.0) + float3(0, u.t * 0.4, 0)) * 0.5 + 0.5;

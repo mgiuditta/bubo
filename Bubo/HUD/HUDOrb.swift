@@ -44,7 +44,8 @@ private struct OrbMetalView: NSViewRepresentable {
     }
 }
 
-/// An `MTKView` drawn below Retina, as the Panel is, and paused while its window is hidden or covered.
+/// An `MTKView` drawn below Retina, as the Panel is, and paused while its window is hidden or covered; the Orb leans
+/// a little toward the pointer passing over it.
 final class HUDOrbView: MTKView {
     /// The renderer told when the window is hidden or covered; the coordinator owns it.
     weak var renderer: OrbRenderer?
@@ -63,6 +64,28 @@ final class HUDOrbView: MTKView {
         NotificationCenter.default.addObserver(self, selector: #selector(occlusionDidChange),
                                                name: NSWindow.didChangeOcclusionStateNotification, object: window)
         occlusionDidChange()
+    }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: .zero,
+                                       options: [.mouseMoved, .mouseEnteredAndExited, .activeAlways, .inVisibleRect],
+                                       owner: self))
+    }
+
+    override func mouseEntered(with event: NSEvent) { follow(event) }
+    override func mouseMoved(with event: NSEvent) { follow(event) }
+    override func mouseExited(with event: NSEvent) { renderer?.pointer = nil }
+
+    /// Tells the renderer where the pointer is, from the view's centre: -1…1 on each axis, y up.
+    private func follow(_ event: NSEvent) {
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        let location = convert(event.locationInWindow, from: nil)
+        let x = (location.x - bounds.midX) / (bounds.width / 2)
+        var y = (location.y - bounds.midY) / (bounds.height / 2)
+        if isFlipped { y = -y }
+        renderer?.pointer = SIMD2(Float(min(max(x, -1), 1)), Float(min(max(y, -1), 1)))
     }
 
     @objc private func occlusionDidChange() {

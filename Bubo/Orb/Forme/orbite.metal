@@ -30,7 +30,7 @@ static float4 orbiteDiagram(float2 uv, constant Uniforms &u) {
     const float phases[5] = { 0.55, 0.0, -0.55, -1.0, 1.0 }; // crescent, half, gibbous, full, new
     float t = u.diagramTime;
     float scale = mix(0.55, 1.0, u.morph);
-    float2 p = uv / scale;
+    float2 p = (uv - u.pointer * 0.025) / scale; // a slight parallax against the stars, which stay put
     float pixel = 2.0 / u.res.y;
     float px = pixel / scale;
     float ground = 1.0 - smoothstep(0.80, 0.98, length(uv)); // the dark disc; marks live only on it
