@@ -7,6 +7,9 @@ import os
 /// `claude plugin list --json --available` adds. Bubo never writes in `~/.claude`: every change is a `claude plugin …`
 /// command, after which the list is asked again, so the window shows what `claude` sees.
 @MainActor @Observable final class PluginCatalog {
+    /// The changes on disk of the plugins in these folders, with the settings of these Progetti.
+    typealias Changes = @MainActor (_ folders: PluginFolders, _ projects: [URL]) -> AsyncStream<Void>
+
     /// What the window shows; `nil` until the files are read.
     private(set) var snapshot: PluginSnapshot?
     /// Whether the last `claude plugin list` failed: the window then says it shows the files only.
@@ -22,6 +25,7 @@ import os
 
     @ObservationIgnored let folders: PluginFolders
     @ObservationIgnored private let listing: PluginListing
+    @ObservationIgnored private let changes: Changes
     @ObservationIgnored private let cli: PluginCLI
     /// Reads the configuration `claude` loads in a folder, for the `plugin_errors` of its `system/init` and the
     /// status of its MCP servers; `nil` without Sessioni.
@@ -50,8 +54,10 @@ import os
 
     /// Creates a catalog of the plugins in `folders`, completed by `listing` and by the `plugin_errors` and MCP
     /// servers of the `configuration` of `claude`, and changed by `cli`; `login` logs in to an MCP server, after
-    /// which `reconnect` tells the turns in progress; `pluginsDidChange` learns each change of the plugins.
-    init(folders: PluginFolders = .current(), listing: PluginListing = .live(), cli: PluginCLI = .live(),
+    /// which `reconnect` tells the turns in progress; `pluginsDidChange` learns each change of the plugins, on disk
+    /// as `changes` sees them.
+    init(folders: PluginFolders = .current(), listing: PluginListing = .live(),
+         changes: @escaping Changes = { $0.changes(in: $1, includingMarketplaces: true) }, cli: PluginCLI = .live(),
          login: MCPLogin = .live(), reconnect: @escaping @MainActor (String) -> Void = { _ in },
          pluginsDidChange: @escaping @MainActor () -> Void = {},
          configuration: (@MainActor (URL) async throws -> ClaudeConfiguration)? = nil,
@@ -60,6 +66,7 @@ import os
         self.updateStore = updateStore
         self.updateChecker = updateChecker
         self.listing = listing
+        self.changes = changes
         self.cli = cli
         self.login = login
         self.reconnect = reconnect
@@ -294,7 +301,7 @@ import os
 
     /// Reads again at each change of the files the snapshot comes from, until the task is cancelled.
     private func watch(_ project: URL?) async {
-        for await _ in folders.changes(in: project.map { [$0] } ?? [], includingMarketplaces: true) {
+        for await _ in changes(folders, project.map { [$0] } ?? []) {
             pluginsDidChange()
             await reload(project)
         }

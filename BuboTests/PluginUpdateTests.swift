@@ -224,24 +224,29 @@ struct PluginUpdateTests {
         #expect(PluginUpdateChecker.newExecutables(installed: nil, latest: PluginInventory(components: [hook])) == [hook])
     }
 
-    @Test func codeAnUpdateOfClaudeCodeBroughtGoesToDaSistemareUntilSeen() async throws {
+    /// The change on disk is told by the test, not by FSEvents, which may start after the write and miss it (#573).
+    @Test(.timeLimit(.minutes(1)))
+    func codeAnUpdateOfClaudeCodeBroughtGoesToDaSistemareUntilSeen() async throws {
         let home = try PluginHome()
         let folder = home.home.appending(path: "cache/terzi/revisore/1.0.0", directoryHint: .isDirectory)
         try home.write(Data("# Rivedi".utf8), at: folder.appending(path: "skills/rivedi/SKILL.md").path)
         try home.addMarketplace("terzi", plugins: [["name": "revisore", "source": ["source": "github", "repo": "a/r"]]])
         try home.install(["revisore@terzi": [home.installation(path: folder)]])
         try home.enableForUser(["revisore@terzi": true])
-        let catalog = PluginCatalog(folders: home.folders, listing: .never)
+        let (changes, changed) = AsyncStream.makeStream(of: Void.self)
+        let catalog = PluginCatalog(folders: home.folders, listing: .never, changes: { _, _ in changes })
         let following = Task { await catalog.follow(project: nil) }
         defer { following.cancel() }
-        try await waitForCondition { catalog.updateStore.current.seenExecutables["revisore@terzi"] == [] }
+        for await snapshot in Observations({ catalog.snapshot }) where snapshot != nil { break }
+        #expect(catalog.updateStore.current.seenExecutables["revisore@terzi"] == [])
         #expect(catalog.snapshot?.problems.isEmpty == true)
 
         // Claude Code updates the plugin on its own: a hook appears.
         try home.write(["hooks": ["PreToolUse": [["hooks": [["type": "command", "command": "true"]]]]]],
                        at: folder.appending(path: "hooks/hooks.json").path)
         try home.install(["revisore@terzi": [home.installation(path: folder)]])
-        try await waitForCondition { catalog.snapshot?.problems.isEmpty == false }
+        changed.yield()
+        for await problems in Observations({ catalog.snapshot?.problems ?? [] }) where !problems.isEmpty { break }
         let problem = try #require(catalog.snapshot?.problems.first)
         #expect(problem == .newExecutableCode(Self.plugin, components: [.hook(event: "PreToolUse")]))
         let snapshot = try #require(catalog.snapshot)
