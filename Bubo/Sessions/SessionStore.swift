@@ -1136,7 +1136,7 @@ final class SessionStore {
             // With the API key the turn gets the shared residue as its cap; spent, nothing is sent (spec 18).
             let maxBudget = agent.usesAPIKey && !ignoringBudget ? try budgetCap(in: session.project) : nil
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
-            let isSandboxed = sandbox.isEnabled(in: session.project)
+            let isSandboxed = ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: session.project)
             // The Anteprima's tools exist only while the Sessione has a server (spec 15).
             let answerID = UUID().uuidString
             let hasServer = servers.servers[id]?.isEmpty == false

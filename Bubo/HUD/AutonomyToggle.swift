@@ -6,6 +6,8 @@ struct AutonomyToggle: View {
     let isAutonomous: Bool
     /// Whether the Progetto has the Sandbox on.
     let isSandboxed: Bool
+    /// Whether the Sandbox may be proposed: false in a build without it.
+    var offersSandbox = true
     let setAutonomous: (Bool) -> Void
     let setSandboxed: (Bool) -> Void
     @State private var isOn = false
@@ -36,7 +38,7 @@ struct AutonomyToggle: View {
         .onChange(of: isSandboxed) { _, isSandboxed in isSandboxOn = isSandboxed }
         .onChange(of: isOn) { _, isOn in
             guard isOn != isAutonomous else { return }
-            if isOn && !isSandboxed { proposesSandbox = true }
+            if isOn && !isSandboxed && offersSandbox { proposesSandbox = true }
             if !isOn { proposesSandbox = false }
             setAutonomous(isOn)
         }

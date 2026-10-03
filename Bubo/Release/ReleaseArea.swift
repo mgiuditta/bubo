@@ -6,6 +6,12 @@ import Foundation
 nonisolated enum ReleaseArea: CaseIterable, Sendable {
     /// Impostazioni › Macchine and the Macchina of the Progetto (#251, #252, #253, #499).
     case machines
+    /// Impostazioni › iPhone and the Telecomando's sync with the iPhone (#244, #245).
+    case remote
+    /// Impostazioni › Consegne, the foglio di Consegna and the `.bubo` files opened in Bubo (#274, #495).
+    case deliveries
+    /// The Sandbox of the Progetto, its indicator in the HUD and its proposal with the Modalità autonoma (#214).
+    case sandbox
 
     /// The areas a Release build offers. Turning an area on for a release is adding it here, and nothing else.
     static let released: Set<ReleaseArea> = []
@@ -26,6 +32,9 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
     var issue: Int {
         switch self {
         case .machines: 251
+        case .remote: 245
+        case .deliveries: 274
+        case .sandbox: 214
         }
     }
 
@@ -33,6 +42,9 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
     var title: LocalizedStringResource {
         switch self {
         case .machines: "Macchine"
+        case .remote: "Telecomando"
+        case .deliveries: "Consegne"
+        case .sandbox: "Sandbox"
         }
     }
 
@@ -40,6 +52,9 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
     var summary: LocalizedStringResource {
         switch self {
         case .machines: "Sessioni su un altro Mac o su un server via SSH, con la Macchina scelta nel Progetto."
+        case .remote: "Rispondi alle Sessioni e alle Richieste di permesso dall'iPhone, anche lontano dal Mac."
+        case .deliveries: "Passa una Sessione a un'altra persona che usa Bubo, in un file .bubo cifrato."
+        case .sandbox: "I comandi di Claude scrivono solo nella cartella della Sessione e raggiungono solo gli host consentiti."
         }
     }
 
@@ -47,6 +62,9 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
     var systemImage: String {
         switch self {
         case .machines: "server.rack"
+        case .remote: "iphone"
+        case .deliveries: "shippingbox"
+        case .sandbox: "lock.shield"
         }
     }
 

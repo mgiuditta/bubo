@@ -248,13 +248,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sweeper?.start()
         // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
         summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
-        remoteUpdates = Task { [remote, remoteBridge, remoteRequests, presence, sessions] in
-            await remote.loadDevices()
-            guard let sessions else { return await remoteBridge.cleanUp() }
-            async let presenceChanges: Void = presence.run()
-            async let requests: Void = remoteRequests.run(sessions: sessions)
-            await remoteBridge.run(sessions: sessions)
-            _ = await (presenceChanges, requests)
+        // A build without the Telecomando reads nothing from CloudKit, also with iPhones paired in another build.
+        if ReleaseArea.remote.isAvailable() {
+            startRemoteUpdates()
         }
         // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
         priceUpdates = Task {
@@ -277,6 +273,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
+    }
+
+    /// Loads the paired iPhones, then publishes the Sessioni and the Richieste to them and follows the presence at the
+    /// Mac, while Bubo runs.
+    private func startRemoteUpdates() {
+        remoteUpdates = Task { [remote, remoteBridge, remoteRequests, presence, sessions] in
+            await remote.loadDevices()
+            guard let sessions else { return await remoteBridge.cleanUp() }
+            async let presenceChanges: Void = presence.run()
+            async let requests: Void = remoteRequests.run(sessions: sessions)
+            await remoteBridge.run(sessions: sessions)
+            _ = await (presenceChanges, requests)
+        }
     }
 
     /// Back in front: the pull requests are read at once, then at intervals (spec 16).
@@ -319,6 +328,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// its Bozza, opened again); a Biglietto or a file that does
     /// not open, an alert.
     private func open(bubo file: URL) async {
+        // A build without the Consegne reads no file: it says so, as Impostazioni › Consegne does.
+        guard ReleaseArea.deliveries.isAvailable() else { return showComingSoon(.deliveries) }
         let message: String
         switch await deliveries.open(file) {
         case .ticket:
@@ -343,6 +354,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let alert = NSAlert()
         alert.messageText = String(localized: "Non si apre")
         alert.informativeText = message
+        NSApp.activate()
+        alert.runModal()
+    }
+
+    /// Tells in an alert that `area` is not in this build yet: its name, «Arriverà presto» and what it will do.
+    private func showComingSoon(_ area: ReleaseArea) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "\(String(localized: area.title)): arriverà presto")
+        alert.informativeText = String(localized: area.summary)
         NSApp.activate()
         alert.runModal()
     }

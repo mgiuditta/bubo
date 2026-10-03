@@ -87,7 +87,7 @@ final class RemoteRequests {
     static func live(remote: PairingController, macOnly: MacOnlyProjects, presence: PresenceMonitor,
                      defaults: UserDefaults = .standard) -> RemoteRequests {
         RemoteRequests(macID: remote.macID, channel: remote.channel, devices: { [weak remote] in remote?.devices ?? [] },
-                       isOn: { defaults.bool(forKey: PairingController.isOnKey) }, macOnly: macOnly) { [weak presence] in
+                       isOn: { ReleaseArea.remote.isAvailable() && defaults.bool(forKey: PairingController.isOnKey) }, macOnly: macOnly) { [weak presence] in
             presence?.isUserAtMac ?? true
         }
     }

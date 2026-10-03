@@ -95,7 +95,9 @@ private struct ConfigurationForm: View {
                 Text("Configurazione di Claude")
             }
 
-            ProjectSandboxSection(project: project, store: sandbox, readRules: readSandboxRules)
+            ReleaseGated(.sandbox) {
+                ProjectSandboxSection(project: project, store: sandbox, readRules: readSandboxRules)
+            }
 
             ProjectRulesSection(project: project)
             TeamResourcesSection(project: project)
