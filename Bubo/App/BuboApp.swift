@@ -144,6 +144,7 @@ struct BuboApp: App {
                 .environment(appDelegate.sessions)
                 .environment(appDelegate.secondBrain)
                 .environment(appDelegate.questions)
+                .environment(appDelegate.brainSetup)
                 .environment(appDelegate.semanticSearch)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)

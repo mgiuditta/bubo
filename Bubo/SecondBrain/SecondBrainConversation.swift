@@ -2,34 +2,24 @@ import Foundation
 import Observation
 
 /// The setup of the Secondo cervello as an interview in rounds with the model the user picks in the chip, about the
-/// folder the user chose: Bubo gives it its standards and the facts it found, the model asks for the decisions, then
-/// shows the map with the Profilo and the Regole. The model never picks the folder, and only the user's yes applies the
-/// proposal and writes `Bubo/Profilo.md` and `Bubo/Regole.md`: nothing is written before.
+/// folder the user chose, held in the Bolla of the Orb as a Domanda: Bubo gives the model its standards and the facts
+/// it found in the opening prompt, the user answers in the Bolla, the model asks for the decisions, then shows the map
+/// with the Profilo and the Regole. The model never picks the folder, and only the user's yes applies the proposal and
+/// writes `Bubo/Profilo.md` and `Bubo/Regole.md`: nothing is written before.
 @Observable
 final class SecondBrainConversation {
-    /// One message of the conversation.
-    struct Turn: Identifiable {
-        let id = UUID()
-        /// Whether the user wrote it; the model did otherwise.
-        let isUser: Bool
-        let text: String
-    }
-
-    /// The messages so far, the model's without their proposal block.
-    private(set) var turns: [Turn] = []
-    /// The last settings the model proposed and the user has not applied yet.
-    private(set) var proposal: SecondBrainProposal?
-    /// Whether the model is writing its next message.
-    private(set) var isWaiting = false
-    /// The folder the user chose, `nil` until the conversation starts.
+    /// The folder the user chose, `nil` before the conversation starts and after the proposal is applied.
     private(set) var folder: URL?
     /// Whether ``folder`` is to be created rather than used as it is.
     private(set) var isNew = false
+    /// The prompt that opened the interview, with Bubo's instructions: the Bolla shows a title in its place.
+    private(set) var openingPrompt = ""
 
     /// Who answers, with the model picked in its chip.
     let questions: QuestionModel
+    /// Brings the Bolla forward, with the keyboard in its prompt.
+    @ObservationIgnored var showConversation: () -> Void = {}
     @ObservationIgnored private let secondBrain: SecondBrain
-    @ObservationIgnored private var instructions = ""
 
     /// Creates the conversation about `secondBrain`, asked through `questions`.
     init(questions: QuestionModel, secondBrain: SecondBrain) {
@@ -37,48 +27,48 @@ final class SecondBrainConversation {
         self.secondBrain = secondBrain
     }
 
-    /// Starts the conversation about `folder`, which the user chose, and lets the model open it; `isNew` when it is
-    /// to be created.
-    func start(with folder: URL, isNew: Bool) {
-        guard self.folder == nil, !isWaiting else { return }
-        self.folder = folder
-        self.isNew = isNew
-        let current = secondBrain.location.flatMap { $0.path == folder.standardizedFileURL.path ? $0 : nil }
-        instructions = Self.instructions(folder: current ?? SecondBrainLocation(folder: folder),
-                                         isConfigured: current != nil, isNew: isNew, method: Self.method(in: folder),
-                                         callApps: CallService.installed().map(\.name).sorted())
-        ask()
+    /// Whether the Domanda in the Bolla is still this interview: "Nuova Domanda" ends it.
+    var isActive: Bool {
+        folder != nil && !openingPrompt.isEmpty && (questions.turns.first?.prompt ?? questions.lastPrompt) == openingPrompt
     }
 
-    /// Sends the user's `text` and asks the model for its answer.
-    func send(_ text: String) {
-        let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty, !isWaiting else { return }
-        turns.append(Turn(isUser: true, text: text))
-        proposal = nil
-        ask()
-    }
-
-    /// Takes the model's answer once it ends; called when `questions` stops answering.
-    func receive() {
-        guard isWaiting, !questions.isAnswering else { return }
-        isWaiting = false
-        guard questions.failure == nil else { return }
-        let answer = questions.answer
+    /// The settings the model proposed in its last answer, to apply with the user's yes; `nil` while it writes.
+    var proposal: SecondBrainProposal? {
+        guard isActive, !questions.isAnswering, questions.failure == nil, let folder else { return nil }
         // Only the latest answer's proposal can be applied: a stale one is never offered.
-        proposal = SecondBrainProposal(in: answer).map { proposed in
+        return SecondBrainProposal(in: questions.answer).map { proposed in
             // The folder is the user's choice, whatever the block says.
             var proposed = proposed
-            proposed.path = folder?.path ?? proposed.path
+            proposed.path = folder.path
             proposed.action = isNew ? .create : .use
             return proposed
         }
-        let prose = SecondBrainProposal.prose(of: answer)
-        if !prose.isEmpty { turns.append(Turn(isUser: false, text: prose)) }
+    }
+
+    /// Starts the interview about `folder`, which the user chose, as a new Domanda the model opens; `isNew` when the
+    /// folder is to be created.
+    func start(with folder: URL, isNew: Bool) {
+        self.folder = folder
+        self.isNew = isNew
+        let current = secondBrain.location.flatMap { $0.path == folder.standardizedFileURL.path ? $0 : nil }
+        let instructions = Self.instructions(folder: current ?? SecondBrainLocation(folder: folder),
+                                             isConfigured: current != nil, isNew: isNew, method: Self.method(in: folder),
+                                             callApps: CallService.installed().map(\.name).sorted())
+        openingPrompt = Self.prompt(instructions: instructions).trimmingCharacters(in: .whitespacesAndNewlines)
+        questions.startNewQuestion()
+        questions.askWithChosenModel(openingPrompt)
+        showConversation()
+    }
+
+    /// Uses the folder as it is, without the interview: when no model answers.
+    func useFolderAsItIs() {
+        guard let folder, !isNew else { return }
+        secondBrain.choose(folder)
+        self.folder = nil
     }
 
     /// Applies the proposal the user said yes to: creates the folder when asked, writes the Profilo and the Regole,
-    /// then chooses the folder with its settings.
+    /// then chooses the folder with its settings, and ends the interview.
     ///
     /// - Throws: A file system error when the new folder or a file cannot be written, `NoteWriter.Failure` when `Bubo/`
     ///   leads out of the folder, or `CocoaError(.fileNoSuchFile)` when the folder to use does not exist.
@@ -98,24 +88,16 @@ final class SecondBrainConversation {
         secondBrain.excludeOnly(Set(proposal.excludedFolders))
         secondBrain.prioritizeOnly(Set(proposal.priorityFolders))
         secondBrain.prioritize(people: proposal.people, projects: proposal.projects)
-        self.proposal = nil
+        self.folder = nil
     }
 
-    private func ask() {
-        isWaiting = true
-        questions.askWithChosenModel(Self.prompt(instructions: instructions, turns: turns))
-    }
-
-    /// What the model reads at each turn: the instructions, then the conversation so far.
-    static func prompt(instructions: String, turns: [Turn]) -> String {
-        let conversation = turns.map { "\($0.isUser ? "Utente" : "Tu"): \($0.text)" }.joined(separator: "\n\n")
-        return """
+    /// What the model reads to open the interview; the user's answers follow it in the Bolla, as the turns of the
+    /// Domanda.
+    static func prompt(instructions: String) -> String {
+        """
         \(instructions)
 
-        ## Conversazione finora
-        \(conversation.isEmpty ? "(Nessun messaggio: apri tu con il primo round.)" : conversation)
-
-        Scrivi solo il tuo prossimo messaggio all'utente.
+        Apri tu con il primo round. Scrivi solo il tuo messaggio all'utente.
         """
     }
 

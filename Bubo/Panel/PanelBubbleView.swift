@@ -7,6 +7,8 @@ struct PanelBubbleView: View {
     let bubble: PanelBubble
     @Bindable var model: QuestionModel
     let hud: HUDPresenter
+    /// The interview that sets up the Secondo cervello, when the Domanda is it.
+    let brainSetup: SecondBrainConversation
     /// Called with the content's size whenever it changes, to fit the window around it.
     var onResize: (CGSize) -> Void = { _ in }
     @FocusState private var promptHasFocus: Bool
@@ -83,6 +85,7 @@ struct PanelBubbleView: View {
                         QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
                             .transition(.opacity)
                     }
+                    SecondBrainProposalCard(conversation: brainSetup)
                     if let savedChange = model.savedChange {
                         SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
                     }
@@ -132,13 +135,20 @@ struct PanelBubbleView: View {
         else { 0 }
     }
 
-    /// A turn's prompt, as a small line above its answer.
-    private func turnPrompt(_ text: String) -> some View {
-        Text(verbatim: text)
-            .font(Typography.body(size: 12))
-            .foregroundStyle(Palette.textSecondary)
-            .lineLimit(2)
-            .frame(maxWidth: .infinity, alignment: .leading)
+    /// A turn's prompt, as a small line above its answer; the interview's opening, with Bubo's instructions, as its title.
+    @ViewBuilder private func turnPrompt(_ text: String) -> some View {
+        if text == brainSetup.openingPrompt {
+            Text("Configura il Secondo cervello")
+                .font(Typography.body(size: 12))
+                .foregroundStyle(Palette.textSecondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            Text(verbatim: text)
+                .font(Typography.body(size: 12))
+                .foregroundStyle(Palette.textSecondary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
     }
 
     private var prompt: some View {
@@ -229,6 +239,8 @@ private struct BubbleMotion: ViewModifier {
 #Preview {
     let bubble = PanelBubble()
     bubble.open(focus: .prompt)
-    return PanelBubbleView(bubble: bubble, model: QuestionModel(), hud: HUDPresenter())
+    let model = QuestionModel()
+    return PanelBubbleView(bubble: bubble, model: model, hud: HUDPresenter(),
+                           brainSetup: SecondBrainConversation(questions: model, secondBrain: SecondBrain(index: nil)))
         .padding()
 }

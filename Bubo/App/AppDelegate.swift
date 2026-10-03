@@ -80,8 +80,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// on-device model summarizes them: a Riunione never reaches a new recipient.
     private(set) lazy var meetings = MeetingRecorder(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()],
                                                      store: try? MeetingAudioStore.makeDefault())
+    /// The interview that sets up the Secondo cervello, in the bubble of the Orb.
+    private(set) lazy var brainSetup: SecondBrainConversation = {
+        let conversation = SecondBrainConversation(questions: questions, secondBrain: secondBrain)
+        conversation.showConversation = { [weak self] in self?.panel.askInPanel() }
+        return conversation
+    }()
     /// The window of the Riunioni.
-    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings, secondBrain: secondBrain, questions: questions)
+    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings, secondBrain: secondBrain, questions: questions,
+                                                        brainSetup: brainSetup)
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
@@ -304,7 +311,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(documents)
             .environment(updates))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
-                    sessions: sessions, meetings: meetings)
+                    sessions: sessions, meetings: meetings, brainSetup: brainSetup)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
         hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
