@@ -22,6 +22,10 @@ _Avoid_: modalità, fase
 Il contenitore flottante, sempre in primo piano, che mostra l'**Orb** compatto ovunque nel sistema.
 _Avoid_: overlay, widget
 
+**Bolla**:
+L'area del **Panel** che mostra la **Domanda** in corso: prompt, risposta e seguiti.
+_Avoid_: overlay, popup, chat
+
 **HUD**:
 La finestra di lavoro con l'**Orb** grande al centro e i pannelli di vetro attorno (router, cronologia, sessioni).
 _Avoid_: dashboard, finestra principale
@@ -73,7 +77,7 @@ Una singola sessione del motore agentico; una **Sessione** ne contiene una caten
 _Avoid_: sessione (per questo significato)
 
 **Domanda**:
-Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Si può trasformare in **Sessione**.
+Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Può avere dei **seguiti**, che restano nella stessa Domanda finché non se ne chiede una nuova o resta ferma a lungo. Si può trasformare in **Sessione**.
 _Avoid_: chat, sessione rapida
 
 **Allegato**:
