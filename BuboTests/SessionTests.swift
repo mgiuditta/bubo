@@ -360,4 +360,14 @@ extension SessionTests {
         #expect(session.denials.isEmpty)
         #expect(session.effectiveMode == nil)
     }
+
+    // ADR 0012: the Sessioni saved before Copilot run on Claude, and a Copilot one stays on Copilot.
+    @Test func aSessionKeepsItsEngine() throws {
+        let saved = #"[{"id":"6A1F3C2E-0000-4000-8000-000000000001","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        var session = try #require(try JSONDecoder().decode([Session].self, from: Data(saved.utf8)).first)
+        #expect(session.engine == .claude)
+        session.engine = .copilot
+        let again = try JSONDecoder().decode(Session.self, from: JSONEncoder().encode(session))
+        #expect(again.engine == .copilot)
+    }
 }

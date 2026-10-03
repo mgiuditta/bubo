@@ -3797,6 +3797,16 @@
         }
       }
     },
+    "GitHub Copilot non trovato: installa la CLI copilot." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub Copilot not found: install the copilot CLI."
+          }
+        }
+      }
+    },
     "Grande (%@): Messaggi potrebbe non mandarla. Usa AirDrop o Salva sul disco." : {
       "localizations" : {
         "en" : {

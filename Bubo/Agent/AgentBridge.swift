@@ -190,6 +190,44 @@ final class AgentBridge {
         return answer
     }
 
+    /// Asks the user's `copilot` to answer `prompt` in `directory`, streaming the answer as it arrives (ADR 0012).
+    ///
+    /// `copilot` runs with the user's own login: the bridge removes the tokens that would override it. Cancelling the
+    /// iteration is Ferma: the bridge aborts the turn, and closes `copilot` if it does not stop in time.
+    ///
+    /// - Parameters:
+    ///   - copilot: The user's `copilot`.
+    ///   - model: A Copilot model id; `nil` for the user's own choice.
+    ///   - effort: The reasoning effort; `nil` for the model's default.
+    ///   - progress: Receives the state of the conversation, until the answer ends.
+    ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
+    ///     `nil` refuses them all.
+    func askCopilot(_ prompt: String, in directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil,
+                    id: String = UUID().uuidString,
+                    progress: @escaping (AgentProgress) -> Void = { _ in },
+                    permissions: ((PermissionEvent) -> Void)? = nil) -> AsyncThrowingStream<String, any Error> {
+        let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
+        continuation.onTermination = { [weak self] termination in
+            guard case .cancelled = termination else { return }
+            Task { @MainActor in self?.cancel(id) }
+        }
+        do {
+            let process = try runningProcess()
+            answers[id] = continuation
+            progressHandlers[id] = progress
+            permissionHandlers[id] = permissions
+            let command = BridgeCommand.askCopilot(id: id, prompt: prompt, directory: directory, copilot: copilot,
+                                                   model: model, effort: effort)
+            try process.input.write(contentsOf: command.line())
+        } catch let ProcessSpawnerError.failed(code) {
+            continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
+        } catch {
+            removeAnswer(id)
+            continuation.finish(throwing: error)
+        }
+        return answer
+    }
+
     /// Asks `model` to answer `prompt` in one turn with no tools, no settings and no copy of the conversation, in an
     /// empty folder of Bubo: the Riassunto di Sessione. The answer streams as the one of `ask` does.
     ///

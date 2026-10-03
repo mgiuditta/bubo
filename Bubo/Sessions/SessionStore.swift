@@ -141,6 +141,8 @@ final class SessionStore {
     @ObservationIgnored var deliveryOpener = DeliveryOpener()
     /// `~/.claude/projects`, where Avvia of a Consegna writes its conversation for `claude` to resume.
     @ObservationIgnored var claudeProjects = URL.homeDirectory.appending(path: ".claude/projects", directoryHint: .isDirectory)
+    /// The user's `copilot`, for the Sessioni that run on it (ADR 0012); `nil` when there is none.
+    @ObservationIgnored var locateCopilot: () async -> URL? = { await CopilotLocator().executableURL() }
     /// Called when a turn did not start because `claude` is too old, with its version if known.
     @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
     /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.
@@ -1181,14 +1183,7 @@ final class SessionStore {
             let cut = resumed != nil && resumed == current?.forkedFrom ? current?.forkedUpTo : nil
             // An Esecuzione keeps the model of its Automazione; the others take the one chosen in the Sessione.
             let chosen = unattended == nil ? current?.model : nil
-            let answer = agent.ask(prompt, in: workspace.folder, model: unattended?.model ?? chosen?.family.alias,
-                                   effort: chosen?.effort, environment: environment,
-                                   forkingFrom: resumed, upTo: cut, keeping: kept,
-                                   isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
-                                   permissionMode: permissionMode, id: answerID,
-                                   offersPreview: hasServer, unattended: unattended,
-                                   readableDirectories: QuestionModel.readableDirectories(for: attachments),
-                                   maxBudget: maxBudget) { [weak self] progress in
+            let onProgress: (AgentProgress) -> Void = { [weak self] progress in
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .variante(nome): self?.orb?.showWork(nome)
@@ -1200,9 +1195,25 @@ final class SessionStore {
                     self?.onFileActivity?(id, progress)
                 default: self?.update(id) { $0.apply(progress) }
                 }
-            } permissions: { [weak self] event in
+            }
+            let onPermission: (PermissionEvent) -> Void = { [weak self] event in
                 self?.receive(event, in: id, from: agent, classifier: classifier)
-            } usage: { [weak self, ledger] usage in
+            }
+            let isCopilot = current?.engine == .copilot && unattended == nil
+            let copilot = isCopilot ? try await copilotURL() : nil
+            let answer = if let copilot {
+                // ponytail: the Copilot model and effort come with the choice per Sessione (#551).
+                agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, id: answerID,
+                                 progress: onProgress, permissions: onPermission)
+            } else {
+                agent.ask(prompt, in: workspace.folder, model: unattended?.model ?? chosen?.family.alias,
+                          effort: chosen?.effort, environment: environment,
+                          forkingFrom: resumed, upTo: cut, keeping: kept,
+                          isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
+                          permissionMode: permissionMode, id: answerID,
+                          offersPreview: hasServer, unattended: unattended,
+                          readableDirectories: QuestionModel.readableDirectories(for: attachments),
+                          maxBudget: maxBudget, progress: onProgress, permissions: onPermission) { [weak self, ledger] usage in
                 ledger.record(usage, turn: kept, session: id, project: session.project)
                 if usage.isComplete { self?.estimates[kept] = nil }
                 self?.stopTurnsPastBudget(besides: id)
@@ -1213,6 +1224,7 @@ final class SessionStore {
             } isDangerous: { request in
                 classifier.risk(of: request).isDangerous
             }
+            }
             for try await _ in answer where !hasAnswered {
                 hasAnswered = true
                 onFirstToken()
@@ -1220,7 +1232,8 @@ final class SessionStore {
             if budgetStops.remove(id) != nil { throw AgentBridgeError.budgetExhausted }
             update(id) { session in
                 session.enter(.ferma)
-                if !Task.isCancelled { session.continuedConversation = kept }
+                // A Copilot turn leaves no conversation of `claude` to resume (#553 keeps Copilot's).
+                if !Task.isCancelled, !isCopilot { session.continuedConversation = kept }
             }
             return true
         } catch {
@@ -1253,6 +1266,7 @@ final class SessionStore {
                 case AgentBridgeError.claudeOutdated:
                     String(localized: "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
+                case CopilotFailure.missing: String(localized: "GitHub Copilot non trovato: installa la CLI copilot.")
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
             }
@@ -1273,6 +1287,14 @@ final class SessionStore {
             }
             return false
         }
+    }
+
+    /// The user's `copilot`.
+    ///
+    /// - Throws: `CopilotFailure.missing` when there is none.
+    private func copilotURL() async throws -> URL {
+        guard let copilot = await locateCopilot() else { throw CopilotFailure.missing }
+        return copilot
     }
 
     /// The cap of a turn with the API key on `project`: what the tightest Budget has left; `nil` without a Budget.

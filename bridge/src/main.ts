@@ -13,6 +13,7 @@ import { budgetOf } from "./budget";
 import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
+import { CopilotTurns, copilotEnvironment, reasoningEffortOf } from "./copilot";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
 import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
@@ -38,6 +39,7 @@ const version = 4;
 
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown }
+  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -208,6 +210,9 @@ const { BUBO_CLAUDE_PATH: claudePath, BUBO_CONVERSATIONS: conversationsPath, CLA
 const childEnv = { ...inherited };
 // Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
+
+// Le Sessioni su `copilot` (ADR 0012), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv));
 
 // La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
 const store = (() => {
@@ -807,7 +812,19 @@ lines.on("line", (line) => {
       store?.forgetImported();
       send({ type: "forgot", id: command.id });
       break;
-    case "cancel": void running.get(command.id)?.interrupt(); break;
+    case "copilot":
+      // Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
+      if (typeof command.copilot !== "string" || !command.copilot.startsWith("/")) {
+        send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+        break;
+      }
+      void copilotTurns.run({ id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
+                              model: typeof command.model === "string" ? command.model : undefined,
+                              effort: reasoningEffortOf(command.effort) });
+      break;
+    case "cancel":
+      if (!copilotTurns.cancel(command.id)) void running.get(command.id)?.interrupt();
+      break;
     case "found": toolCalls.get(command.id)?.(command.text); toolCalls.delete(command.id); break;
     case "quota": void quota(); break;
     case "summarize":
@@ -824,6 +841,7 @@ lines.on("line", (line) => {
     case "previewResult": previewCalls.answer(command.call, command); break;
     case "risk": risks.get(command.request)?.(command.dangerous !== false); risks.delete(command.request); break;
     case "permission":
+      if (copilotTurns.answer(command.request, isAllowed(command.behavior))) break;
       permissions.get(command.request)?.({ allowed: isAllowed(command.behavior), lasting: isLasting(command.scope) });
       permissions.delete(command.request);
       break;
