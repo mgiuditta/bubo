@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "domino",
+      "forma": "domino",
+      "categoria": "agente",
+      "descrizione": "Quando una serie di passi parte da sola: automazioni a catena.",
+      "parole": ["domino", "a catena", "chain reaction", "automazione", "automation", "workflow", "trigger"]
+    },
+    {
+      "nome": "traguardo",
+      "forma": "traguardo",
+      "categoria": "agente",
+      "descrizione": "Quando un lavoro lungo arriva in fondo: obiettivo raggiunto.",
+      "parole": ["traguardo", "bandiera a scacchi", "finish line", "obiettivo raggiunto", "goal reached", "completato", "finito"]
+    },
+    {
+      "nome": "formaggio",
+      "forma": "formaggio",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di formaggi e abbinamenti.",
+      "parole": ["formaggio", "formaggi", "cheese", "parmigiano", "mozzarella", "caseificio", "cheeseboard"]
+    },
+    {
+      "nome": "pi-greco",
+      "forma": "pi_greco",
+      "categoria": "chat",
+      "descrizione": "Quando si fa matematica: calcoli, dimostrazioni, problemi.",
+      "parole": ["pi greco", "matematica", "math", "calcolo", "equazione", "equation", "dimostrazione", "geometria"]
+    },
+    {
+      "nome": "canarino",
+      "forma": "canarino",
+      "categoria": "codice",
+      "descrizione": "Quando un rilascio va a pochi utenti alla volta: rollout graduale, beta.",
+      "parole": ["canarino", "canary", "rollout graduale", "gradual rollout", "beta", "canary release", "feature flag"]
+    },
+    {
+      "nome": "lucchetto",
+      "forma": "lucchetto",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di cifratura e privacy dei dati.",
+      "parole": ["lucchetto", "padlock", "cifratura", "encryption", "privacy", "crittografia", "proteggi i dati"]
+    },
+    {
+      "nome": "tabella",
+      "forma": "tabella",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con dati tabellari: CSV, JSON, fogli di calcolo.",
+      "parole": ["tabella", "table", "csv", "json", "foglio di calcolo", "spreadsheet", "excel", "colonne"]
+    },
+    {
+      "nome": "scopa",
+      "forma": "scopa",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo fa pulizia: lint, warning, import inutili.",
+      "parole": ["scopa", "broom", "pulizia", "cleanup", "lint", "warning", "import inutili", "unused imports"]
+    },
+    {
+      "nome": "puzzle",
+      "forma": "puzzle",
+      "categoria": "codice",
+      "descrizione": "Quando si integrano pezzi diversi: moduli, estensioni, interfacce tra parti.",
+      "parole": ["puzzle", "integrazione", "integration", "moduli", "modules", "plugin", "estensioni", "extensions"]
+    },
+    {
+      "nome": "pennino",
+      "forma": "pennino",
+      "categoria": "creativo",
+      "descrizione": "Quando si disegna un logo o grafica vettoriale.",
+      "parole": ["pennino", "logo", "vettoriale", "vector", "illustrator", "svg", "bezier", "icona"]
+    },
+    {
+      "nome": "cornice",
+      "forma": "cornice",
+      "categoria": "creativo",
+      "descrizione": "Quando si ritoccano foto e immagini.",
+      "parole": ["cornice", "frame", "foto", "photo", "ritocco", "photo editing", "immagine", "retouch"]
+    },
+    {
+      "nome": "orso",
+      "forma": "orso",
+      "categoria": "finanza",
+      "descrizione": "Quando i mercati scendono: crisi, ribassi, perdite.",
+      "parole": ["orso", "bear", "bear market", "ribasso", "crisi", "crollo", "mercati in calo", "recessione"]
+    },
+    {
+      "nome": "casa",
+      "forma": "casa",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di casa e soldi: mutuo, affitto, immobili.",
+      "parole": ["casa", "house", "mutuo", "mortgage", "affitto", "rent", "immobili", "real estate"]
+    },
+    {
+      "nome": "appendiporta",
+      "forma": "appendiporta",
+      "categoria": "mail",
+      "descrizione": "Quando si imposta un fuori ufficio o una risposta automatica.",
+      "parole": ["appendiporta", "fuori ufficio", "out of office", "risposta automatica", "auto reply", "vacation responder", "non disturbare"]
+    },
+    {
+      "nome": "porta",
+      "forma": "porta",
+      "categoria": "mail",
+      "descrizione": "Quando si scrive un benvenuto: nuovi colleghi, nuovi clienti.",
+      "parole": ["porta", "door", "benvenuto", "welcome", "onboarding", "nuovo collega", "new hire", "nuovo cliente"]
+    },
+    {
+      "nome": "tornado",
+      "forma": "tornado",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di tempeste violente: trombe d'aria, uragani.",
+      "parole": ["tornado", "tromba d'aria", "uragano", "hurricane", "twister", "tempesta violenta", "ciclone", "cyclone"]
+    },
+    {
+      "nome": "metronomo",
+      "forma": "metronomo",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di tempo musicale: BPM, ritmo, battute.",
+      "parole": ["metronomo", "metronome", "bpm", "ritmo", "rhythm", "battute", "tempo musicale", "tempo"]
+    },
+    {
+      "nome": "piccone",
+      "forma": "piccone",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo estrae dati da molte pagine: raccolta, scraping.",
+      "parole": ["piccone", "pickaxe", "scraping", "raccolta dati", "estrai dati", "extract data", "crawler", "mining"]
+    },
+    {
+      "nome": "bersaglio",
+      "forma": "bersaglio",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cerca un dato preciso e verificabile: una cifra, una data, un nome.",
+      "parole": ["bersaglio", "target", "dato preciso", "specific data", "centro", "bullseye", "esattamente", "verificabile"]
+    },
+    {
+      "nome": "osso",
+      "forma": "osso",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di ossa e articolazioni: fratture, schiena, dolori.",
+      "parole": ["osso", "bone", "ossa", "articolazioni", "joints", "frattura", "fracture", "schiena"]
+    },
+    {
+      "nome": "borraccia",
+      "forma": "borraccia",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di idratazione: quanta acqua bere.",
+      "parole": ["borraccia", "water bottle", "acqua", "idratazione", "hydration", "bere", "drink water", "litri"]
+    },
+    {
+      "nome": "pendolo",
+      "forma": "pendolo",
+      "categoria": "tempo",
+      "descrizione": "Quando qualcosa si ripete a intervalli: ogni giorno, ogni settimana.",
+      "parole": ["pendolo", "pendulum", "ricorrente", "recurring", "ogni giorno", "every day", "ogni settimana", "intervallo"]
+    },
+    {
+      "nome": "zaino",
+      "forma": "zaino",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia con lo zaino: trekking, viaggi leggeri.",
+      "parole": ["zaino", "backpack", "trekking", "hiking", "viaggio leggero", "travel light", "escursione", "campeggio"]
+    },
+    {
+      "nome": "passaporto",
+      "forma": "passaporto",
+      "categoria": "viaggi",
+      "descrizione": "Quando servono documenti: passaporto, visti, ingresso nei paesi.",
+      "parole": ["passaporto", "passport", "visto", "visa", "documenti di viaggio", "travel documents", "dogana", "frontiera"]
     }
   ]
 }
