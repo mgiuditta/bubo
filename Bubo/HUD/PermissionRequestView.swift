@@ -95,32 +95,17 @@ struct PermissionRequestView: View {
         .accessibilityLabel("Richiesta di permesso")
     }
 
+    /// The answers in a row, or one under the other when the column is too narrow: a label never truncates (#675).
     private var answers: some View {
-        HStack(spacing: Spacing.xSmall) {
-            Button("No") { answer(.deny) }
-                .keyboardShortcut(hasKeyboard ? .cancelAction : nil)
-            if pending.needsHold {
-                HoldToAllowButton(color: color) { answer(.allowOnce) }
-            } else {
-                Button("Solo ora") { answer(.allowOnce) }
-                    .keyboardShortcut(hasKeyboard ? .defaultAction : nil)
-                if pending.allowsSessionRule {
-                    Button("Per questa Sessione") { answer(.allowForSession) }
-                }
-                if pending.projectRule != nil {
-                    Button("Sempre in questo Progetto…") { isShowingRule = true }
-                } else if pending.projectDomain != nil {
-                    Button("Sempre in questo Progetto", action: allowDomainInProject)
-                        .help("Aggiunge l'host ai domini della Sandbox di questo Progetto, in Bubo. Lo togli dalla configurazione del Progetto.")
-                }
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Spacing.xSmall) {
+                answerButtons
+                Spacer(minLength: 0)
+                keyHint
             }
-            Spacer(minLength: 0)
-            if hasKeyboard {
-                Text(pending.needsHold ? "esc No" : "↩ Solo ora · esc No")
-                    .font(Typography.mono(size: 10))
-                    .foregroundStyle(Palette.textSecondary)
-                    .lineLimit(1)
-                    .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                answerButtons
+                keyHint
             }
         }
         .buttonStyle(.bordered)
@@ -129,6 +114,38 @@ struct PermissionRequestView: View {
             if let rule = pending.projectRule {
                 ProjectRuleSheet(rule: rule, project: project, save: allowInProject)
             }
+        }
+    }
+
+    /// No, Solo ora and the lasting permissions the Richiesta offers.
+    @ViewBuilder private var answerButtons: some View {
+        Button("No") { answer(.deny) }
+            .keyboardShortcut(hasKeyboard ? .cancelAction : nil)
+        if pending.needsHold {
+            HoldToAllowButton(color: color) { answer(.allowOnce) }
+        } else {
+            Button("Solo ora") { answer(.allowOnce) }
+                .keyboardShortcut(hasKeyboard ? .defaultAction : nil)
+            if pending.allowsSessionRule {
+                Button("Per questa Sessione") { answer(.allowForSession) }
+            }
+            if pending.projectRule != nil {
+                Button("Sempre in questo Progetto…") { isShowingRule = true }
+            } else if pending.projectDomain != nil {
+                Button("Sempre in questo Progetto", action: allowDomainInProject)
+                    .help("Aggiunge l'host ai domini della Sandbox di questo Progetto, in Bubo. Lo togli dalla configurazione del Progetto.")
+            }
+        }
+    }
+
+    /// The keys that answer, only with a keyboard attached.
+    @ViewBuilder private var keyHint: some View {
+        if hasKeyboard {
+            Text(pending.needsHold ? "esc No" : "↩ Solo ora · esc No")
+                .font(Typography.mono(size: 10))
+                .foregroundStyle(Palette.textSecondary)
+                .lineLimit(1)
+                .accessibilityHidden(true)
         }
     }
 

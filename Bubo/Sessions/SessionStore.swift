@@ -114,7 +114,8 @@ final class SessionStore {
     @ObservationIgnored let pullRequests = PullRequestMonitor()
     /// The visore, for the files ⌘-clicked in the terminals.
     @ObservationIgnored let viewer = CodeViewerStore()
-    /// Called at the first token of each turn's answer; the onboarding ends at the first one (spec 26).
+    /// Called at each sign of life of a turn: a token, a tool at work, a permission request. The onboarding ends at the
+    /// first one (spec 26).
     @ObservationIgnored var onFirstToken: () -> Void = {}
     /// What brings each turn's conversation into the Indice when it ends; `nil` without an Indice.
     @ObservationIgnored var indexer: ConversationIndexer?
@@ -1211,6 +1212,8 @@ final class SessionStore {
             // An Esecuzione keeps the model of its Automazione; the others take the one chosen in the Sessione.
             let chosen = unattended == nil ? current?.model : nil
             let onProgress: (AgentProgress) -> Void = { [weak self] progress in
+                // A tool at work answers too: the onboarding must not call `claude` silent (spec 26).
+                self?.onFirstToken()
                 switch progress {
                 case .ranCommand: self?.servers.notice()
                 case let .variante(nome): self?.orb?.showWork(nome)
@@ -1224,6 +1227,8 @@ final class SessionStore {
                 }
             }
             let onPermission: (PermissionEvent) -> Void = { [weak self] event in
+                // Waiting for the user's consent is not silence.
+                self?.onFirstToken()
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             }
             let copilot = isCopilot ? try await copilotURL() : nil
