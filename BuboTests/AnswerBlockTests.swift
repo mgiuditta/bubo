@@ -49,6 +49,15 @@ struct AnswerBlockTests {
         #expect(citations == [NoteCitation(note: "Ricette/pane_di_casa", anchor: "Impasto"), NoteCitation(note: "Standup")])
     }
 
+    @Test func ofTheModelsLinksOnlyTheWebOnesStayLinksAndANoteOpensOnlyFromAWikilink() {
+        let formatted = AnswerBlock.formatted(
+            "[a](file:///etc/passwd) [b](bubo-nota://apri?nota=Segreti) [c](x-apple.systempreferences:x) [d](https://ok) [[Pane]]"
+        )
+
+        #expect(String(formatted.characters) == "a b c d Pane")
+        #expect(formatted.runs.compactMap(\.link) == [URL(string: "https://ok"), NoteCitation(note: "Pane").link])
+    }
+
     @Test func markdownCutShortWhileStreamingStaysAsWritten() {
         #expect(String(AnswerBlock.formatted("Un **grassetto a metà").characters) == "Un **grassetto a metà")
         #expect(String(AnswerBlock.formatted("Vedi [[Pane").characters) == "Vedi [[Pane")

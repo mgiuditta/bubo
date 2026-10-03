@@ -41,13 +41,30 @@ nonisolated enum AnswerBlock: Equatable, Sendable {
     /// citation.
     ///
     /// Markdown cut short while it streams, an unclosed `**` for one, stays as written.
+    ///
+    /// The answer is the model's, which a file or a page can steer: of the links it writes only `http` and `https`
+    /// stay links, and a note opens only from a wikilink.
     static func formatted(_ prose: String) -> AttributedString {
         let markdown = prose.split(separator: "\n", omittingEmptySubsequences: false)
             .map(boldingHeading)
             .joined(separator: "\n")
-        let linked = NoteCitation.markdownLinking(markdown)
+        // A scheme the model cannot know marks the wikilinks among the links.
+        let scheme = "w" + UUID().uuidString.lowercased().filter(\.isHexDigit)
+        let linked = NoteCitation.markdownLinking(markdown, scheme: scheme)
         let options = AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
-        return (try? AttributedString(markdown: linked, options: options)) ?? NoteCitation.linking(prose)
+        guard var formatted = try? AttributedString(markdown: linked.markdown, options: options) else {
+            return NoteCitation.linking(prose)
+        }
+        for (link, range) in Array(formatted.runs[\.link]) {
+            guard let link else { continue }
+            if link.scheme == scheme {
+                formatted[range].link = Int(link.absoluteString.dropFirst(scheme.count + 1))
+                    .flatMap { linked.citations.indices.contains($0) ? linked.citations[$0].link : nil }
+            } else if !["http", "https"].contains(link.scheme?.lowercased()) {
+                formatted[range].link = nil
+            }
+        }
+        return formatted
     }
 
     /// `line` written as bold when it is a heading, `## Titolo`; any other line as it is.

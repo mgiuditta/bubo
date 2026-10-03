@@ -110,21 +110,25 @@ nonisolated struct NoteCitation: Equatable, Sendable {
         }
     }
 
-    /// Returns `markdown` with every wikilink turned into a Markdown link that carries its citation and shows
-    /// ``title``, escaped so that it reads as written.
+    /// Returns `markdown` with every wikilink turned into a Markdown link to `scheme:` and the citation's index in
+    /// `citations`, showing ``title`` escaped so that it reads as written.
     ///
-    /// The rest of the text is left exactly as written.
-    static func markdownLinking(_ markdown: String) -> String {
-        pieces(of: markdown).reduce(into: "") { linked, piece in
+    /// The link is not the citation's own: only who knows `scheme` tells a wikilink from a link the model wrote as
+    /// Markdown. The rest of the text is left exactly as written.
+    static func markdownLinking(_ markdown: String, scheme: String) -> (markdown: String, citations: [NoteCitation]) {
+        var citations: [NoteCitation] = []
+        let linked = pieces(of: markdown).reduce(into: "") { linked, piece in
             switch piece {
             case let .text(text):
                 linked += text
             case let .citation(citation):
                 // Every ASCII punctuation mark escaped: a `_` or `*` in a note's name is not emphasis.
                 let title = citation.title.map { $0.isASCII && ($0.isPunctuation || $0.isSymbol) ? "\\\($0)" : "\($0)" }
-                linked += "[\(title.joined())](<\(citation.link.absoluteString)>)"
+                linked += "[\(title.joined())](<\(scheme):\(citations.count)>)"
+                citations.append(citation)
             }
         }
+        return (linked, citations)
     }
 
     /// A piece of an answer: text as written, or a wikilink's citation.
