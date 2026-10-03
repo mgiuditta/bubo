@@ -186,6 +186,8 @@ struct QuestionModelRetryWithTests {
     /// A Domanda with `attachments` answered by Sonnet, with `settings`' endpoints in "Rifai con…".
     func answeredModel(attachments: [Allegato]) async -> QuestionModel {
         let model = await answeredModel()
+        // A Domanda of its own, not a seguito of the first: only its text and Allegati go.
+        model.startNewQuestion()
         model.ask("Riassumi", attachments: attachments)
         await model.answering?.value
         return model

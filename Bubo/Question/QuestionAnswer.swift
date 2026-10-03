@@ -17,22 +17,7 @@ struct QuestionAnswer: View {
 
     var body: some View {
         answerScroll {
-            // Inline Markdown, with the notes cited as `[[nota]]` as links that open them, and code in its own blocks;
-            // a Secondo cervello block never shows raw.
-            VStack(alignment: .leading, spacing: Spacing.xSmall) {
-                ForEach(Array(AnswerBlock.blocks(of: prose).enumerated()), id: \.offset) { _, block in
-                    switch block {
-                    case let .prose(text):
-                        Text(AnswerBlock.formatted(text))
-                            .font(Typography.body(size: 14))
-                            .foregroundStyle(Palette.textPrimary)
-                            .textSelection(.enabled)
-                    case let .code(code):
-                        AnswerCodeBlock(code: code)
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            AnswerProse(prose: prose)
         }
         .accessibilityLabel("Risposta di Claude")
         .accessibilityIdentifier("question.answer")

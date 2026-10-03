@@ -19,6 +19,10 @@ final class QuestionModel {
     private(set) var chipChoice: Route?
     /// The answer so far, growing as it streams.
     private(set) var answer = ""
+    /// The answered turns of the Domanda before the last prompt, in order: what its seguiti follow.
+    private(set) var turns: [QuestionTurn] = []
+    /// The last prompt asked, the one ``answer`` answers; empty before the first and in a new Domanda.
+    private(set) var lastPrompt = ""
     /// Whether an answer is on its way.
     private(set) var isAnswering = false
     /// Why the last Domanda got no answer, if it failed.
@@ -80,6 +84,7 @@ final class QuestionModel {
     ///   - budgets: The Budgets the router avoids past their threshold, and the reason line warns of.
     ///   - copilot: Finds the user's `copilot` when its plan is a paid one, and `nil` otherwise (ADR 0011); called only
     ///     when the user opens "Rifai con…" or sends a Domanda to Copilot, never on its own.
+    ///   - now: The clock that tells when the Domanda has been still too long; tests pass one they move.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -93,8 +98,9 @@ final class QuestionModel {
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
          ledger: CostLedger? = nil, prices: PriceTable = .shared, budgets: BudgetSettings = .shared,
-         copilot: (() async -> URL?)? = nil) {
+         copilot: (() async -> URL?)? = nil, now: @escaping () -> Date = { .now }) {
         quota = Quota.saved(in: defaults)
+        self.now = now
         self.defaults = defaults
         self.cli = cli
         self.index = index
@@ -166,7 +172,11 @@ final class QuestionModel {
     @ObservationIgnored private var copilot: URL?
     /// The reading of `copilotModels` under way, or done: one at a time.
     @ObservationIgnored private var readingCopilotModels: Task<Void, Never>?
-    @ObservationIgnored private var lastPrompt = ""
+    @ObservationIgnored private let now: () -> Date
+    /// When the Domanda was last asked or answered; `nil` in a new Domanda.
+    @ObservationIgnored private var lastActivity: Date?
+    /// How long a Domanda stays still before the next prompt starts a new one.
+    static let idleLimit: TimeInterval = 15 * 60
     /// The Allegati of the last prompt, asked again with it; observed, since they decide the proposal of a Sessione.
     private var lastAttachments: [Allegato] = []
     /// The known Progetti, those with Sessioni, for the proposal of a Sessione; set at launch.
@@ -530,6 +540,7 @@ final class QuestionModel {
     func ask(_ text: String, attachments: [Allegato]) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        followLastTurn()
         lastPrompt = text
         lastAttachments = attachments
         confirmedAttachments = [:]
@@ -543,6 +554,7 @@ final class QuestionModel {
     func askWithChosenModel(_ text: String) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
+        followLastTurn()
         lastPrompt = text
         lastAttachments = []
         confirmedAttachments = [:]
@@ -562,6 +574,7 @@ final class QuestionModel {
             orb.playOrbite()
             return
         }
+        followLastTurn()
         lastPrompt = text
         lastAttachments = attachments
         attachments = []
@@ -569,6 +582,34 @@ final class QuestionModel {
         declinedEndpoints = []
         question = UUID()
         start(text, route: choice, speaksAnswer: speaksAnswer)
+    }
+
+    /// Makes the last prompt and its answer a turn the next prompt follows, in the same Domanda; after
+    /// ``idleLimit`` without a prompt or an answer, a new Domanda starts instead.
+    private func followLastTurn() {
+        resetIfIdle()
+        if !lastPrompt.isEmpty, !answer.isEmpty { turns.append(QuestionTurn(prompt: lastPrompt, answer: answer)) }
+    }
+
+    /// Starts a new Domanda ("Nuova Domanda"): the answer in progress stops, and the turns so far go with it.
+    func startNewQuestion() {
+        stop()
+        turns = []
+        lastPrompt = ""
+        answer = ""
+        failure = nil
+        routedAnswer = nil
+        savedNote = nil
+        lastAttachments = []
+        confirmedAttachments = [:]
+        declinedEndpoints = []
+        lastActivity = nil
+    }
+
+    /// Starts a new Domanda if this one has been still for ``idleLimit``.
+    func resetIfIdle() {
+        guard let lastActivity, now().timeIntervalSince(lastActivity) >= Self.idleLimit else { return }
+        startNewQuestion()
     }
 
     /// Puts `new` in the prompt, after the Allegati already there, and shows the Orb in Ascolto: the user writes or
@@ -649,13 +690,13 @@ final class QuestionModel {
         return draft
     }
 
-    /// Stops the Domanda and hands it to a new Sessione: what is typed, and the last prompt with what arrived of its
-    /// answer; with no answer, what is typed or else the last prompt.
+    /// Stops the Domanda and hands it to a new Sessione: what is typed, and every answered turn with what arrived of
+    /// the last answer; with no last answer, what is typed or else the last prompt.
     func turnIntoSession() -> SessionDraft {
         stop()
         let typed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !answer.isEmpty else { return SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed) }
-        return SessionDraft(prompt: typed, question: lastPrompt, answer: answer)
+        guard !answer.isEmpty else { return SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed, turns: turns) }
+        return SessionDraft(prompt: typed, turns: turns + [QuestionTurn(prompt: lastPrompt, answer: answer)])
     }
 
     /// Waits until the limit that stopped the last Domanda resets, then asks it again.
@@ -739,21 +780,24 @@ final class QuestionModel {
         savedNote = nil
         routedAnswer = nil
         isAnswering = true
+        lastActivity = now()
         let attachments = lastAttachments
+        let turns = turns
         answering = Task {
             if let endpoint {
-                await stream(text, attachments: attachments, from: endpoint, ignoringBudget: ignoringBudget)
+                await stream(text, after: turns, attachments: attachments, from: endpoint, ignoringBudget: ignoringBudget)
             } else {
-                await stream(Richiesta(text: text, attachments: attachments), route: route, speaksAnswer: speaksAnswer,
-                             ignoringBudget: ignoringBudget)
+                await stream(Richiesta(text: text, attachments: attachments), after: turns, route: route,
+                             speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
             }
+            if !Task.isCancelled { lastActivity = now() }
         }
     }
 
-    /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text, and the text of its Allegati when they
-    /// fit the endpoint's cap and the user confirmed them, straight from the Mac.
-    private func stream(_ text: String, attachments: [Allegato], from endpoint: OpenAICompatibleEndpoint,
-                        ignoringBudget: Bool) async {
+    /// Streams `endpoint`'s answer, picked in "Rifai con…": the Domanda's text after its earlier `turns`, and the
+    /// text of its Allegati when they fit the endpoint's cap and the user confirmed them, straight from the Mac.
+    private func stream(_ text: String, after turns: [QuestionTurn], attachments: [Allegato],
+                        from endpoint: OpenAICompatibleEndpoint, ignoringBudget: Bool) async {
         defer { isAnswering = false }
         // An explicit choice too: at 100% it asks first (spec 18).
         if !ignoringBudget, case let .exhausted(scope) = allowance(for: endpoint) {
@@ -771,7 +815,8 @@ final class QuestionModel {
         defer { intake.finish(submission) }
         lastType = submission.classification?.type
         guard !Task.isCancelled else { return }
-        await answer(AttachmentPolicy.prompt(text, attachments: attachments), from: endpoint, route: .retriedElsewhere,
+        await answer(AttachmentPolicy.prompt(QuestionTurn.transcript(turns, then: text), attachments: attachments),
+                     from: endpoint, route: .retriedElsewhere,
                      submission: submission, speaksAnswer: false)
     }
 
@@ -828,14 +873,17 @@ final class QuestionModel {
         }
     }
 
-    private func stream(_ richiesta: Richiesta, route chosen: Route?, speaksAnswer: Bool, ignoringBudget: Bool) async {
+    /// Streams the answer to `richiesta`, which the model reads after the Domanda's earlier `turns`.
+    private func stream(_ richiesta: Richiesta, after turns: [QuestionTurn], route chosen: Route?, speaksAnswer: Bool,
+                        ignoringBudget: Bool) async {
         defer { isAnswering = false }
         let signpostID = Signposts.signposter.makeSignpostID()
         var waitingForFirstToken: OSSignpostIntervalState? =
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
-        let text = richiesta.text
+        // The router classifies the prompt alone; the model reads it after the earlier turns.
+        let text = QuestionTurn.transcript(turns, then: richiesta.text)
         // The user's choice for this turn goes before any preference.
         let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog,
                                              preferences: chosen == nil ? await routerPreferences() : .none)
@@ -846,8 +894,8 @@ final class QuestionModel {
             guard !Task.isCancelled else { return }
             // The Tinta of the model's vendor, whatever the router would choose (ADR 0011).
             intake.answer(submission, movedTo: copilot.provider)
-            await answer(richiesta, withCopilot: copilot, route: route, submission: submission,
-                         speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
+            await answer(Richiesta(text: text, attachments: richiesta.attachments), withCopilot: copilot, route: route,
+                         submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
             return
         }
         if let endpoint = route.endpoint {
@@ -1161,11 +1209,25 @@ final class QuestionModel {
                                  catalog: { [weak self] in self?.catalog = $0 },
                                  remember: { [weak self] text, title in
                                      await self?.remember(text, titled: title) ?? "Bubo non è disponibile."
-                                 }) { [index] query, project, source in
-            await index?.toolResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
+                                 }) { [weak self] query, project, source in
+            await self?.searchResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
         return bridge
+    }
+
+    /// Returns what the `cerca` tool answers `claude`: the Indice, or without it the notes of the Secondo cervello
+    /// searched by words.
+    func searchResult(for query: String, project: String?, source: SearchSource?) async -> String {
+        if let index { return await index.toolResult(for: query, project: project, source: source) }
+        guard project == nil, source == nil || source == .secondBrain,
+              let location = secondBrain?.location else { return "L'Indice non è disponibile." }
+        return await Self.searchByWords(query, in: location.path, excluding: Set(location.excludedFolders))
+    }
+
+    @concurrent private static func searchByWords(_ query: String, in folder: String,
+                                                  excluding excludedFolders: Set<String>) async -> String {
+        WordSearch.toolResult(for: query, in: folder, excluding: excludedFolders)
     }
 
     /// Saves a note for the `ricorda` tool, and returns what the tool answers `claude`.
