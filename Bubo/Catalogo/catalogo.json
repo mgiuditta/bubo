@@ -167,6 +167,174 @@
       "categoria": "meteo",
       "descrizione": "Quando si parla di temporali e fulmini.",
       "parole": ["fulmine", "fulmini", "lightning", "temporale", "thunderstorm", "tuono", "saetta"]
+    },
+    {
+      "nome": "borsa-ghiaccio",
+      "forma": "borsa_ghiaccio",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di dolori, febbre e mal di testa.",
+      "parole": ["mal di testa", "emicrania", "migraine", "febbre", "dolore", "dolori"]
+    },
+    {
+      "nome": "giraffa",
+      "forma": "giraffa",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di animali della savana.",
+      "parole": ["giraffa", "giraffe", "savana", "safari", "leone", "elefante"]
+    },
+    {
+      "nome": "pinne",
+      "forma": "pinne",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di nuoto e sport d'acqua.",
+      "parole": ["pinne", "nuoto", "swimming", "piscina", "nuotare", "sport d'acqua"]
+    },
+    {
+      "nome": "boccale",
+      "forma": "boccale",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di birra e cocktail.",
+      "parole": ["boccale", "birra", "beer", "cocktail", "aperitivo", "brindisi", "pub"]
+    },
+    {
+      "nome": "evidenziatore",
+      "forma": "evidenziatore",
+      "categoria": "chat",
+      "descrizione": "Quando Bubo estrae i punti chiave e le frasi importanti di un testo.",
+      "parole": ["evidenziatore", "evidenzia", "highlight", "punti chiave", "key points", "frasi importanti"]
+    },
+    {
+      "nome": "zanzara",
+      "forma": "zanzara",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di punture d'insetto e repellenti.",
+      "parole": ["zanzara", "zanzare", "mosquito", "puntura", "repellente", "repellent"]
+    },
+    {
+      "nome": "pinguino",
+      "forma": "pinguino",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di animali dei poli.",
+      "parole": ["pinguino", "pinguini", "penguin", "antartide", "polo sud"]
+    },
+    {
+      "nome": "corda",
+      "forma": "corda",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di allenamento a casa senza attrezzi.",
+      "parole": ["corda per saltare", "jump rope", "allenamento a casa", "home workout", "senza attrezzi", "no equipment", "circuito"]
+    },
+    {
+      "nome": "carte",
+      "forma": "carte",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di giochi di carte.",
+      "parole": ["carte", "carte da gioco", "scopa", "briscola", "poker", "solitario", "solitaire"]
+    },
+    {
+      "nome": "tartaruga",
+      "forma": "tartaruga",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di rettili.",
+      "parole": ["tartaruga", "tartarughe", "turtle", "rettile", "rettili", "serpente"]
+    },
+    {
+      "nome": "sfigmomanometro",
+      "forma": "sfigmomanometro",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di pressione del sangue.",
+      "parole": ["pressione", "pressione del sangue", "blood pressure", "ipertensione", "sfigmomanometro", "valori di pressione"]
+    },
+    {
+      "nome": "joystick",
+      "forma": "joystick",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di videogiochi.",
+      "parole": ["joystick", "videogioco", "videogiochi", "videogame", "gaming", "console", "boss finale"]
+    },
+    {
+      "nome": "tappetino",
+      "forma": "tappetino",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di stretching, yoga e pilates.",
+      "parole": ["tappetino", "yoga", "pilates", "stretching", "yoga flow", "mobilita"]
+    },
+    {
+      "nome": "rana",
+      "forma": "rana",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di anfibi e stagni.",
+      "parole": ["rana", "rane", "frog", "rospo", "anfibio", "anfibi", "stagno"]
+    },
+    {
+      "nome": "cacciavite",
+      "forma": "cacciavite",
+      "categoria": "chat",
+      "descrizione": "Quando si chiede aiuto con un dispositivo: telefono, computer, tablet che non va.",
+      "parole": ["cacciavite", "screwdriver", "telefono si spegne", "laptop won't", "computer che non va", "dispositivo", "riparare il telefono"]
+    },
+    {
+      "nome": "pappagallo",
+      "forma": "pappagallo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di uccelli.",
+      "parole": ["pappagallo", "pappagalli", "parrot", "uccello", "uccelli", "picchio", "bird"]
+    },
+    {
+      "nome": "nodo",
+      "forma": "nodo",
+      "categoria": "chat",
+      "descrizione": "Quando si chiede come fare un gesto pratico passo passo: nodi, piegature, legature.",
+      "parole": ["nodo", "nodi", "knot", "cravatta", "piegare", "legare", "passo passo"]
+    },
+    {
+      "nome": "scimmia",
+      "forma": "scimmia",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di primati ed evoluzione.",
+      "parole": ["scimmia", "scimmie", "scimpanze", "monkey", "primati", "evoluzione", "evolve*"]
+    },
+    {
+      "nome": "elmo",
+      "forma": "elmo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di Medioevo: cavalieri, castelli, battaglie storiche.",
+      "parole": ["elmo", "medioevo", "medieval", "cavaliere", "castello", "guerra dei cent'anni"]
+    },
+    {
+      "nome": "cervo",
+      "forma": "cervo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di animali di montagna e del bosco.",
+      "parole": ["cervo", "cervi", "deer", "orso", "bosco", "montagna", "animali selvatici"]
+    },
+    {
+      "nome": "scoiattolo",
+      "forma": "scoiattolo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di piccoli animali selvatici di parchi e giardini.",
+      "parole": ["scoiattolo", "scoiattoli", "squirrel", "riccio", "ricci", "giardino"]
+    },
+    {
+      "nome": "cavalluccio-marino",
+      "forma": "cavalluccio_marino",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di curiosità sugli animali.",
+      "parole": ["cavalluccio marino", "seahorse", "animale piu veloce", "animali curiosi", "weird facts", "fatti curiosi sugli animali"]
+    },
+    {
+      "nome": "conchiglia",
+      "forma": "conchiglia",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di spiagge e scogli come ambiente naturale: conchiglie, coralli.",
+      "parole": ["conchiglia", "conchiglie", "shell", "corallo", "coralli", "barriera corallina", "scogli"]
+    },
+    {
+      "nome": "ragno",
+      "forma": "ragno",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di ragni e aracnidi.",
+      "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
     }
   ]
 }
