@@ -81,19 +81,25 @@ final class NeuronRenderer: NSObject, MTKViewDelegate {
     func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {}
 
     func draw(in view: MTKView) {
+        defer { onDraw?() }
+        guard let pass = view.currentRenderPassDescriptor, let drawable = view.currentDrawable,
+              let commands = encode(pass, size: view.bounds.size,
+                                    pixelsPerPoint: Float(view.window?.backingScaleFactor ?? 2))
+        else { return }
+        commands.present(drawable)
+        commands.commit()
+    }
+
+    /// Returns the commands that draw the Neuroni into `pass`, a view `size` points large, not yet committed.
+    func encode(_ pass: MTLRenderPassDescriptor, size: CGSize, pixelsPerPoint: Float) -> MTLCommandBuffer? {
         model.advance(to: CACurrentMediaTime())
         if builtVersion != model.contentVersion { rebuild() }
-        defer { onDraw?() }
-        guard let pass = view.currentRenderPassDescriptor,
-              let drawable = view.currentDrawable,
-              let commands = queue.makeCommandBuffer(),
+        guard let commands = queue.makeCommandBuffer(),
               let encoder = commands.makeRenderCommandEncoder(descriptor: pass)
-        else { return }
-        let size = view.bounds.size
+        else { return nil }
         var uniforms = NeuronUniforms(center: model.camera.center,
                                       viewport: SIMD2(Float(size.width), Float(size.height)),
-                                      scale: model.camera.scale,
-                                      pixelsPerPoint: Float(view.window?.backingScaleFactor ?? 2),
+                                      scale: model.camera.scale, pixelsPerPoint: pixelsPerPoint,
                                       selected: model.selection.map(UInt32.init) ?? .max)
         encoder.setVertexBytes(&uniforms, length: MemoryLayout<NeuronUniforms>.stride, index: 1)
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<NeuronUniforms>.stride, index: 1)
@@ -114,8 +120,7 @@ final class NeuronRenderer: NSObject, MTKViewDelegate {
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4, instanceCount: ringCount)
         }
         encoder.endEncoding()
-        commands.present(drawable)
-        commands.commit()
+        return commands
     }
 
     /// Writes the notes, the links and the rings again.

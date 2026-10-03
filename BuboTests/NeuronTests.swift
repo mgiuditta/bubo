@@ -1,4 +1,5 @@
 import Foundation
+import MetalKit
 import simd
 import Testing
 @testable import Bubo
@@ -102,6 +103,16 @@ struct NeuronLayoutTests {
         #expect(positions.allSatisfy { $0.x.isFinite && $0.y.isFinite })
     }
 
+    @Test("A hub linked to hundreds of notes keeps every place finite")
+    func hubStaysFinite() {
+        var links = Dictionary(uniqueKeysWithValues: (0..<400).map { index in
+            ("Note/\(index).md", [NoteLink(target: "Hub", kind: .wikilink), NoteLink(target: "\(index + 1)", kind: .wikilink)])
+        })
+        links["Hub.md"] = []
+        let positions = NeuronLayout.positions(of: NeuronGraph(links: links), steps: 60)
+        #expect(positions.allSatisfy { $0.x.isFinite && $0.y.isFinite })
+    }
+
     @Test("Notes already placed stay where they were")
     func keepsPlaced() {
         let first = NeuronLayout.positions(of: graph)
@@ -133,5 +144,45 @@ struct NeuronModelTests {
         #expect(saved["Idee.md"]?.position == positions[0])
         let again = await NeuronModel.read(location, cache: cache)
         #expect(again.positions == positions)
+    }
+}
+
+@MainActor
+struct NeuronRendererTests {
+    @Test("The map draws the notes and their links over the dark plane")
+    func drawsNotes() async throws {
+        let folder = URL.temporaryDirectory.appending(path: "Neuroni-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        try FileManager.default.createDirectory(at: folder.appending(path: "Demo"), withIntermediateDirectories: true)
+        for (name, text) in [("RAG", "[[Bubo]] e [[Intervista]]"), ("Bubo", "[[RAG]]"), ("Intervista", "")] {
+            try text.write(to: folder.appending(path: "Demo/\(name).md"), atomically: true, encoding: .utf8)
+        }
+        let model = NeuronModel(secondBrain: SecondBrainLocation(folder: folder),
+                                cache: NeuronCache(folder: folder.appending(path: ".cache")))
+        await model.refresh()
+        let size = CGSize(width: 200, height: 150)
+        model.resize(to: size)
+        let device = try #require(MTLCreateSystemDefaultDevice())
+        let renderer = try NeuronRenderer(view: MTKView(frame: CGRect(origin: .zero, size: size), device: device),
+                                          model: model)
+        let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm, width: 400, height: 300,
+                                                                  mipmapped: false)
+        descriptor.usage = .renderTarget
+        descriptor.storageMode = .shared
+        let texture = try #require(device.makeTexture(descriptor: descriptor))
+        let pass = MTLRenderPassDescriptor()
+        pass.colorAttachments[0].texture = texture
+        pass.colorAttachments[0].loadAction = .clear
+        pass.colorAttachments[0].storeAction = .store
+        pass.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 1)
+        let commands = try #require(renderer.encode(pass, size: size, pixelsPerPoint: 2))
+        await withCheckedContinuation { continuation in
+            commands.addCompletedHandler { _ in continuation.resume() }
+            commands.commit()
+        }
+        var pixels = [UInt8](repeating: 0, count: 400 * 300 * 4)
+        texture.getBytes(&pixels, bytesPerRow: 400 * 4, from: MTLRegionMake2D(0, 0, 400, 300), mipmapLevel: 0)
+        let lit = stride(from: 0, to: pixels.count, by: 4).filter { pixels[$0] > 40 || pixels[$0 + 1] > 40 }.count
+        #expect(lit > 50)
     }
 }

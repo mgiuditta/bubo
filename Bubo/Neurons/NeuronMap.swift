@@ -52,8 +52,13 @@ final class NeuronMapNSView: MTKView {
         fatalError("init(coder:) is not supported")
     }
 
+    /// Whether the window was reported covered or minimized. Only a change reported by AppKit counts: right after
+    /// the window shows, `occlusionState` can still miss `.visible` with no change notified later, and a map that
+    /// waited for it never drew the notes (#658).
+    private var isOccluded = false
+
     private var isVisible: Bool {
-        window?.occlusionState.contains(.visible) ?? false
+        window != nil && !isOccluded
     }
 
     private func requestDraw() {
@@ -83,7 +88,12 @@ final class NeuronMapNSView: MTKView {
         super.viewDidMoveToWindow()
         if let occlusion { NotificationCenter.default.removeObserver(occlusion) }
         occlusion = nil
+        isOccluded = false
         guard let window else { return }
+        if needsDrawWhenVisible {
+            needsDrawWhenVisible = false
+            needsDisplay = true
+        }
         occlusion = NotificationCenter.default.addObserver(forName: NSWindow.didChangeOcclusionStateNotification,
                                                            object: window, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.occlusionChanged() }
@@ -91,6 +101,7 @@ final class NeuronMapNSView: MTKView {
     }
 
     private func occlusionChanged() {
+        isOccluded = window.map { !$0.occlusionState.contains(.visible) } ?? false
         if isVisible {
             if model.isAnimating {
                 startContinuousDrawing()
