@@ -47,6 +47,7 @@ struct RouterChip: View {
         case .claude: .anthropic
         case .onDevice: nil
         case let .endpoint(endpoint): endpoint.provider
+        case let .copilot(model): model.provider
         }
         let base = Tinta(for: provider).base
         return Color(.sRGB, red: Double(base.x), green: Double(base.y), blue: Double(base.z))
@@ -59,7 +60,7 @@ struct RouterChip: View {
             let name = "\(endpoint.name) · \(endpoint.model)"
             return (name, name)
         }
-        guard let name = route.family?.name else { return nil }
+        guard let name = route.family?.name ?? route.copilotModel?.name else { return nil }
         guard let effort = route.effort else { return (name, name) }
         let level = String(localized: effort.label)
         return (String(localized: "\(name) · \(level)",

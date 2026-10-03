@@ -113,6 +113,7 @@ final class IntakePipeline {
         case .claude: provider
         case .onDevice: Provider?.none
         case let .endpoint(endpoint): endpoint.provider
+        case let .copilot(model): model.provider
         }
         if id == latest {
             orb.variante = classification.variante

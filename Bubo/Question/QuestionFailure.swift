@@ -16,6 +16,10 @@ enum QuestionFailure: Error, Equatable {
     /// A Budget the Domanda counts in is spent: it was not sent, or `claude` stopped at the cap. Nothing is asked again
     /// without the user's choice.
     case budgetExhausted(QuestionBudgetStop)
+    /// No `copilot` with a paid plan answers a Domanda the user sent to Copilot (ADR 0011).
+    case copilotUnavailable
+    /// Copilot did not answer, saying why.
+    case copilotFailed(String)
     /// Anything else, such as the Domande folder not being writable.
     case unexpected
 }

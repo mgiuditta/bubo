@@ -122,6 +122,8 @@ struct QuestionView: View {
         .popover(isPresented: $isPickingRetry, arrowEdge: .bottom) {
             RetryWithList(alternatives: model.retryAlternatives, excluded: model.excludedEndpoints,
                           usesAPIKey: model.usesAPIKey, type: model.lastType, alwaysUse: $alwaysUse, pick: pick)
+                // The models of the Copilot plan, read when the user asks for the list: never in the background.
+                .task { await model.readCopilotModels() }
         }
         // "Usa sempre per «Tipo»" starts off every time "Rifai con…" opens.
         .onChange(of: isPickingRetry) {

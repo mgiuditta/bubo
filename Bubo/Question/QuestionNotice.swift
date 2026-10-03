@@ -49,6 +49,12 @@ struct QuestionNotice: View {
         case .bridge(.budgetExhausted):
             ErrorNotice("Budget esaurito", remedy: "Aumentalo in Impostazioni › Budget, poi riprova.",
                         actionTitle: "Riprova", action: model.retry)
+        case .copilotUnavailable:
+            ErrorNotice("Copilot non è collegato",
+                        remedy: "Collegalo in Impostazioni › Modelli. Serve un piano Copilot a pagamento.",
+                        actionTitle: "Apri Impostazioni") { openSettings() }
+        case .copilotFailed(let message):
+            ErrorNotice("Copilot non ha risposto", remedy: "\(message)", actionTitle: "Rifai con…", action: pickRetry)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
                         actionTitle: "Apri Impostazioni") { openSettings() }

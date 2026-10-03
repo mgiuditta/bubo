@@ -30,6 +30,26 @@ nonisolated struct CopilotModel: Decodable, Equatable, Sendable {
         defaultEffort = try container.decodeIfPresent(String.self, forKey: .defaultEffort).flatMap(Effort.init(rawValue:))
     }
 
+    /// The vendor of the model, whose Tinta the Orb takes while it answers: GPT via Copilot has OpenAI's (ADR 0011);
+    /// `nil` for a vendor Bubo does not recognize from the id, and the neutral Tinta.
+    var provider: Provider? {
+        let id = id.lowercased()
+        if id.hasPrefix("claude") { return .anthropic }
+        if id.hasPrefix("gpt") || id.hasPrefix("o1") || id.hasPrefix("o3") || id.hasPrefix("o4") || id.hasPrefix("codex") {
+            return .openAI
+        }
+        if id.hasPrefix("gemini") { return .google }
+        if id.hasPrefix("grok") { return .xAI }
+        return id.split(separator: "-").first.flatMap { Provider(named: String($0)) }
+    }
+
+    /// The effort just above `effort` among the model's own, for "Rifai più forte"; `nil` at the top, for a model
+    /// without efforts, and when `effort` is not known.
+    func effort(above effort: Effort?) -> Effort? {
+        guard let current = effort ?? defaultEffort else { return nil }
+        return supportedEfforts.filter { $0 > current }.min()
+    }
+
     private enum CodingKeys: String, CodingKey {
         case id, name, multiplier, supportedEfforts, defaultEffort
     }

@@ -49,7 +49,10 @@ struct RouterLine: View {
     private var model: (text: String, spoken: String)? {
         let name: String
         let effort: Effort?
-        if let answering = answer.answeringModel {
+        if let copilot = answer.route.copilotModel {
+            // The name `listModels()` gives, not `copilot`'s id.
+            (name, effort) = (copilot.name, answer.answeringModel?.effort ?? answer.route.effort)
+        } else if let answering = answer.answeringModel {
             (name, effort) = (answering.name, answering.effort)
         } else if let family = answer.route.family {
             (name, effort) = (family.name, answer.route.effort)
@@ -73,7 +76,19 @@ struct RouterLine: View {
         case .claude: route.family?.name ?? ""
         case .onDevice: appleFM
         case let .endpoint(endpoint): endpoint.name
+        case let .copilot(model): model.name
         }
+        if route.copilotModel != nil {
+            // Copilot is a channel, not the model's vendor: the line says it (ADR 0011).
+            let reason = String(localized: reason(for: route, named: family))
+            return LocalizedStringResource("\(reason), via Copilot",
+                                           comment: "Reason line of an answer from a model of the user's GitHub Copilot plan: the reason, then «via Copilot».")
+        }
+        return reason(for: route, named: family)
+    }
+
+    /// Why the router chose `route`, whose model is called `family`.
+    private static func reason(for route: Route, named family: String) -> LocalizedStringResource {
         if case let .type(type, _) = route.reason, let avoided = route.avoidedBudget {
             let budget = BudgetGuard.Scope.provider(avoided).budgetTitle
             return LocalizedStringResource("\(String(localized: type.label)) → \(family), \(budget) oltre la soglia",

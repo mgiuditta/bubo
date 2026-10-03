@@ -5,4 +5,6 @@ nonisolated enum TypePreference: Codable, Equatable, Sendable {
     case claude(Scala.Step)
     /// The OpenAI-compatible endpoint with this id, with the model the user set for it.
     case endpoint(id: String)
+    /// A model of the user's Copilot plan, by its id and name, at its own default effort (ADR 0011).
+    case copilot(id: String, name: String)
 }

@@ -18433,6 +18433,80 @@
           }
         }
       }
+    },
+    "%@, via Copilot" : {
+      "comment" : "Reason line of an answer from a model of the user's GitHub Copilot plan: the reason, then «via Copilot».",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, via Copilot"
+          }
+        }
+      }
+    },
+    "%@ via Copilot" : {
+      "comment" : "A model of the user's GitHub Copilot plan, such as «GPT-6 via Copilot», or where it runs, such as «OpenAI via Copilot».",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ via Copilot"
+          }
+        }
+      }
+    },
+    "via Copilot" : {
+      "comment" : "Where a model of «Rifai con…» runs: through the user's GitHub Copilot plan, its vendor unknown.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "via Copilot"
+          }
+        }
+      }
+    },
+    "dal tuo piano Copilot" : {
+      "comment" : "Cost of a model of «Rifai con…» through GitHub Copilot: paid from the user's Copilot plan.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from your Copilot plan"
+          }
+        }
+      }
+    },
+    "Copilot non è collegato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot isn't connected"
+          }
+        }
+      }
+    },
+    "Collegalo in Impostazioni › Modelli. Serve un piano Copilot a pagamento." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect it in Settings › Models. It needs a paid Copilot plan."
+          }
+        }
+      }
+    },
+    "Copilot non ha risposto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot didn't answer"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

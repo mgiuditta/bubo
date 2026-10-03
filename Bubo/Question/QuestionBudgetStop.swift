@@ -12,6 +12,6 @@ nonisolated struct QuestionBudgetStop: Equatable, Sendable {
 
     /// Whether the Domanda went to Claude with the API key: Passa all'abbonamento makes sense.
     var isClaude: Bool {
-        endpoint == nil && route.endpoint == nil
+        endpoint == nil && route.endpoint == nil && route.copilotModel == nil
     }
 }
