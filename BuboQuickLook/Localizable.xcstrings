@@ -1,0 +1,156 @@
+{
+  "sourceLanguage": "it",
+  "strings": {
+    "%@, non questa Macchina": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@, not this Machine"
+          }
+        }
+      }
+    },
+    "Aprila in Bubo per leggerla.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open it in Bubo to read it."
+          }
+        }
+      }
+    },
+    "Aprilo in Bubo e confronta il codice a voce con l'altra persona.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open it in Bubo and compare the code aloud with the other person."
+          }
+        }
+      }
+    },
+    "Attenzione": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Warning"
+          }
+        }
+      }
+    },
+    "Biglietto Bubo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bubo Ticket"
+          }
+        }
+      }
+    },
+    "Chiave": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Key"
+          }
+        }
+      }
+    },
+    "Consegna Bubo, cifrata": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encrypted Bubo Delivery"
+          }
+        }
+      }
+    },
+    "Da": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        }
+      }
+    },
+    "Di": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        }
+      }
+    },
+    "Dimensioni": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Size"
+          }
+        }
+      }
+    },
+    "Per": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        }
+      }
+    },
+    "da verificare in Bubo": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "check in Bubo"
+          }
+        }
+      }
+    },
+    "mittente sconosciuto": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "unknown sender"
+          }
+        }
+      }
+    },
+    "questa Macchina": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "this Machine"
+          }
+        }
+      }
+    },
+    "un'altra Macchina": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "another Machine"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -13,9 +13,14 @@ team=${BUBO_TEAM_ID:-U38D796ZBJ}
 
 # Percorso nel bundle → entitlement ammessi, in JSON. Gli eseguibili non elencati non devono averne.
 typeset -A allowed
+# L'App Group dell'app e di BuboQuickLook è la cartella dei Biglietti: senza, l'estensione in sandbox non li legge e
+# ogni Consegna in Quick Look ha "mittente sconosciuto" (BuboFileSummaryTests). Senza app-sandbox macOS non carica
+# l'estensione Quick Look.
+group=$team.com.mgiuditta.bubo
 allowed=(
-    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$team.com.mgiuditta.bubo\"]}"
+    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$group\"],\"com.apple.security.application-groups\":[\"$group\"]}"
     Contents/Helpers/bubo-agent '{"com.apple.security.cs.allow-jit":true}'
+    Contents/PlugIns/BuboQuickLook.appex/Contents/MacOS/BuboQuickLook "{\"com.apple.security.app-sandbox\":true,\"com.apple.security.application-groups\":[\"$group\"]}"
 )
 
 failures=0

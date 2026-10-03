@@ -259,10 +259,3 @@ nonisolated struct DeliveryOpener: Sendable {
         return output.standardOutput.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
-
-private extension ReceivedTicket {
-    /// The identifier of the verified key; `nil` when the key does not decode.
-    nonisolated var keyIdentifier: KeyID? {
-        (try? P256.KeyAgreement.PublicKey(x963Representation: publicKey)).map(KeyID.init)
-    }
-}
