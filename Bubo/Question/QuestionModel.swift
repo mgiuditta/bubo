@@ -1161,11 +1161,25 @@ final class QuestionModel {
                                  catalog: { [weak self] in self?.catalog = $0 },
                                  remember: { [weak self] text, title in
                                      await self?.remember(text, titled: title) ?? "Bubo non è disponibile."
-                                 }) { [index] query, project, source in
-            await index?.toolResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
+                                 }) { [weak self] query, project, source in
+            await self?.searchResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
         return bridge
+    }
+
+    /// Returns what the `cerca` tool answers `claude`: the Indice, or without it the notes of the Secondo cervello
+    /// searched by words.
+    func searchResult(for query: String, project: String?, source: SearchSource?) async -> String {
+        if let index { return await index.toolResult(for: query, project: project, source: source) }
+        guard project == nil, source == nil || source == .secondBrain,
+              let location = secondBrain?.location else { return "L'Indice non è disponibile." }
+        return await Self.searchByWords(query, in: location.path, excluding: Set(location.excludedFolders))
+    }
+
+    @concurrent private static func searchByWords(_ query: String, in folder: String,
+                                                  excluding excludedFolders: Set<String>) async -> String {
+        WordSearch.toolResult(for: query, in: folder, excluding: excludedFolders)
     }
 
     /// Saves a note for the `ricorda` tool, and returns what the tool answers `claude`.
