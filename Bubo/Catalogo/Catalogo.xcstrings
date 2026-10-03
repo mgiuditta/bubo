@@ -19,6 +19,24 @@
         }
       }
     },
+    "alveare" : {
+      "comment" : "Etichetta della Variante alveare (Categoria Agente): un favo di sette celle.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beehive"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alveare"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -109,6 +127,42 @@
         }
       }
     },
+    "carrello" : {
+      "comment" : "Etichetta della Variante carrello (Categoria Ricerca): un carrello della spesa con quattro ruote.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping cart"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carrello"
+          }
+        }
+      }
+    },
+    "carta-di-credito" : {
+      "comment" : "Etichetta della Variante carta-di-credito (Categoria Finanza): una carta con il chip.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Credit card"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carta di credito"
+          }
+        }
+      }
+    },
     "carte" : {
       "comment" : "Etichetta della Variante carte (Categoria Chat): un ventaglio di tre carte da gioco.",
       "extractionState" : "manual",
@@ -123,6 +177,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carte"
+          }
+        }
+      }
+    },
+    "cassaforte" : {
+      "comment" : "Etichetta della Variante cassaforte (Categoria Finanza): una cassaforte con la manopola tonda.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Safe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cassaforte"
           }
         }
       }
@@ -181,6 +253,24 @@
         }
       }
     },
+    "ciak" : {
+      "comment" : "Etichetta della Variante ciak (Categoria Creativo): un ciak con l'asta aperta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clapperboard"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ciak"
+          }
+        }
+      }
+    },
     "clessidra" : {
       "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
       "extractionState" : "manual",
@@ -217,6 +307,24 @@
         }
       }
     },
+    "container" : {
+      "comment" : "Etichetta della Variante container (Categoria Codice): un container da nave con le coste.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Container"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Container"
+          }
+        }
+      }
+    },
     "corda" : {
       "comment" : "Etichetta della Variante corda (Categoria Salute): una corda per saltare con due manici.",
       "extractionState" : "manual",
@@ -249,6 +357,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuore"
+          }
+        }
+      }
+    },
+    "elenco" : {
+      "comment" : "Etichetta della Variante elenco (Categoria Agente): tre pallini con tre righe.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "List"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elenco"
           }
         }
       }
@@ -325,6 +451,24 @@
         }
       }
     },
+    "gelato" : {
+      "comment" : "Etichetta della Variante gelato (Categoria Chat): un cono con due palline.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ice cream"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gelato"
+          }
+        }
+      }
+    },
     "giraffa" : {
       "comment" : "Etichetta della Variante giraffa (Categoria Chat): una giraffa di profilo con il collo lungo.",
       "extractionState" : "manual",
@@ -379,6 +523,24 @@
         }
       }
     },
+    "graffetta" : {
+      "comment" : "Etichetta della Variante graffetta (Categoria Mail): una graffetta a doppia ansa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper clip"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Graffetta"
+          }
+        }
+      }
+    },
     "imbuto" : {
       "comment" : "Etichetta della Variante imbuto (Categoria Chat): un imbuto da cui scende una goccia.",
       "extractionState" : "manual",
@@ -393,6 +555,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Imbuto"
+          }
+        }
+      }
+    },
+    "ingranaggio" : {
+      "comment" : "Etichetta della Variante ingranaggio (Categoria Codice): una ruota dentata a otto denti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cog"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ingranaggio"
           }
         }
       }
@@ -433,6 +613,24 @@
         }
       }
     },
+    "lampadina" : {
+      "comment" : "Etichetta della Variante lampadina (Categoria Creativo): una lampadina con la ghiera.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light bulb"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lampadina"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -469,6 +667,24 @@
         }
       }
     },
+    "meridiana" : {
+      "comment" : "Etichetta della Variante meridiana (Categoria Tempo): una meridiana con lo gnomone.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sundial"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meridiana"
+          }
+        }
+      }
+    },
     "moneta" : {
       "comment" : "Etichetta della Variante moneta (Categoria Finanza): una moneta.",
       "extractionState" : "manual",
@@ -483,6 +699,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moneta"
+          }
+        }
+      }
+    },
+    "nave" : {
+      "comment" : "Etichetta della Variante nave (Categoria Viaggi): una nave con due ciminiere.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ship"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nave"
           }
         }
       }
@@ -541,6 +775,42 @@
         }
       }
     },
+    "ombrello" : {
+      "comment" : "Etichetta della Variante ombrello (Categoria Meteo): un ombrello aperto con il manico ricurvo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Umbrella"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ombrello"
+          }
+        }
+      }
+    },
+    "papera" : {
+      "comment" : "Etichetta della Variante papera (Categoria Codice): una paperella di gomma di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rubber duck"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Papera"
+          }
+        }
+      }
+    },
     "pappagallo" : {
       "comment" : "Etichetta della Variante pappagallo (Categoria Chat): un pappagallo su un ramo.",
       "extractionState" : "manual",
@@ -595,6 +865,24 @@
         }
       }
     },
+    "pillola" : {
+      "comment" : "Etichetta della Variante pillola (Categoria Salute): una capsula divisa a metà.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pill"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pillola"
+          }
+        }
+      }
+    },
     "pinguino" : {
       "comment" : "Etichetta della Variante pinguino (Categoria Chat): un pinguino in piedi.",
       "extractionState" : "manual",
@@ -627,6 +915,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pinne"
+          }
+        }
+      }
+    },
+    "pinza" : {
+      "comment" : "Etichetta della Variante pinza (Categoria Codice): una pinza a becchi lunghi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pliers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinza"
           }
         }
       }
@@ -739,6 +1045,24 @@
         }
       }
     },
+    "scarpa-da-corsa" : {
+      "comment" : "Etichetta della Variante scarpa-da-corsa (Categoria Salute): una scarpa da corsa di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running shoe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarpa da corsa"
+          }
+        }
+      }
+    },
     "scimmia" : {
       "comment" : "Etichetta della Variante scimmia (Categoria Chat): una scimmia seduta con la coda arrotolata.",
       "extractionState" : "manual",
@@ -775,6 +1099,24 @@
         }
       }
     },
+    "sega" : {
+      "comment" : "Etichetta della Variante sega (Categoria Codice): una sega a mano con lama dentata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saw"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sega"
+          }
+        }
+      }
+    },
     "sfigmomanometro" : {
       "comment" : "Etichetta della Variante sfigmomanometro (Categoria Salute): un bracciale con il tubo e la pompetta.",
       "extractionState" : "manual",
@@ -789,6 +1131,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "stella" : {
+      "comment" : "Etichetta della Variante stella (Categoria Ricerca): una stella a cinque punte arrotondata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Star"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stella"
           }
         }
       }
@@ -843,6 +1203,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminale"
+          }
+        }
+      }
+    },
+    "treno" : {
+      "comment" : "Etichetta della Variante treno (Categoria Viaggi): una locomotiva a vapore.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Treno"
+          }
+        }
+      }
+    },
+    "tromba" : {
+      "comment" : "Etichetta della Variante tromba (Categoria Musica): una tromba di profilo con tre pistoni.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trumpet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tromba"
+          }
+        }
+      }
+    },
+    "vassoio" : {
+      "comment" : "Etichetta della Variante vassoio (Categoria Mail): un vassoio da scrivania con due fogli.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tray"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vassoio"
           }
         }
       }
