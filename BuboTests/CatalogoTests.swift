@@ -53,10 +53,10 @@ struct CatalogoTests {
         #expect(catalogo.rosa(around: .ricerca).count == 5)
     }
 
-    @Test func theFirstBlockHasOneVariantePerCategoria() throws {
+    @Test func everyCategoriaHasAVariante() throws {
         let catalogo = try Self.bundled.get()
         for categoria in Categoria.allCases {
-            #expect(catalogo.varianti(in: categoria).count == 1, "\(categoria)")
+            #expect(!catalogo.varianti(in: categoria).isEmpty, "\(categoria)")
         }
     }
 

@@ -37,6 +37,42 @@
         }
       }
     },
+    "calendario" : {
+      "comment" : "Etichetta della Variante calendario (Categoria Tempo): un calendario da tavolo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendario"
+          }
+        }
+      }
+    },
+    "cervello" : {
+      "comment" : "Etichetta della Variante cervello (Categoria Chat): un cervello di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brain"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cervello"
+          }
+        }
+      }
+    },
     "clessidra" : {
       "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
       "extractionState" : "manual",
@@ -73,6 +109,24 @@
         }
       }
     },
+    "fulmine" : {
+      "comment" : "Etichetta della Variante fulmine (Categoria Meteo): una saetta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lightning Bolt"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fulmine"
+          }
+        }
+      }
+    },
     "fumetto" : {
       "comment" : "Etichetta della Variante fumetto (Categoria Chat): un fumetto di dialogo.",
       "extractionState" : "manual",
@@ -91,6 +145,78 @@
         }
       }
     },
+    "globo" : {
+      "comment" : "Etichetta della Variante globo (Categoria Ricerca): un mappamondo che ruota.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Globo"
+          }
+        }
+      }
+    },
+    "gomma" : {
+      "comment" : "Etichetta della Variante gomma (Categoria Chat): una gomma per cancellare.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eraser"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gomma"
+          }
+        }
+      }
+    },
+    "imbuto" : {
+      "comment" : "Etichetta della Variante imbuto (Categoria Chat): un imbuto da cui scende una goccia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Funnel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Imbuto"
+          }
+        }
+      }
+    },
+    "insetto" : {
+      "comment" : "Etichetta della Variante insetto (Categoria Codice): uno scarabeo visto dall'alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bug"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insetto"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -105,6 +231,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lente"
+          }
+        }
+      }
+    },
+    "matita" : {
+      "comment" : "Etichetta della Variante matita (Categoria Codice): una matita che traccia un segno.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pencil"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Matita"
           }
         }
       }
@@ -199,6 +343,60 @@
         }
       }
     },
+    "provetta" : {
+      "comment" : "Etichetta della Variante provetta (Categoria Codice): una provetta a metà.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test Tube"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Provetta"
+          }
+        }
+      }
+    },
+    "punto-interrogativo" : {
+      "comment" : "Etichetta della Variante punto-interrogativo (Categoria Chat): un punto interrogativo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question Mark"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punto interrogativo"
+          }
+        }
+      }
+    },
+    "ramo" : {
+      "comment" : "Etichetta della Variante ramo (Categoria Codice): un ramo di git con tre nodi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Branch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ramo"
+          }
+        }
+      }
+    },
     "robot" : {
       "comment" : "Etichetta della Variante robot (Categoria Agente): la testa di un robot.",
       "extractionState" : "manual",
@@ -213,6 +411,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Robot"
+          }
+        }
+      }
+    },
+    "terminale" : {
+      "comment" : "Etichetta della Variante terminale (Categoria Codice): una finestra di terminale con il prompt.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminale"
           }
         }
       }
