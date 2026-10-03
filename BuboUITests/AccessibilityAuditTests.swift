@@ -26,14 +26,14 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     }
 
     @MainActor func testUpdatesSettingsHaveNoAccessibilityIssues() throws {
-        let app = launchBubo(showingPanel: false)
+        // The tab is preselected: at 480 pt Aggiornamenti sits in the toolbar's overflow menu.
+        let app = launchBubo(showingPanel: false, settingsTab: "updates")
         defer { app.terminate() }
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
         app.typeKey(",", modifierFlags: .command)
         let settings = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settings.waitForExistence(timeout: 10), "Le Impostazioni non si sono aperte.")
-        settings.toolbars.buttons["Aggiornamenti"].click()
-        XCTAssertTrue(settings.checkBoxes["Ricevi le beta"].waitForExistence(timeout: 10), "Manca la scheda Aggiornamenti.")
+        XCTAssertTrue(settings.descendants(matching: .any)["Ricevi le beta"].waitForExistence(timeout: 10), "Manca la scheda Aggiornamenti.")
         try audit(app)
     }
 
@@ -42,7 +42,10 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
         let app = launchBubo(showingPanel: false)
         defer { app.terminate() }
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
-        XCTAssertTrue(app.menuBars.menuItems["Controlla aggiornamenti…"].exists, "Manca Controlla aggiornamenti….")
+        // A submenu's items reach the accessibility tree only while it is open.
+        app.menuBars.menuBarItems["Bubo"].click()
+        XCTAssertTrue(app.menuBars.menuItems["Controlla aggiornamenti…"].waitForExistence(timeout: 5),
+                      "Manca Controlla aggiornamenti….")
     }
 
     @MainActor func testPanelHasNoAccessibilityIssues() throws {
@@ -59,9 +62,11 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     private static let hudWindow = "hud"
 
     /// Launches Bubo with the Panel preference forced, so the user's settings do not matter.
-    @MainActor private func launchBubo(showingPanel: Bool) -> XCUIApplication {
+    @MainActor private func launchBubo(showingPanel: Bool, settingsTab: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-showsPanel", showingPanel ? "YES" : "NO"]
+        // Italian whatever the Mac's language: the tests look elements up by their Italian titles.
+        app.launchArguments = ["-showsPanel", showingPanel ? "YES" : "NO", "-AppleLanguages", "(it)", "-AppleLocale", "it_IT"]
+        if let settingsTab { app.launchArguments += ["-settings.tab", settingsTab] }
         app.launch()
         return app
     }
@@ -72,11 +77,16 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
         // Close, minimize and zoom: XCUITest names them `_XCUI:CloseWindow` and so on.
         let titleBarButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH '_XCUI:'"))
         let titleBarFrames = titleBarButtons.allElementsBoundByIndex.map(\.frame)
-        try app.performAccessibilityAudit { issue in
+        // ponytail: contrast is left out. On the HUD's and Settings' translucent windows the audit samples the desktop
+        // behind them and fails white-on-dark text; token contrast is checked by PaletteContrastTests instead.
+        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(.contrast)) { issue in
             guard let element = issue.element else { return false }
             if titleBarFrames.contains(where: { $0.contains(element.frame) }) { return true }
             guard issue.auditType == .sufficientElementDescription else { return false }
             switch element.elementType {
+            case .popUpButton:
+                // AppKit's toolbar overflow chevron in Settings («ulteriori elementi della barra strumenti»).
+                return element.label == "ulteriori elementi della barra strumenti"
             case .touchBar:
                 // The Touch Bar AppKit gives every app, even on Macs without one.
                 return true
