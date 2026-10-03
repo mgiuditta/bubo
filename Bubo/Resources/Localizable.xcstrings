@@ -12434,6 +12434,26 @@
         }
       }
     },
+    "Nuova Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Question"
+          }
+        }
+      }
+    },
+    "Nuova Domanda (⌘N)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Question (⌘N)"
+          }
+        }
+      }
+    },
     "Nuova Sessione" : {
       "localizations" : {
         "en" : {
@@ -13102,18 +13122,13 @@
         }
       }
     },
-    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@\n\n%@" : {
+    "Prima ti ho chiesto: %@\n\nMi hai risposto: %@" : {
+      "comment" : "A previous turn of a Domanda, sent to the model as context: what the user asked, then what the model answered",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@\n\n%3$@"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Prima ti ho chiesto: %1$@\n\nMi hai risposto: %2$@\n\n%3$@"
+            "value" : "Earlier I asked you: %1$@\n\nYou answered: %2$@"
           }
         }
       }

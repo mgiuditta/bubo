@@ -84,7 +84,7 @@ struct QuestionModelTests {
 
         let draft = model.turnIntoSession()
 
-        #expect(draft == SessionDraft(prompt: "Fallo", question: "Ciao", answer: "a consumo"))
+        #expect(draft == SessionDraft(prompt: "Fallo", turns: [QuestionTurn(prompt: "Ciao", answer: "a consumo")]))
         #expect(draft.firstPrompt("Fallo").contains("Ciao"))
         #expect(draft.firstPrompt("Fallo").contains("a consumo"))
         #expect(draft.firstPrompt("Fallo").hasSuffix("Fallo"))
