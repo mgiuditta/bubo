@@ -299,8 +299,13 @@ I passi segnati **(umano)** servono account, certificati, segreti o il Mac di ri
    - **DMG APFS UDZO**: solo macOS 26 (ADR 0001), quindi HFS+ non serve.
    - **Tag fuori formato** (`v1.2`, `-rc.1`): il job si ferma prima di compilare.
    - **Note della release** ancora solo "Bubo X.Y.Z": arrivano da `CHANGELOG.md` con l'appcast (passo 5).
-   - **`BuboReleaseName` nell'Info.plist** rimandata: con `GENERATE_INFOPLIST_FILE` una chiave personalizzata richiede di toccare `project.yml`. Per ora il nome della release sta solo nel tag e nella release.
+   - **`BuboReleaseName` nell'Info.plist**: arriva con il passo 4.
 4. **Sparkle nell'app**: pacchetto SPM, Info.plist parziale (`SUFeedURL`, `SUPublicEDKey`, chiavi di controllo e installazione, feed firmato), servizi XPC tolti, `UpdateController`, `UpdatePreferences`, Impostazioni › Aggiornamenti, "Controlla aggiornamenti…" nel menu, nella barra dei menu e nella Palette. Provato con un appcast locale. Indipendente da 2–3.
+   - **Chiavi in `info.properties` di `project.yml`** ([#222](https://github.com/mgiuditta/bubo/issues/222)), non in un Info.plist a mano: XcodeGen scrive `Bubo/Info.plist` e Xcode lo unisce a quello generato. `SURequireSignedFeed` vuole anche `SUVerifyUpdateBeforeExtraction` YES, altrimenti `SPUUpdater` non parte.
+   - **Feed e chiave pubblica da riempire con #220**: build setting `SPARKLE_FEED_URL` e `SPARKLE_PUBLIC_ED_KEY`, vuoti finché non c'è la coppia EdDSA e `bubo-releases`. Vuoti, l'updater non parte, `build.sh` si ferma e il test `aReleaseHasTheFeedAndTheKey` fallisce in Release.
+   - **`SPUUpdater` con `SPUStandardUserDriver`**, non `SPUStandardUpdaterController`: i test passano un bundle finto. Le scelte di Impostazioni › Aggiornamenti stanno in `UpdateController`, senza un `UpdatePreferences` a parte.
+   - **Servizi XPC tolti** dalla fase "Sparkle senza servizi XPC" di `project.yml`; `verify-entitlements.sh` fallisce con un `.xpc` nel bundle.
+   - **`BuboReleaseName`** dal build setting `BUBO_RELEASE_NAME`, che `build.sh` riceve dal tag.
 5. **Appcast, Canali, gradualità e ritiro**: `appcast.sh` con delta, note per lingua dal CHANGELOG, canale beta, gradualità, critico, firma EdDSA dopo lo stapling, riscrittura degli URL, pubblicazione su Pages; `yank.sh` e `yank.yml`; `CHANGELOG.md`. Dipende da 3 e 4.
    - **Logica in `scripts/release/appcast.ts`, con test** ([#223](https://github.com/mgiuditta/bubo/issues/223), `bun test scripts/release`): sezioni del CHANGELOG, DMG precedenti del Canale, riscrittura degli URL, ritiro, controllo del feed. Gli script zsh chiamano solo gli strumenti di Sparkle, `git` e `gh`. Così la parte che decide si prova anche senza macOS.
    - **Sparkle 2.10.0 fissato con SHA-256** in `sparkle-tools.sh`, scaricato dalla release ufficiale; nessun binario nel repository.

@@ -18,6 +18,10 @@ struct BuboApp: App {
             CommandGroup(replacing: .appInfo) {
                 Button("Informazioni su Bubo", action: appDelegate.showAboutPanel)
             }
+            CommandGroup(after: .appInfo) {
+                CheckForUpdatesButton()
+                    .environment(appDelegate.updates)
+            }
             CommandGroup(replacing: .newItem) {
                 Button("Nuova Sessione…") { appDelegate.hud.createSession() }
                     .keyboardShortcut("n")
@@ -144,6 +148,7 @@ struct BuboApp: App {
                 .environment(appDelegate.macOnlyProjects)
                 .environment(appDelegate.ledger)
                 .environment(appDelegate.deliveries)
+                .environment(appDelegate.updates)
                 // System controls, as macOS expects of the Impostazioni, but only dark like the rest of Bubo
                 // (design system, ADR 0004).
                 .preferredColorScheme(.dark)
@@ -155,6 +160,7 @@ struct BuboApp: App {
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)
                 .environment(appDelegate.documents)
+                .environment(appDelegate.updates)
         } label: {
             MenuBarLabel(sessions: appDelegate.sessions)
         }

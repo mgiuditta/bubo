@@ -21,6 +21,23 @@
         }
       }
     },
+    "%@ (build %@)" : {
+      "comment" : "Impostazioni › Aggiornamenti: the release name, then the build number",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ (build %2$@)"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ (build %2$@)"
+          }
+        }
+      }
+    },
     "%@ (da compilare)" : {
       "localizations" : {
         "en" : {
@@ -3766,6 +3783,36 @@
         }
       }
     },
+    "Controlla aggiornamenti in automatico" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for updates automatically"
+          }
+        }
+      }
+    },
+    "Controlla aggiornamenti…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check for Updates…"
+          }
+        }
+      }
+    },
+    "Controlla ora" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Now"
+          }
+        }
+      }
+    },
     "Conversazione ripulita" : {
       "localizations" : {
         "en" : {
@@ -3923,6 +3970,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Already in your Second Brain: %@."
+          }
+        }
+      }
+    },
+    "Gli aggiornamenti sono spenti in questa build." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updates are turned off in this build."
           }
         }
       }
@@ -4170,6 +4227,16 @@
         }
       }
     },
+    "Installa gli aggiornamenti quando esci" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install updates when you quit"
+          }
+        }
+      }
+    },
     "L'agente «%@» non c'è più in questo Progetto: l'Automazione andrebbe in pausa. Scegline un altro." : {
       "localizations" : {
         "en" : {
@@ -4270,6 +4337,16 @@
         }
       }
     },
+    "Le beta arrivano prima e possono avere difetti. Se le spegni, resti sulla versione che hai fino alla stabile successiva." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Betas arrive earlier and may have bugs. If you turn them off, you stay on your current version until the next stable release."
+          }
+        }
+      }
+    },
     "Le cartelle spente restano dove sono, ma non le leggo. Di solito si spengono archivi e allegati." : {
       "localizations" : {
         "en" : {
@@ -4296,6 +4373,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The scanner doesn't find everything: check the conversation below too."
+          }
+        }
+      }
+    },
+    "Mai" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never"
           }
         }
       }
@@ -4766,6 +4853,16 @@
         }
       }
     },
+    "Ricevi le beta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get beta updates"
+          }
+        }
+      }
+    },
     "Riduci il Panel" : {
       "localizations" : {
         "en" : {
@@ -4967,6 +5064,16 @@
         }
       }
     },
+    "Ultimo controllo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Last checked"
+          }
+        }
+      }
+    },
     "Un segreto da togliere è anche nelle modifiche non salvate: toglilo dal file e riapri, oppure scegli Lascia." : {
       "localizations" : {
         "en" : {
@@ -4993,6 +5100,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Obsidian vaults found: %lld. Three steps, under a minute."
+          }
+        }
+      }
+    },
+    "Versione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
           }
         }
       }

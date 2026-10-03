@@ -46,6 +46,11 @@ for exe in $executables; do
     fi
 done
 
+# Bubo non è in sandbox: nessun servizio XPC, nemmeno quelli di Sparkle (spec 27, fase "Sparkle senza servizi XPC").
+while IFS= read -r -d '' service; do
+    fail "${service#$app/}: servizio XPC nel bundle"
+done < <(find $app -name '*.xpc' -print0)
+
 for relative in ${(k)allowed}; do
     [[ -f $app/$relative ]] || fail "$relative manca nel bundle"
 done

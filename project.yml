@@ -30,6 +30,10 @@ packages:
   SwiftTransformers:
     url: https://github.com/huggingface/swift-transformers
     exactVersion: 1.3.4
+  # Aggiornamenti dell'app (spec 27): firma EdDSA, feed firmato, Canale beta. Servizi XPC tolti dopo la build.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
 
 settings:
   base:
@@ -75,6 +79,7 @@ targets:
         product: MLX
       - package: SwiftTransformers
         product: Tokenizers
+      - package: Sparkle
     # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
     info:
       path: Bubo/Info.plist
@@ -82,6 +87,19 @@ targets:
         # XcodeGen scriverebbe 1.0 e 1: si tengono le versioni dei build setting.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Il nome della release (1.2.0-beta.3), mostrato in Impostazioni › Aggiornamenti; build.sh lo passa dal tag.
+        BuboReleaseName: $(BUBO_RELEASE_NAME)
+        # Sparkle (spec 27): feed e chiave pubblica dai build setting sotto, da riempire con #220.
+        SUFeedURL: $(SPARKLE_FEED_URL)
+        SUPublicEDKey: $(SPARKLE_PUBLIC_ED_KEY)
+        SUEnableAutomaticChecks: true
+        SUAutomaticallyUpdate: true
+        SUScheduledCheckInterval: 86400
+        # Un token rubato non basta a riscrivere l'appcast; senza la verifica prima dell'estrazione Sparkle non parte.
+        SURequireSignedFeed: true
+        SUVerifyUpdateBeforeExtraction: true
+        # Il controllo non invia niente del Mac.
+        SUEnableSystemProfiling: false
         # Il process tap di Core Audio, per l'audio dell'app di una Riunione (#545): senza, macOS non lo chiede.
         NSAudioCaptureUsageDescription: "Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac."
         CFBundleURLTypes:
@@ -120,6 +138,11 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        BUBO_RELEASE_NAME: $(MARKETING_VERSION)
+        # Da riempire con #220: l'URL dell'appcast su Pages di mgiuditta/bubo-releases e la chiave pubblica EdDSA
+        # (generate_keys -p). Vuoti, gli aggiornamenti restano spenti e build.sh si ferma.
+        SPARKLE_FEED_URL: ""
+        SPARKLE_PUBLIC_ED_KEY: ""
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
@@ -149,6 +172,19 @@ targets:
           - $(SRCROOT)/bridge/entitlements.plist
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-agent
+      - name: Sparkle senza servizi XPC
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          # Bubo non è in sandbox: i servizi XPC di Sparkle non servono (spec 27); il framework si rifirma senza.
+          framework="$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/Sparkle.framework"
+          [[ -d $framework ]] || exit 0
+          rm -rf "$framework/Versions/B/XPCServices" "$framework/XPCServices"
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$framework"
+        # Dopo la copia del framework nel bundle, mai in parallelo con lei.
+        inputFiles:
+          - $(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Sparkle.framework
+        basedOnDependencyAnalysis: false
       - name: Lanciatore del terminale
         shell: /bin/zsh
         script: |

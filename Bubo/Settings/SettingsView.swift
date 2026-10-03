@@ -48,6 +48,9 @@ struct SettingsView: View {
                 Tab("Scorciatoie", systemImage: "keyboard", value: SettingsTab.shortcuts) {
                     ShortcutSettingsView()
                 }
+                Tab("Aggiornamenti", systemImage: "arrow.triangle.2.circlepath", value: SettingsTab.updates) {
+                    UpdatesSettingsView()
+                }
                 Tab("Diagnostica", systemImage: "stethoscope", value: SettingsTab.diagnostics) {
                     DiagnosticsView()
                 }

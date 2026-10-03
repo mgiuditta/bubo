@@ -3,7 +3,7 @@ import Foundation
 /// A tab of the settings window.
 enum SettingsTab: String {
     case general, appearance, account, permissions, models, budget, machines, voice, iPhone, deliveries, shortcuts,
-         diagnostics
+         updates, diagnostics
 
     /// The defaults key of the tab shown.
     static let defaultsKey = "settings.tab"
