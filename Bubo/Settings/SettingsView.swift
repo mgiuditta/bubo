@@ -26,7 +26,9 @@ struct SettingsView: View {
                 BudgetSettingsView()
             }
             Tab("Macchine", systemImage: "server.rack", value: SettingsTab.machines) {
-                MachinesSettingsView()
+                ReleaseGated(.machines) {
+                    MachinesSettingsView()
+                }
             }
             Tab("Voce", systemImage: "waveform", value: SettingsTab.voice) {
                 VoiceSettingsView()
