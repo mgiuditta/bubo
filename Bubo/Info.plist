@@ -48,6 +48,8 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Bubo legge titolo e indirizzo della pagina che stai guardando, per allegarli alla domanda che fai dal Panel.</string>
 	<key>NSAudioCaptureUsageDescription</key>
 	<string>Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac.</string>
 	<key>SUAutomaticallyUpdate</key>

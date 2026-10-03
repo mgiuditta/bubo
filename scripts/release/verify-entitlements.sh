@@ -16,10 +16,10 @@ team=${BUBO_TEAM_ID:-U38D796ZBJ}
 typeset -A allowed
 # L'App Group dell'app e di BuboQuickLook è la cartella dei Biglietti: senza, l'estensione in sandbox non li legge e
 # ogni Consegna in Quick Look ha "mittente sconosciuto" (BuboFileSummaryTests). Senza app-sandbox macOS non carica
-# l'estensione Quick Look. Senza audio-input il runtime rafforzato tiene muto il microfono: niente push-to-talk né Riunioni.
+# l'estensione Quick Look. Senza audio-input il runtime rafforzato tiene muto il microfono: niente push-to-talk né Riunioni. Senza apple-events nessuna pagina del browser davanti nella Bolla.
 group=$team.com.mgiuditta.bubo
 allowed=(
-    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$group\"],\"com.apple.security.application-groups\":[\"$group\"],\"com.apple.security.device.audio-input\":true}"
+    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$group\"],\"com.apple.security.application-groups\":[\"$group\"],\"com.apple.security.device.audio-input\":true,\"com.apple.security.automation.apple-events\":true}"
     Contents/Helpers/bubo-agent '{"com.apple.security.cs.allow-jit":true}'
     Contents/PlugIns/BuboQuickLook.appex/Contents/MacOS/BuboQuickLook "{\"com.apple.security.app-sandbox\":true,\"com.apple.security.application-groups\":[\"$group\"]}"
 )
