@@ -202,10 +202,12 @@ final class AgentBridge {
     ///   - progress: Receives the state of the conversation, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
+    ///   - usage: Receives the tokens of the turn, with no figure, when it ends: Bubo prices them (#542).
     func askCopilot(_ prompt: String, in directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil,
                     id: String = UUID().uuidString,
                     progress: @escaping (AgentProgress) -> Void = { _ in },
-                    permissions: ((PermissionEvent) -> Void)? = nil) -> AsyncThrowingStream<String, any Error> {
+                    permissions: ((PermissionEvent) -> Void)? = nil,
+                    usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
@@ -216,6 +218,7 @@ final class AgentBridge {
             answers[id] = continuation
             progressHandlers[id] = progress
             permissionHandlers[id] = permissions
+            usageHandlers[id] = usage
             let command = BridgeCommand.askCopilot(id: id, prompt: prompt, directory: directory, copilot: copilot,
                                                    model: model, effort: effort)
             try process.input.write(contentsOf: command.line())

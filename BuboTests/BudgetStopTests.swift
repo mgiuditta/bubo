@@ -191,3 +191,73 @@ struct BudgetStopTests {
         #expect(entry.usage.origin == .listEstimate)
     }
 }
+
+// #542: a Sessione on Copilot is Spesa, estimated from its tokens, in Copilot's Budget, with the subscription too.
+extension BudgetStopTests {
+    /// A bridge that writes each command to `log` and answers each Copilot turn with 1,000 output tokens of
+    /// `gpt-prova`, then its end.
+    func copilotBridge() -> AgentBridge {
+        let script = #"""
+            while read -r line; do
+              echo "$line" >> "$LOG"
+              case "$line" in *'"type":"copilot"'*) ;; *) continue ;; esac
+              id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+              echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"basis\":\"unknown\",\"complete\":true,\"models\":[{\"model\":\"gpt-prova\",\"inputTokens\":0,\"outputTokens\":1000,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"thinkingTokens\":0}]}"
+              echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            done
+            """#
+        return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
+                           environment: ["PATH": "/usr/bin:/bin", "LOG": log.path]) { _, _, _ in "" }
+    }
+
+    /// A store with one Sessione on Copilot, Ferma at a Budget, ready to ask «Ciao» again.
+    func copilotStore() throws -> (SessionStore, UUID) {
+        let folder = try folder()
+        var session = Session(id: UUID(), title: "Prova", project: folder, activitySince: .now)
+        session.engine = .copilot
+        session.isOnCheckout = true
+        session.workspace = Workspace(folder: folder)
+        session.unstartedPrompt = "Ciao"
+        session.budgetStop = .provider(Budgets.copilot)
+        session.enter(.ferma)
+        try JSONEncoder().encode([session]).write(to: file)
+        let store = store(copilotBridge())
+        store.locateCopilot = { URL(filePath: "/usr/bin/true") }
+        store.copilotPrices = CopilotPriceTableTests.table
+        return (store, session.id)
+    }
+
+    @Test func aSpentCopilotBudgetSendsNothing() async throws {
+        defer { try? FileManager.default.removeItem(at: file) }
+        ledger.record(TurnUsage(mode: .apiKey, cost: 1, basis: .list, isComplete: true, models: []),
+                      turn: UUID().uuidString, question: UUID(), provider: Budgets.copilot)
+        budgets.budgets.providers[Budgets.copilot] = 1
+        let (store, id) = try copilotStore()
+
+        store.resumeAfterBudget(id)
+        try await SessionTests.wait { store.sessions.first?.budgetStop != nil && store.sessions.first?.activity == .ferma }
+
+        #expect(store.sessions.first?.budgetStop == .provider(Budgets.copilot))
+        #expect(store.sessions.first?.unstartedPrompt == "Ciao")
+        let commands = (try? String(contentsOf: log, encoding: .utf8)) ?? ""
+        #expect(!commands.contains(#""type":"copilot""#))
+    }
+
+    @Test func aCopilotTurnIsEstimatedSpesaInItsBudget() async throws {
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        budgets.budgets.providers[Budgets.copilot] = 5
+        let (store, id) = try copilotStore()
+
+        store.resumeAfterBudget(id)
+        try await SessionTests.wait { !ledger.entries.isEmpty }
+
+        let entry = try #require(ledger.entries.first)
+        #expect(entry.provider == Budgets.copilot)
+        #expect(entry.usage.unit == .spesa)
+        #expect(entry.usage.origin == .priceTable)
+        #expect(entry.usage.cost == Decimal(string: "0.004"))
+    }
+}

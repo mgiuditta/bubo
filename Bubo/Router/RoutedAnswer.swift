@@ -12,6 +12,11 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
         case spesa(Decimal)
         /// Another provider on the user's key: the Spesa estimated with the PriceTable's prices of `pricesOf`.
         case estimate(Decimal, pricesOf: Date)
+        /// GitHub Copilot: the Spesa estimated from the tokens with the Copilot list prices of `pricesOf`, a credit a
+        /// cent.
+        case copilotEstimate(Decimal, pricesOf: Date)
+        /// GitHub Copilot on a model the list does not have: the tokens it counted, with no figure.
+        case copilotTokens(Int)
         /// A model on the Mac: nothing to pay.
         case free
         /// An endpoint in another cloud, paid on the user's key at a price Bubo does not know: the tokens it counted.
@@ -53,6 +58,13 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
                 return .spesa(figure)
             }
             return endpointTokens.map(Cost.tokens)
+        }
+        // Without an endpoint only Copilot's turns are priced with a table (#542): Claude's carry the SDK's figure.
+        if let usage, usage.origin == .priceTable, let figure = usage.cost, let date = usage.priceDate {
+            return .copilotEstimate(figure, pricesOf: date)
+        }
+        if let usage, usage.origin == .unpriced {
+            return .copilotTokens(usage.models.reduce(0) { $0 + $1.inputTokens + $1.outputTokens })
         }
         if usage?.mode != .apiKey, let fiveHourShare, fiveHourShare > 0 { return .fiveHourShare(fiveHourShare) }
         guard let usage, let figure = usage.cost else { return nil }
