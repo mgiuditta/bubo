@@ -143,7 +143,7 @@ struct SecondBrainConversationSheet: View {
         let folders = SecondBrainLocation(folder: folder).topFolders()
         let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
         // In Italian like the instructions the model reads, not shown as interface text.
-        return "Ho scelto la cartella \(folder.path) (cartelle in cima: \(listed)). Proponi come usarla."
+        return "Ho scelto la cartella \(folder.path) (cartelle in cima: \(listed)). Configuriamola insieme."
     }
 
     /// `text` with its inline Markdown, as the model writes it.
