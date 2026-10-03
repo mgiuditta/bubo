@@ -49,6 +49,7 @@ final class SecondBrainConversation {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty, !isWaiting else { return }
         turns.append(Turn(isUser: true, text: text))
+        proposal = nil
         ask()
     }
 
@@ -58,7 +59,8 @@ final class SecondBrainConversation {
         isWaiting = false
         guard questions.failure == nil else { return }
         let answer = questions.answer
-        if let proposed = SecondBrainProposal(in: answer) { proposal = proposed }
+        // Only the latest answer's proposal can be applied: a stale one is never offered.
+        proposal = SecondBrainProposal(in: answer)
         let prose = SecondBrainProposal.prose(of: answer)
         if !prose.isEmpty { turns.append(Turn(isUser: false, text: prose)) }
     }
