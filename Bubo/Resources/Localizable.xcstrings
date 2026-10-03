@@ -4016,6 +4016,36 @@
         }
       }
     },
+    "Copia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy"
+          }
+        }
+      }
+    },
+    "Copia il codice" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy code"
+          }
+        }
+      }
+    },
+    "Copia la risposta (⌘⇧C)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy the answer (⌘⇧C)"
+          }
+        }
+      }
+    },
     "Copilot" : {
       "localizations" : {
         "en" : {
@@ -5256,6 +5286,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shrink the Panel"
+          }
+        }
+      }
+    },
+    "Rifai" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redo"
+          }
+        }
+      }
+    },
+    "Rifai la domanda (⌘R)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask again (⌘R)"
           }
         }
       }

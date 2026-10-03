@@ -17,12 +17,22 @@ struct QuestionAnswer: View {
 
     var body: some View {
         answerScroll {
-            // The notes cited as `[[nota]]` become links that open them; a Secondo cervello block never shows raw.
-            Text(NoteCitation.linking(SecondBrainProposal.prose(of: model.answer)))
-                .font(Typography.body(size: 14))
-                .foregroundStyle(Palette.textPrimary)
-                .textSelection(.enabled)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Inline Markdown, with the notes cited as `[[nota]]` as links that open them, and code in its own blocks;
+            // a Secondo cervello block never shows raw.
+            VStack(alignment: .leading, spacing: Spacing.xSmall) {
+                ForEach(Array(AnswerBlock.blocks(of: prose).enumerated()), id: \.offset) { _, block in
+                    switch block {
+                    case let .prose(text):
+                        Text(AnswerBlock.formatted(text))
+                            .font(Typography.body(size: 14))
+                            .foregroundStyle(Palette.textPrimary)
+                            .textSelection(.enabled)
+                    case let .code(code):
+                        AnswerCodeBlock(code: code)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .accessibilityLabel("Risposta di Claude")
         .accessibilityIdentifier("question.answer")
@@ -38,6 +48,25 @@ struct QuestionAnswer: View {
         if !model.isAnswering, let routedAnswer = model.routedAnswer {
             HStack(spacing: Spacing.xSmall) {
                 RouterLine(answer: routedAnswer)
+                Button("Copia", systemImage: "doc.on.doc") {
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(prose, forType: .string)
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.textSecondary)
+                .keyboardShortcut("c", modifiers: [.command, .shift])
+                .help("Copia la risposta (⌘⇧C)")
+                .accessibilityIdentifier("question.copy")
+                // ⌘R only with the prompt empty, as the other retries.
+                Button("Rifai", systemImage: "arrow.clockwise", action: model.retry)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Palette.textSecondary)
+                    .keyboardShortcut("r", modifiers: .command)
+                    .disabled(!model.prompt.isEmpty)
+                    .help("Rifai la domanda (⌘R)")
+                    .accessibilityIdentifier("question.retry")
                 // ⌘↑ only with the prompt empty: while typing it stays the text field's "go to the start".
                 Button("Rifai più forte", systemImage: "arrow.up", action: model.retryStronger)
                     .labelStyle(.iconOnly)
@@ -58,6 +87,11 @@ struct QuestionAnswer: View {
                     .accessibilityIdentifier("question.retryWith")
             }
         }
+    }
+
+    /// The answer as the conversation shows it, without a Secondo cervello block.
+    private var prose: String {
+        SecondBrainProposal.prose(of: model.answer)
     }
 
     /// The answer in its own scroll view up to `maxAnswerHeight`, or as it is inside a container that scrolls.

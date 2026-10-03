@@ -98,23 +98,58 @@ nonisolated struct NoteCitation: Equatable, Sendable {
     ///
     /// The rest of the text is left exactly as written.
     static func linking(_ answer: String) -> AttributedString {
-        var linked = AttributedString()
+        pieces(of: answer).reduce(into: AttributedString()) { linked, piece in
+            switch piece {
+            case let .text(text):
+                linked += AttributedString(text)
+            case let .citation(citation):
+                var cited = AttributedString(citation.title)
+                cited.link = citation.link
+                linked += cited
+            }
+        }
+    }
+
+    /// Returns `markdown` with every wikilink turned into a Markdown link that carries its citation and shows
+    /// ``title``, escaped so that it reads as written.
+    ///
+    /// The rest of the text is left exactly as written.
+    static func markdownLinking(_ markdown: String) -> String {
+        pieces(of: markdown).reduce(into: "") { linked, piece in
+            switch piece {
+            case let .text(text):
+                linked += text
+            case let .citation(citation):
+                // Every ASCII punctuation mark escaped: a `_` or `*` in a note's name is not emphasis.
+                let title = citation.title.map { $0.isASCII && ($0.isPunctuation || $0.isSymbol) ? "\\\($0)" : "\($0)" }
+                linked += "[\(title.joined())](<\(citation.link.absoluteString)>)"
+            }
+        }
+    }
+
+    /// A piece of an answer: text as written, or a wikilink's citation.
+    private enum Piece {
+        case text(Substring)
+        case citation(NoteCitation)
+    }
+
+    /// The pieces of `answer` in order: the text between wikilinks and each wikilink's citation.
+    private static func pieces(of answer: String) -> [Piece] {
+        var pieces: [Piece] = []
         var rest = answer[...]
         while let open = rest.range(of: "[["), let close = rest[open.upperBound...].range(of: "]]") {
             let inner = rest[open.upperBound..<close.lowerBound]
             // Not a wikilink: the `[[` stays as written and the search goes on after it.
             guard !inner.contains("\n"), !inner.contains("[["), let citation = NoteCitation(wikilink: inner) else {
-                linked += AttributedString(rest[..<open.upperBound])
+                pieces.append(.text(rest[..<open.upperBound]))
                 rest = rest[open.upperBound...]
                 continue
             }
-            linked += AttributedString(rest[..<open.lowerBound])
-            var cited = AttributedString(citation.title)
-            cited.link = citation.link
-            linked += cited
+            pieces.append(.text(rest[..<open.lowerBound]))
+            pieces.append(.citation(citation))
             rest = rest[close.upperBound...]
         }
-        linked += AttributedString(rest)
-        return linked
+        pieces.append(.text(rest))
+        return pieces
     }
 }
