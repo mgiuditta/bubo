@@ -55,7 +55,7 @@ extension SessionStore {
         do {
             try start(context.prompt(number: number), title: context.title,
                       branch: IssueLink.branch(forIssue: number, titled: context.title), in: draft.project,
-                      issue: .github(number))
+                      issue: .github(number), choice: draft.choice)
             drafts.remove(draft.id)
         } catch {
             // Only the checkout can be taken, and a Bozza never starts there.

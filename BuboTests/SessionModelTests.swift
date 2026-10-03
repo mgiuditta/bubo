@@ -38,7 +38,7 @@ struct SessionModelTests {
         try store.start("Pulisci", title: "Prova", branch: "bubo/prova", in: repo)
         try await SessionTests.wait { store.sessions.first?.activity == .ferma }
         let id = try #require(store.sessions.first?.id)
-        store.setModel(Scala.Step(family: .opus, effort: .high), in: id)
+        store.setChoice(EngineChoice(engine: .claude, claudeModel: Scala.Step(family: .opus, effort: .high)), in: id)
         store.sendBack("Ancora", to: id, keepingAcceptedAmong: [])
         try await SessionTests.wait { store.sessions.first?.activity == .ferma && store.sessions.first?.summary == nil }
         try await SessionTests.wait {

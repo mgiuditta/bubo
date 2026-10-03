@@ -147,6 +147,13 @@ final class SessionStore {
     @ObservationIgnored var locateCopilot: () async -> URL? = { await CopilotLocator().executableURL() }
     /// The clouds the user allowed: a Sessione on Copilot sends its turns only with Copilot's consent (spec 10).
     @ObservationIgnored var copilotConsents: () -> Set<String> = { EndpointSettings.shared.consents }
+    /// The engine and model each Progetto's new Sessioni start on (ADR 0012).
+    @ObservationIgnored var engines = ProjectEngineStore()
+    /// The models of the user's Copilot plan, for the choice of model; `nil` until read, empty when `copilot` is
+    /// missing or signed out, and the choice then guides to its login.
+    private(set) var copilotModels: [CopilotModel]?
+    /// Reads the models of the user's `copilot`; by default `listModels()` through the bridge, no turn of the model.
+    @ObservationIgnored var readCopilotModels: ((URL) async throws -> [CopilotModel])?
     /// Called when a turn did not start because `claude` is too old, with its version if known.
     @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
     /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.
@@ -318,14 +325,16 @@ final class SessionStore {
     ///   - conversation: The Cronologia CLI conversation the Sessione continues, as a fork.
     ///   - message: The message of `conversation` the fork stops at, included: Continua da qui. `nil` for all of it.
     ///   - issue: The issue the Sessione starts from, with ⌘I.
+    ///   - choice: The engine and model of its turns; `nil` for those of `project` (ADR 0012).
     /// - Returns: The id of the new Sessione.
     /// - Throws: `SessionError.checkoutTaken` when `onCheckout` and another open Sessione already works there.
     @discardableResult
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
                forkingFrom conversation: CLIConversation? = nil, upTo message: String? = nil,
-               issue: IssueLink? = nil) throws -> UUID {
+               issue: IssueLink? = nil, choice: EngineChoice? = nil) throws -> UUID {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
+        session.choice = choice ?? engines.choice(for: project)
         session.prompt = prompt
         session.forkedFrom = conversation?.id
         session.forkedUpTo = conversation == nil ? nil : message
@@ -1211,8 +1220,8 @@ final class SessionStore {
             }
             let copilot = isCopilot ? try await copilotURL() : nil
             let answer = if let copilot {
-                // ponytail: the Copilot model and effort come with the choice per Sessione (#551).
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
+                                 model: current?.copilotModel?.model, effort: current?.copilotModel?.effort,
                                  id: answerID, progress: onProgress,
                                  permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
@@ -1409,10 +1418,29 @@ final class SessionStore {
         update(id) { $0.isAutonomous = isAutonomous }
     }
 
-    /// Makes the turns of the Sessione `id` run on `model`, from its next one: the current turn keeps its model.
-    /// `nil` gives them back the model and effort the user set in `claude`.
-    func setModel(_ model: Scala.Step?, in id: UUID) {
-        update(id) { $0.model = model }
+    /// Makes the turns of the Sessione `id` run on `choice`, from its next one: the current turn keeps its model.
+    func setChoice(_ choice: EngineChoice, in id: UUID) {
+        update(id) { $0.choice = choice }
+    }
+
+    /// Reads the models of the user's Copilot plan into ``copilotModels``, unless already read; `again` reads them
+    /// anyway, after a login. Without `copilot`, or signed out, the list is empty.
+    func loadCopilotModels(again: Bool = false) async {
+        guard again || copilotModels?.isEmpty != false else { return }
+        guard let copilot = await locateCopilot() else {
+            copilotModels = []
+            return
+        }
+        do {
+            copilotModels = if let readCopilotModels {
+                try await readCopilotModels(copilot)
+            } else {
+                try await bridge().copilotModels(of: copilot)
+            }
+        } catch {
+            Logger.sessions.error("Copilot models unreadable: \(String(describing: error), privacy: .public)")
+            copilotModels = []
+        }
     }
 
     /// Whether a Sessione of the Progetto at `project` is in a turn: Bubo then never writes in its memory.

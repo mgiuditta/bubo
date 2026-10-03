@@ -16,6 +16,8 @@ struct NewSessionSheet: View {
     @State private var title = ""
     @State private var branch = Session.proposedBranch(for: "")
     @State private var isOnCheckout = false
+    @State private var choice = EngineChoice.claude
+    @State private var isProjectDefault = false
     @State private var isChoosingFolder = false
     @State private var isAskingTrust = false
     @FocusState private var isPromptFocused: Bool
@@ -67,6 +69,8 @@ struct NewSessionSheet: View {
                     .lineLimit(3...6)
                     .focused($isPromptFocused)
                 TextField("Titolo", text: $title)
+                EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
+                                  copilotModels: store.copilotModels)
                 Toggle(isOn: $isOnCheckout) {
                     Text("Lavora sul checkout")
                     Text(checkoutTaken?.errorDescription
@@ -103,6 +107,13 @@ struct NewSessionSheet: View {
         .onChange(of: prompt) { old, new in
             if title == Session.proposedTitle(for: old) { title = Session.proposedTitle(for: new) }
         }
+        // Each Progetto starts on its own engine and model.
+        .onChange(of: project, initial: true) {
+            guard let project else { return }
+            choice = store.engines.choice(for: project)
+            isProjectDefault = false
+        }
+        .task { await store.loadCopilotModels() }
         .onChange(of: title) { old, new in
             if branch == Session.proposedBranch(for: old) { branch = Session.proposedBranch(for: new) }
         }
@@ -138,11 +149,12 @@ struct NewSessionSheet: View {
         guard let project else { return }
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if isProjectDefault { store.engines.setChoice(choice, for: project) }
         do {
             try store.start(draft.firstPrompt(text),
                             title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
                             branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
-                            forkingFrom: draft.conversation, upTo: draft.upToMessage)
+                            forkingFrom: draft.conversation, upTo: draft.upToMessage, choice: choice)
         } catch {
             // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")

@@ -9,6 +9,8 @@ struct NewDraftSheet: View {
     @State private var title = ""
     @State private var text = ""
     @State private var isChoosingFolder = false
+    @State private var choice = EngineChoice.claude
+    @State private var isProjectDefault = false
     @FocusState private var isTitleFocused: Bool
 
     var body: some View {
@@ -25,6 +27,8 @@ struct NewDraftSheet: View {
                     .focused($isTitleFocused)
                 TextField("Cosa deve fare Claude?", text: $text, axis: .vertical)
                     .lineLimit(3...8)
+                EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
+                                  copilotModels: store.copilotModels)
             }
             .formStyle(.grouped)
 
@@ -43,6 +47,13 @@ struct NewDraftSheet: View {
             project = project ?? store.drafts.drafts.last?.project ?? store.projects.first
             isTitleFocused = true
         }
+        // Each Progetto starts on its own engine and model.
+        .onChange(of: project, initial: true) {
+            guard let project else { return }
+            choice = store.engines.choice(for: project)
+            isProjectDefault = false
+        }
+        .task { await store.loadCopilotModels() }
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             if case let .success(folder) = result { project = folder }
         }
@@ -50,8 +61,10 @@ struct NewDraftSheet: View {
 
     private func save() {
         guard let project else { return }
+        if isProjectDefault { store.engines.setChoice(choice, for: project) }
         store.drafts.add(Draft(title: title.trimmingCharacters(in: .whitespacesAndNewlines),
-                               text: text.trimmingCharacters(in: .whitespacesAndNewlines), project: project))
+                               text: text.trimmingCharacters(in: .whitespacesAndNewlines), project: project,
+                               choice: choice))
         dismiss()
     }
 }

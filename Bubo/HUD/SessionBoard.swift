@@ -23,6 +23,8 @@ struct SessionBoard: View {
     @State private var isFusaUnfolded = false
     /// The Bozza waiting for the trust dialog of its Progetto before it starts.
     @State private var trusting: Draft?
+    /// Whether the user is asked to consent to Copilot, from the menu of a Bozza.
+    @State private var isAskingCopilotConsent = false
     /// The column a Bozza is being dragged over.
     @State private var dropTarget: BoardColumn?
     /// Why the Sessione of a Bozza dropped on a column is not there, for a few seconds.
@@ -87,9 +89,14 @@ struct SessionBoard: View {
         .animation(Motion.isReduced ? nil : Motion.emphasized, value: columns.map { $0.sessions.map(\.id) })
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sessioni")
+        .copilotConsentDialog(isPresented: $isAskingCopilotConsent, settings: .shared)
         .sheet(item: $trusting) { draft in
             TrustSheet(folder: draft.project, activations: RepoActivations(folder: draft.project),
                        start: { _ in launch(draft) }, gate: gate)
+        }
+        // For the Copilot models in the menu of the Bozze.
+        .task(id: store.drafts.drafts.isEmpty) {
+            if !store.drafts.drafts.isEmpty { await store.loadCopilotModels() }
         }
         .task(id: notice == nil) {
             guard notice != nil else { return }
@@ -226,6 +233,11 @@ struct SessionBoard: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// The engine and model the Sessione of `draft` starts on: its own, else its Progetto's.
+    private func choice(of draft: Draft) -> EngineChoice {
+        draft.choice ?? store.engines.choice(for: draft.project)
+    }
+
     /// A Bozza, with its source: ↩ with the card focused, Avvia, or a drag onto the Sessioni starts it.
     private func draftCard(_ draft: Draft) -> some View {
         let reason = draft.unreachableReason ?? failures[draft.id]
@@ -251,6 +263,13 @@ struct SessionBoard: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            // A Consegna resumes a conversation of `claude`: always on Claude.
+            if draft.delivery == nil {
+                Text(verbatim: choice(of: draft).name)
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+            }
             if let reason {
                 Text(verbatim: reason)
                     .font(Typography.body(size: 12))
@@ -288,6 +307,13 @@ struct SessionBoard: View {
             if draft.delivery != nil {
                 Button("Scarta Consegna", role: .destructive) { Task { await store.discardDelivered(draft) } }
             } else {
+                Menu("Motore e modello") {
+                    EngineChoiceItems(choice: choice(of: draft), copilotModels: store.copilotModels,
+                                      askCopilotConsent: EndpointSettings.shared.allowsCopilot
+                                          ? nil : { isAskingCopilotConsent = true }) {
+                        store.drafts.setChoice($0, of: draft.id)
+                    }
+                }
                 Button("Elimina Bozza", role: .destructive) { store.drafts.remove(draft.id) }
             }
         }

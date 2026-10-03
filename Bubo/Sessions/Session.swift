@@ -104,6 +104,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var model: Scala.Step?
     /// The agent that runs the Sessione's turns: `claude` unless the user chose `copilot` (ADR 0012).
     var engine: Engine = .claude
+    /// The Copilot model · sforzo of the turns when `engine` is `copilot`; `nil` for the model chosen in `copilot`.
+    var copilotModel: CopilotStep?
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
     /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
@@ -119,6 +121,16 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var denials: [Denial] = []
     /// The mode `claude` chose for the latest turn of the Esecuzione, such as `auto`; `nil` until it says.
     var effectiveMode: String?
+
+    /// The engine and model of the Sessione's turns, from the next one.
+    var choice: EngineChoice {
+        get { EngineChoice(engine: engine, claudeModel: model, copilotModel: copilotModel) }
+        set {
+            engine = newValue.engine
+            model = newValue.claudeModel
+            copilotModel = newValue.copilotModel
+        }
+    }
 
     /// The lines Ricordato and Richiamato a Sessione keeps.
     static let memoryLineLimit = 3
@@ -224,6 +236,7 @@ nonisolated extension Session {
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
         model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
         engine = try container.decodeIfPresent(Engine.self, forKey: .engine) ?? .claude
+        copilotModel = try container.decodeIfPresent(CopilotStep.self, forKey: .copilotModel)
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
