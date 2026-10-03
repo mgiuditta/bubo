@@ -69,6 +69,7 @@ final class OrbPanelController {
     func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter,
                sessions: SessionStore?, meetings: MeetingRecorder) {
         self.openHUD = openHUD
+        self.questions = questions
         let frame = CGRect(origin: .zero, size: CGSize(width: size.side, height: size.side))
         let panel = OrbPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
@@ -88,6 +89,8 @@ final class OrbPanelController {
         view.autoResizeDrawable = false
         // The bubble is the default way to ask; the HUD stays a hot key or a menu item away.
         view.onPress = { [weak self] in self?.askInPanel() }
+        // The Blob alone: a click opens the menu at once; with the bubble open it goes back to the prompt.
+        view.opensMenuOnClick = { [bubble] in !bubble.isOpen }
         view.onAsk = { [weak self] in self?.askInPanel() }
         view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
@@ -155,12 +158,24 @@ final class OrbPanelController {
     }
 
     /// Opens the bubble with the keyboard in its prompt, or the HUD when the HUD is open and the Panel hidden.
+    ///
+    /// With a browser in front, its page comes in the prompt as an Allegato as soon as the browser tells it.
     func askInPanel() {
         guard !isHUDOpen else {
             openHUD()
             return
         }
+        // Read before the bubble opens: the Panel never activates Bubo, so the app in front is the user's.
+        let front = NSWorkspace.shared.frontmostApplication
         bubble.open(focus: .prompt)
+        guard let front, let id = front.bundleIdentifier, BrowserPage.script(forBrowser: id) != nil else { return }
+        let browserName = front.localizedName ?? id
+        Task { [weak self] in
+            guard let page = await BrowserPage.current(inBrowser: id, named: browserName),
+                  let self, bubble.isOpen, let questions, !questions.isAnswering
+            else { return }
+            questions.attach([page])
+        }
     }
 
     /// Puts what is dropped on the Orb in the prompt of the bubble, with the Orb in Ascolto; returns whether anything
@@ -205,6 +220,7 @@ final class OrbPanelController {
     }
 
     @ObservationIgnored private var openHUD: () -> Void = {}
+    @ObservationIgnored private weak var questions: QuestionModel?
     @ObservationIgnored private var bubbleWindow: PanelBubbleWindow?
     @ObservationIgnored private var statusWindow: PanelStatusWindow?
     /// What the pill would say were it on screen, as last computed from the Sessioni and the Domanda.

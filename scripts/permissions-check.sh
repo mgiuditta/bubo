@@ -23,6 +23,8 @@ check Microfono 'AVCaptureDevice\.requestAccess|requestRecordPermission|\.inputN
 # Feature 09: quando si attiva la funzione.
 check Accessibilità 'AXIsProcessTrusted|kAXTrustedCheckOptionPrompt|AXUIElementCreate|CGEvent\.tapCreate|CGRequest(Post|Listen)EventAccess|IOHIDRequestAccess' ""
 check "Registrazione schermo" 'CGRequestScreenCaptureAccess|SCShareableContent|SCScreenshotManager|SCStream|CGWindowListCreateImage|CGDisplayCreateImage' ""
+# Automazione: la pagina del browser davanti, quando l'utente apre la Bolla per chiedere.
+check Automazione 'usr/bin/osascript|NSAppleScript' "Bubo/Intake/BrowserPage.swift"
 # Feature 06: le notifiche sono provvisorie, senza avviso; quelle non provvisorie solo quando l'utente le sceglie.
 { grep -rnE --include='*.swift' 'requestAuthorization\(options:' Bubo Packages || true } | { grep -v '\.provisional' || true } | while read -r line; do
   print -u2 "permessi: notifiche non provvisorie chieste da ${line%%:*}: ${line#*:}"

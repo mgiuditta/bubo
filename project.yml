@@ -108,6 +108,8 @@ targets:
         SUEnableSystemProfiling: false
         # Il process tap di Core Audio, per l'audio dell'app di una Riunione (#545): senza, macOS non lo chiede.
         NSAudioCaptureUsageDescription: "Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac."
+        # La pagina aperta nel browser davanti, come Allegato della Domanda chiesta dal Panel.
+        NSAppleEventsUsageDescription: "Bubo legge titolo e indirizzo della pagina che stai guardando, per allegarli alla domanda che fai dal Panel."
         CFBundleURLTypes:
           - CFBundleURLName: com.mgiuditta.bubo
             CFBundleTypeRole: Viewer
@@ -139,6 +141,8 @@ targets:
           - $(TeamIdentifierPrefix)com.mgiuditta.bubo
         # Il runtime rinforzato nega il microfono senza questa eccezione (push-to-talk, spec 08).
         com.apple.security.device.audio-input: true
+        # La pagina aperta nel browser in primo piano, chiesta con gli Apple Events quando si apre la Bolla.
+        com.apple.security.automation.apple-events: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
