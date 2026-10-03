@@ -1336,6 +1336,174 @@
       "categoria": "viaggi",
       "descrizione": "Quando servono documenti: passaporto, visti, ingresso nei paesi.",
       "parole": ["passaporto", "passport", "visto", "visa", "documenti di viaggio", "travel documents", "dogana", "frontiera"]
+    },
+    {
+      "nome": "scala-pioli",
+      "forma": "scala_pioli",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo sale di gradino: più sforzo o un modello più forte.",
+      "parole": ["scala a pioli", "ladder", "più sforzo", "more effort", "modello più forte", "stronger model", "sali di livello", "escalation"]
+    },
+    {
+      "nome": "riciclo",
+      "forma": "riciclo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di ambiente, rifiuti e raccolta differenziata.",
+      "parole": ["riciclo", "recycling", "raccolta differenziata", "rifiuti", "waste", "ambiente", "environment", "sostenibilità"]
+    },
+    {
+      "nome": "peperoncino",
+      "forma": "peperoncino",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di spezie e cibi piccanti.",
+      "parole": ["peperoncino", "chilli", "piccante", "spicy", "spezie", "spices", "salsa piccante", "hot sauce"]
+    },
+    {
+      "nome": "chiave",
+      "forma": "chiave",
+      "categoria": "codice",
+      "descrizione": "Quando servono segreti: token, chiavi API, credenziali.",
+      "parole": ["chiave", "key", "token", "api key", "chiavi api", "credenziali", "credentials", "segreti"]
+    },
+    {
+      "nome": "diagramma",
+      "forma": "diagramma",
+      "categoria": "codice",
+      "descrizione": "Quando si progetta un algoritmo o un flusso di controllo.",
+      "parole": ["diagramma", "flowchart", "algoritmo", "algorithm", "flusso", "control flow", "schema a blocchi", "pseudocodice"]
+    },
+    {
+      "nome": "livella",
+      "forma": "livella",
+      "categoria": "codice",
+      "descrizione": "Quando si sistema lo stile del codice: formattazione, convenzioni, nomi.",
+      "parole": ["livella", "spirit level", "formattazione", "formatting", "convenzioni", "conventions", "naming", "stile del codice"]
+    },
+    {
+      "nome": "ponte",
+      "forma": "ponte",
+      "categoria": "codice",
+      "descrizione": "Quando si migra: nuova versione di una libreria, di un linguaggio o di un'API.",
+      "parole": ["ponte", "bridge", "migrazione", "migration", "aggiorna la versione", "upgrade", "porting", "compatibilità"]
+    },
+    {
+      "nome": "scudo",
+      "forma": "scudo",
+      "categoria": "codice",
+      "descrizione": "Quando si cercano vulnerabilità o si difende l'app da input pericolosi.",
+      "parole": ["scudo", "shield", "vulnerabilità", "vulnerability", "sicurezza", "security", "difesa", "sanitizza"]
+    },
+    {
+      "nome": "compasso",
+      "forma": "compasso",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo pianifica il lavoro prima di scrivere codice.",
+      "parole": ["compasso", "compass", "pianifica", "plan first", "prima di scrivere codice", "roadmap", "progetta", "design doc"]
+    },
+    {
+      "nome": "bacchetta-magica",
+      "forma": "bacchetta_magica",
+      "categoria": "creativo",
+      "descrizione": "Quando Bubo genera un'immagine nuova con l'IA.",
+      "parole": ["bacchetta magica", "magic wand", "genera un'immagine", "generate an image", "ai image", "illustrazione", "illustration", "magia"]
+    },
+    {
+      "nome": "drago",
+      "forma": "drago",
+      "categoria": "creativo",
+      "descrizione": "Quando si inventano storie fantastiche: fiabe, draghi, avventure.",
+      "parole": ["drago", "dragon", "fiaba", "fairy tale", "fantasy", "storia fantastica", "avventura", "draghi"]
+    },
+    {
+      "nome": "cassa",
+      "forma": "cassa",
+      "categoria": "finanza",
+      "descrizione": "Quando si incassa: fatture, vendite, clienti che pagano.",
+      "parole": ["cassa", "cash register", "incasso", "fattura", "invoice", "vendite", "sales", "pagamento ricevuto"]
+    },
+    {
+      "nome": "diamante",
+      "forma": "diamante",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di beni di valore e lusso.",
+      "parole": ["diamante", "diamond", "lusso", "luxury", "gioiello", "jewel", "beni di valore", "gemma"]
+    },
+    {
+      "nome": "borsa-postino",
+      "forma": "borsa_postino",
+      "categoria": "mail",
+      "descrizione": "Quando c'è tanta posta da smaltire: arretrati, risposte in sospeso.",
+      "parole": ["borsa del postino", "messenger bag", "posta arretrata", "email backlog", "risposte in sospeso", "pending replies", "inbox", "arretrati"]
+    },
+    {
+      "nome": "nebbia",
+      "forma": "nebbia",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di nebbia e visibilità.",
+      "parole": ["nebbia", "fog", "foschia", "mist", "visibilità", "visibility", "nebbioso", "foggy"]
+    },
+    {
+      "nome": "ghiacciolo",
+      "forma": "ghiacciolo",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di gelo: ghiaccio sulle strade, brinate, freddo intenso.",
+      "parole": ["ghiacciolo", "icicle", "gelo", "frost", "ghiaccio", "ice", "brina", "freddo intenso"]
+    },
+    {
+      "nome": "chiave-di-violino",
+      "forma": "chiave_di_violino",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di teoria musicale: scale, armonia, lettura delle note.",
+      "parole": ["chiave di violino", "treble clef", "teoria musicale", "music theory", "scale", "armonia", "harmony", "spartito"]
+    },
+    {
+      "nome": "arpa",
+      "forma": "arpa",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di arpa e musica antica o celtica.",
+      "parole": ["arpa", "harp", "musica antica", "early music", "celtica", "celtic", "medievale", "corde"]
+    },
+    {
+      "nome": "setaccio",
+      "forma": "setaccio",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo filtra i risultati: scarta il rumore e tiene il meglio.",
+      "parole": ["setaccio", "sieve", "filtra i risultati", "filter results", "scarta il rumore", "discard noise", "seleziona il meglio", "shortlist"]
+    },
+    {
+      "nome": "pagliaio",
+      "forma": "pagliaio",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cerca un ago nel pagliaio: una riga tra mille file o pagine.",
+      "parole": ["pagliaio", "haystack", "ago nel pagliaio", "needle in a haystack", "una riga tra mille", "search the logs", "cerca nei file", "grep"]
+    },
+    {
+      "nome": "polmoni",
+      "forma": "polmoni",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di respiro e polmoni: asma, fiato corto.",
+      "parole": ["polmoni", "lungs", "respiro", "breathing", "asma", "asthma", "fiato corto", "shortness of breath"]
+    },
+    {
+      "nome": "lepre",
+      "forma": "lepre",
+      "categoria": "tempo",
+      "descrizione": "Quando si è in ritardo o di fretta.",
+      "parole": ["lepre", "hare", "in ritardo", "running late", "di fretta", "in a hurry", "urgente", "sbrigati"]
+    },
+    {
+      "nome": "cappello-natale",
+      "forma": "cappello_natale",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla di Natale e delle feste d'inverno.",
+      "parole": ["cappello di natale", "santa hat", "natale", "christmas", "feste", "holidays", "babbo natale", "capodanno"]
+    },
+    {
+      "nome": "biglietto",
+      "forma": "biglietto",
+      "categoria": "viaggi",
+      "descrizione": "Quando si comprano biglietti: musei, treni, ingressi.",
+      "parole": ["biglietto", "ticket", "museo", "museum", "treno", "train ticket", "ingresso", "prenotazione"]
     }
   ]
 }
