@@ -29,6 +29,13 @@ nonisolated struct MorphDirector {
     /// The Variante the Orb ends on once the work already started and queued is done; `nil` is the Blob.
     var destination: Variante? { pending.map(\.variante) ?? leg.map(\.destination) ?? current }
 
+    /// Whether a change of Forma, a Morph or its fade, is under way.
+    var isMorphing: Bool { leg != nil }
+
+    /// Whether nothing is under way, waiting or scheduled, not even the return to the Blob: the Orb's Forma stays as it
+    /// is until the next request or Stato.
+    var isAtRest: Bool { leg == nil && pending == nil && returnTime == nil }
+
     /// Asks the Orb to take `variante`, or the Blob for `nil`; it replaces any request still waiting and any leg not yet started.
     ///
     /// A Variante cancels the pending return to the Blob.

@@ -82,7 +82,6 @@ final class OrbPanelController {
 
         let view = OrbPanelView(frame: frame, device: MTLCreateSystemDefaultDevice())
         view.autoResizeDrawable = false
-        view.preferredFramesPerSecond = 60
         view.onPress = openHUD
         view.onAsk = { [weak self] in self?.askInPanel() }
         view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
@@ -420,7 +419,7 @@ final class OrbPanelController {
     }
 
     private func updateVisibility() {
-        guard let panel, let view else { return }
+        guard let panel else { return }
         let isHUDOpen = isHUDOpen
         // The Domanda goes on in the HUD, where the user sees how it ended.
         if isHUDOpen {
@@ -431,7 +430,7 @@ final class OrbPanelController {
         if wantsPanel != panel.isVisible {
             if wantsPanel { panel.orderFrontRegardless() } else { panel.orderOut(nil) }
         }
-        view.isPaused = !(panel.isVisible && panel.occlusionState.contains(.visible))
+        renderer?.isVisible = panel.isVisible && panel.occlusionState.contains(.visible)
         updateBubbleWindow()
         updateStatus()
     }

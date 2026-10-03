@@ -27,9 +27,10 @@ private struct OrbMetalView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> HUDOrbView {
         let view = HUDOrbView(frame: .zero, device: MTLCreateSystemDefaultDevice())
-        view.preferredFramesPerSecond = 60
         // The view holds its delegate weakly, so the coordinator keeps the renderer alive.
-        context.coordinator.renderer = try? OrbRenderer(view: view, controls: controls)
+        let renderer = try? OrbRenderer(view: view, controls: controls)
+        context.coordinator.renderer = renderer
+        view.renderer = renderer
         return view
     }
 
@@ -45,6 +46,9 @@ private struct OrbMetalView: NSViewRepresentable {
 
 /// An `MTKView` drawn below Retina, as the Panel is, and paused while its window is hidden or covered.
 final class HUDOrbView: MTKView {
+    /// The renderer told when the window is hidden or covered; the coordinator owns it.
+    weak var renderer: OrbRenderer?
+
     override func setFrameSize(_ size: NSSize) {
         super.setFrameSize(size)
         autoResizeDrawable = false
@@ -62,6 +66,6 @@ final class HUDOrbView: MTKView {
     }
 
     @objc private func occlusionDidChange() {
-        isPaused = window?.occlusionState.contains(.visible) != true
+        renderer?.isVisible = window?.occlusionState.contains(.visible) == true
     }
 }
