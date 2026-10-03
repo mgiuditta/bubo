@@ -33,6 +33,13 @@ final class DraftStore {
         save()
     }
 
+    /// Makes the Sessione of the Bozza `id` start on `choice`; `nil` for its Progetto's at Avvia.
+    func setChoice(_ choice: EngineChoice?, of id: UUID) {
+        guard let index = drafts.firstIndex(where: { $0.id == id }) else { return }
+        drafts[index].choice = choice
+        save()
+    }
+
     private func save() {
         guard let file else { return }
         do {
@@ -53,7 +60,7 @@ extension SessionStore {
         guard draft.unreachableReason == nil else { return }
         do {
             try start(draft.prompt, title: draft.title, branch: draft.branch ?? Session.proposedBranch(for: draft.title),
-                      in: draft.project, issue: draft.issue)
+                      in: draft.project, issue: draft.issue, choice: draft.choice)
             drafts.remove(draft.id)
         } catch {
             // Only the checkout can be taken, and a Bozza never starts there.

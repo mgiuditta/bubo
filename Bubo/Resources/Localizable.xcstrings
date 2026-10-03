@@ -3672,6 +3672,16 @@
         }
       }
     },
+    "Caricamento dei modelli…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Loading models…"
+          }
+        }
+      }
+    },
     "Cartelle prioritarie" : {
       "localizations" : {
         "en" : {
@@ -3738,6 +3748,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude didn't reload, to keep the prompt cache. Reload anyway loses it: the rest of the turn costs more tokens. MCP servers that change: %@."
+          }
+        }
+      }
+    },
+    "Claude · %@" : {
+      "comment" : "Engine and model of a Sessione.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude · %@"
+          }
+        }
+      }
+    },
+    "Claude · predefinito" : {
+      "comment" : "Engine of a Sessione, with the model set in claude.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude · default"
+          }
+        }
+      }
+    },
+    "Collega Copilot…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connect Copilot…"
           }
         }
       }
@@ -3884,6 +3926,16 @@
         }
       }
     },
+    "Consenti Copilot…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow Copilot…"
+          }
+        }
+      }
+    },
     "Consenti…" : {
       "localizations" : {
         "en" : {
@@ -3974,6 +4026,16 @@
         }
       }
     },
+    "Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot"
+          }
+        }
+      }
+    },
     "Copilot non legge né scrive la Memoria di Progetto." : {
       "localizations" : {
         "en" : {
@@ -4000,6 +4062,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copilot can receive Questions and Project files"
+          }
+        }
+      }
+    },
+    "Copilot · %@" : {
+      "comment" : "Engine and model of a Sessione.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot · %@"
+          }
+        }
+      }
+    },
+    "Copilot · predefinito" : {
+      "comment" : "Engine of a Sessione, with the model set in copilot.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot · default"
           }
         }
       }
@@ -4689,6 +4773,16 @@
         }
       }
     },
+    "Motore e modello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Engine and model"
+          }
+        }
+      }
+    },
     "Nel Terminale avvia copilot e scrivi /logout. Vale per la CLI copilot in ogni terminale." : {
       "localizations" : {
         "en" : {
@@ -4967,6 +5061,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Possibile segreto %1$@, inizia con %2$@, %3$lld caratteri"
+          }
+        }
+      }
+    },
+    "Predefinito di Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot's default"
           }
         }
       }
@@ -5414,6 +5518,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On individual Copilot plans (Free, Pro, Pro+, Max), GitHub uses what it receives to train its models by default. You can turn this off on GitHub in Copilot settings, under Privacy."
+          }
+        }
+      }
+    },
+    "Usa sempre per questo Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always use for this Project"
           }
         }
       }

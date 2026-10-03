@@ -107,7 +107,7 @@ private struct Satellite: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(verbatim: session.title))
-        .accessibilityValue(Text(session.activity.title))
+        .accessibilityValue(Text(verbatim: "\(String(localized: session.activity.title)) · \(session.choice.name)"))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 }

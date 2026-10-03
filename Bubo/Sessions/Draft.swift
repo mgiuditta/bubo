@@ -16,16 +16,19 @@ nonisolated struct Draft: Codable, Identifiable, Equatable, Sendable {
     var branch: String?
     /// The Consegna the Bozza comes from, with the chip `consegna`; `nil` for the others.
     var delivery: DraftDelivery?
+    /// The engine and model its Sessione starts on; `nil` for those of its Progetto at Avvia.
+    var choice: EngineChoice?
 
     /// Creates a Bozza on `project`, written now, from `issue` if any, whose Sessione starts on `branch` if given.
     init(title: String, text: String, project: URL, issue: IssueLink? = nil, branch: String? = nil,
-         createdAt: Date = .now) {
+         choice: EngineChoice? = nil, createdAt: Date = .now) {
         id = UUID()
         self.title = title
         self.text = text
         self.project = project
         self.issue = issue
         self.branch = branch
+        self.choice = choice
         self.createdAt = createdAt
     }
 

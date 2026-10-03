@@ -425,6 +425,12 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            // Always in sight: which engine and model the next turn runs on (ADR 0012). VoiceOver reads it as the value.
+            Text(verbatim: session.choice.name)
+                .font(Typography.mono(size: 11))
+                .foregroundStyle(Palette.textSecondary)
+                .lineLimit(1)
+                .accessibilityHidden(true)
             if !isArchived && isOnCopilot {
                 CopilotUnavailableNotice()
                     .padding(.top, Spacing.xxSmall)
@@ -536,6 +542,10 @@ struct SessionRow: View {
         .padding(Spacing.xSmall)
         .opacity(isArchived ? 0.6 : 1)
         .accessibilityElement(children: .combine)
+        .accessibilityValue(Text(verbatim: session.choice.name))
+        .task(id: session.engine) {
+            if session.engine == .copilot { await store.loadCopilotModels() }
+        }
         // Read again each time the Sessione changes Attività: a turn that ends has new lines.
         .task(id: isOnBoard && canReview ? session.activitySince : nil) {
             guard isOnBoard, canReview else { return }
@@ -548,7 +558,9 @@ struct SessionRow: View {
                 Button("Mostra nella Galassia") { showInGalaxy(session) }
             }
             if !isArchived {
-                SessionModelMenu(model: session.model) { store.setModel($0, in: session.id) }
+                SessionModelMenu(choice: session.choice, copilotModels: store.copilotModels) {
+                    store.setChoice($0, in: session.id)
+                }
             }
             if canDeliver {
                 Button("Consegna…") { hud.deliver(session) }
