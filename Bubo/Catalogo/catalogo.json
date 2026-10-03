@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "valigetta",
+      "forma": "valigetta",
+      "categoria": "agente",
+      "descrizione": "Quando si lavora su un Progetto: aprirlo, organizzarlo, cambiarlo.",
+      "parole": ["valigetta", "progetto", "project", "apri il progetto", "open project", "organizza il progetto", "cartella di lavoro", "workspace"]
+    },
+    {
+      "nome": "puntina",
+      "forma": "puntina",
+      "categoria": "agente",
+      "descrizione": "Quando si organizza il lavoro su una board: schede, colonne, priorità.",
+      "parole": ["puntina", "board", "kanban", "schede", "cards", "colonne", "priorità", "priority"]
+    },
+    {
+      "nome": "bivio",
+      "forma": "bivio",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo smista: issue, segnalazioni, richieste in arrivo.",
+      "parole": ["smista", "triage", "segnalazioni", "bug report", "issue in arrivo", "incoming issues", "inbox", "bivio"]
+    },
+    {
+      "nome": "molecola",
+      "forma": "molecola",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di chimica.",
+      "parole": ["chimica", "chemistry", "molecola", "molecule", "atomo", "atom", "reazione chimica", "tavola periodica"]
+    },
+    {
+      "nome": "tostapane",
+      "forma": "tostapane",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di colazione.",
+      "parole": ["colazione", "breakfast", "tostapane", "toaster", "brunch", "pane tostato", "toast", "cornetto"]
+    },
+    {
+      "nome": "urna-elettorale",
+      "forma": "urna_elettorale",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di elezioni e politica.",
+      "parole": ["elezioni", "election", "politica", "politics", "voto", "vote", "referendum", "parlamento"]
+    },
+    {
+      "nome": "smartphone",
+      "forma": "smartphone",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora a un'app per telefono o tablet.",
+      "parole": ["smartphone", "iphone", "app mobile", "mobile app", "ios", "android", "tablet", "telefono"]
+    },
+    {
+      "nome": "piramide",
+      "forma": "piramide",
+      "categoria": "codice",
+      "descrizione": "Quando si decide la strategia dei test: unit, integrazione, end-to-end.",
+      "parole": ["piramide dei test", "test pyramid", "strategia dei test", "test strategy", "test di integrazione", "integration test", "end-to-end", "e2e"]
+    },
+    {
+      "nome": "coccarda",
+      "forma": "coccarda",
+      "categoria": "codice",
+      "descrizione": "Quando si firma o certifica l'app: code signing, notarizzazione, certificati.",
+      "parole": ["firma il codice", "code signing", "notarizza*", "notarization", "certificato", "certificate", "provisioning", "developer id"]
+    },
+    {
+      "nome": "squadra",
+      "forma": "squadra",
+      "categoria": "codice",
+      "descrizione": "Quando si sistema il layout al punto: allineamenti, margini, misure.",
+      "parole": ["allineamento", "alignment", "margini", "margins", "padding", "spaziatura", "spacing", "pixel perfect"]
+    },
+    {
+      "nome": "molla",
+      "forma": "molla",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo anima l'interfaccia: transizioni, molle, curve di movimento.",
+      "parole": ["animazion*", "animation", "transizion*", "transition", "spring animation", "curva di movimento", "easing", "micro-interazion*"]
+    },
+    {
+      "nome": "cubo",
+      "forma": "cubo",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con grafica 3D e shader.",
+      "parole": ["3d", "grafica 3d", "shader", "metal", "rendering", "scena 3d", "3d graphics", "mesh"]
+    },
+    {
+      "nome": "omino",
+      "forma": "omino",
+      "categoria": "codice",
+      "descrizione": "Quando si cura l'accessibilità: VoiceOver, contrasto, tastiera.",
+      "parole": ["accessibilità", "accessibility", "voiceover", "contrasto", "contrast", "tastiera", "screen reader", "a11y"]
+    },
+    {
+      "nome": "bandierine",
+      "forma": "bandierine",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo traduce l'app: localizzazione, String Catalog, lingue.",
+      "parole": ["localizzazione", "localization", "traduci l'app", "translate the app", "string catalog", "lingue", "languages", "i18n"]
+    },
+    {
+      "nome": "cappello-giullare",
+      "forma": "cappello_giullare",
+      "categoria": "creativo",
+      "descrizione": "Quando si cerca umorismo: battute, barzellette, testi spiritosi.",
+      "parole": ["barzelletta", "joke", "umorismo", "humor", "battuta", "pun", "spiritoso", "funny"]
+    },
+    {
+      "nome": "disco-volante",
+      "forma": "disco_volante",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di fantascienza: alieni, futuro, spazio immaginato.",
+      "parole": ["fantascienza", "sci-fi", "alieni", "aliens", "ufo", "extraterrestri", "futuro", "cyberpunk"]
+    },
+    {
+      "nome": "fiamma",
+      "forma": "fiamma",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di siccità e rischio di incendi.",
+      "parole": ["siccità", "drought", "incendio", "wildfire", "rischio incendi", "fire risk", "caldo estremo", "fiamma"]
+    },
+    {
+      "nome": "organo",
+      "forma": "organo",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di organo e musica barocca.",
+      "parole": ["organo", "organ", "barocca", "baroque", "bach", "musica sacra", "church music", "fuga"]
+    },
+    {
+      "nome": "leggio",
+      "forma": "leggio",
+      "categoria": "musica",
+      "descrizione": "Quando si leggono o scrivono spartiti.",
+      "parole": ["spartito", "sheet music", "partitura", "score", "notazione musicale", "music notation", "leggio", "pentagramma"]
+    },
+    {
+      "nome": "virus",
+      "forma": "virus",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di malattie infettive: influenza, contagi.",
+      "parole": ["virus", "influenza", "flu", "contagio", "contagion", "infezione", "infection", "epidemia"]
+    },
+    {
+      "nome": "canestro",
+      "forma": "canestro",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di basket.",
+      "parole": ["basket", "basketball", "nba", "pallacanestro", "canestro", "tiro libero", "free throw", "dunk"]
+    },
+    {
+      "nome": "orecchio",
+      "forma": "orecchio",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di udito e orecchie.",
+      "parole": ["orecchio", "ear", "udito", "hearing", "acufene", "tinnitus", "sordità", "audiologo"]
+    },
+    {
+      "nome": "canoa",
+      "forma": "canoa",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cercano avventure in acqua: fiumi, laghi, kayak.",
+      "parole": ["canoa", "canoe", "kayak", "rafting", "fiume", "river", "lago", "lake"]
+    },
+    {
+      "nome": "cuscino-collo",
+      "forma": "cuscino_collo",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di voli lunghi e jet lag.",
+      "parole": ["volo lungo", "long flight", "jet lag", "cuscino da viaggio", "neck pillow", "red-eye", "fuso orario", "aeroporto"]
     }
   ]
 }

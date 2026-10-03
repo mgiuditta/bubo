@@ -19,6 +19,42 @@
         }
       }
     },
+    "bandierine" : {
+      "comment" : "Etichetta della Variante bandierine (Categoria Codice): un festone di bandierine.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bunting"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bandierine"
+          }
+        }
+      }
+    },
+    "bivio" : {
+      "comment" : "Etichetta della Variante bivio (Categoria Agente): un palo con due frecce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signpost"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bivio"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -105,6 +141,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Calendario"
+          }
+        }
+      }
+    },
+    "canestro" : {
+      "comment" : "Etichetta della Variante canestro (Categoria Salute): un canestro con il tabellone e la retina.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basketball Hoop"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canestro"
+          }
+        }
+      }
+    },
+    "canoa" : {
+      "comment" : "Etichetta della Variante canoa (Categoria Viaggi): una canoa con la pagaia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canoe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canoa"
+          }
+        }
+      }
+    },
+    "cappello-giullare" : {
+      "comment" : "Etichetta della Variante cappello-giullare (Categoria Creativo): un cappello da giullare con i sonagli.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jester Hat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cappello da giullare"
           }
         }
       }
@@ -199,6 +289,24 @@
         }
       }
     },
+    "coccarda" : {
+      "comment" : "Etichetta della Variante coccarda (Categoria Codice): una coccarda con due nastri.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rosette"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coccarda"
+          }
+        }
+      }
+    },
     "conchiglia" : {
       "comment" : "Etichetta della Variante conchiglia (Categoria Chat): una conchiglia a spirale.",
       "extractionState" : "manual",
@@ -235,6 +343,24 @@
         }
       }
     },
+    "cubo" : {
+      "comment" : "Etichetta della Variante cubo (Categoria Codice): un cubo visto di tre quarti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cube"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cubo"
+          }
+        }
+      }
+    },
     "cuore" : {
       "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
       "extractionState" : "manual",
@@ -249,6 +375,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuore"
+          }
+        }
+      }
+    },
+    "cuscino-collo" : {
+      "comment" : "Etichetta della Variante cuscino-collo (Categoria Viaggi): un cuscino da viaggio a U.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neck Pillow"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuscino da viaggio"
+          }
+        }
+      }
+    },
+    "disco-volante" : {
+      "comment" : "Etichetta della Variante disco-volante (Categoria Creativo): un disco volante con la cupola.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flying Saucer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disco volante"
           }
         }
       }
@@ -285,6 +447,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Evidenziatore"
+          }
+        }
+      }
+    },
+    "fiamma" : {
+      "comment" : "Etichetta della Variante fiamma (Categoria Meteo): una fiamma a tre lingue.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Flame"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fiamma"
           }
         }
       }
@@ -433,6 +613,24 @@
         }
       }
     },
+    "leggio" : {
+      "comment" : "Etichetta della Variante leggio (Categoria Musica): un leggio con lo spartito.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music Stand"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leggio"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -465,6 +663,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Matita"
+          }
+        }
+      }
+    },
+    "molecola" : {
+      "comment" : "Etichetta della Variante molecola (Categoria Chat): una molecola di tre sfere.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Molecule"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Molecola"
+          }
+        }
+      }
+    },
+    "molla" : {
+      "comment" : "Etichetta della Variante molla (Categoria Codice): una molla elicoidale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spring"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Molla"
           }
         }
       }
@@ -537,6 +771,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nuvola"
+          }
+        }
+      }
+    },
+    "omino" : {
+      "comment" : "Etichetta della Variante omino (Categoria Codice): un omino a braccia e gambe aperte in un cerchio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Little Person"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Omino"
+          }
+        }
+      }
+    },
+    "orecchio" : {
+      "comment" : "Etichetta della Variante orecchio (Categoria Salute): un orecchio di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ear"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orecchio"
+          }
+        }
+      }
+    },
+    "organo" : {
+      "comment" : "Etichetta della Variante organo (Categoria Musica): un organo con sette canne.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pipe Organ"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Organo"
           }
         }
       }
@@ -631,6 +919,24 @@
         }
       }
     },
+    "piramide" : {
+      "comment" : "Etichetta della Variante piramide (Categoria Codice): una piramide a tre fasce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pyramid"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piramide"
+          }
+        }
+      }
+    },
     "provetta" : {
       "comment" : "Etichetta della Variante provetta (Categoria Codice): una provetta a metà.",
       "extractionState" : "manual",
@@ -645,6 +951,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Provetta"
+          }
+        }
+      }
+    },
+    "puntina" : {
+      "comment" : "Etichetta della Variante puntina (Categoria Agente): una puntina da disegno.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pushpin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puntina"
           }
         }
       }
@@ -793,6 +1117,42 @@
         }
       }
     },
+    "smartphone" : {
+      "comment" : "Etichetta della Variante smartphone (Categoria Codice): un telefono con lo schermo incassato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smartphone"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smartphone"
+          }
+        }
+      }
+    },
+    "squadra" : {
+      "comment" : "Etichetta della Variante squadra (Categoria Codice): una squadra da disegno con il foro.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Square"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Squadra"
+          }
+        }
+      }
+    },
     "tappetino" : {
       "comment" : "Etichetta della Variante tappetino (Categoria Salute): un tappetino arrotolato, visto di lato.",
       "extractionState" : "manual",
@@ -843,6 +1203,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminale"
+          }
+        }
+      }
+    },
+    "tostapane" : {
+      "comment" : "Etichetta della Variante tostapane (Categoria Chat): un tostapane con due fette.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toaster"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tostapane"
+          }
+        }
+      }
+    },
+    "urna-elettorale" : {
+      "comment" : "Etichetta della Variante urna-elettorale (Categoria Chat): un'urna con una scheda.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ballot Box"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Urna elettorale"
+          }
+        }
+      }
+    },
+    "valigetta" : {
+      "comment" : "Etichetta della Variante valigetta (Categoria Agente): una valigetta ventiquattrore.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Briefcase"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Valigetta"
+          }
+        }
+      }
+    },
+    "virus" : {
+      "comment" : "Etichetta della Variante virus (Categoria Salute): una sfera con le punte a ventosa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Virus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Virus"
           }
         }
       }
