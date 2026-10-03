@@ -231,7 +231,7 @@ Fonte: [#190](https://github.com/mgiuditta/bubo/issues/190), variante A (tre col
   - **Aggiorna** con nuovo codice eseguibile: elenca solo i componenti nuovi. Senza codice nuovo nessun foglio: 1 clic.
   - **Disinstalla**: "per spegnerlo e basta, usa Disattiva", casella "Tieni i dati del plugin" (spenta), nota sulle dipendenze orfane.
   - **Impostazioni** (`userConfig`): un campo per chiave; i segreti in un campo password, solo via stdin.
-- **Ricarica plugin**: banner sotto la barra degli strumenti, solo se ci sono turni in corso con plugin vecchi. "N Sessioni al lavoro usano i plugin di prima" + "Ricaricare può invalidare la cache del prompt". Il primo tentativo passa `holdOnCacheImpact: true`; "Ricarica comunque" richiama senza l'opzione. La generazione cresce a ogni comando riuscito della finestra Plugin e a ogni modifica vista da FSEvents mentre la finestra è aperta. Un pulsante per Sessione e "Ricarica tutte" (da B). Lo stesso stato sulla riga della Sessione nell'HUD.
+- **Ricarica plugin**: banner sotto la barra degli strumenti, solo se ci sono turni in corso con plugin vecchi. "N Sessioni al lavoro usano i plugin di prima" + "Ricaricare può invalidare la cache del prompt". Il primo tentativo passa `holdOnCacheImpact: true`; "Ricarica comunque" richiama senza l'opzione. La generazione cresce a ogni comando riuscito della finestra Plugin e a ogni modifica vista da FSEvents: dalla finestra mentre è aperta e, mentre c'è almeno un turno in corso, da un osservatore leggero di `PluginReloader` su `installed_plugins.json`, `known_marketplaces.json`, i settings dell'utente e quelli della cartella di ogni turno, anche a finestra chiusa ([#496](https://github.com/mgiuditta/bubo/issues/496)). Senza turni in corso non osserva niente. Un pulsante per Sessione e "Ricarica tutte" (da B). Lo stesso stato sulla riga della Sessione nell'HUD.
 - **Accessibilità**: barra laterale ed elenco sono `List` con selezione, navigabili da tastiera. Il punto di stato ha sempre un'etichetta testuale per VoiceOver. I fogli hanno Invio come azione primaria (tranne Disinstalla) ed Esc per annullare.
 
 ### Scelte di dettaglio (prese scrivendo la spec)
@@ -292,6 +292,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi in `Plugins/`:
 - **Repository privato senza credenziali**: il comando fallisce subito (`GIT_TERMINAL_PROMPT=0`) e la riga dice "Accesso al repository negato: configura una chiave SSH o un credential helper di git".
 - **Due finestre, due azioni**: la coda seriale le mette in fila; l'elenco mostra "in attesa".
 - **Terminale che modifica i plugin a finestra aperta**: FSEvents → rilettura, generazione +1, banner se serve.
+- **Terminale che modifica i plugin a finestra chiusa, con un turno in corso**: FSEvents → generazione +1 → "Ricarica plugin" sulla riga della Sessione nell'HUD entro 1 s.
 - **`version` fissata**: Aggiorna → `ok` con versione invariata → "L'autore non ha cambiato versione: questa è già l'ultima che pubblica".
 - **Plugin richiesto da un altro**: `disable` rifiuta [1]; il riquadro dice quale Plugin ne ha bisogno.
 - **Progetto non git**: scope Per questo Progetto e Solo io qui funzionano lo stesso (cartella del Progetto come cartella di lavoro).

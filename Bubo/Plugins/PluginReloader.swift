@@ -20,6 +20,8 @@ import os
 
     /// Reloads the plugins of the turn in progress of a Sessione, forced or stopping on a cache impact.
     typealias Reload = @MainActor (_ session: UUID, _ isForced: Bool) async throws -> PluginReload
+    /// The changes of the plugins on disk, with the settings of these folders.
+    typealias Changes = @MainActor (_ folders: [URL]) -> AsyncStream<Void>
 
     /// Grows at each change of the plugins: a write of the Plugin window that succeeded, or one seen on disk.
     private(set) var generation = 0
@@ -27,28 +29,56 @@ import os
     private var turns: [UUID: Int] = [:]
     /// The turns reloading, or whose reload `claude` held.
     private var reloads: [UUID: State] = [:]
+    /// The folder each turn in progress works in, whose settings it loads.
+    @ObservationIgnored private var folders: [UUID: URL] = [:]
     @ObservationIgnored private let reload: Reload
+    @ObservationIgnored private let changes: Changes
+    /// The changes on disk followed while a turn is in progress, even with the Plugin window closed (#496), and the
+    /// folders whose settings they include.
+    @ObservationIgnored private var watch: (folders: Set<URL>, task: Task<Void, Never>)?
 
-    /// Creates a reloader that reloads a turn with `reload`.
-    init(reload: @escaping Reload = { _, _ in throw CancellationError() }) {
+    /// Creates a reloader that reloads a turn with `reload` and follows `changes` while a turn is in progress.
+    init(reload: @escaping Reload = { _, _ in throw CancellationError() },
+         changes: @escaping Changes = { _ in AsyncStream { $0.finish() } }) {
         self.reload = reload
+        self.changes = changes
     }
+
+    /// Whether the changes on disk are followed: only while a turn is in progress.
+    var isWatching: Bool { watch != nil }
 
     /// The plugins changed: every turn in progress now has the plugins of before.
     func pluginsDidChange() {
         generation += 1
     }
 
-    /// The turn of `session` started, with the plugins as they are now.
-    func turnDidStart(in session: UUID) {
+    /// The turn of `session` started in `folder`, with the plugins as they are now.
+    func turnDidStart(in session: UUID, folder: URL? = nil) {
         turns[session] = generation
         reloads[session] = nil
+        folders[session] = folder
+        followChanges()
     }
 
     /// The turn of `session` ended: the next one loads the plugins by itself.
     func turnDidEnd(in session: UUID) {
         turns[session] = nil
         reloads[session] = nil
+        folders[session] = nil
+        followChanges()
+    }
+
+    /// Follows the changes on disk with the settings of the turns' folders, or stops once no turn is in progress.
+    private func followChanges() {
+        let wanted = turns.isEmpty ? nil : Set(folders.values)
+        guard wanted != watch?.folders else { return }
+        watch?.task.cancel()
+        watch = nil
+        guard let wanted else { return }
+        let changes = self.changes(wanted.sorted { $0.path < $1.path })
+        watch = (wanted, Task { [weak self] in
+            for await _ in changes { self?.pluginsDidChange() }
+        })
     }
 
     /// Where the turn in progress of `session` is with Ricarica plugin; `nil` when it has the current plugins, or no
