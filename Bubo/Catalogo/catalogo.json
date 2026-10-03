@@ -1672,6 +1672,174 @@
       "categoria": "chat",
       "descrizione": "Quando si fa una grigliata.",
       "parole": ["barbecue", "grigliata", "bbq", "griglia", "grill", "braciere", "carne alla brace"]
+    },
+    {
+      "nome": "manichino",
+      "forma": "manichino",
+      "categoria": "codice",
+      "descrizione": "Quando servono oggetti finti per i test: mock, stub, dati di prova.",
+      "parole": ["manichino", "mock", "stub", "dati di prova", "fixture", "dummy"]
+    },
+    {
+      "nome": "cerniera",
+      "forma": "cerniera",
+      "categoria": "codice",
+      "descrizione": "Quando si comprimono o estraggono file: archivi, zip.",
+      "parole": ["cerniera", "zip", "unzip", "archivio", "archive", "comprimi", "estrai", "compress*"]
+    },
+    {
+      "nome": "taccuino",
+      "forma": "taccuino",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo cerca tra i tuoi appunti e le tue note.",
+      "parole": ["taccuino", "notebook", "appunti", "note", "notes", "quaderno", "memo"]
+    },
+    {
+      "nome": "flauto",
+      "forma": "flauto",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di fiati in legno: flauto, clarinetto, oboe.",
+      "parole": ["flauto", "flute", "clarinetto", "clarinet", "oboe", "fiati", "woodwind*"]
+    },
+    {
+      "nome": "sdraio",
+      "forma": "sdraio",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla di ferie, ponti e giorni liberi.",
+      "parole": ["sdraio", "deck chair", "ferie", "vacanza", "holiday", "ponte", "giorni liberi", "day off"]
+    },
+    {
+      "nome": "elefante",
+      "forma": "elefante",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo ricorda o riprende qualcosa: memoria, cose da non dimenticare.",
+      "parole": ["elefante", "elephant", "memoria", "memory", "ricorda", "remember", "non dimenticare"]
+    },
+    {
+      "nome": "palma",
+      "forma": "palma",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di mete tropicali e isole.",
+      "parole": ["palma", "palm", "tropicale", "tropical", "isola", "island", "isole", "caraibi"]
+    },
+    {
+      "nome": "microchip",
+      "forma": "microchip",
+      "categoria": "codice",
+      "descrizione": "Quando si scende a basso livello: memoria, CPU, hardware.",
+      "parole": ["microchip", "chip", "cpu", "hardware", "memoria ram", "firmware", "basso livello", "low level"]
+    },
+    {
+      "nome": "pupazzo-di-neve",
+      "forma": "pupazzo_di_neve",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla dell'inverno e delle sue giornate.",
+      "parole": ["pupazzo di neve", "snowman", "inverno", "winter", "neve", "snow", "gelo"]
+    },
+    {
+      "nome": "furgone",
+      "forma": "furgone",
+      "categoria": "mail",
+      "descrizione": "Quando si seguono spedizioni e pacchi in arrivo.",
+      "parole": ["furgone", "van", "spedizione", "shipment", "pacco", "pacchi", "package*", "corriere"]
+    },
+    {
+      "nome": "cartone-latte",
+      "forma": "cartone_latte",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di latticini e intolleranze.",
+      "parole": ["latte", "milk", "latticini", "dairy", "formaggio", "yogurt", "lattosio", "lactose"]
+    },
+    {
+      "nome": "dado",
+      "forma": "dado",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di giochi da tavolo e probabilità.",
+      "parole": ["dado", "dice", "giochi da tavolo", "board game*", "probabilita", "probability", "tombola"]
+    },
+    {
+      "nome": "banca",
+      "forma": "banca",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di banche e conti correnti.",
+      "parole": ["banca", "bank", "conto corrente", "checking account", "bonifico", "iban", "mutuo"]
+    },
+    {
+      "nome": "macchina-da-scrivere",
+      "forma": "macchina_da_scrivere",
+      "categoria": "creativo",
+      "descrizione": "Quando si scrive un testo lungo: racconti, articoli, saggi.",
+      "parole": ["macchina da scrivere", "typewriter", "racconto", "story", "articolo", "saggio", "essay", "scrivi un testo"]
+    },
+    {
+      "nome": "elmetto",
+      "forma": "elmetto",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo fa una modifica ampia che tocca molti file.",
+      "parole": ["elmetto", "hard hat", "cantiere", "refactor*", "migrazione", "migration", "modifica ampia"]
+    },
+    {
+      "nome": "torre-di-carte",
+      "forma": "torre_di_carte",
+      "categoria": "codice",
+      "descrizione": "Quando qualcosa è fragile: test instabili, codice che si rompe a ogni modifica.",
+      "parole": ["torre di carte", "house of cards", "fragile", "flaky", "instabile", "test instabili", "si rompe"]
+    },
+    {
+      "nome": "antenna",
+      "forma": "antenna",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano novità e aggiornamenti: uscite, versioni, changelog.",
+      "parole": ["antenna", "novita", "news", "aggiornamenti", "updates", "changelog", "release notes", "uscite"]
+    },
+    {
+      "nome": "vulcano",
+      "forma": "vulcano",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di vulcani, terremoti e geologia.",
+      "parole": ["vulcano", "volcano", "terremoto", "earthquake", "geologia", "geology", "lava", "eruzione"]
+    },
+    {
+      "nome": "dischetto",
+      "forma": "dischetto",
+      "categoria": "codice",
+      "descrizione": "Quando si salva lo stato: persistenza, file di salvataggio, backup.",
+      "parole": ["dischetto", "floppy", "salva", "save", "backup", "persistenza", "persistence", "salvataggio"]
+    },
+    {
+      "nome": "puntatore",
+      "forma": "puntatore",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo usa il computer: clic, finestre, app di altri.",
+      "parole": ["puntatore", "cursore", "cursor", "mouse", "clic", "click", "computer use", "usa il computer"]
+    },
+    {
+      "nome": "campanello",
+      "forma": "campanello",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cerca un alloggio: hotel, B&B, ostelli.",
+      "parole": ["campanello", "reception", "hotel", "alloggio", "accommodation", "b&b", "ostello", "hostel"]
+    },
+    {
+      "nome": "letto",
+      "forma": "letto",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di sonno: dormire meglio, insonnia, sonnellini.",
+      "parole": ["letto", "bed", "sonno", "sleep", "dormire", "insonnia", "insomnia", "sonnellino"]
+    },
+    {
+      "nome": "fisarmonica",
+      "forma": "fisarmonica",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica popolare e da ballo tradizionale.",
+      "parole": ["fisarmonica", "accordion", "liscio", "folk", "balli popolari", "tradizionale", "polka"]
+    },
+    {
+      "nome": "linea-del-tempo",
+      "forma": "linea_del_tempo",
+      "categoria": "tempo",
+      "descrizione": "Quando si mettono eventi in ordine nel tempo: cronologie, date in fila.",
+      "parole": ["linea del tempo", "timeline", "cronologia", "chronology", "in ordine", "date in fila", "storia"]
     }
   ]
 }
