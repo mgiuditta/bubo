@@ -4,7 +4,6 @@ import SwiftUI
 // ponytail: plain text answer; Markdown rendering comes with the HUD bubbles of phase 3.
 struct QuestionView: View {
     @Bindable var model: QuestionModel
-    @Environment(\.openURL) private var openURL
     @Environment(HUDPresenter.self) private var hud
     @State private var isPickingRetry = false
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
@@ -107,15 +106,8 @@ struct QuestionView: View {
                 QuestionAnswer(model: model) { isPickingRetry = true }
             }
 
-            if let savedNote = model.savedNote {
-                HStack(spacing: Spacing.small) {
-                    Label("Ricordato in \(savedNote.deletingPathExtension().lastPathComponent)",
-                          systemImage: "bookmark")
-                        .font(Typography.body(size: 13))
-                        .foregroundStyle(Palette.textSecondary)
-                    Button("Apri la nota") { openURL(savedNote) }
-                        .accessibilityIdentifier("question.openNote")
-                }
+            if let savedChange = model.savedChange {
+                SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
             }
         }
         // On the whole field, not on the button: a failed answer offers "Rifai con…" too, without the reason line.

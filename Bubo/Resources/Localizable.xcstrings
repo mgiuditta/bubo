@@ -3892,6 +3892,16 @@
         }
       }
     },
+    "Claude salva preferenze, persone, progetti e decisioni seguendo Bubo/Regole.md. Spento, salva solo quando glielo chiedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude saves preferences, people, projects and decisions following Bubo/Regole.md. When off, it saves only when you ask."
+          }
+        }
+      }
+    },
     "Claude · %@" : {
       "comment" : "Engine and model of a Sessione.",
       "localizations" : {
@@ -4774,6 +4784,16 @@
         }
       }
     },
+    "La nota è cambiata dopo questo salvataggio: annullando perderesti le modifiche successive." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The note changed after this save: undoing it would lose the later changes."
+          }
+        }
+      }
+    },
     "La Sessione si è fermata: riparte solo con una tua scelta." : {
       "localizations" : {
         "en" : {
@@ -5115,6 +5135,16 @@
         }
       }
     },
+    "Non riesco a riportare la nota com'era. Controlla di poter scrivere nella cartella del Secondo cervello, poi riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't restore the note. Check that you can write to the Second Brain folder, then try again."
+          }
+        }
+      }
+    },
     "Non si revoca, non scade e non avvisa quando la apre." : {
       "localizations" : {
         "en" : {
@@ -5145,6 +5175,26 @@
         }
       }
     },
+    "Nota modificata · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note changed · %@"
+          }
+        }
+      }
+    },
+    "Nota nuova · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New note · %@"
+          }
+        }
+      }
+    },
     "Note fuori dalle cartelle" : {
       "localizations" : {
         "en" : {
@@ -5171,6 +5221,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Ogni conversazione riceve Bubo/Profilo.md e Bubo/Regole.md; le altre note Claude le legge quando le cerca. Obsidian può restare chiuso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every conversation gets Bubo/Profilo.md and Bubo/Regole.md; Claude reads your other notes when it searches them. Obsidian can stay closed."
           }
         }
       }
@@ -5562,6 +5622,26 @@
         }
       }
     },
+    "Riporta %@ com'era prima di questo salvataggio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores %@ to how it was before this save"
+          }
+        }
+      }
+    },
+    "Riporta la nota com'era prima di questo salvataggio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restores the note to how it was before this save"
+          }
+        }
+      }
+    },
     "Ripulisco la Sessione e cerco i segreti…" : {
       "localizations" : {
         "en" : {
@@ -5618,6 +5698,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skipped, already imported"
+          }
+        }
+      }
+    },
+    "Salva da solo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save automatically"
+          }
+        }
+      }
+    },
+    "Salvataggio non annullato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Not Undone"
+          }
+        }
+      }
+    },
+    "Salvato in" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved in"
+          }
+        }
+      }
+    },
+    "Salvato in %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved in %@"
           }
         }
       }
@@ -5771,6 +5891,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "All Folders"
+          }
+        }
+      }
+    },
+    "Ultime modifiche" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent changes"
           }
         }
       }
@@ -6626,16 +6756,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude works without asking your permission up to level 3, only in the Project's copy. Levels 4 and 5 still ask. Takes effect on the next turn."
-          }
-        }
-      }
-    },
-    "Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claude reads your notes only when it searches them: nothing enters the conversation on its own. Obsidian can stay closed."
           }
         }
       }
@@ -14047,16 +14167,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Remembered"
-          }
-        }
-      }
-    },
-    "Ricordato in %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Remembered in %@"
           }
         }
       }

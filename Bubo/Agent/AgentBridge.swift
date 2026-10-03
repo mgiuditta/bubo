@@ -45,11 +45,16 @@ final class AgentBridge {
     /// - Parameter quota: Receives the Quota windows each time `claude` reports them.
     /// - Parameter search: Answers the `cerca` tool: the text to look for, and the Progetto's folder and the source to
     ///   search in, if any.
-    /// - Parameter remember: Answers the `ricorda` tool of a Domanda: the text to save and its title.
+    /// - Parameter remember: Answers the `ricorda` tool: what it answers the model, and the write when there was one.
+    /// - Parameter basics: The Profilo and the Regole of the Secondo cervello for the system prompt of each turn; `nil`
+    ///   for none.
     /// - Parameter catalog: Receives the Claude models the account offers, read with the Quota.
     init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
          quota: @escaping (Quota) -> Void = { _ in }, catalog: @escaping (ModelCatalog) -> Void = { _ in },
-         remember: @escaping (_ text: String, _ title: String) async -> String = { _, _ in "Non posso salvare note." },
+         remember: @escaping (NoteRequest) async -> (reply: String, change: BrainChange?) = { _ in
+             ("Non posso salvare note.", nil)
+         },
+         basics: @escaping () -> String? = { nil },
          search: @escaping (_ query: String, _ project: String?, _ source: SearchSource?) async -> String) {
         self.executable = executable
         self.arguments = arguments
@@ -58,6 +63,7 @@ final class AgentBridge {
         self.quota = quota
         self.catalog = catalog
         self.remember = remember
+        self.basics = basics
         self.search = search
     }
 
@@ -70,7 +76,8 @@ final class AgentBridge {
     private let quota: (Quota) -> Void
     private let catalog: (ModelCatalog) -> Void
     private let search: (String, String?, SearchSource?) async -> String
-    private let remember: (String, String) async -> String
+    private let remember: (NoteRequest) async -> (reply: String, change: BrainChange?)
+    private let basics: () -> String?
     private var process: SpawnedProcess?
     private var answers: [String: AsyncThrowingStream<String, any Error>.Continuation] = [:]
     /// What receives the progress of each answer in `answers`.
@@ -119,7 +126,8 @@ final class AgentBridge {
     ///   - sandboxAllowances: The hosts and folders the Sandbox also reaches, beyond the preset.
     ///   - id: The answer's id, to offer it the Anteprima later with ``offerPreview(_:to:)``.
     ///   - offersPreview: Whether the conversation starts with the Anteprima's tools: the Sessione has a server.
-    ///   - remembers: Whether `claude` can save a note in the Secondo cervello with `ricorda`: only in a Domanda.
+    ///   - remembers: Whether `claude` can write in the Secondo cervello with `ricorda`; each write reaches `progress`
+    ///     as a line Salvato.
     ///   - permissionMode: How `claude` approves the calls; `nil` lets `claude` pick.
     ///   - rosa: The Varianti the agent may give the Orb while it works, with the tag `⟦orb:nome⟧`.
     ///   - unattended: Makes the turn one with nobody in front of it, an Esecuzione's: `claude` never asks, and a
@@ -179,7 +187,8 @@ final class AgentBridge {
                                             teamRules: TeamResourceReader.sessionRules(for: directory, ledger: ledger),
                                             remembers: remembers, permissionMode: permissionMode, effort: effort,
                                             rosa: rosa.map(\.nome), unattended: unattended,
-                                            readableDirectories: readableDirectories, maxBudget: maxBudget)
+                                            readableDirectories: readableDirectories, maxBudget: maxBudget,
+                                            secondBrain: basics())
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -596,10 +605,11 @@ final class AgentBridge {
                     Logger.agent.error("Anteprima answer not sent: \(error)")
                 }
             }
-        case let .remember(id, title, text):
+        case let .remember(id, request, conversation):
             Task {
-                let result = await remember(text, title)
-                try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: result).line())
+                let outcome = await remember(request)
+                try? process?.input.write(contentsOf: BridgeCommand.found(id: id, text: outcome.reply).line())
+                if let change = outcome.change, let conversation { progressHandlers[conversation]?(.memory(.saved(change))) }
             }
         case let .permission(id, request):
             if let handler = permissionHandlers[id] {

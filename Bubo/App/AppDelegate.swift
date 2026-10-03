@@ -67,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let store = try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
             // Passa all'abbonamento at 100% of a Budget moves the Domande too: one bridge, one credential.
             store.moveToSubscription = { [questions] in questions.moveToSubscription() }
+            store.undoSaved = { [secondBrain] in try secondBrain.undo($0) }
             return store
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")

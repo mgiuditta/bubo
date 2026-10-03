@@ -22,7 +22,8 @@ enum BridgeCommand: Equatable {
     /// without it they run as the user's. `offersPreview` starts the conversation with the Anteprima's tools, when the
     /// Sessione already has a server. `teamRules` are the Progetto's Risorse di squadra in force,
     /// passed as session rules: `allow` as `allowedTools`, `deny` as `disallowedTools`, `ask` in `settings`.
-    /// `remembers` gives `claude` the `ricorda` tool, only in a Domanda. `permissionMode` is how `claude` approves the
+    /// `remembers` gives `claude` the `ricorda` tool, in a Domanda or a Sessione. `secondBrain` is the Profilo and the
+    /// Regole of the Secondo cervello, added to the system prompt; without it, nothing is added. `permissionMode` is how `claude` approves the
     /// calls; without it, `claude` picks the mode itself. `effort` is the router's effort; without it, the model's default.
     /// `rosa` names the Varianti the agent may give the Orb with `⟦orb:nome⟧`; without it, the agent gets no
     /// instruction and the Orb follows only its tools. `unattended` makes it a turn with nobody in front of it, the one
@@ -34,7 +35,8 @@ enum BridgeCommand: Equatable {
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
              keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
              remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [],
-             unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [], maxBudget: Decimal? = nil)
+             unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [], maxBudget: Decimal? = nil,
+             secondBrain: String? = nil)
     /// Starts a conversation with the user's `copilot` in `directory`, answering `prompt` (ADR 0012).
     ///
     /// `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the reasoning effort;
@@ -103,7 +105,7 @@ enum BridgeCommand: Equatable {
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
                       keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended,
-                      readableDirectories, maxBudget):
+                      readableDirectories, maxBudget, secondBrain):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -127,6 +129,7 @@ enum BridgeCommand: Equatable {
             }
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
             object["maxBudget"] = maxBudget.map { NSDecimalNumber(decimal: $0) }
+            object["brain"] = secondBrain
         case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes):
             object = ["type": "copilot", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
@@ -236,8 +239,9 @@ enum BridgeEvent: Equatable, Decodable {
     /// The conversation `id` called a tool of the Anteprima: do `action`, `nil` for a tool Bubo does not know, and
     /// answer `call`.
     case previewCall(id: String, call: String, PreviewAction?)
-    /// `claude` called `ricorda`: save `text` as a note titled `title` in the Secondo cervello.
-    case remember(id: String, title: String, text: String)
+    /// `claude` called `ricorda`: write what `request` asks in the Secondo cervello. `conversation` is the answer
+    /// that called it, for its line Salvato.
+    case remember(id: String, NoteRequest, conversation: String? = nil)
     /// The Quota windows `claude` reported; a window it did not report is `nil`.
     case quota(Quota)
     /// The configuration `claude` loads, asked by `inspect` `id`.
@@ -279,7 +283,7 @@ enum BridgeEvent: Equatable, Decodable {
         case v, type, id, text, state, message, query, project, source, title, fiveHour, sevenDay, window, resetsAt,
              conversations, messages, request, file, lines, count, reason, call, tool, selector, url, filter, code, y,
              rules, conversation, before, after, mode, memories, files, status, noResponse, version, capabilities, model,
-             effort, models, nome, permissionMode
+             effort, models, nome, permissionMode, note, confirmed
     }
 
     init(from decoder: any Decoder) throws {
@@ -362,9 +366,15 @@ enum BridgeEvent: Equatable, Decodable {
                                               filter: try container.decodeIfPresent(String.self, forKey: .filter),
                                               code: try container.decodeIfPresent(String.self, forKey: .code),
                                               y: try container.decodeIfPresent(Double.self, forKey: .y)))
-        case "remember": self = .remember(id: try container.decode(String.self, forKey: .id),
-                                          title: try container.decode(String.self, forKey: .title),
-                                          text: try container.decode(String.self, forKey: .text))
+        case "remember":
+            self = .remember(id: try container.decode(String.self, forKey: .id),
+                             NoteRequest(mode: try container.decodeIfPresent(String.self, forKey: .mode)
+                                             .flatMap(NoteRequest.Mode.init(rawValue:)) ?? .new,
+                                         title: try container.decodeIfPresent(String.self, forKey: .title),
+                                         note: try container.decodeIfPresent(String.self, forKey: .note),
+                                         text: try container.decode(String.self, forKey: .text),
+                                         isConfirmed: try container.decodeIfPresent(Bool.self, forKey: .confirmed) ?? false),
+                             conversation: try container.decodeIfPresent(String.self, forKey: .conversation))
         case "quota": self = .quota(Quota(fiveHour: try container.decodeIfPresent(Quota.Window.self, forKey: .fiveHour),
                                           sevenDay: try container.decodeIfPresent(Quota.Window.self, forKey: .sevenDay)))
         case "config": self = .configuration(id: try container.decode(String.self, forKey: .id),

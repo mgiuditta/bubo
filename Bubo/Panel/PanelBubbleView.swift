@@ -83,6 +83,9 @@ struct PanelBubbleView: View {
                         QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
                             .transition(.opacity)
                     }
+                    if let savedChange = model.savedChange {
+                        SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
+                    }
                     // What was dropped on the Orb, waiting for the Domanda about it.
                     if !model.attachments.isEmpty {
                         AttachmentChips(attachments: model.attachments, remove: model.detach)
