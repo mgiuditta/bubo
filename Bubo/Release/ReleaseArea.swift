@@ -12,6 +12,8 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
     case deliveries
     /// The Sandbox of the Progetto, its indicator in the HUD and its proposal with the Modalità autonoma (#214).
     case sandbox
+    /// The Neuroni, the graph of the notes of the Secondo cervello (#658).
+    case neurons
 
     /// The areas a Release build offers. Turning an area on for a release is adding it here, and nothing else.
     static let released: Set<ReleaseArea> = []
@@ -35,6 +37,7 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
         case .remote: 245
         case .deliveries: 274
         case .sandbox: 214
+        case .neurons: 658
         }
     }
 
@@ -45,6 +48,7 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
         case .remote: "Telecomando"
         case .deliveries: "Consegne"
         case .sandbox: "Sandbox"
+        case .neurons: "Neuroni"
         }
     }
 
@@ -55,6 +59,7 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
         case .remote: "Rispondi alle Sessioni e alle Richieste di permesso dall'iPhone, anche lontano dal Mac."
         case .deliveries: "Passa una Sessione a un'altra persona che usa Bubo, in un file .bubo cifrato."
         case .sandbox: "I comandi di Claude scrivono solo nella cartella della Sessione e raggiungono solo gli host consentiti."
+        case .neurons: "Le note del Secondo cervello come una rete dei loro collegamenti, con le note citate nell'ultima risposta."
         }
     }
 
@@ -65,6 +70,7 @@ nonisolated enum ReleaseArea: CaseIterable, Sendable {
         case .remote: "iphone"
         case .deliveries: "shippingbox"
         case .sandbox: "lock.shield"
+        case .neurons: "point.3.connected.trianglepath.dotted"
         }
     }
 

@@ -332,7 +332,7 @@ struct RememberToolTests {
         let refused = await secondBrain.remember(NoteRequest(mode: .replace, note: "Diario/oggi.md", text: "altro"))
 
         #expect(refused.change == nil)
-        #expect(refused.reply.contains("Chiedigli"))
+        #expect(refused.reply.contains("chiedigli"))
         #expect(try text(at: "Diario/oggi.md") == "# Diario\n")
         #expect(secondBrain.recentChanges.isEmpty)
 

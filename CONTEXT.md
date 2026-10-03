@@ -228,6 +228,10 @@ _Avoid_: persona, memoria utente, about me
 La nota `Bubo/Regole.md` del **Secondo cervello**: cosa l'agente salva da solo, dove e come. Entra nel prompt di ogni turno insieme al **Profilo**; con «Salva da solo» spento l'agente salva solo su richiesta. Non è una **Regola di permesso**.
 _Avoid_: istruzioni, prompt di sistema, policy
 
+**Neuroni**:
+La vista delle note del **Secondo cervello** come rete: ogni nota è un nodo colorato per cartella e grande quanto i suoi collegamenti (wikilink e link Markdown fra note); accende le note citate nell'ultima risposta e accanto tiene sempre l'elenco delle note.
+_Avoid_: grafo, graph view, mappa delle note
+
 **Riassunto di Sessione**:
 La nota Markdown che Bubo scrive nel **Secondo cervello** quando una **Sessione** diventa Fusa o Archiviata; una per Sessione.
 _Avoid_: recap, log, diario
