@@ -10,6 +10,8 @@ struct MenuBarContent: View {
     let questions: QuestionModel
     /// The Riunioni.
     let meetings: MeetingRecorder
+    /// Shows the Neuroni of the Secondo cervello.
+    let showNeurons: () -> Void
     @Environment(HUDPresenter.self) private var hud
     @Environment(HotKeyCenter.self) private var hotKeys
     @Environment(OrbPanelController.self) private var panel
@@ -56,6 +58,7 @@ struct MenuBarContent: View {
         MeetingMenuItems(recorder: meetings)
         Button("Importa nel Secondo cervello…", action: documents.chooseAndImport)
             .disabled(!documents.canImport)
+        Button("Mostra i Neuroni", action: showNeurons)
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)

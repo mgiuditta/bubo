@@ -9,7 +9,7 @@ struct ReleaseAreaTests {
     }
 
     @Test("The areas left for 1.1 are off in a Release build of 1.0",
-          arguments: [ReleaseArea.machines, .remote, .deliveries, .sandbox])
+          arguments: [ReleaseArea.machines, .remote, .deliveries, .sandbox, .neurons])
     func areasOfOnePointOneAreOffInRelease(area: ReleaseArea) {
         #expect(!ReleaseArea.released.contains(area))
         #expect(!area.isAvailable(isDebugBuild: false, hidesUnreleased: false))

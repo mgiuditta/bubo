@@ -730,6 +730,46 @@
         }
       }
     },
+    "%lld collegamenti" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld link"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld links"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld collegamento"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld collegamenti"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld da guardare · %lld decise · %lld già attive" : {
       "localizations" : {
         "en" : {
@@ -988,6 +1028,46 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld messaggi"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld note" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld note"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld notes"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld nota"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld note"
                 }
               }
             }
@@ -3782,6 +3862,16 @@
         }
       }
     },
+    "Citata nell'ultima risposta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cited in the last answer"
+          }
+        }
+      }
+    },
     "Claude non ha ricaricato per non perdere la cache del prompt. Ricarica comunque la perde: il resto del turno costa più token." : {
       "localizations" : {
         "en" : {
@@ -4775,12 +4865,32 @@
         }
       }
     },
+    "Le note del Secondo cervello come una rete dei loro collegamenti, con le note citate nell'ultima risposta." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your Second Brain's notes as a web of their links, with the notes cited in the last answer."
+          }
+        }
+      }
+    },
     "Leggo le note solo quando le cerco e scrivo solo nella cartella Bubo. Obsidian può restare chiuso." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "I read your notes only when I search them, and I write only in the Bubo folder. Obsidian can stay closed."
+          }
+        }
+      }
+    },
+    "Leggo le note…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading notes…"
           }
         }
       }
@@ -4855,12 +4965,32 @@
         }
       }
     },
+    "Mostra i Neuroni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Neurons"
+          }
+        }
+      }
+    },
     "Mostra nella conversazione" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show in conversation"
+          }
+        }
+      }
+    },
+    "Mostra tutte le note (⌘0)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all notes (⌘0)"
           }
         }
       }
@@ -4905,6 +5035,16 @@
         }
       }
     },
+    "Nessun Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Second Brain"
+          }
+        }
+      }
+    },
     "Nessuna cartella prioritaria: cerco in tutte allo stesso modo." : {
       "localizations" : {
         "en" : {
@@ -4921,6 +5061,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No folder chosen"
+          }
+        }
+      }
+    },
+    "Nessuna nota nel Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No notes in the Second Brain"
+          }
+        }
+      }
+    },
+    "Neuroni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neurons"
+          }
+        }
+      }
+    },
+    "Neuroni · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neurons · %@"
           }
         }
       }
@@ -4971,6 +5141,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "I can't find an Obsidian vault on this Mac. Any folder of Markdown notes works."
+          }
+        }
+      }
+    },
+    "Note fuori dalle cartelle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes Outside Folders"
           }
         }
       }
@@ -5482,6 +5662,16 @@
         }
       }
     },
+    "Scegli la cartella delle tue note nelle Impostazioni, poi apri i Neuroni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your notes folder in Settings, then open Neurons."
+          }
+        }
+      }
+    },
     "Scrive copilot login nel Terminale: premi Invio per avviarlo." : {
       "localizations" : {
         "en" : {
@@ -5591,6 +5781,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On individual Copilot plans (Free, Pro, Pro+, Max), GitHub uses what it receives to train its models by default. You can turn this off on GitHub in Copilot settings, under Privacy."
+          }
+        }
+      }
+    },
+    "Tutte le cartelle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Folders"
           }
         }
       }

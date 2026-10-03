@@ -220,6 +220,10 @@ _Avoid_: contesto, knowledge base
 Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
 _Avoid_: vault (quando non è Obsidian), wiki, archivio
 
+**Neuroni**:
+La vista delle note del **Secondo cervello** come rete: ogni nota è un nodo colorato per cartella e grande quanto i suoi collegamenti (wikilink e link Markdown fra note); accende le note citate nell'ultima risposta e accanto tiene sempre l'elenco delle note.
+_Avoid_: grafo, graph view, mappa delle note
+
 **Riassunto di Sessione**:
 La nota Markdown che Bubo scrive nel **Secondo cervello** quando una **Sessione** diventa Fusa o Archiviata; una per Sessione.
 _Avoid_: recap, log, diario
