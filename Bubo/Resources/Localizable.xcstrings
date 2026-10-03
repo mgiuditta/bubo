@@ -18618,6 +18618,50 @@
           }
         }
       }
+    },
+    "Chiedi nel Panel  %@" : {
+      "comment" : "Menu bar item: opens the bubble with its global shortcut.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask in the Panel  %@"
+          }
+        }
+      }
+    },
+    "%@ apre già la bolla. Scegline un'altra." : {
+      "comment" : "Shortcut settings: the HUD shortcut cannot be the one of Ask in the Panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ already opens the bubble. Choose a different one."
+          }
+        }
+      }
+    },
+    "%@ mostra già l'HUD. Scegline un'altra." : {
+      "comment" : "Shortcut settings: Ask in the Panel cannot use the HUD shortcut.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ already shows the HUD. Choose a different one."
+          }
+        }
+      }
+    },
+    "%@ apre la bolla: la sola dettatura è spenta." : {
+      "comment" : "Under the shortcut recorder: Ask in the Panel took the dictation-only variant.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ opens the bubble: dictation only is off."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

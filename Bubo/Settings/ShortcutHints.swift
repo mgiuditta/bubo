@@ -11,6 +11,8 @@ struct ShortcutHints: View {
                 Text("Tieni premuto \(dictation.displayName) per dettare nel prompt senza inviare.")
             } else if hotKeys.shortcut.dictationVariant == nil {
                 Text("La combinazione contiene già ⇧: la sola dettatura è spenta.")
+            } else if hotKeys.shortcut.dictationVariant == hotKeys.askShortcut {
+                Text("\(hotKeys.askShortcut.displayName) apre la bolla: la sola dettatura è spenta.")
             }
             ForEach(report.systemShortcuts, id: \.self) { shortcut in
                 Text("\(shortcut.displayName) è anche una scorciatoia di sistema: cambiala qui o in Impostazioni di Sistema › Tastiera.")
@@ -22,8 +24,9 @@ struct ShortcutHints: View {
             }
         }
         .foregroundStyle(Palette.textSecondary)
-        .task(id: [hotKeys.shortcut, hotKeys.dictationShortcut]) {
-            report = ShortcutConflicts.report(for: [hotKeys.shortcut] + [hotKeys.dictationShortcut].compactMap(\.self))
+        .task(id: [hotKeys.shortcut, hotKeys.dictationShortcut, hotKeys.askShortcut]) {
+            report = ShortcutConflicts.report(for: [hotKeys.shortcut] + [hotKeys.dictationShortcut].compactMap(\.self)
+                + [hotKeys.askShortcut])
         }
     }
 }

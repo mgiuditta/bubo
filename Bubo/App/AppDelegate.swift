@@ -163,8 +163,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     /// Riprendi and Continua da qui, from the Palette and the Cronologia window.
     private(set) lazy var resumeActions = ResumeActions(sessions: { [weak self] in self?.sessions }, hud: hud)
-    /// The global shortcut; created at launch so it works with no window open.
-    private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press(sending: $0) } release: { [pushToTalk] in pushToTalk.release() }
+    /// The global shortcuts; created at launch so they work with no window open.
+    private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press(sending: $0) } release: { [pushToTalk] in
+        pushToTalk.release()
+    } ask: { [weak self] in
+        // With the Panel hidden there is no Bolla: the Domanda of the HUD instead.
+        guard let self, panel.isShown else { self?.hud.show(); return }
+        panel.askInPanel()
+    }
     /// The global shortcut held down: dictation into the Domanda, sent at release unless it was the sola dettatura.
     private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [questions] in
         questions.stopSpeaking()
