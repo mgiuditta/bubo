@@ -62,14 +62,6 @@ nonisolated struct ClaudeLocator: Sendable {
 
     /// Runs `command` in an interactive login shell, as Terminal would; `nil` if it fails or takes too long.
     private func loginShell(_ command: String) async -> ProcessOutput? {
-        try? await withThrowingTaskGroup { group in
-            group.addTask { try await runner.run(shell, ["-l", "-i", "-c", command]) }
-            group.addTask {
-                try await Task.sleep(for: shellTimeout)
-                throw CancellationError()
-            }
-            defer { group.cancelAll() }
-            return try await group.next()
-        }
+        await runner.run(shell, ["-l", "-i", "-c", command], timeout: shellTimeout)
     }
 }

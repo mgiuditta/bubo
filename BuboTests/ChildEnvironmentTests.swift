@@ -28,4 +28,20 @@ struct ChildEnvironmentTests {
         let environment = ChildEnvironment.make(claude: Self.claude, apiKey: "sk-test", base: Self.base)
         #expect(environment["ANTHROPIC_API_KEY"] == "sk-test")
     }
+
+    @Test(arguments: ["GH_TOKEN", "GITHUB_TOKEN", "COPILOT_GITHUB_TOKEN"])
+    func noGitHubTokenReachesCopilotOrTheBridge(variable: String) {
+        let base = Self.base.merging([variable: "gho_leaked"]) { $1 }
+        let copilot = URL(filePath: "/opt/homebrew/bin/copilot")
+        #expect(ChildEnvironment.makeForCopilot(copilot: copilot, base: base)[variable] == nil)
+        #expect(ChildEnvironment.make(claude: Self.claude, base: base)[variable] == nil)
+    }
+
+    @Test func copilotFindsItsOwnFolderFirst() {
+        let copilot = URL(filePath: "/Users/u/.npm-global/bin/copilot")
+        let environment = ChildEnvironment.makeForCopilot(copilot: copilot, base: Self.base)
+        #expect(environment["HOME"] == "/Users/u")
+        #expect(environment["PATH"]?.hasPrefix("/Users/u/.npm-global/bin:") == true)
+        #expect(environment["ANTHROPIC_API_KEY"] == nil)
+    }
 }
