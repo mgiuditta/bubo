@@ -52,8 +52,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     /// The permission is provisional: no system alert, the notifications go quietly to the Notification Center until
     /// the user chooses to keep them (spec 26).
     ///
+    /// - Parameter isSilent: Whether it posts without sound, because the iPhone rings for the same Richiesta.
     /// - Returns: Whether the notification was posted; `false` when the user turned notifications off.
-    func announce(_ session: Session, request pending: RequestCenter.Pending?) async -> Bool {
+    func announce(_ session: Session, request pending: RequestCenter.Pending?, isSilent: Bool = false) async -> Bool {
         do {
             guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return false }
             let content = UNMutableNotificationContent()
@@ -69,7 +70,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 content.body = session.summary ?? ""
             }
             content.threadIdentifier = session.id.uuidString
-            content.sound = .default
+            // Silent, it still goes to the Notification Center: back at the Mac, the user finds it there.
+            content.sound = isSilent ? nil : .default
             try await center.add(UNNotificationRequest(identifier: session.id.uuidString, content: content, trigger: nil))
             return true
         } catch {

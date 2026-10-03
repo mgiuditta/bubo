@@ -99,6 +99,14 @@ final class RemoteRequests {
         _ = await (changes, checks)
     }
 
+    /// Whether a Richiesta of `session` reaches the paired iPhones with a notification now: the Telecomando is on, an
+    /// iPhone is paired, the user is away from the Mac and the Sessione may go out. Then the Mac's own notification for
+    /// it stays silent, so only the iPhone rings.
+    func notifiesPhone(about session: Session) -> Bool {
+        isOn() && !devices().isEmpty && !isUserAtMac() && session.phase != .archiviata
+            && !macOnly.isMacOnly(session.project)
+    }
+
     /// Writes the Richieste waiting in `requests` that are not out yet, gives a notification to those waiting
     /// without one once the user is away, and retires those no longer waiting. Nothing of a Progetto solo Mac or an
     /// Archiviata goes out, and nothing at all with the Telecomando off.
