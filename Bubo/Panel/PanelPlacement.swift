@@ -44,6 +44,44 @@ nonisolated enum PanelZone: String, CaseIterable, Codable, Sendable {
     }
 }
 
+/// One of the Panel's two fixed sizes: there is no free resizing.
+nonisolated enum PanelSize: String, CaseIterable, Codable, Sendable {
+    /// The Panel of #25, 240 pt.
+    case normal
+    /// The small chat in a corner, 112 pt, with an Orb of about 62 pt.
+    case reduced
+
+    /// The Panel's side, in points.
+    var side: CGFloat {
+        switch self {
+        case .normal: 240
+        case .reduced: 112
+        }
+    }
+
+    /// The drawable's pixels per point: below Retina for the normal Panel to save GPU, Retina for the reduced one,
+    /// which has 2.6 times fewer pixels anyway.
+    var renderScale: CGFloat {
+        switch self {
+        case .normal: 1.5
+        case .reduced: 2
+        }
+    }
+
+    /// The radius of the click circle, in points: the same share of the side, 80 of 240.
+    var clickRadius: CGFloat {
+        switch self {
+        case .normal: 80
+        case .reduced: 37
+        }
+    }
+
+    /// The other size, for the menu item and the VoiceOver action that switch between the two.
+    var toggled: PanelSize {
+        self == .normal ? .reduced : .normal
+    }
+}
+
 /// A screen as the Panel sees it: a stable identity and the area free of menu bar and Dock.
 nonisolated struct PanelScreen: Equatable, Sendable {
     /// An identifier that survives relaunches and reconnections.
@@ -52,30 +90,52 @@ nonisolated struct PanelScreen: Equatable, Sendable {
     var visibleFrame: CGRect
 }
 
-/// Where the Panel sits: a screen and a zone on it.
+/// Where the Panel sits: a screen, a zone on it, and the size it has there.
 nonisolated struct PanelSpot: Equatable, Sendable {
     var screen: PanelScreen
     var zone: PanelZone
+    var size = PanelPlacement.defaultSize
 
-    /// Returns the origin of a Panel of `side` points at this spot.
-    func panelOrigin(side: CGFloat) -> CGPoint {
-        zone.panelOrigin(side: side, in: screen.visibleFrame)
+    /// The Panel's frame at this spot, flush with the zone's edges.
+    var panelFrame: CGRect {
+        CGRect(origin: zone.panelOrigin(side: size.side, in: screen.visibleFrame),
+               size: CGSize(width: size.side, height: size.side))
     }
 }
 
-/// The Panel's position memory: the zone chosen on each screen and the screen it was last dropped on.
+/// The Panel's position memory: the zone and the size chosen on each screen and the screen it was last dropped on.
 nonisolated struct PanelPlacement: Equatable, Codable, Sendable {
     /// The zone of a screen the Panel has never been dropped on.
     static let defaultZone = PanelZone.bottomRight
+    /// The size on a screen where the user has never chosen one: the small chat in a corner.
+    static let defaultSize = PanelSize.reduced
 
     /// The zone remembered for each screen, by screen identifier.
     private(set) var zones: [String: PanelZone] = [:]
+    /// The size remembered for each screen, by screen identifier.
+    private(set) var sizes: [String: PanelSize] = [:]
     /// The identifier of the screen the Panel was last dropped on.
     private(set) var screenID: String?
+
+    /// Creates an empty memory: every screen gets the default zone and size.
+    init() {}
+
+    /// Creates the memory saved by this or an earlier version, which kept no sizes.
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        zones = try container.decodeIfPresent([String: PanelZone].self, forKey: .zones) ?? [:]
+        sizes = try container.decodeIfPresent([String: PanelSize].self, forKey: .sizes) ?? [:]
+        screenID = try container.decodeIfPresent(String.self, forKey: .screenID)
+    }
 
     /// Returns the zone remembered for the screen with `screenID`, or the default zone.
     func zone(on screenID: String) -> PanelZone {
         zones[screenID] ?? Self.defaultZone
+    }
+
+    /// Returns the size remembered for the screen with `screenID`, or the default size.
+    func size(on screenID: String) -> PanelSize {
+        sizes[screenID] ?? Self.defaultSize
     }
 
     /// Returns where the Panel goes among `screens`, the first being the main screen.
@@ -84,15 +144,28 @@ nonisolated struct PanelPlacement: Equatable, Codable, Sendable {
     /// and comes back when that screen returns.
     func spot(among screens: [PanelScreen]) -> PanelSpot? {
         if let screen = screens.first(where: { $0.id == screenID }) {
-            return PanelSpot(screen: screen, zone: zone(on: screen.id))
+            return PanelSpot(screen: screen, zone: zone(on: screen.id), size: size(on: screen.id))
         }
         guard let main = screens.first else { return nil }
-        return PanelSpot(screen: main, zone: zone(on: screenID ?? main.id))
+        let id = screenID ?? main.id
+        return PanelSpot(screen: main, zone: zone(on: id), size: size(on: id))
+    }
+
+    /// Gives the Panel `size` where it stands among `screens`, the first being the main screen, and remembers it.
+    ///
+    /// The size goes with the screen whose memory the Panel follows: the last one it was dropped on even while it
+    /// stands in for it on the main screen.
+    /// - Returns: The spot with the new size, or `nil` if there are no screens.
+    @discardableResult
+    mutating func resize(to size: PanelSize, among screens: [PanelScreen]) -> PanelSpot? {
+        guard let id = screenID ?? screens.first?.id else { return nil }
+        sizes[id] = size
+        return spot(among: screens)
     }
 
     /// Snaps a Panel released with its center at `center` and remembers the result.
     ///
-    /// The Panel goes to the screen under `center`, or the nearest one.
+    /// The Panel goes to the screen under `center`, or the nearest one, with the size remembered there.
     /// - Returns: The spot the Panel snaps to, or `nil` if there are no screens.
     @discardableResult
     mutating func drop(center: CGPoint, among screens: [PanelScreen]) -> PanelSpot? {
@@ -102,7 +175,7 @@ nonisolated struct PanelPlacement: Equatable, Codable, Sendable {
         let zone = PanelZone(containing: center, in: screen.visibleFrame)
         zones[screen.id] = zone
         screenID = screen.id
-        return PanelSpot(screen: screen, zone: zone)
+        return PanelSpot(screen: screen, zone: zone, size: size(on: screen.id))
     }
 
     private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {

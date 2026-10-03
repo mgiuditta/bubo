@@ -52,6 +52,8 @@ struct MenuBarContent: View {
             .disabled(sessions == nil)
         Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra Panel", isOn: $panel.isShown)
+        Toggle("Panel ridotto", isOn: $panel.isReduced)
+            .disabled(!panel.isShown)
         Button("Chiedi nel Panel", action: panel.askInPanel)
             .disabled(!panel.isShown)
         #if DEBUG

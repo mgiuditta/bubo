@@ -31,6 +31,8 @@ final class PanelBubble {
     private(set) var takesKeyboard = false
     /// The side of the Panel the bubble opens on.
     var side = PanelBubbleSide.above
+    /// The bubble's greatest height, in points, past which it scrolls; `nil` beside the normal Panel.
+    var maxHeight: CGFloat?
     /// How the bubble appears, read from Riduci movimento at each opening.
     private(set) var appearance = PanelBubbleAppearance.grow
 

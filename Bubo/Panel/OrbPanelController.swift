@@ -9,10 +9,8 @@ final class OrbPanelController {
     static let defaultsKey = "showsPanel"
     /// The `UserDefaults` key of the position memory.
     static let placementKey = "panelPlacement"
-    /// The Panel's fixed side, in points.
-    static let side: CGFloat = 240
-    /// The drawable's pixels per point, below Retina to save GPU.
-    static let renderScale: CGFloat = 1.5
+    /// The drawable's pixels per point of the normal Panel, below Retina to save GPU; the HUD's Orb uses it too.
+    static let renderScale = PanelSize.normal.renderScale
 
     /// Whether the user wants the Panel on screen; remembered across launches.
     var isShown: Bool {
@@ -24,6 +22,15 @@ final class OrbPanelController {
 
     /// The zone of the grid the Panel sits in; it tells which way the bubble opens.
     private(set) var zone = PanelPlacement.defaultZone
+
+    /// The Panel's size on the screen it is on.
+    private(set) var size = PanelPlacement.defaultSize
+
+    /// Whether the Panel is reduced on the screen it is on; setting it switches size there, as "Panel ridotto" does.
+    var isReduced: Bool {
+        get { size == .reduced }
+        set { resize(to: newValue ? .reduced : .normal) }
+    }
 
     /// The bubble beside the Orb, with the prompt and the answer of the Domanda.
     let bubble = PanelBubble()
@@ -50,11 +57,12 @@ final class OrbPanelController {
     ///   - hud: Where the bubble's "Rifai con…" and Sessione go.
     func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter) {
         self.openHUD = openHUD
-        let frame = CGRect(origin: .zero, size: CGSize(width: Self.side, height: Self.side))
-        let panel = NSPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
+        let frame = CGRect(origin: .zero, size: CGSize(width: size.side, height: size.side))
+        let panel = OrbPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
                             backing: .buffered, defer: false)
         panel.level = .floating
-        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+        // Out of the window cycle: the Panel is not a window to switch to.
+        panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .ignoresCycle]
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
@@ -66,10 +74,10 @@ final class OrbPanelController {
 
         let view = OrbPanelView(frame: frame, device: MTLCreateSystemDefaultDevice())
         view.autoResizeDrawable = false
-        view.drawableSize = CGSize(width: Self.side * Self.renderScale, height: Self.side * Self.renderScale)
         view.preferredFramesPerSecond = 60
         view.onPress = openHUD
         view.onAsk = { [weak self] in self?.askInPanel() }
+        view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }
         view.registerForDraggedTypes(OrbDropTarget.types)
@@ -112,10 +120,16 @@ final class OrbPanelController {
         }
         // The pointer over other apps or over Bubo's windows: the Panel takes clicks only inside the circle. A drag
         // from another app moves the pointer too, so that a drop on the Orb reaches it.
+        // The pointer moving is also when the Dock has just changed side or size, which changes `visibleFrame` with no
+        // notification: the Panel follows it there.
         NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updateClickThrough() }
+            MainActor.assumeIsolated {
+                self?.followVisibleFrames()
+                self?.updateClickThrough()
+            }
         }
         NSEvent.addLocalMonitorForEvents(matching: [.mouseMoved, .leftMouseDragged]) { [weak self] event in
+            self?.followVisibleFrames()
             self?.updateClickThrough()
             return event
         }
@@ -169,9 +183,11 @@ final class OrbPanelController {
     @ObservationIgnored private var openHUD: () -> Void = {}
     @ObservationIgnored private var bubbleWindow: PanelBubbleWindow?
     @ObservationIgnored private var panel: NSPanel?
-    @ObservationIgnored private var view: MTKView?
+    @ObservationIgnored private var view: OrbPanelView?
     @ObservationIgnored private var renderer: OrbRenderer?
     @ObservationIgnored private var placement = PanelPlacement()
+    /// The screens' visible frames when the Panel was last placed; they change with the Dock.
+    @ObservationIgnored private var visibleFrames: [CGRect] = []
 
     /// The connected screens, the main one (with the menu bar) first.
     private var screens: [PanelScreen] {
@@ -248,29 +264,53 @@ final class OrbPanelController {
         if frame != bubbleWindow.frame { bubbleWindow.setFrame(frame, display: true) }
     }
 
+    /// Switches the Panel to `newSize` on the screen it is on, in place in its zone, and remembers it.
+    private func resize(to newSize: PanelSize) {
+        guard newSize != size, panel != nil, let spot = placement.resize(to: newSize, among: screens) else { return }
+        savePlacement()
+        // With Riduci movimento the change is immediate.
+        move(to: spot, animated: !Motion.isReduced)
+    }
+
     private func moveToRememberedSpot() {
+        visibleFrames = NSScreen.screens.map(\.visibleFrame)
         guard let spot = placement.spot(among: screens) else { return }
         move(to: spot, animated: false)
+    }
+
+    /// Puts the Panel back in its zone when a screen's visible frame has changed, as when the Dock moves.
+    private func followVisibleFrames() {
+        guard NSScreen.screens.map(\.visibleFrame) != visibleFrames else { return }
+        moveToRememberedSpot()
     }
 
     private func snapAfterDrag() {
         guard let panel,
               let spot = placement.drop(center: CGPoint(x: panel.frame.midX, y: panel.frame.midY), among: screens)
         else { return }
+        savePlacement()
+        move(to: spot, animated: !Motion.isReduced)
+    }
+
+    private func savePlacement() {
         do {
             UserDefaults.standard.set(try JSONEncoder().encode(placement), forKey: Self.placementKey)
         } catch {
             Logger.panel.error("Panel placement not saved: \(error)")
         }
-        move(to: spot, animated: !Motion.isReduced)
     }
 
     private func move(to spot: PanelSpot, animated: Bool) {
         zone = spot.zone
+        size = spot.size
         bubble.side = spot.zone.bubbleSide
-        let origin = spot.panelOrigin(side: Self.side)
-        panel?.setFrame(CGRect(origin: origin, size: CGSize(width: Self.side, height: Self.side)),
-                        display: true, animate: animated)
+        bubble.maxHeight = PanelBubbleLayout.maxHeight(for: spot.size, visibleFrame: spot.screen.visibleFrame)
+        if let view {
+            view.size = spot.size
+            let pixels = spot.size.side * spot.size.renderScale
+            view.drawableSize = CGSize(width: pixels, height: pixels)
+        }
+        panel?.setFrame(spot.panelFrame, display: true, animate: animated)
         if let bubbleWindow, bubbleWindow.isVisible { placeBubble(size: bubbleWindow.frame.size) }
         updateClickThrough()
     }
@@ -278,7 +318,7 @@ final class OrbPanelController {
     /// Lets clicks through to the windows below unless the pointer is in the click circle.
     private func updateClickThrough() {
         guard let panel else { return }
-        panel.ignoresMouseEvents = !PanelClickCircle.contains(NSEvent.mouseLocation, inPanel: panel.frame)
+        panel.ignoresMouseEvents = !PanelClickCircle.contains(NSEvent.mouseLocation, inPanel: panel.frame, of: size)
     }
 
     private var isHUDOpen: Bool {
@@ -298,6 +338,13 @@ final class OrbPanelController {
         }
         view.isPaused = !(panel.isVisible && panel.occlusionState.contains(.visible))
         updateBubbleWindow()
+    }
+}
+
+/// The Panel's window, which snaps and changes size at the container's pace.
+private final class OrbPanel: NSPanel {
+    override func animationResizeTime(_ newFrame: NSRect) -> TimeInterval {
+        Motion.panelFrameChange
     }
 }
 
