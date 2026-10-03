@@ -35,15 +35,21 @@ final class PanelBubble {
     var maxHeight: CGFloat?
     /// How the bubble appears, read from Riduci movimento at each opening.
     private(set) var appearance = PanelBubbleAppearance.grow
+    /// Whether the Domanda ended while the bubble was closed beside a visible Panel, and nobody has looked since; the
+    /// status pill says so.
+    private(set) var hasUnseenOutcome = false
 
     /// Whether an answer or a Sintesi parlata was under way the last time ``follow(isAnswering:isSpeaking:panelIsVisible:)``
     /// looked.
     @ObservationIgnored private var wasActive = false
+    /// Whether an answer was under way the last time ``follow(isAnswering:isSpeaking:panelIsVisible:)`` looked.
+    @ObservationIgnored private var wasAnswering = false
 
     /// Opens the bubble, giving the keyboard to the prompt when `focus` is `.prompt`.
     func open(focus: Focus, reducesMotion: Bool = Motion.isReduced) {
         if !isOpen { appearance = .appearance(reducesMotion: reducesMotion) }
         isOpen = true
+        hasUnseenOutcome = false
         if focus == .prompt { takesKeyboard = true }
     }
 
@@ -67,11 +73,20 @@ final class PanelBubble {
     }
 
     /// Follows the Domanda: an answer or a Sintesi parlata that starts while the Panel is visible opens the bubble
-    /// without taking the keyboard, as with "Chiedi a Bubo" or push-to-talk.
+    /// without taking the keyboard, as with "Chiedi a Bubo" or push-to-talk; an answer that ends with the bubble closed
+    /// beside a visible Panel is unseen until the bubble opens.
     func follow(isAnswering: Bool, isSpeaking: Bool, panelIsVisible: Bool) {
         let isActive = isAnswering || isSpeaking
         if isActive, !wasActive, panelIsVisible { open(focus: .none) }
+        if isAnswering, !wasAnswering { hasUnseenOutcome = false }
+        if wasAnswering, !isAnswering, !isOpen, panelIsVisible { hasUnseenOutcome = true }
         wasActive = isActive
+        wasAnswering = isAnswering
+    }
+
+    /// Takes note that the user saw the Domanda elsewhere, as in the HUD.
+    func markOutcomeSeen() {
+        hasUnseenOutcome = false
     }
 
     /// Returns whether losing the keyboard closes the bubble: only with nothing typed, nothing attached, nothing
