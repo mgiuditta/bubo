@@ -2569,6 +2569,16 @@
         }
       }
     },
+    "Apri le impostazioni di Copilot su GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Copilot Settings on GitHub"
+          }
+        }
+      }
+    },
     "Apri nel Visore" : {
       "localizations" : {
         "en" : {
@@ -3774,6 +3784,26 @@
         }
       }
     },
+    "Consenti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow"
+          }
+        }
+      }
+    },
+    "Consenti…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow…"
+          }
+        }
+      }
+    },
     "Continua solo questa volta" : {
       "localizations" : {
         "en" : {
@@ -3854,12 +3884,32 @@
         }
       }
     },
+    "Copilot può ricevere Domande e file dei Progetti" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot can receive Questions and Project files"
+          }
+        }
+      }
+    },
     "Cosa esce" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "What goes out"
+          }
+        }
+      }
+    },
+    "Cosa riceve Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What Copilot Receives"
           }
         }
       }
@@ -4415,6 +4465,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The rules for finding secrets are missing. Reinstall Bubo."
+          }
+        }
+      }
+    },
+    "Mandare Domande e file dei Progetti a GitHub Copilot?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send Questions and Project files to GitHub Copilot?"
           }
         }
       }
@@ -4985,6 +5045,26 @@
         }
       }
     },
+    "Senza il tuo consenso Bubo non manda niente a Copilot: né Domande né file dei Progetti." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without your consent, Bubo sends nothing to Copilot: no Questions, no Project files."
+          }
+        }
+      }
+    },
+    "Senza il tuo consenso Copilot non può ricevere i file del Progetto. Puoi darlo in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot can't receive this Project's files without your consent. You can give it in Settings › Models."
+          }
+        }
+      }
+    },
     "Sessioni su un altro Mac o su un server via SSH, con la Macchina scelta nel Progetto." : {
       "localizations" : {
         "en" : {
@@ -5044,6 +5124,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estimated from the tokens with GitHub Copilot's list prices of %@, 1 credit = $0.01. Bubo can't see the credits taken from your account."
+          }
+        }
+      }
+    },
+    "Sui piani Copilot individuali (Free, Pro, Pro+, Max) GitHub usa per default ciò che riceve per addestrare i suoi modelli. Puoi disattivarlo su GitHub, nelle impostazioni di Copilot, sezione Privacy." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On individual Copilot plans (Free, Pro, Pro+, Max), GitHub uses what it receives to train its models by default. You can turn this off on GitHub in Copilot settings, under Privacy."
           }
         }
       }

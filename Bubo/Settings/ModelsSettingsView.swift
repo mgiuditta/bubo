@@ -41,6 +41,7 @@ struct ModelsSettingsView: View {
             } footer: {
                 Text("Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale.")
             }
+            CopilotConsentSection(settings: settings)
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
             }

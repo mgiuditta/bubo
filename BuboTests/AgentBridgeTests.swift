@@ -48,11 +48,28 @@ struct AgentBridgeTests {
         var usage: TurnUsage?
         var model: AnsweringModel?
         let answer = try await Self.collect(bridge.askCopilotQuestion(
-            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"), consents: [EndpointSettings.copilotConsentID],
             usage: { usage = $0 }, answeredBy: { model = $0 }))
         #expect(answer == "copilotQuestion ciao")
         #expect(usage?.models.map(\.inputTokens) == [10])
         #expect(model == AnsweringModel(model: "gpt-6", effort: nil))
+    }
+
+    // Spec 10: without the user's consent, neither a Domanda nor a turn of a Sessione reaches Copilot.
+    @Test(arguments: [false, true])
+    func withoutConsentNothingGoesToCopilot(isSessione: Bool) async throws {
+        let log = URL.temporaryDirectory.appending(path: "copilot-\(UUID().uuidString).log")
+        defer { try? FileManager.default.removeItem(at: log) }
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"),
+                                 arguments: ["-c", #"while read line; do echo "$line" >> "$1"; done"#, "sh", log.path],
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+        let copilot = URL(filePath: "/opt/homebrew/bin/copilot")
+        // Another cloud's consent is not Copilot's.
+        let answer = isSessione
+            ? bridge.askCopilot("Leggi main.swift", in: URL(filePath: "/tmp/w"), copilot: copilot, consents: ["openai"])
+            : bridge.askCopilotQuestion("Ciao", copilot: copilot, consents: ["openai"])
+        await #expect(throws: CopilotFailure.consentMissing) { try await Self.collect(answer) }
+        #expect(!FileManager.default.fileExists(atPath: log.path))
     }
 
     @Test func theCopilotModelsAnswerTheirRequest() async throws {
@@ -307,7 +324,8 @@ struct AgentBridgeTests {
             """#))
         var asked: [PermissionEvent] = []
         let answer = try await Self.collect(bridge.askCopilot("x", in: URL(filePath: "/tmp/w"),
-                                                              copilot: URL(filePath: "/c")) { _ in
+                                                              copilot: URL(filePath: "/c"),
+                                                              consents: [EndpointSettings.copilotConsentID]) { _ in
         } permissions: { event in
             asked.append(event)
             if case let .asked(request) = event { bridge.answerPermission(request.id, allows: true) }

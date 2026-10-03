@@ -193,18 +193,20 @@ final class AgentBridge {
     /// Asks the user's `copilot` to answer `prompt` in `directory`, streaming the answer as it arrives (ADR 0012).
     ///
     /// `copilot` runs with the user's own login: the bridge removes the tokens that would override it. Cancelling the
-    /// iteration is Ferma: the bridge aborts the turn, and closes `copilot` if it does not stop in time.
+    /// iteration is Ferma: the bridge aborts the turn, and closes `copilot` if it does not stop in time. Without the
+    /// user's consent for Copilot nothing is sent, and the answer fails with `CopilotFailure.consentMissing`.
     ///
     /// - Parameters:
     ///   - copilot: The user's `copilot`.
+    ///   - consents: The clouds the user allowed, from ``EndpointSettings/consents``.
     ///   - model: A Copilot model id; `nil` for the user's own choice.
     ///   - effort: The reasoning effort; `nil` for the model's default.
     ///   - progress: Receives the state of the conversation, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens of the turn, with no figure, when it ends: Bubo prices them (#542).
-    func askCopilot(_ prompt: String, in directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil,
-                    id: String = UUID().uuidString,
+    func askCopilot(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>, model: String? = nil,
+                    effort: Effort? = nil, id: String = UUID().uuidString,
                     progress: @escaping (AgentProgress) -> Void = { _ in },
                     permissions: ((PermissionEvent) -> Void)? = nil,
                     usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
@@ -212,6 +214,10 @@ final class AgentBridge {
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
             Task { @MainActor in self?.cancel(id) }
+        }
+        guard consents.contains(EndpointSettings.copilotConsentID) else {
+            continuation.finish(throwing: CopilotFailure.consentMissing)
+            return answer
         }
         do {
             let process = try runningProcess()
@@ -264,15 +270,18 @@ final class AgentBridge {
     ///
     /// The session has no tools, and runs in an empty folder of Bubo: no Progetto's instructions reach it. `copilot`
     /// answers with the user's own login: the bridge removes the tokens that would override it. Cancelling the
-    /// iteration stops the answer.
+    /// iteration stops the answer. Without the user's consent for Copilot nothing is sent, and the answer fails with
+    /// `CopilotFailure.consentMissing`.
     ///
     /// - Parameters:
     ///   - copilot: The user's `copilot`.
+    ///   - consents: The clouds the user allowed, from ``EndpointSettings/consents``.
     ///   - model: A Copilot model id, from ``copilotModels(of:)``; `nil` for the user's own choice in `copilot`.
     ///   - effort: The reasoning effort; `nil` for the model's default.
     ///   - usage: Receives the tokens of the answer, once, before it ends; without a figure (Spesa, #542).
     ///   - answeredBy: Learns the model that answered and its effort, once, just before the answer ends.
-    func askCopilotQuestion(_ prompt: String, copilot: URL, model: String? = nil, effort: Effort? = nil,
+    func askCopilotQuestion(_ prompt: String, copilot: URL, consents: Set<String>, model: String? = nil,
+                            effort: Effort? = nil,
                             usage: @escaping (TurnUsage) -> Void = { _ in },
                             answeredBy: @escaping (AnsweringModel) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
@@ -280,6 +289,10 @@ final class AgentBridge {
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
             Task { @MainActor in self?.cancel(id) }
+        }
+        guard consents.contains(EndpointSettings.copilotConsentID) else {
+            continuation.finish(throwing: CopilotFailure.consentMissing)
+            return answer
         }
         do {
             let directory = URL.temporaryDirectory.appending(path: "bubo-domanda-copilot", directoryHint: .isDirectory)

@@ -11,7 +11,8 @@ final class EndpointSettings {
 
     /// The known endpoints first, then the custom ones in the order they were added.
     private(set) var endpoints: [OpenAICompatibleEndpoint]
-    /// The ids of the endpoints in a cloud that is not Claude that the user allowed to receive Domande; revocable.
+    /// The ids of the clouds that are not Claude the user allowed to receive Domande, and Copilot's
+    /// (``copilotConsentID``) for the contenuti del Progetto too; revocable.
     private(set) var consents: Set<String>
     /// The id of the Modello locale's endpoint, a server on the Mac; `nil` without one.
     private(set) var localModelID: String?
@@ -81,13 +82,23 @@ final class EndpointSettings {
 
     /// Allows `endpoint` to receive Domande from now on; the user gave it, never Bubo on its own.
     func grantConsent(to endpoint: OpenAICompatibleEndpoint) {
-        consents.insert(endpoint.id)
-        persist()
+        grantConsent(toProvider: endpoint.id)
     }
 
     /// Takes back the consent of `endpoint`: it receives nothing more until the user allows it again.
     func revokeConsent(of endpoint: OpenAICompatibleEndpoint) {
-        consents.remove(endpoint.id)
+        revokeConsent(ofProvider: endpoint.id)
+    }
+
+    /// Allows the cloud provider `id`, an endpoint or GitHub Copilot, to receive what the user sends it.
+    func grantConsent(toProvider id: String) {
+        consents.insert(id)
+        persist()
+    }
+
+    /// Takes back the consent of the cloud provider `id`: it receives nothing more until the user allows it again.
+    func revokeConsent(ofProvider id: String) {
+        consents.remove(id)
         persist()
     }
 

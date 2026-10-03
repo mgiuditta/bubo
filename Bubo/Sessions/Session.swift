@@ -179,10 +179,12 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     }
 }
 
-/// Why a Sessione on Copilot did not start (ADR 0012).
+/// Why a Sessione or a Domanda on Copilot did not start (ADR 0011, ADR 0012).
 nonisolated enum CopilotFailure: Error, Equatable {
     /// No `copilot` was found.
     case missing
+    /// The user did not allow Copilot to receive the contenuti del Progetto: nothing was sent (spec 10).
+    case consentMissing
 }
 
 nonisolated extension Session {
