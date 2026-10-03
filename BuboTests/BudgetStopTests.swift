@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import Bubo
 
-/// #165: the soft stop at 100% of a Budget in the Sessioni, with a bridge played by `/bin/sh`.
+/// #165 and #492: the soft stop at 100% of a Budget in the Sessioni, with a bridge played by `/bin/sh`.
 @MainActor
 @Suite(.timeLimit(.minutes(1)))
 struct BudgetStopTests {
@@ -12,7 +12,8 @@ struct BudgetStopTests {
     let ledger = CostLedger()
 
     /// A bridge that writes each command to `log` and answers by the prompt: «Lunga» never ends, «Spendi» costs $1.50
-    /// with the API key, any other ends at its cap when it has one, and else answers.
+    /// with the API key, «Stima» reports one output token of Sonnet and never ends, «Chiudi» reports the same token
+    /// and then a figure of $0.10, any other ends at its cap when it has one, and else answers.
     func bridge(withAPIKey: Bool = true) -> AgentBridge {
         let script = #"""
             while read -r line; do
@@ -21,6 +22,12 @@ struct BudgetStopTests {
               id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
               case "$line" in
                 *'"prompt":"Lunga"'*) ;;
+                *'"prompt":"Stima"'*|*'"prompt":"Chiudi"'*)
+                  echo "{\"v\":4,\"type\":\"estimate\",\"id\":\"$id\",\"mode\":\"apiKey\",\"basis\":\"list\",\"complete\":false,\"models\":[{\"model\":\"claude-sonnet-4-5-20250929\",\"inputTokens\":0,\"outputTokens\":1,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"thinkingTokens\":0}]}"
+                  case "$line" in *'"prompt":"Chiudi"'*)
+                    echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":0.1,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
+                    echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                  esac ;;
                 *'"prompt":"Spendi"'*)
                   echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"cost\":1.5,\"basis\":\"list\",\"complete\":true,\"models\":[]}"
                   echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
@@ -39,6 +46,9 @@ struct BudgetStopTests {
         let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory),
                                  ledger: ledger) { bridge }
         store.budgets = budgets
+        // One output token of Sonnet costs $0.60.
+        store.prices = AnthropicPriceTable(date: .now, models: ["claude-sonnet-4-5": .init(
+            input: 0, output: 600_000, cacheRead: 0, cacheWrite5m: 0, cacheWrite1h: 0)])
         return store
     }
 
@@ -136,5 +146,48 @@ struct BudgetStopTests {
         #expect(stopped.unstartedPrompt == "Lunga")
         try await SessionTests.wait { store.sessions.first { $0.id == spending }?.activity == .ferma }
         #expect(store.sessions.first { $0.id == spending }?.budgetStop == nil)
+    }
+
+    // Acceptance of #492: two long turns on the same Budget; once their estimates reach it, both stop.
+    @Test func whenTheEstimatesReachTheBudgetBothSessionsStop() async throws {
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        budgets.budgets.providers[Budgets.claude] = 1
+        let store = store(bridge())
+
+        let first = try store.start("Stima", title: "Prima", branch: "", in: try folder(), onCheckout: true)
+        try await SessionTests.wait { asks().count == 1 }
+        // $0.60 of $1: the first goes on alone.
+        #expect(store.sessions.first { $0.id == first }?.budgetStop == nil)
+        let second = try store.start("Stima", title: "Seconda", branch: "", in: try folder(), onCheckout: true)
+        try await SessionTests.wait { store.sessions.allSatisfy { $0.budgetStop != nil } }
+
+        #expect(Set(store.sessions.map(\.id)) == [first, second])
+        #expect(store.sessions.allSatisfy { $0.activity == .ferma && $0.unstartedPrompt == "Stima" })
+        // No `result` came: each turn keeps its estimate, marked incomplete.
+        try await SessionTests.wait { ledger.entries.count == 2 }
+        #expect(ledger.entries.allSatisfy { $0.usage.cost == Decimal(string: "0.6") && !$0.usage.isComplete })
+        #expect(ledger.entries.allSatisfy { $0.usage.origin == .priceTable })
+    }
+
+    @Test func theLedgerKeepsOnlyTheFigureOfTheResult() async throws {
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        budgets.budgets.providers[Budgets.claude] = 5
+        let store = store(bridge())
+
+        try store.start("Chiudi", title: "Prova", branch: "", in: try folder(), onCheckout: true)
+        try await SessionTests.wait { ledger.entries.first?.usage.isComplete == true }
+        try await SessionTests.wait { store.sessions.first?.activity == .ferma }
+
+        #expect(ledger.entries.count == 1)
+        let entry = try #require(ledger.entries.first)
+        #expect(entry.usage.cost == Decimal(string: "0.1"))
+        #expect(entry.usage.isComplete)
+        #expect(entry.usage.origin == .listEstimate)
     }
 }

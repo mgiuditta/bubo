@@ -93,6 +93,7 @@ type Event =
   | { type: "sandboxRules"; id: string; rules: SandboxRule[] }
   | (RiskQuestion & { type: "risk"; id: string; request: string })
   | ({ type: "usage"; id: string } & TurnUsage)
+  | ({ type: "estimate"; id: string } & TurnUsage)
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
   | { type: "models"; models: CatalogEntry[] }
   | (Denial & { type: "denial"; id: string })
@@ -459,6 +460,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       witness.read(message);
       const turn = usage?.read(message);
       if (turn) send({ type: "usage", id, ...turn });
+      // A ogni risposta i token finora, che Bubo prezza: lo stop tra Sessioni non aspetta il `result` (#492).
+      const estimate = message.type === "assistant" && !message.error ? usage?.estimate() : undefined;
+      if (estimate) send({ type: "estimate", id, ...estimate });
       if (message.type === "system" && message.subtype === "api_retry") retry = message;
       if (message.type === "system" && message.subtype === "mirror_error") {
         console.error("Copia della conversazione incompleta:", message.error);

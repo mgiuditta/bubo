@@ -81,6 +81,8 @@ final class AgentBridge {
     private var riskHandlers: [String: (PermissionRequest) -> Bool] = [:]
     /// What receives the tokens and the figure of each answer in `answers`.
     private var usageHandlers: [String: (TurnUsage) -> Void] = [:]
+    /// What receives the tokens of each answer in `answers` at each answer, before its figure.
+    private var estimateHandlers: [String: (TurnUsage) -> Void] = [:]
     /// What learns which model answered each answer in `answers`, and with which effort.
     private var answeringHandlers: [String: (AnsweringModel) -> Void] = [:]
     /// What does the Anteprima's actions of each answer in `answers`; without one, they fail.
@@ -129,6 +131,8 @@ final class AgentBridge {
     ///     and the agent's questions, answered with `answerQuestion(_:with:)`; `nil` refuses them all.
     ///   - usage: Receives the tokens and the figure of the turn so far, each time `claude` reports them; the
     ///     latest replaces the ones before.
+    ///   - estimate: Receives the tokens of the turn so far at each answer of `claude`, until `usage` gives its
+    ///     figure: only tokens, never recorded as the turn's figure.
     ///   - preview: Does what the agent asks of the Anteprima; `nil` fails every call.
     ///   - answeredBy: Learns the model that answered and its effective effort, once, just before the answer ends.
     ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5, so that it asks even when the
@@ -143,6 +147,7 @@ final class AgentBridge {
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
+             estimate: @escaping (TurnUsage) -> Void = { _ in },
              preview: ((PreviewAction) async -> PreviewReply)? = nil,
              answeredBy: @escaping (AnsweringModel) -> Void = { _ in },
              isDangerous: ((PermissionRequest) -> Bool)? = nil) -> AsyncThrowingStream<String, any Error> {
@@ -158,6 +163,7 @@ final class AgentBridge {
             // Nobody answers in an Esecuzione: without a handler, a Richiesta is refused as it arrives.
             permissionHandlers[id] = unattended == nil ? permissions : nil
             usageHandlers[id] = usage
+            estimateHandlers[id] = estimate
             answeringHandlers[id] = answeredBy
             previewHandlers[id] = preview
             riskHandlers[id] = isDangerous
@@ -510,6 +516,8 @@ final class AgentBridge {
             }
         case let .usage(id, usage):
             usageHandlers[id]?(usage)
+        case let .estimate(id, usage):
+            estimateHandlers[id]?(usage)
         case let .answeredBy(id, model):
             answeringHandlers[id]?(model)
         case let .quota(reported):
@@ -531,6 +539,7 @@ final class AgentBridge {
         progressHandlers[id] = nil
         permissionHandlers[id] = nil
         usageHandlers[id] = nil
+        estimateHandlers[id] = nil
         answeringHandlers[id] = nil
         previewHandlers[id] = nil
         riskHandlers[id] = nil
@@ -543,6 +552,7 @@ final class AgentBridge {
         progressHandlers = [:]
         permissionHandlers = [:]
         usageHandlers = [:]
+        estimateHandlers = [:]
         answeringHandlers = [:]
         previewHandlers = [:]
         riskHandlers = [:]
