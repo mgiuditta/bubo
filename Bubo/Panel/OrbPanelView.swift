@@ -1,15 +1,13 @@
 import MetalKit
 
-/// The Metal view inside the Panel: a click opens the menu, or goes back to the open bubble, a drag moves the Panel, a
-/// right click opens the menu too, and what is dropped on it becomes an Allegato.
+/// The Metal view inside the Panel: a click opens the bubble, a drag moves the Panel, a right click opens the menu, and
+/// what is dropped on it becomes an Allegato.
 ///
 /// Reads as a button to VoiceOver, with the same menu as its secondary action and "Apri HUD", "Chiedi nel Panel" and the
 /// switch to the other size among its actions.
 final class OrbPanelView: MTKView {
-    /// Called when the Orb is clicked without opening the menu, or pressed by VoiceOver.
+    /// Called when the Orb is clicked or pressed by VoiceOver.
     var onPress: () -> Void = {}
-    /// Whether a click opens the menu at once instead of calling ``onPress``, as when the bubble is closed.
-    var opensMenuOnClick: () -> Bool = { false }
     /// Called by the VoiceOver action "Chiedi nel Panel", to open the bubble.
     var onAsk: () -> Void = {}
     /// Called by the VoiceOver action that switches the Panel to the other size.
@@ -108,14 +106,7 @@ final class OrbPanelView: MTKView {
     override func mouseUp(with event: NSEvent) {
         guard let press else { return }
         self.press = nil
-        if press.isDrag {
-            onDragEnd()
-        } else if opensMenuOnClick(), let menu {
-            // Under the Orb, as a menu bar item's: no wait, the release is the click.
-            menu.popUp(positioning: nil, at: CGPoint(x: bounds.midX, y: bounds.midY - size.clickRadius), in: self)
-        } else {
-            onPress()
-        }
+        if press.isDrag { onDragEnd() } else { onPress() }
     }
 
     // A drop never activates Bubo: the Panel is non-activating, and the app the drag comes from stays in front.
