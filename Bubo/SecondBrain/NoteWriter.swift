@@ -186,6 +186,66 @@ nonisolated struct NoteWriter: Sendable {
         SHA256.hash(data: data).map { ($0 < 0x10 ? "0" : "") + String($0, radix: 16) }.joined()
     }
 
+    /// Who the user is, agreed in the interview of the Secondo cervello: every chat reads it.
+    static let profilePath = "Bubo/Profilo.md"
+    /// How Bubo keeps the Secondo cervello, agreed in the interview: what goes where, what it saves on its own.
+    static let rulesPath = "Bubo/Regole.md"
+    /// The user's own prompt for the interview, in place of Bubo's method when it is there.
+    static let interviewPath = "Bubo/Intervista.md"
+
+    /// Writes `profile` in `Bubo/Profilo.md` and `rules` in `Bubo/Regole.md`, each atomically and replacing the file;
+    /// an empty text leaves its file as it is.
+    ///
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/` leads out of it; a file system
+    ///   error when a file cannot be written.
+    func writeSetup(profile: String, rules: String) throws {
+        // Only here, after the user's yes, are the Profilo and the Regole written: every other write goes in a folder
+        // under `Bubo/`, and `Bubo/Intervista.md` is the user's alone.
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+            throw Failure.unreachable
+        }
+        guard Self.setupFile(Self.profilePath, in: root) != nil else { throw Failure.outsideBubo }
+        try FileManager.default.createDirectory(at: root.appending(path: "Bubo"), withIntermediateDirectories: true)
+        for (text, path) in [(profile, Self.profilePath), (rules, Self.rulesPath)] {
+            let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            guard let file = Self.setupFile(path, in: root) else { throw Failure.outsideBubo }
+            try Data((text + "\n").utf8).write(to: file, options: .atomic)
+        }
+    }
+
+    /// The most a file of the setup is read: a vault could hold anything under its name.
+    static let setupReadLimit = 64 * 1024
+
+    /// The text of the setup file at `path` under `Bubo/` in `root`: `nil` when it is missing, not a regular file, a
+    /// link, larger than ``setupReadLimit``, or `Bubo/` leads out of `root`.
+    static func setupText(_ path: String, in root: URL) -> String? {
+        guard let file = setupFile(path, in: root) else { return nil }
+        let descriptor = open(file.path, O_RDONLY | O_NOFOLLOW)
+        guard descriptor >= 0 else { return nil }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        var info = stat()
+        guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG, Int(info.st_size) <= setupReadLimit,
+              let data = try? handle.read(upToCount: setupReadLimit)
+        else { return nil }
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    /// The setup file at `path` under `Bubo/` in `root`, the only place it is read or written from: `nil` when `Bubo/`
+    /// is a link or leads out of `root`, or the file is there as anything but a regular file, such as a link.
+    private static func setupFile(_ path: String, in root: URL) -> URL? {
+        let bubo = root.appending(path: "Bubo", directoryHint: .isDirectory)
+        let realBubo = root.resolvingSymlinksInPath().standardizedFileURL.path + "/Bubo"
+        var info = stat()
+        guard bubo.resolvingSymlinksInPath().standardizedFileURL.path == realBubo,
+              lstat(bubo.path, &info) == 0 ? info.st_mode & S_IFMT == S_IFDIR : errno == ENOENT
+        else { return nil }
+        let file = bubo.appending(path: (path as NSString).lastPathComponent)
+        guard lstat(file.path, &info) == 0 else { return errno == ENOENT ? file : nil }
+        return info.st_mode & S_IFMT == S_IFREG ? file : nil
+    }
+
     /// Where the imported documents go: in the Indice, since they are sources and not Bubo's summaries.
     static let documentFolder = "Bubo/Documenti"
 
