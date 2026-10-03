@@ -45,12 +45,17 @@ nonisolated enum NeuronLayout {
                 let (a, b) = (Int(edge.x), Int(edge.y))
                 let offset = positions[b] - positions[a]
                 let distance = max(simd_length(offset), 0.01)
-                let pull = offset / distance * (distance - linkLength) * 0.1
+                // As d3-force, a link pulls less the more links its ends have: a hub with thousands of notes
+                // would otherwise be flung away and the simulation would blow up.
+                let strength = 0.3 / Float(min(neighbours[a].count, neighbours[b].count))
+                let pull = offset / distance * (distance - linkLength) * strength
                 forces[a] += pull
                 forces[b] -= pull
             }
             for index in notes.indices where !isFixed[index] {
-                velocities[index] = (velocities[index] + (forces[index] - positions[index] * 0.002) * heat) * 0.6
+                let velocity = (velocities[index] + (forces[index] - positions[index] * 0.002) * heat) * 0.6
+                // Never more than the reach in one step, so no note flies off however crowded its start.
+                velocities[index] = velocity * min(1, reach / max(simd_length(velocity), .leastNonzeroMagnitude))
                 positions[index] += velocities[index]
             }
             heat -= heat * decay
