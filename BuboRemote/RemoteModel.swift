@@ -206,6 +206,14 @@ final class RemoteModel {
         .sorted { $0.request.expiresAt < $1.request.expiresAt }
     }
 
+    /// The Novità of Attende te: the card of each Sessione with a latest message and no Richiesta waiting, on every
+    /// paired Mac, in the Macs' order.
+    var news: [SessionCard] {
+        let asking = Set(waitingRequests.map(\.request.sessionID))
+        return macs.flatMap { snapshots[$0.id]?.cards ?? [] }
+            .filter { $0.excerpt != nil && !asking.contains($0.id) }
+    }
+
     /// Signs `answer` to the Richiesta `requestID` of the Mac `macID` with the Secure Enclave key, after Face ID, and
     /// sends the Verdict.
     ///

@@ -213,4 +213,26 @@ struct RemoteRequestsTests {
                                      risk: Risk(level: .modifica))
         #expect(again == .allowed)
     }
+
+    @Test func awayFromTheMacOnlyThePhoneRings() {
+        #expect(relay.notifiesPhone(about: session))
+
+        presence.isAtMac = true
+
+        #expect(!relay.notifiesPhone(about: session))
+    }
+
+    @Test func sessionOfAProjectSoloMacLeavesTheMacNotificationRinging() {
+        macOnly.setMacOnly(true, for: session.project)
+
+        #expect(!relay.notifiesPhone(about: session))
+    }
+
+    @Test func withoutAPairedPhoneTheMacNotificationRings() {
+        let alone = RemoteRequests(macID: macID, channel: channel, devices: { [] }, isOn: { true }, macOnly: macOnly) {
+            false
+        }
+
+        #expect(!alone.notifiesPhone(about: session))
+    }
 }

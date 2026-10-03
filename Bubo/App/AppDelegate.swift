@@ -54,8 +54,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {
-            let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
-                                       withdraw: notifier.withdraw)
+            // A Richiesta the iPhone rings for leaves the Mac's notification silent: one sound per Richiesta.
+            let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: { [notifier, remoteRequests] session, pending in
+                await notifier.announce(session, request: pending,
+                                        isSilent: pending != nil && remoteRequests.notifiesPhone(about: session))
+            }, withdraw: notifier.withdraw)
             let store = try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
             // Passa all'abbonamento at 100% of a Budget moves the Domande too: one bridge, one credential.
             store.moveToSubscription = { [questions] in questions.moveToSubscription() }

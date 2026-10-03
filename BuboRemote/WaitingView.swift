@@ -3,7 +3,8 @@ import SwiftUI
 
 /// The Attende te tab: the Battito of each Mac, then the Richieste from the oldest (spec 21).
 ///
-/// Levels 1–3 are decided on their tile; levels 4–5 only on the full-screen page.
+/// Levels 1–3 are decided on their tile; levels 4–5 only on the full-screen page. With nothing to decide, the Novità:
+/// the latest message of each Sessione.
 struct WaitingView: View {
     let model: RemoteModel
     @State private var error: DecisionError?
@@ -28,18 +29,30 @@ struct WaitingView: View {
                 } footer: {
                     Text("Sempre in questo Progetto: solo dal Mac.")
                 }
-            }
-        }
-        .overlay {
-            if waiting.isEmpty {
-                ContentUnavailableView {
-                    Label("Niente da decidere", systemImage: "checkmark.circle")
-                } description: {
-                    Text("\(workingCount) Sessioni lavorano")
+            } else {
+                Section {
+                    ContentUnavailableView {
+                        Label("Niente da decidere", systemImage: "checkmark.circle")
+                    } description: {
+                        Text("\(workingCount) Sessioni lavorano")
+                    }
+                }
+                let news = model.news
+                if !news.isEmpty {
+                    Section("Novità") {
+                        ForEach(news) { card in
+                            NavigationLink(value: card.id) {
+                                NewsRow(card: card)
+                            }
+                        }
+                    }
                 }
             }
         }
         .navigationTitle("Attende te")
+        .navigationDestination(for: UUID.self) { id in
+            SessionDetailView(id: id, model: model)
+        }
         .refreshable { await model.refresh() }
         .fullScreenCover(item: focused) { waiting in
             RequestReviewView(waiting: waiting, decide: decide) { model.focusedRequest = nil }
@@ -78,4 +91,21 @@ struct WaitingView: View {
 
 extension DecisionError: LocalizedError {
     var errorDescription: String? { String(localized: message) }
+}
+
+/// A Sessione in the Novità: its title, and its latest message below.
+private struct NewsRow: View {
+    let card: SessionCard
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: card.title)
+                .lineLimit(1)
+            Text(verbatim: card.excerpt ?? "")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+        }
+        .accessibilityElement(children: .combine)
+    }
 }

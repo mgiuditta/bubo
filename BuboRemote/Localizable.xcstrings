@@ -485,6 +485,16 @@
         }
       }
     },
+    "Novità" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Latest messages"
+          }
+        }
+      }
+    },
     "Per inquadrare il QR, consenti a Bubo di usare la fotocamera in Impostazioni." : {
       "localizations" : {
         "en" : {
