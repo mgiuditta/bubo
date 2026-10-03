@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "mappa",
+      "forma": "mappa",
+      "categoria": "viaggi",
+      "descrizione": "Quando si pianifica un itinerario o un percorso.",
+      "parole": ["mappa", "map", "itinerario", "itinerary", "percorso", "route", "tappe"]
+    },
+    {
+      "nome": "forchetta",
+      "forma": "forchetta",
+      "categoria": "codice",
+      "descrizione": "Quando si fa il fork di un repository o di un progetto.",
+      "parole": ["fork", "forka", "forchetta", "clona il repository", "fork the repo", "upstream"]
+    },
+    {
+      "nome": "pentola",
+      "forma": "pentola",
+      "categoria": "chat",
+      "descrizione": "Quando si cucina: ricette, ingredienti, tempi di cottura.",
+      "parole": ["ricetta", "recipe", "cucina", "cooking", "ingredienti", "pentola", "cottura"]
+    },
+    {
+      "nome": "pianoforte",
+      "forma": "pianoforte",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di pianoforte e tastiere.",
+      "parole": ["pianoforte", "piano", "tastiera", "keyboard", "tasti", "sonata"]
+    },
+    {
+      "nome": "orologio",
+      "forma": "orologio",
+      "categoria": "tempo",
+      "descrizione": "Quando si chiede l'ora o un orario preciso.",
+      "parole": ["che ora", "what time", "orologio", "watch", "orario", "fuso orario", "time zone"]
+    },
+    {
+      "nome": "barattolo",
+      "forma": "barattolo",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di cache e dati tenuti in memoria.",
+      "parole": ["cache", "memoria", "in memoria", "memoize", "memoizzare", "barattolo", "jar"]
+    },
+    {
+      "nome": "luna",
+      "forma": "luna",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla della notte e delle fasi lunari.",
+      "parole": ["luna", "moon", "notte", "night", "fasi lunari", "moon phases", "falce"]
+    },
+    {
+      "nome": "periscopio",
+      "forma": "periscopio",
+      "categoria": "ricerca",
+      "descrizione": "Quando si vuole un'occhiata veloce: anteprima, panoramica, il succo.",
+      "parole": ["occhiata", "quick look", "anteprima", "preview", "panoramica rapida", "sguardo veloce", "periscopio"]
+    },
+    {
+      "nome": "mattoni",
+      "forma": "mattoni",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo ristruttura il codice senza cambiarne il comportamento.",
+      "parole": ["refactor*", "ristruttura*", "riorganizza*", "restructure", "ripulisci", "bricks"]
+    },
+    {
+      "nome": "portafoglio",
+      "forma": "portafoglio",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di spese personali e di quanto si ha a disposizione.",
+      "parole": ["spese", "expenses", "portafoglio", "wallet", "quanto ho", "disponibilita", "spesa personale"]
+    },
+    {
+      "nome": "macchina-fotografica",
+      "forma": "macchina_fotografica",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di fotografia: scatti, obiettivi, composizione.",
+      "parole": ["foto", "photo", "fotografia", "photography", "scatto", "obiettivo", "lens"]
+    },
+    {
+      "nome": "cubi-alfabeto",
+      "forma": "cubi_alfabeto",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di lingue: traduzioni, parole straniere, pronuncia.",
+      "parole": ["traduci*", "translate", "traduzione", "translation", "pronuncia", "lingue", "languages"]
+    },
+    {
+      "nome": "aeroplanino",
+      "forma": "aeroplanino",
+      "categoria": "mail",
+      "descrizione": "Quando Bubo invia una mail o una risposta.",
+      "parole": ["invia", "send", "manda una mail", "send an email", "rispondi alla mail", "reply to the email", "aeroplanino"]
+    },
+    {
+      "nome": "stetoscopio",
+      "forma": "stetoscopio",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di visite mediche, sintomi e medici.",
+      "parole": ["medico", "doctor", "visita", "checkup", "sintomi", "symptoms", "stetoscopio"]
+    },
+    {
+      "nome": "avviso",
+      "forma": "avviso",
+      "categoria": "codice",
+      "descrizione": "Quando ci sono errori o warning da leggere: crash, eccezioni, messaggi del compilatore.",
+      "parole": ["errore", "error", "warning", "avviso", "crash", "eccezione", "exception", "stack trace"]
+    },
+    {
+      "nome": "spunta",
+      "forma": "spunta",
+      "categoria": "agente",
+      "descrizione": "Quando un compito è fatto o verificato.",
+      "parole": ["fatto", "done", "completato", "completed", "verificato", "spunta"]
+    },
+    {
+      "nome": "bussola",
+      "forma": "bussola",
+      "categoria": "viaggi",
+      "descrizione": "Quando ci si orienta: direzioni, come arrivare a piedi.",
+      "parole": ["bussola", "compass", "orientarsi", "direzioni", "directions", "a piedi", "on foot"]
+    },
+    {
+      "nome": "segugio",
+      "forma": "segugio",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo segue una traccia: indagine a fondo, fonti incrociate.",
+      "parole": ["segugio", "hound", "indaga*", "investigate", "indagine", "segui la traccia", "follow the lead"]
+    },
+    {
+      "nome": "incudine",
+      "forma": "incudine",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo compila e costruisce il progetto.",
+      "parole": ["compila*", "compile", "build", "costruisci il progetto", "xcodebuild", "make"]
+    },
+    {
+      "nome": "violino",
+      "forma": "violino",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di archi: violino, viola, violoncello.",
+      "parole": ["violino", "violin", "viola", "violoncello", "cello", "archi"]
+    },
+    {
+      "nome": "cronometro",
+      "forma": "cronometro",
+      "categoria": "tempo",
+      "descrizione": "Quando si misurano durate: tempi di gara, quanto ci vuole.",
+      "parole": ["cronometro", "stopwatch", "cronometra", "quanto ci vuole", "how long does", "tempi di gara", "lap times"]
+    },
+    {
+      "nome": "fungo",
+      "forma": "fungo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di funghi.",
+      "parole": ["fungo", "funghi", "mushroom", "mushrooms", "porcino", "micologia"]
+    },
+    {
+      "nome": "server",
+      "forma": "server",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di server e macchine remote.",
+      "parole": ["server", "macchina remota", "remote machine", "ssh", "vps", "hosting", "deploy"]
+    },
+    {
+      "nome": "goccia",
+      "forma": "goccia",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di quanta pioggia cade o di umidità.",
+      "parole": ["goccia", "drop", "umidita", "humidity", "quanta pioggia", "rainfall", "precipitazioni"]
     }
   ]
 }

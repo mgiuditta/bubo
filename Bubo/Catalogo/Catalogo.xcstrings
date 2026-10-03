@@ -19,6 +19,60 @@
         }
       }
     },
+    "aeroplanino" : {
+      "comment" : "Etichetta della Variante aeroplanino (Categoria Mail): un aeroplanino di carta visto di profilo, con il muso orizzontale.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paper plane"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aeroplanino di carta"
+          }
+        }
+      }
+    },
+    "avviso" : {
+      "comment" : "Etichetta della Variante avviso (Categoria Codice): un triangolo con gli angoli arrotondati e un punto esclamativo in rilievo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warning"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avviso"
+          }
+        }
+      }
+    },
+    "barattolo" : {
+      "comment" : "Etichetta della Variante barattolo (Categoria Codice): un barattolo basso e largo con il coperchio a vite.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jar"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barattolo"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -51,6 +105,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Borsa del ghiaccio"
+          }
+        }
+      }
+    },
+    "bussola" : {
+      "comment" : "Etichetta della Variante bussola (Categoria Viaggi): una bussola tonda con l'ago a rombo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compass"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bussola"
           }
         }
       }
@@ -235,6 +307,42 @@
         }
       }
     },
+    "cronometro" : {
+      "comment" : "Etichetta della Variante cronometro (Categoria Tempo): un cronometro tondo con il pulsante in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stopwatch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cronometro"
+          }
+        }
+      }
+    },
+    "cubi-alfabeto" : {
+      "comment" : "Etichetta della Variante cubi-alfabeto (Categoria Chat): tre cubi con le lettere, due sotto e uno sopra.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alphabet blocks"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cubi dell'alfabeto"
+          }
+        }
+      }
+    },
     "cuore" : {
       "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
       "extractionState" : "manual",
@@ -289,6 +397,24 @@
         }
       }
     },
+    "forchetta" : {
+      "comment" : "Etichetta della Variante forchetta (Categoria Codice): una forchetta a quattro rebbi, dritta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fork"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forchetta"
+          }
+        }
+      }
+    },
     "fulmine" : {
       "comment" : "Etichetta della Variante fulmine (Categoria Meteo): una saetta.",
       "extractionState" : "manual",
@@ -321,6 +447,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fumetto"
+          }
+        }
+      }
+    },
+    "fungo" : {
+      "comment" : "Etichetta della Variante fungo (Categoria Chat): un fungo con il cappello a cupola e il gambo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mushroom"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fungo"
           }
         }
       }
@@ -361,6 +505,24 @@
         }
       }
     },
+    "goccia" : {
+      "comment" : "Etichetta della Variante goccia (Categoria Meteo): una goccia d'acqua con la punta in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Goccia"
+          }
+        }
+      }
+    },
     "gomma" : {
       "comment" : "Etichetta della Variante gomma (Categoria Chat): una gomma per cancellare.",
       "extractionState" : "manual",
@@ -393,6 +555,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Imbuto"
+          }
+        }
+      }
+    },
+    "incudine" : {
+      "comment" : "Etichetta della Variante incudine (Categoria Codice): un'incudine con il corno a sinistra e la base larga.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anvil"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Incudine"
           }
         }
       }
@@ -451,6 +631,60 @@
         }
       }
     },
+    "luna" : {
+      "comment" : "Etichetta della Variante luna (Categoria Meteo): una falce di luna spessa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moon"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Luna"
+          }
+        }
+      }
+    },
+    "macchina-fotografica" : {
+      "comment" : "Etichetta della Variante macchina-fotografica (Categoria Creativo): una macchina fotografica con l'obiettivo tondo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Macchina fotografica"
+          }
+        }
+      }
+    },
+    "mappa" : {
+      "comment" : "Etichetta della Variante mappa (Categoria Viaggi): una mappa ripiegata a tre ante.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Map"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mappa"
+          }
+        }
+      }
+    },
     "matita" : {
       "comment" : "Etichetta della Variante matita (Categoria Codice): una matita che traccia un segno.",
       "extractionState" : "manual",
@@ -465,6 +699,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Matita"
+          }
+        }
+      }
+    },
+    "mattoni" : {
+      "comment" : "Etichetta della Variante mattoni (Categoria Codice): un muretto di sei mattoni sfalsati su tre file.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bricks"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mattoni"
           }
         }
       }
@@ -541,6 +793,24 @@
         }
       }
     },
+    "orologio" : {
+      "comment" : "Etichetta della Variante orologio (Categoria Tempo): un orologio da polso con il cinturino.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orologio"
+          }
+        }
+      }
+    },
     "pappagallo" : {
       "comment" : "Etichetta della Variante pappagallo (Categoria Chat): un pappagallo su un ramo.",
       "extractionState" : "manual",
@@ -595,6 +865,60 @@
         }
       }
     },
+    "pentola" : {
+      "comment" : "Etichetta della Variante pentola (Categoria Chat): una pentola con il coperchio e due manici.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pot"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pentola"
+          }
+        }
+      }
+    },
+    "periscopio" : {
+      "comment" : "Etichetta della Variante periscopio (Categoria Ricerca): un periscopio a gomito con l'oculare in basso.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Periscope"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Periscopio"
+          }
+        }
+      }
+    },
+    "pianoforte" : {
+      "comment" : "Etichetta della Variante pianoforte (Categoria Musica): un pianoforte a coda di profilo con il coperchio aperto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piano"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pianoforte"
+          }
+        }
+      }
+    },
     "pinguino" : {
       "comment" : "Etichetta della Variante pinguino (Categoria Chat): un pinguino in piedi.",
       "extractionState" : "manual",
@@ -627,6 +951,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pinne"
+          }
+        }
+      }
+    },
+    "portafoglio" : {
+      "comment" : "Etichetta della Variante portafoglio (Categoria Finanza): un portafoglio piegato con una banconota che sporge.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wallet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portafoglio"
           }
         }
       }
@@ -775,6 +1117,42 @@
         }
       }
     },
+    "segugio" : {
+      "comment" : "Etichetta della Variante segugio (Categoria Ricerca): un cane segugio di profilo con il muso a terra.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hound"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segugio"
+          }
+        }
+      }
+    },
+    "server" : {
+      "comment" : "Etichetta della Variante server (Categoria Codice): una torre alta e stretta con tre fessure e tre lucine.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Server"
+          }
+        }
+      }
+    },
     "sfigmomanometro" : {
       "comment" : "Etichetta della Variante sfigmomanometro (Categoria Salute): un bracciale con il tubo e la pompetta.",
       "extractionState" : "manual",
@@ -789,6 +1167,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "spunta" : {
+      "comment" : "Etichetta della Variante spunta (Categoria Agente): un grosso segno di spunta, spesso e arrotondato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check mark"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spunta"
+          }
+        }
+      }
+    },
+    "stetoscopio" : {
+      "comment" : "Etichetta della Variante stetoscopio (Categoria Salute): uno stetoscopio con le olive e il disco.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stethoscope"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stetoscopio"
           }
         }
       }
@@ -843,6 +1257,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminale"
+          }
+        }
+      }
+    },
+    "violino" : {
+      "comment" : "Etichetta della Variante violino (Categoria Musica): un violino con le effe e l'archetto accanto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Violin"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Violino"
           }
         }
       }
