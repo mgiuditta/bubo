@@ -158,7 +158,13 @@ struct HUDView: View {
                     .frame(maxWidth: 520, maxHeight: 520)
                     .padding(Spacing.large)
                     .overlay(alignment: .bottom) {
-                        if let forecast = questions.intake.forecast { OrbCaption(forecast: forecast) }
+                        if OrbControls.shared.isShowingDedica {
+                            Text(Dedica.message)
+                                .font(Typography.body(size: 13))
+                                .foregroundStyle(Palette.textSecondary)
+                        } else if let forecast = questions.intake.forecast {
+                            OrbCaption(forecast: forecast)
+                        }
                     }
             }
             if hud.vista == .striscia, let sessions = visibleSessions {

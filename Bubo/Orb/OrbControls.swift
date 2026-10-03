@@ -34,18 +34,38 @@ final class OrbControls {
     /// Whether the Orb has already greeted as the owl since launch.
     @ObservationIgnored private var hasGreeted = false
 
+    /// Whether the Orb shows the heart of the Dedica, with its line under the Orb.
+    private(set) var isShowingDedica = false
+
     /// Greets once per launch: the Orb turns into the owl of the Segno, then goes back to the Blob on its own.
     ///
+    /// On the Mac of the person the Dedica is meant for, the Orb turns into the heart instead, with its line.
     /// Later calls change nothing, and so does a call while the Orb already shows a Variante.
-    /// - Parameter reducesMotion: Whether the owl fades in instead of morphing.
-    func greet(reducesMotion: Bool = Motion.isReduced) {
+    /// - Parameters:
+    ///   - fullName: The full name of the macOS account.
+    ///   - catalogo: Where the heart comes from.
+    ///   - reducesMotion: Whether the greeting fades in instead of morphing.
+    func greet(fullName: String = NSFullUserName(), in catalogo: Catalogo? = .bundled,
+               reducesMotion: Bool = Motion.isReduced) {
         guard !hasGreeted, variante == nil else { return }
         hasGreeted = true
-        variante = Gufo.variante
+        let greeting: Variante
+        let delay: Double
+        if Dedica.isMeant(forFullName: fullName), let cuore = catalogo?.variante(named: "cuore") {
+            greeting = cuore
+            delay = Dedica.returnDelay(reducesMotion: reducesMotion)
+            isShowingDedica = true
+            AccessibilityNotification.Announcement(String(localized: Dedica.message)).post()
+        } else {
+            greeting = Gufo.variante
+            delay = Gufo.returnDelay(reducesMotion: reducesMotion)
+        }
+        variante = greeting
         orbiteReturn?.cancel()
         orbiteReturn = Task {
-            try? await Task.sleep(for: .seconds(Gufo.returnDelay(reducesMotion: reducesMotion)))
-            guard !Task.isCancelled, variante == Gufo.variante else { return }
+            try? await Task.sleep(for: .seconds(delay))
+            isShowingDedica = false
+            guard !Task.isCancelled, variante == greeting else { return }
             variante = nil
         }
     }
