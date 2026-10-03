@@ -177,7 +177,7 @@ export function withFolderFirst(environment: Record<string, string>, copilot: st
 }
 
 // La sessione si stacca e `copilot` si chiude; se non risponde entro `abortGrace`, si chiude a forza.
-async function close(client: CopilotClient, session: CopilotSession | undefined) {
+export async function close(client: CopilotClient, session?: CopilotSession) {
   const graceful = (async () => {
     await session?.disconnect().catch(() => {});
     await client.stop();

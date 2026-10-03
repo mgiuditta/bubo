@@ -257,6 +257,56 @@ final class AgentBridge {
         return answer
     }
 
+    /// Asks the user's `copilot` to answer the Domanda `prompt`, streaming the answer as it arrives (ADR 0011).
+    ///
+    /// The session has no tools, and runs in an empty folder of Bubo: no Progetto's instructions reach it. `copilot`
+    /// answers with the user's own login: the bridge removes the tokens that would override it. Cancelling the
+    /// iteration stops the answer.
+    ///
+    /// - Parameters:
+    ///   - copilot: The user's `copilot`.
+    ///   - model: A Copilot model id, from ``copilotModels(of:)``; `nil` for the user's own choice in `copilot`.
+    ///   - effort: The reasoning effort; `nil` for the model's default.
+    ///   - usage: Receives the tokens of the answer, once, before it ends; without a figure (Spesa, #542).
+    ///   - answeredBy: Learns the model that answered and its effort, once, just before the answer ends.
+    func askCopilotQuestion(_ prompt: String, copilot: URL, model: String? = nil, effort: Effort? = nil,
+                            usage: @escaping (TurnUsage) -> Void = { _ in },
+                            answeredBy: @escaping (AnsweringModel) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
+        let id = UUID().uuidString
+        let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
+        continuation.onTermination = { [weak self] termination in
+            guard case .cancelled = termination else { return }
+            Task { @MainActor in self?.cancel(id) }
+        }
+        do {
+            let directory = URL.temporaryDirectory.appending(path: "bubo-domanda-copilot", directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let process = try runningProcess()
+            answers[id] = continuation
+            usageHandlers[id] = usage
+            answeringHandlers[id] = answeredBy
+            let command = BridgeCommand.askCopilotQuestion(id: id, prompt: prompt, directory: directory, copilot: copilot,
+                                                           model: model, effort: effort)
+            try process.input.write(contentsOf: command.line())
+        } catch let ProcessSpawnerError.failed(code) {
+            continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
+        } catch {
+            removeAnswer(id)
+            continuation.finish(throwing: error)
+        }
+        return answer
+    }
+
+    /// The models the Copilot plan of the user's `copilot` offers, as `listModels()` lists them: no turn of the model.
+    func copilotModels(of copilot: URL) async throws -> [CopilotModel] {
+        let id = UUID().uuidString
+        guard case let .copilotModels(_, models) = try await request(.readCopilotModels(id: id, copilot: copilot), id: id)
+        else {
+            throw AgentBridgeError.failed(message: "unexpected event")
+        }
+        return models
+    }
+
     /// The Sandbox of a `claude` that gets the bridge's environment and `environment`, reaching also `allowances`.
     private func sandbox(for environment: [String: String], allowances: SandboxAllowances) -> SandboxPolicy {
         SandboxPolicy(environment: self.environment.merging(environment) { $1 }, allowances: allowances)
@@ -563,7 +613,7 @@ final class AgentBridge {
         case let .models(models):
             catalog(models)
         case let .configuration(id, _), let .history(id, _), let .transcript(id, _), let .kept(id, _), let .forgot(id),
-             let .sandboxRules(id, _), let .pluginsReloaded(id, _):
+             let .sandboxRules(id, _), let .pluginsReloaded(id, _), let .copilotModels(id, _):
             requests.removeValue(forKey: id)?.resume(returning: event)
         case let .unsupportedVersion(version):
             finishAll(throwing: .unsupportedVersion(version))
