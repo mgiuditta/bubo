@@ -146,11 +146,15 @@ final class MeetingRecorder {
         }
     }
 
-    /// Transcribes both tracks, summarizes them and writes the note; deletes the audio when the user chose so.
+    /// Transcribes both tracks, tells apart the voices of the app's, summarizes them and writes the note; deletes the audio when the user chose so.
     private func save(_ recording: Recording, lasting duration: Duration) async throws(MeetingFailure) -> URL {
         let mine = try await transcribe(recording.folder.appending(path: Self.myTrack), .me)
-        let others = recording.app == nil ? []
-            : try await transcribe(recording.folder.appending(path: Self.othersTrack), .others)
+        var others: [MeetingLine] = []
+        if recording.app != nil {
+            let track = recording.folder.appending(path: Self.othersTrack)
+            async let turns = MeetingDiarizer.turns(in: track)
+            others = MeetingDiarizer.lines(try await transcribe(track, .others), attributedTo: await turns)
+        }
         let transcript = MeetingLine.merged(mine, others)
         let note = MeetingNote(title: recording.title, start: recording.start, duration: duration,
                                app: recording.app?.name, summary: await summary(of: transcript), transcript: transcript)
