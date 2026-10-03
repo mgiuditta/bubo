@@ -262,8 +262,10 @@ struct SessionRow: View {
             && !isArchived && !session.conversations.isEmpty && session.workspace != nil
     }
 
-    /// Whether this build has the Sandbox.
-    private var hasSandbox: Bool { ReleaseArea.sandbox.isAvailable(hidesUnreleased: hidesUnreleased) }
+    /// Whether the Sessione can have the Sandbox: this build has it, and the Sessione runs on Claude.
+    private var hasSandbox: Bool { ReleaseArea.sandbox.isAvailable(hidesUnreleased: hidesUnreleased) && !isOnCopilot }
+    /// Whether the Sessione runs on Copilot, without the parts that exist only with Claude (ADR 0012).
+    private var isOnCopilot: Bool { session.engine == .copilot }
 
     /// Whether the Sessione has changes git can show: in its own worktree, or on the checkout of a repo.
     private var canReview: Bool { !isArchived && (session.workspace?.branch != nil || session.isOnCheckout) }
@@ -423,7 +425,10 @@ struct SessionRow: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
-            if !isArchived && hasSandbox {
+            if !isArchived && isOnCopilot {
+                CopilotUnavailableNotice()
+                    .padding(.top, Spacing.xxSmall)
+            } else if !isArchived && hasSandbox {
                 SandboxIndicator(state: SandboxState(isEnabled: store.sandbox.isEnabled(in: session.project),
                                                      currentTurn: store.sandboxedTurns[session.id])) {
                     isShowingConfiguration = true
@@ -547,8 +552,11 @@ struct SessionRow: View {
                 Button("Consegna…") { hud.deliver(session) }
                     .disabled(session.activity == .lavora)
             }
-            Button("Configurazione di Claude…") { isShowingConfiguration = true }
-            Button("Memoria del Progetto…") { isShowingMemory = true }
+            // Both are read by `claude`: a Sessione on Copilot never calls it (ADR 0012).
+            if !isOnCopilot {
+                Button("Configurazione di Claude…") { isShowingConfiguration = true }
+                Button("Memoria del Progetto…") { isShowingMemory = true }
+            }
             if summarizer != nil {
                 Button("Riassumi ora", action: summarize)
                     .disabled(session.isRunning)
@@ -570,8 +578,11 @@ struct SessionRow: View {
                 Button("Mostra nella Galassia") { showInGalaxy(session) }
             }
             if canDeliver && session.activity != .lavora { Button("Consegna…") { hud.deliver(session) } }
-            Button("Configurazione di Claude…") { isShowingConfiguration = true }
-            Button("Memoria del Progetto…") { isShowingMemory = true }
+            // Both are read by `claude`: a Sessione on Copilot never calls it (ADR 0012).
+            if !isOnCopilot {
+                Button("Configurazione di Claude…") { isShowingConfiguration = true }
+                Button("Memoria del Progetto…") { isShowingMemory = true }
+            }
             if !session.isRunning {
                 if summarizer != nil { Button("Riassumi ora", action: summarize) }
                 if !isArchived { Button("Archivia", action: archive) }
