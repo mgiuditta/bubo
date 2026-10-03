@@ -86,6 +86,13 @@ enum BridgeCommand: Equatable {
     /// Asks `model` to answer `prompt` in one turn in the empty `directory`, with no tools, no settings and no copy of
     /// the conversation: the Riassunto di Sessione. The answer comes as for `ask`.
     case summarize(id: String, prompt: String, directory: URL, model: String?)
+    /// Asks the user's `copilot` to answer the Domanda `prompt` in the empty `directory`, in a session with no tools
+    /// (ADR 0011). `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the
+    /// reasoning effort; without it, the model's default. The answer comes as for `ask`, with `usage` and `answeredBy`.
+    case askCopilotQuestion(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil,
+                            effort: Effort? = nil)
+    /// Lists the models the Copilot plan of the user's `copilot` offers, answering the request `id`.
+    case readCopilotModels(id: String, copilot: URL)
 
     /// The command as one line of JSON, newline included.
     func line() throws -> Data {
@@ -170,6 +177,12 @@ enum BridgeCommand: Equatable {
         case let .summarize(id, prompt, directory, model):
             object = ["type": "summarize", "id": id, "prompt": prompt, "cwd": directory.path]
             object["model"] = model
+        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort):
+            object = ["type": "copilotQuestion", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
+            object["model"] = model
+            object["effort"] = effort?.rawValue
+        case let .readCopilotModels(id, copilot):
+            object = ["type": "copilotModels", "id": id, "copilot": copilot.path]
         case let .answerPreview(call, reply):
             object = ["type": "previewResult", "call": call]
             switch reply {
@@ -248,6 +261,8 @@ enum BridgeEvent: Equatable, Decodable {
     case answeredBy(id: String, AnsweringModel)
     /// The Claude models the account offers, read with the Quota.
     case models(ModelCatalog)
+    /// The models the user's Copilot plan offers, answering the request `id`.
+    case copilotModels(id: String, [CopilotModel])
     /// The Regole di permesso that widen the Sandbox, answering the request `id`.
     case sandboxRules(id: String, [SandboxWideningRule])
     /// How Ricarica plugin went, answering the request `id`.
@@ -376,6 +391,8 @@ enum BridgeEvent: Equatable, Decodable {
                                       .permissionMode(try container.decode(String.self, forKey: .permissionMode)))
         case "pluginsReloaded": self = .pluginsReloaded(id: try container.decode(String.self, forKey: .id),
                                                         try PluginReload(from: decoder))
+        case "copilotModels": self = .copilotModels(id: try container.decode(String.self, forKey: .id),
+                                                    try container.decode([CopilotModel].self, forKey: .models))
         case "models": self = .models(ModelCatalog(entries: try container.decode([ModelCatalog.Entry].self, forKey: .models)))
         case let type:
             throw DecodingError.dataCorruptedError(forKey: .type, in: container, debugDescription: "Unknown event \(type)")

@@ -34,6 +34,36 @@ struct AgentBridgeTests {
         #expect(answer == "ciao")
     }
 
+    @Test func aCopilotQuestionStreamsWithItsTokensAndModel() async throws {
+        // The command comes back as the answer's first text, so the test can read it.
+        let bridge = Self.bridge(Self.answering(#"""
+            type=$(echo "$line" | sed 's/.*"type":"\([^"]*\)".*/\1/')
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$type \"}"
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"ciao\"}"
+            echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"basis\":\"unknown\",\"complete\":true,\"models\":[{\"model\":\"gpt-6\",\"inputTokens\":10,\"outputTokens\":2,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"thinkingTokens\":0}]}"
+            echo "{\"v\":4,\"type\":\"answeredBy\",\"id\":\"$id\",\"model\":\"gpt-6\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var usage: TurnUsage?
+        var model: AnsweringModel?
+        let answer = try await Self.collect(bridge.askCopilotQuestion(
+            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+            usage: { usage = $0 }, answeredBy: { model = $0 }))
+        #expect(answer == "copilotQuestion ciao")
+        #expect(usage?.models.map(\.inputTokens) == [10])
+        #expect(model == AnsweringModel(model: "gpt-6", effort: nil))
+    }
+
+    @Test func theCopilotModelsAnswerTheirRequest() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":4,\"type\":\"copilotModels\",\"id\":\"$id\",\"models\":[{\"id\":\"gpt-6\",\"name\":\"GPT-6\"}]}"
+            read _
+            """#))
+        let models = try await bridge.copilotModels(of: URL(filePath: "/opt/homebrew/bin/copilot"))
+        #expect(models == [CopilotModel(id: "gpt-6", name: "GPT-6")])
+    }
+
     @Test func aSearchIsAnsweredOnTheBridgesInput() async throws {
         // The answer to the search comes back as the conversation's text, so the test can read it.
         let bridge = Self.bridge(Self.answering(#"""

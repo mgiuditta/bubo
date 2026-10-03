@@ -14,6 +14,7 @@ import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { CopilotTurns, copilotEnvironment, reasoningEffortOf } from "./copilot";
+import { CopilotQuestions, type CopilotQuestionEvent } from "./copilot-question";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
 import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
@@ -40,6 +41,8 @@ const version = 4;
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
+  | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
@@ -100,7 +103,8 @@ type Event =
   | { type: "models"; models: CatalogEntry[] }
   | (Denial & { type: "denial"; id: string })
   | { type: "mode"; id: string; permissionMode: PermissionMode }
-  | ({ type: "pluginsReloaded"; id: string } & PluginReload);
+  | ({ type: "pluginsReloaded"; id: string } & PluginReload)
+  | CopilotQuestionEvent;
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -211,8 +215,24 @@ const childEnv = { ...inherited };
 // Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
-// Le Sessioni su `copilot` (ADR 0012), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+// Le Sessioni su `copilot` (ADR 0012) e le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che
+// scavalcano il login dell'utente.
 const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv));
+const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv));
+
+// Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
+function isCopilotPath(copilot: unknown): copilot is string {
+  return typeof copilot === "string" && copilot.startsWith("/");
+}
+
+// La latenza al primo token di una Domanda via Copilot (ADR 0011, punto 6), per la decisione sulla partnership.
+async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>) {
+  const firstToken = await copilotQuestions.ask({
+    id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
+    model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
+  });
+  if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
+}
 
 // La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
 const store = (() => {
@@ -813,8 +833,7 @@ lines.on("line", (line) => {
       send({ type: "forgot", id: command.id });
       break;
     case "copilot":
-      // Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
-      if (typeof command.copilot !== "string" || !command.copilot.startsWith("/")) {
+      if (!isCopilotPath(command.copilot)) {
         send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
         break;
       }
@@ -822,8 +841,16 @@ lines.on("line", (line) => {
                               model: typeof command.model === "string" ? command.model : undefined,
                               effort: reasoningEffortOf(command.effort) });
       break;
+    case "copilotQuestion":
+      if (isCopilotPath(command.copilot)) void askCopilot(command);
+      else send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+      break;
+    case "copilotModels":
+      if (isCopilotPath(command.copilot)) void copilotQuestions.models(command.id, command.copilot);
+      else send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+      break;
     case "cancel":
-      if (!copilotTurns.cancel(command.id)) void running.get(command.id)?.interrupt();
+      if (!copilotTurns.cancel(command.id) && !copilotQuestions.cancel(command.id)) void running.get(command.id)?.interrupt();
       break;
     case "found": toolCalls.get(command.id)?.(command.text); toolCalls.delete(command.id); break;
     case "quota": void quota(); break;

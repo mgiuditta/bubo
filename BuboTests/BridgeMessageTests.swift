@@ -77,6 +77,23 @@ struct BridgeMessageTests {
         ])))
     }
 
+    @Test func aCopilotQuestionCarriesItsCopilotModelAndEffort() throws {
+        let line = try BridgeCommand.askCopilotQuestion(id: "c1", prompt: "Ciao", directory: URL(filePath: "/tmp/vuota"),
+                                                        copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+                                                        model: "gpt-6", effort: .high).line()
+        #expect(String(decoding: line, as: UTF8.self) == #"{"copilot":"/opt/homebrew/bin/copilot","cwd":"/tmp/vuota","#
+            + #""effort":"high","id":"c1","model":"gpt-6","prompt":"Ciao","type":"copilotQuestion","v":4}"# + "\n")
+    }
+
+    @Test func copilotModelsSkipAnEffortBuboDoesNotKnow() throws {
+        let line = #"{"v":4,"type":"copilotModels","id":"m1","models":[{"id":"gpt-6","name":"GPT-6","multiplier":1,"#
+            + #""supportedEfforts":["low","ultra"],"defaultEffort":"ultra"},{"id":"grok-5","name":"Grok 5"}]}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .copilotModels(id: "m1", [
+            CopilotModel(id: "gpt-6", name: "GPT-6", multiplier: 1, supportedEfforts: [.low]),
+            CopilotModel(id: "grok-5", name: "Grok 5"),
+        ]))
+    }
+
     @Test func askWithAnEnvironmentCarriesIt() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
                                          settingSources: [], environment: ["PORT": "40000"]).line()
