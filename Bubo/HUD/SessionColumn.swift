@@ -436,7 +436,8 @@ struct SessionRow: View {
             }
             if !isOnBoard {
                 SessionCostTotal(total: store.ledger.total(of: session.id),
-                                 lastTurn: store.ledger.lastTurn(of: session.id)?.usage)
+                                 lastTurn: store.ledger.lastTurn(of: session.id)?.usage,
+                                 copilotPricesOf: session.engine == .copilot ? CopilotPriceTable.bundled?.date : nil)
             } else if let lineCounts, lineCounts.added + lineCounts.removed > 0 {
                 HStack(spacing: Spacing.xSmall) {
                     Text(verbatim: "+\(lineCounts.added)").foregroundStyle(Palette.success)
@@ -502,11 +503,12 @@ struct SessionRow: View {
                     .textSelection(.enabled)
             }
             if let scope = session.budgetStop, session.activity == .ferma, !isArchived {
-                // Every turn of a Sessione is Claude's: a spent Budget means the API key, so the subscription is a way.
+                // On Claude a spent Budget means the API key, so the subscription is a way; Copilot has none (#542).
                 BudgetStopNotice(scope: scope, detail: "La Sessione si è fermata: riparte solo con una tua scelta.",
                                  retry: { store.resumeAfterBudget(session.id) },
                                  continueOnce: { store.resumeAfterBudget(session.id, ignoringBudget: true) },
-                                 switchToSubscription: { store.resumeWithSubscription(session.id) })
+                                 switchToSubscription: session.engine == .copilot
+                                     ? nil : { store.resumeWithSubscription(session.id) })
                     .controlSize(.small)
                     .padding(.top, Spacing.xxSmall)
             }

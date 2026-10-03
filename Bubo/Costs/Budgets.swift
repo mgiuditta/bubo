@@ -16,6 +16,8 @@ nonisolated struct Budgets: Codable, Equatable, Sendable {
 
     /// The name the CostLedger gives Claude, whose Budget counts only the turns paid with the API key.
     static let claude = "Anthropic"
+    /// The name the CostLedger gives GitHub Copilot, whose turns are all Spesa, estimated from their tokens.
+    static let copilot = "GitHub Copilot"
 
     /// The limit of `scope`; `nil` when it has no Budget.
     func limit(of scope: BudgetGuard.Scope) -> Decimal? {

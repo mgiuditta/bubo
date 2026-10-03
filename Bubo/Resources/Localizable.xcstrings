@@ -204,6 +204,17 @@
         }
       }
     },
+    "%@ token Copilot, senza prezzo" : {
+      "comment" : "Cost of an answer from GitHub Copilot on a model missing from Bubo's list of GitHub's prices: the tokens used.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Copilot tokens, no price"
+          }
+        }
+      }
+    },
     "%@ token sulla tua chiave" : {
       "comment" : "Cost of an answer from another provider, paid on the user's own key at a price Bubo does not know: the tokens used.",
       "localizations" : {
@@ -4317,6 +4328,17 @@
         }
       }
     },
+    "La Spesa di GitHub Copilot è una stima: token sul listino GitHub del %@, 1 credito = $0,01. Bubo non vede i crediti rimasti sul tuo account." : {
+      "comment" : "Footer of the providers' Budgets: Copilot's Spesa is an estimate, with the day of GitHub's list prices.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "GitHub Copilot spend is an estimate: tokens at GitHub's list prices of %@, 1 credit = $0.01. Bubo can't see the credits left on your account."
+          }
+        }
+      }
+    },
     "Lascia" : {
       "localizations" : {
         "en" : {
@@ -4993,6 +5015,17 @@
         }
       }
     },
+    "Spesa stimata %@" : {
+      "comment" : "The total of a Sessione on GitHub Copilot in its header: the Spesa estimated from its tokens.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated spend %@"
+          }
+        }
+      }
+    },
     "Stato del Panel" : {
       "comment" : "VoiceOver name of the status pill's window",
       "localizations" : {
@@ -5004,12 +5037,73 @@
         }
       }
     },
+    "Stima dai token sul listino GitHub Copilot del %@, 1 credito = $0,01. Bubo non vede i crediti scalati dal tuo account." : {
+      "comment" : "Help of the total of a Sessione on GitHub Copilot: the day of GitHub's list prices it is estimated with.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimated from the tokens with GitHub Copilot's list prices of %@, 1 credit = $0.01. Bubo can't see the credits taken from your account."
+          }
+        }
+      }
+    },
+    "stima: %@ crediti Copilot, %@" : {
+      "comment" : "Cost of an answer from GitHub Copilot, estimated from its tokens on GitHub's list prices: the AI credits, then the same in dollars (a credit is a cent).",
+      "localizations" : {
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "stima: %1$@ crediti Copilot, %2$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estimate: %1$@ Copilot credits, %2$@"
+          }
+        }
+      }
+    },
+    "stima: 1 credito Copilot, %@" : {
+      "comment" : "Cost of an answer from GitHub Copilot, estimated from its tokens on GitHub's list prices: one AI credit, then the same in dollars.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estimate: 1 Copilot credit, %@"
+          }
+        }
+      }
+    },
+    "Stima: token contati da Copilot, sul listino GitHub del %@, 1 credito = $0,01. Bubo non vede i crediti scalati dal tuo account." : {
+      "comment" : "Help of the cost of an answer from GitHub Copilot: the day of GitHub's list prices it is estimated with.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estimate: tokens counted by Copilot, at GitHub's list prices of %@, 1 credit = $0.01. Bubo can't see the credits taken from your account."
+          }
+        }
+      }
+    },
     "Subagent: %lld, ripuliti allo stesso modo" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Subagents: %lld, cleaned the same way"
+          }
+        }
+      }
+    },
+    "Token contati da Copilot. Il modello non è nel listino GitHub di Bubo, quindi la cifra manca." : {
+      "comment" : "Help of the cost of an answer from GitHub Copilot on a model missing from Bubo's list of GitHub's prices.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tokens counted by Copilot. The model isn't in Bubo's GitHub price list, so there's no figure."
           }
         }
       }

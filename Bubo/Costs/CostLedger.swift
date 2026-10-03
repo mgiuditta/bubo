@@ -63,9 +63,11 @@ final class CostLedger {
         return CostLedger(file: support.appending(path: "Bubo/Costi.json"))
     }
 
-    /// Records `usage` as the turn `turn` of the Sessione `session` on `project`, replacing what the turn reported before.
-    func record(_ usage: TurnUsage, turn: String, session: UUID, project: URL, at date: Date = .now) {
-        add(Entry(id: turn, session: session, project: project, provider: "Anthropic", date: date, usage: usage))
+    /// Records `usage` as the turn `turn` of the Sessione `session` on `project`, answered by `provider`, replacing what
+    /// the turn reported before.
+    func record(_ usage: TurnUsage, turn: String, session: UUID, project: URL, provider: String = Budgets.claude,
+                at date: Date = .now) {
+        add(Entry(id: turn, session: session, project: project, provider: provider, date: date, usage: usage))
     }
 
     /// Records `usage` as the turn `turn` of the Domanda `question`, answered by `provider`, in the group "Domande".

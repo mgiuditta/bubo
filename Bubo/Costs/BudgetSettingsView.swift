@@ -36,7 +36,12 @@ struct BudgetSettingsView: View {
             } header: {
                 Text("Fornitori")
             } footer: {
-                Text("Se la chiave di OpenRouter ha un limite suo, quando lo raggiungi Bubo mostra quello.")
+                VStack(alignment: .leading) {
+                    Text("Se la chiave di OpenRouter ha un limite suo, quando lo raggiungi Bubo mostra quello.")
+                    if let copilot = CopilotPriceTable.bundled {
+                        Text("La Spesa di GitHub Copilot è una stima: token sul listino GitHub del \(copilot.date.formatted(date: .long, time: .omitted)), 1 credito = $0,01. Bubo non vede i crediti rimasti sul tuo account.")
+                    }
+                }
             }
             Section("Progetti") {
                 if projects.isEmpty {
@@ -54,9 +59,9 @@ struct BudgetSettingsView: View {
         .formStyle(.grouped)
     }
 
-    /// Claude, the endpoints in a cloud and any provider with a Budget whose endpoint was removed.
+    /// Claude, Copilot, the endpoints in a cloud and any provider with a Budget whose endpoint was removed.
     private var providers: [String] {
-        let names = [Budgets.claude] + endpoints.endpoints.filter { !$0.isOnMac }.map(\.name)
+        let names = [Budgets.claude, Budgets.copilot] + endpoints.endpoints.filter { !$0.isOnMac }.map(\.name)
         let removed = settings.budgets.providers.keys.filter { !names.contains($0) }.sorted()
         return names + removed
     }
@@ -71,6 +76,7 @@ struct BudgetSettingsView: View {
     /// The page where the provider called `name` sets its own hard limit; `nil` when Bubo does not know one.
     static func limitsPage(of name: String, among endpoints: [OpenAICompatibleEndpoint]) -> URL? {
         if name == Budgets.claude { return URL(string: "https://platform.claude.com/settings/limits") }
+        if name == Budgets.copilot { return URL(string: "https://github.com/settings/billing/budgets") }
         guard let endpoint = endpoints.first(where: { $0.name == name }) else { return nil }
         return switch endpoint.kind {
         case .openAI: URL(string: "https://platform.openai.com/settings/organization/limits")

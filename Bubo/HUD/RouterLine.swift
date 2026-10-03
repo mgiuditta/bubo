@@ -197,6 +197,18 @@ struct RouterLine: View {
             guard Date.now.timeIntervalSince(date) > 30 * 24 * 60 * 60 else { return estimate }
             return String(localized: "\(estimate) · prezzi del \(date.formatted(.dateTime.day().month(.wide)))",
                           comment: "Cost of an answer, then the day of the price table it was estimated with, such as «prezzi del 12 agosto».")
+        case let .copilotEstimate(value, _)?:
+            let credits = (value * 100).formatted(.number.precision(.fractionLength(0...1)))
+            let dollars = SessionCostTotal.formatted(value)
+            if credits == 1.formatted() {
+                return String(localized: "stima: 1 credito Copilot, \(dollars)",
+                              comment: "Cost of an answer from GitHub Copilot, estimated from its tokens on GitHub's list prices: one AI credit, then the same in dollars.")
+            }
+            return String(localized: "stima: \(credits) crediti Copilot, \(dollars)",
+                          comment: "Cost of an answer from GitHub Copilot, estimated from its tokens on GitHub's list prices: the AI credits, then the same in dollars (a credit is a cent).")
+        case let .copilotTokens(count)?:
+            return String(localized: "\(count.formatted()) token Copilot, senza prezzo",
+                          comment: "Cost of an answer from GitHub Copilot on a model missing from Bubo's list of GitHub's prices: the tokens used.")
         case .free?:
             return String(localized: "gratis, sul Mac", comment: "Cost of an answer from a model running on this Mac.")
         case let .tokens(count)?:
@@ -216,6 +228,10 @@ struct RouterLine: View {
             return LocalizedStringResource("Il modello gira su questo Mac: la Domanda non lo lascia.")
         case .tokens?:
             return LocalizedStringResource("Token contati dal fornitore, che li addebita sulla tua chiave. Bubo non conosce il prezzo.")
+        case let .copilotEstimate(_, date)?:
+            return LocalizedStringResource("Stima: token contati da Copilot, sul listino GitHub del \(date.formatted(date: .long, time: .omitted)), 1 credito = $0,01. Bubo non vede i crediti scalati dal tuo account.")
+        case .copilotTokens?:
+            return LocalizedStringResource("Token contati da Copilot. Il modello non è nel listino GitHub di Bubo, quindi la cifra manca.")
         case let .estimate(_, date)?:
             return LocalizedStringResource("Token contati dal fornitore per i prezzi di models.dev del \(date.formatted(date: .long, time: .omitted)): una stima, non una fattura.")
         case .spesa? where answer.endpoint != nil:

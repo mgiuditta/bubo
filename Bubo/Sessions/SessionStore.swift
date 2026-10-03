@@ -123,11 +123,13 @@ final class SessionStore {
     @ObservationIgnored var moveToSubscription: () -> Void = {}
     /// The prices of the turns' estimates while they run (#492).
     @ObservationIgnored var prices = AnthropicPriceTable.bundled
+    /// The Copilot list prices its turns are estimated with; without the bundled table every turn is without a price.
+    @ObservationIgnored var copilotPrices = CopilotPriceTable.bundled ?? CopilotPriceTable(date: .distantPast, models: [:])
     /// The estimate of each turn in progress, by turn, until its `result` gives the figure: it counts in the Budgets,
     /// and enters the ledger only when the turn ends without one (#492).
     @ObservationIgnored private var estimates: [String: CostLedger.Entry] = [:]
     /// The turns in progress capped by a Budget, with their Progetto: stopped as soon as the turns spend what is left.
-    @ObservationIgnored private var budgetedTurns: [UUID: URL] = [:]
+    @ObservationIgnored private var budgetedTurns: [UUID: (provider: String, project: URL)] = [:]
     /// The turns stopped because another Sessione spent their Budget, until their end reads it.
     @ObservationIgnored private var budgetStops: Set<UUID> = []
     /// Which Sessioni have a heavy `claude`, read every 30 s while a turn is in progress (spec 25).
@@ -1112,8 +1114,10 @@ final class SessionStore {
             session.budgetStop = nil
         }
         let environment = session.portEnvironment
-        // A Copilot turn never calls `claude`, nor has its Budget, Sandbox and plugins (ADR 0012).
+        // A Copilot turn never calls `claude`, nor has its Sandbox and plugins (ADR 0012); it is always Spesa, in
+        // Copilot's Budget (#542).
         let isCopilot = session.engine == .copilot && unattended == nil
+        let provider = isCopilot ? Budgets.copilot : Budgets.claude
         var conversation: String?
         var hasAnswered = false
         do {
@@ -1137,8 +1141,10 @@ final class SessionStore {
                 }
             }
             let agent = try await bridge()
-            // With the API key the turn gets the shared residue as its cap; spent, nothing is sent (spec 18).
-            let maxBudget = agent.usesAPIKey && !ignoringBudget && !isCopilot ? try budgetCap(in: session.project) : nil
+            // With the API key, or on Copilot, the turn gets the shared residue as its cap; spent, nothing is sent
+            // (spec 18).
+            let isPaidPerUse = isCopilot || agent.usesAPIKey
+            let maxBudget = isPaidPerUse && !ignoringBudget ? try budgetCap(of: provider, in: session.project) : nil
             let classifier = RiskClassifier(workingDirectory: workspace.folder)
             let isSandboxed = !isCopilot && ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: session.project)
             // The Anteprima's tools exist only while the Sessione has a server (spec 15).
@@ -1159,7 +1165,7 @@ final class SessionStore {
             }
             previewOffers[id] = (answerID, hasServer)
             if !isCopilot { pluginReloader.turnDidStart(in: id, folder: workspace.folder) }
-            if maxBudget != nil { budgetedTurns[id] = session.project }
+            if maxBudget != nil { budgetedTurns[id] = (provider, session.project) }
             defer {
                 pluginReloader.turnDidEnd(in: id)
                 budgetedTurns[id] = nil
@@ -1205,7 +1211,11 @@ final class SessionStore {
             let answer = if let copilot {
                 // ponytail: the Copilot model and effort come with the choice per Sessione (#551).
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, id: answerID,
-                                 progress: onProgress, permissions: onPermission)
+                                 progress: onProgress, permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
+                    ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
+                                  provider: Budgets.copilot)
+                    self?.stopTurnsPastBudget(besides: id)
+                }
             } else {
                 agent.ask(prompt, in: workspace.folder, model: unattended?.model ?? chosen?.family.alias,
                           effort: chosen?.effort, environment: environment,
@@ -1277,7 +1287,7 @@ final class SessionStore {
             }
             if case AgentBridgeError.budgetExhausted = error {
                 budgetStops.remove(id)
-                let scope = spentBudget(in: session.project)
+                let scope = spentBudget(of: provider, in: session.project)
                 // Ferma, not in Errore: it waits for the user's choice, and its turn is kept for it.
                 update(id) { session in
                     session.enter(.ferma)
@@ -1298,23 +1308,25 @@ final class SessionStore {
         return copilot
     }
 
-    /// The cap of a turn with the API key on `project`: what the tightest Budget has left; `nil` without a Budget.
+    /// The cap of a turn paid per use to `provider` on `project`: what the tightest Budget has left; `nil` without a
+    /// Budget.
     ///
     /// - Throws: `AgentBridgeError.budgetExhausted` when a Budget the turn counts in is spent.
-    private func budgetCap(in project: URL) throws -> Decimal? {
+    private func budgetCap(of provider: String, in project: URL) throws -> Decimal? {
         switch BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
-            .allowance(provider: Budgets.claude, project: project) {
+            .allowance(provider: provider, project: project) {
         case .unlimited: nil
         case let .upTo(residue): residue
         case .exhausted: throw AgentBridgeError.budgetExhausted
         }
     }
 
-    /// The spent Budget a turn on `project` counts in; Claude's when the ledger does not show one spent yet.
-    private func spentBudget(in project: URL) -> BudgetGuard.Scope {
+    /// The spent Budget a turn of `provider` on `project` counts in; the provider's when the ledger does not show one
+    /// spent yet.
+    private func spentBudget(of provider: String, in project: URL) -> BudgetGuard.Scope {
         let guarded = BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
-        if case let .exhausted(scope) = guarded.allowance(provider: Budgets.claude, project: project) { return scope }
-        return guarded.tightest(provider: Budgets.claude, project: project)?.scope ?? .provider(Budgets.claude)
+        if case let .exhausted(scope) = guarded.allowance(provider: provider, project: project) { return scope }
+        return guarded.tightest(provider: provider, project: project)?.scope ?? .provider(provider)
     }
 
     /// The ledger's turns, with the estimate of each turn in progress in place of what it reported so far.
@@ -1344,8 +1356,8 @@ final class SessionStore {
     private func stopTurnsPastBudget(besides reporting: UUID?) {
         guard budgetedTurns.keys.contains(where: { $0 != reporting }) else { return }
         let guarded = BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
-        for (id, project) in budgetedTurns where id != reporting {
-            guard case .exhausted = guarded.allowance(provider: Budgets.claude, project: project) else { continue }
+        for (id, turn) in budgetedTurns where id != reporting {
+            guard case .exhausted = guarded.allowance(provider: turn.provider, project: turn.project) else { continue }
             budgetedTurns[id] = nil
             budgetStops.insert(id)
             turnTasks[id]?.cancel()

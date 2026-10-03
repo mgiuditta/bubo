@@ -38,6 +38,15 @@ test("il testo arriva in streaming e il turno finisce con done", async () => {
   expect(turns.has("a")).toBe(false);
 });
 
+test("i token del turno, subagenti compresi, arrivano prima di done, senza cifra", async () => {
+  const { turns, events } = harness();
+  await turns.run({ id: "t", prompt: "token", cwd: folder(), copilot: fake });
+  const usage = events.findIndex((event) => event.type === "usage");
+  expect(events[usage]).toEqual({ type: "usage", id: "t", mode: "apiKey", basis: "unknown", complete: true,
+    models: [{ model: "gpt-6", inputTokens: 150, outputTokens: 30, cacheReadTokens: 20, cacheWriteTokens: 0, thinkingTokens: 0 }] });
+  expect(usage).toBeLessThan(events.findIndex((event) => event.type === "done"));
+});
+
 test("cartella, modello e sforzo arrivano a copilot; i token di gh no", async () => {
   const cwd = folder();
   const { turns, events } = harness(copilotEnvironment({ ...process.env, GH_TOKEN: "x", GITHUB_TOKEN: "y", COPILOT_GITHUB_TOKEN: "z" }));

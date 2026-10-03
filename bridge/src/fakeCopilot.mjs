@@ -4,6 +4,7 @@
 // - "scrivi": chiede il permesso di scrivere `nota.txt` nella cartella della sessione e la scrive solo se approvato;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error`;
+// - "token": due chiamate al modello, una di un subagente, con i loro token;
 // - "ambiente": risponde con argomenti, cartella e token visti dal processo;
 // - altro: risponde "Ciao mondo".
 import { randomUUID } from "node:crypto";
@@ -64,6 +65,14 @@ async function play(sessionId, prompt) {
       effort: session.effort ?? null,
       tokens: ["GH_TOKEN", "GITHUB_TOKEN", "COPILOT_GITHUB_TOKEN"].filter((name) => process.env[name] !== undefined),
     }));
+    idle();
+  } else if (prompt === "token") {
+    const usage = (inputTokens, outputTokens) => ({ model: "gpt-6", inputTokens, outputTokens, cacheReadTokens: 10 });
+    emit(sessionId, "assistant.usage", usage(100, 20), true);
+    write({ method: "session.event", params: { sessionId, event: {
+      id: randomUUID(), timestamp: new Date().toISOString(), parentId: null, ephemeral: true, agentId: "sub",
+      type: "assistant.usage", data: usage(50, 10) } } });
+    say("Fatto");
     idle();
   } else {
     say("Ciao");
