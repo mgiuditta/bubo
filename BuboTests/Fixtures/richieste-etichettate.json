@@ -820,7 +820,7 @@
       "testo": "Che differenza c'è tra temperatura percepita e reale?",
       "tipo": "domanda.fatto-breve",
       "categoria": "meteo",
-      "variante": "nuvola"
+      "variante": "termometro"
     },
     {
       "id": "r102",
@@ -852,7 +852,7 @@
       "testo": "Quante calorie ha una banana?",
       "tipo": "domanda.fatto-breve",
       "categoria": "salute",
-      "variante": "cuore"
+      "variante": "carota"
     },
     {
       "id": "r106",
@@ -1471,7 +1471,7 @@
       "testo": "Compare intermittent fasting and calorie counting for someone with a desk job.",
       "tipo": "domanda.ragionamento",
       "categoria": "salute",
-      "variante": "cuore"
+      "variante": "carota"
     },
     {
       "id": "r174",
