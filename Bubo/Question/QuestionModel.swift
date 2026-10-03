@@ -996,11 +996,11 @@ final class QuestionModel {
                 asked, copilot: copilot, model: model.id, effort: route.effort,
                 usage: { [weak self] usage in
                     guard let self else { return }
-                    // Without a figure until #542 prices it with the Copilot list: then the Spesa goes here and in
-                    // the ledger, the same.
-                    routedAnswer?.usage = usage
-                    ledger?.record(usage, turn: turn, question: question, provider: Budgets.copilot)
-                    routedAnswer?.budgetNotice = budgetNotice(after: usage, of: Budgets.copilot)
+                    // The Spesa estimated on GitHub's list prices, the same in the line and in the ledger.
+                    let spesa = CopilotPriceTable.bundled?.spesa(of: usage) ?? usage
+                    routedAnswer?.usage = spesa
+                    ledger?.record(spesa, turn: turn, question: question, provider: Budgets.copilot)
+                    routedAnswer?.budgetNotice = budgetNotice(after: spesa, of: Budgets.copilot)
                 },
                 answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
             for try await chunk in stream {
