@@ -233,6 +233,8 @@ enum BridgeEvent: Equatable, Decodable {
     case risk(id: String, PermissionRequest)
     /// The tokens and the figure of the conversation `id` so far; each one replaces the one before.
     case usage(id: String, TurnUsage)
+    /// The tokens of the conversation `id` so far, at each answer, before a `result` gives its figure (#492).
+    case estimate(id: String, TurnUsage)
     /// The model that answered the conversation `id` and its effective effort, just before it ends.
     case answeredBy(id: String, AnsweringModel)
     /// The Claude models the account offers, read with the Quota.
@@ -353,6 +355,7 @@ enum BridgeEvent: Equatable, Decodable {
         case "permissionWithdrawn": self = .permissionWithdrawn(id: try container.decode(String.self, forKey: .id),
                                                                 request: try container.decode(String.self, forKey: .request))
         case "usage": self = .usage(id: try container.decode(String.self, forKey: .id), try TurnUsage(from: decoder))
+        case "estimate": self = .estimate(id: try container.decode(String.self, forKey: .id), try TurnUsage(from: decoder))
         case "answeredBy":
             self = .answeredBy(id: try container.decode(String.self, forKey: .id),
                                AnsweringModel(model: try container.decode(String.self, forKey: .model),

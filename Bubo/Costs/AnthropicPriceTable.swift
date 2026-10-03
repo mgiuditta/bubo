@@ -46,6 +46,23 @@ nonisolated struct AnthropicPriceTable: Codable, Equatable, Sendable {
         return models[String(model[..<dash])]
     }
 
+    /// `usage`, only tokens, priced with this table: the estimate of a Claude turn still in progress (#492), marked
+    /// incomplete. A model the table does not have counts nothing.
+    func estimate(_ usage: TurnUsage) -> TurnUsage {
+        var priced = usage
+        priced.isComplete = false
+        priced.origin = .priceTable
+        priced.priceDate = date
+        for index in priced.models.indices {
+            let model = priced.models[index]
+            priced.models[index].cost = price(of: model.model)?.figure(of: CLIHistoryReader.Tokens(
+                input: model.inputTokens, output: model.outputTokens, cacheRead: model.cacheReadTokens,
+                cacheWrite: model.cacheWriteTokens))
+        }
+        priced.cost = priced.models.reduce(0) { $0 + ($1.cost ?? 0) }
+        return priced
+    }
+
     /// The table in Bubo's bundle.
     static let bundled: AnthropicPriceTable? = {
         guard let url = Bundle.main.url(forResource: "PrezziAnthropic", withExtension: "json") else { return nil }

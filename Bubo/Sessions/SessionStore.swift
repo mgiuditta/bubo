@@ -121,8 +121,12 @@ final class SessionStore {
     @ObservationIgnored var budgets = BudgetSettings.shared
     /// Moves the Domande and the Sessioni back to the subscription (ADR 0003): Passa all'abbonamento at 100%.
     @ObservationIgnored var moveToSubscription: () -> Void = {}
-    /// The turns in progress capped by a Budget, with their Progetto: stopped as soon as a turn of another Sessione
-    /// spends what is left.
+    /// The prices of the turns' estimates while they run (#492).
+    @ObservationIgnored var prices = AnthropicPriceTable.bundled
+    /// The estimate of each turn in progress, by turn, until its `result` gives the figure: it counts in the Budgets,
+    /// and enters the ledger only when the turn ends without one (#492).
+    @ObservationIgnored private var estimates: [String: CostLedger.Entry] = [:]
+    /// The turns in progress capped by a Budget, with their Progetto: stopped as soon as the turns spend what is left.
     @ObservationIgnored private var budgetedTurns: [UUID: URL] = [:]
     /// The turns stopped because another Sessione spent their Budget, until their end reads it.
     @ObservationIgnored private var budgetStops: Set<UUID> = []
@@ -1167,6 +1171,7 @@ final class SessionStore {
             let kept = UUID().uuidString.lowercased()
             conversation = kept
             update(id) { $0.conversations.append(kept) }
+            defer { keepEstimate(of: kept, in: session.project) }
             // Also after an error: what was said enters the Indice.
             defer { Task { [indexer, project = session.project] in await indexer?.add(kept, in: project) } }
             // Read now: Riavvia may have just interrupted the turn before.
@@ -1199,7 +1204,10 @@ final class SessionStore {
                 self?.receive(event, in: id, from: agent, classifier: classifier)
             } usage: { [weak self, ledger] usage in
                 ledger.record(usage, turn: kept, session: id, project: session.project)
+                if usage.isComplete { self?.estimates[kept] = nil }
                 self?.stopTurnsPastBudget(besides: id)
+            } estimate: { [weak self] usage in
+                self?.estimate(usage, turn: kept, session: id, project: session.project)
             } preview: { [weak self] action in
                 await self?.drivePreview(action, in: id) ?? .failure("Bubo non pilota più questa Sessione.")
             } isDangerous: { request in
@@ -1271,7 +1279,7 @@ final class SessionStore {
     ///
     /// - Throws: `AgentBridgeError.budgetExhausted` when a Budget the turn counts in is spent.
     private func budgetCap(in project: URL) throws -> Decimal? {
-        switch BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        switch BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
             .allowance(provider: Budgets.claude, project: project) {
         case .unlimited: nil
         case let .upTo(residue): residue
@@ -1281,16 +1289,38 @@ final class SessionStore {
 
     /// The spent Budget a turn on `project` counts in; Claude's when the ledger does not show one spent yet.
     private func spentBudget(in project: URL) -> BudgetGuard.Scope {
-        let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        let guarded = BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
         if case let .exhausted(scope) = guarded.allowance(provider: Budgets.claude, project: project) { return scope }
         return guarded.tightest(provider: Budgets.claude, project: project)?.scope ?? .provider(Budgets.claude)
     }
 
+    /// The ledger's turns, with the estimate of each turn in progress in place of what it reported so far.
+    private var budgetEntries: [CostLedger.Entry] {
+        ledger.entries.filter { estimates[$0.id] == nil } + estimates.values
+    }
+
+    /// Counts `usage`, the tokens of the turn `turn` so far, in the Budgets at Bubo's prices, and stops every turn past
+    /// them, this one too: each Sessione goes over by at most the answer it was writing (#492).
+    private func estimate(_ usage: TurnUsage, turn: String, session: UUID, project: URL) {
+        guard let prices else { return }
+        estimates[turn] = CostLedger.Entry(id: turn, session: session, project: project, provider: Budgets.claude,
+                                           date: .now, usage: prices.estimate(usage))
+        stopTurnsPastBudget(besides: nil)
+    }
+
+    /// Records the estimate of the turn `turn`, just ended, when no `result` gave its figure: interrupted, stopped by a
+    /// Budget, or crashed. Marked incomplete.
+    private func keepEstimate(of turn: String, in project: URL) {
+        guard let estimate = estimates.removeValue(forKey: turn),
+              ledger.entries.last(where: { $0.id == turn })?.usage.isComplete != true else { return }
+        ledger.record(estimate.usage, turn: turn, session: estimate.session, project: project)
+    }
+
     /// Stops at once every turn in progress capped by a Budget now spent, besides `reporting`, whose figure just
-    /// arrived: each Sessione goes over by at most the answer it was writing (spec 18).
-    private func stopTurnsPastBudget(besides reporting: UUID) {
+    /// arrived at its end: each Sessione goes over by at most the answer it was writing (spec 18).
+    private func stopTurnsPastBudget(besides reporting: UUID?) {
         guard budgetedTurns.keys.contains(where: { $0 != reporting }) else { return }
-        let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
+        let guarded = BudgetGuard(budgets: budgets.budgets, entries: budgetEntries)
         for (id, project) in budgetedTurns where id != reporting {
             guard case .exhausted = guarded.allowance(provider: Budgets.claude, project: project) else { continue }
             budgetedTurns[id] = nil

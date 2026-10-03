@@ -69,6 +69,12 @@ export class UsageReader {
     return this.turn();
   }
 
+  /** La stima del turno in corso dai messaggi dell'assistente, finché non c'è un `result` valido (#492). */
+  estimate(): TurnUsage | undefined {
+    const hasResult = [...this.results.values()].some((result) => !isZeroed(result));
+    return hasResult || !this.partial.size ? undefined : this.fromMessages();
+  }
+
   /** Il turno com'è adesso; `undefined` se non è arrivato nulla da contare. */
   turn(): TurnUsage | undefined {
     const valid = [...this.results.entries()].filter(([, result]) => !isZeroed(result));
