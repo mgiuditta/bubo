@@ -60,7 +60,7 @@ struct MenuBarContent: View {
         Toggle("Mostra Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)
             .disabled(!panel.isShown)
-        Button("Chiedi nel Panel", action: panel.askInPanel)
+        Button("Chiedi nel Panel  \(hotKeys.askShortcut.displayName)", action: panel.askInPanel)
             .disabled(!panel.isShown)
         #if DEBUG
         Button("Debug Orb…") { openWindow(id: OrbDebugView.windowID) }
