@@ -33,8 +33,8 @@ struct OrbSnapshotterTests {
     }
 
     @Test func aVarianteWithoutAFormaIsDrawnAsTheBlob() async throws {
-        let drago = Variante(nome: "drago", forma: "drago", categoria: .creativo, descrizione: "", parole: [])
-        let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: drago, pixelSize: Self.size)))
+        let assente = Variante(nome: "fenice-di-prova", forma: "fenice_di_prova", categoria: .creativo, descrizione: "", parole: [])
+        let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: assente, pixelSize: Self.size)))
         #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
         #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
     }
