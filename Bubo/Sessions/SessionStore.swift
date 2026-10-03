@@ -1188,10 +1188,15 @@ final class SessionStore {
                 permissions.clear(id)
                 questions[id] = nil
             }
-            // Each turn is a conversation of its own, which Bubo keeps (ADR 0006).
-            let kept = UUID().uuidString.lowercased()
-            conversation = kept
-            update(id) { $0.conversations.append(kept) }
+            // Each turn is a conversation of its own, which Bubo keeps (ADR 0006). A Sessione on Copilot keeps one, the
+            // session of `copilot`, which each turn resumes (#553): never a conversation `claude` could resume.
+            let copilotConversation = isCopilot ? sessions.first { $0.id == id }?.copilotConversation : nil
+            let kept = copilotConversation ?? UUID().uuidString.lowercased()
+            if !isCopilot { conversation = kept }
+            update(id) { session in
+                if copilotConversation == nil { session.conversations.append(kept) }
+                if isCopilot { session.copilotConversation = kept }
+            }
             defer { keepEstimate(of: kept, in: session.project) }
             // Also after an error: what was said enters the Indice.
             defer { Task { [indexer, project = session.project] in await indexer?.add(kept, in: project) } }
@@ -1222,7 +1227,7 @@ final class SessionStore {
             let answer = if let copilot {
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
                                  model: current?.copilotModel?.model, effort: current?.copilotModel?.effort,
-                                 id: answerID, progress: onProgress,
+                                 keeping: kept, resuming: copilotConversation != nil, id: answerID, progress: onProgress,
                                  permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
                                   provider: Budgets.copilot)
@@ -1255,7 +1260,7 @@ final class SessionStore {
             if budgetStops.remove(id) != nil { throw AgentBridgeError.budgetExhausted }
             update(id) { session in
                 session.enter(.ferma)
-                // A Copilot turn leaves no conversation of `claude` to resume (#553 keeps Copilot's).
+                // A Copilot turn leaves no conversation of `claude` to resume: the next resumes `copilotConversation`.
                 if !Task.isCancelled, !isCopilot { session.continuedConversation = kept }
             }
             return true

@@ -106,6 +106,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var engine: Engine = .claude
     /// The Copilot model · sforzo of the turns when `engine` is `copilot`; `nil` for the model chosen in `copilot`.
     var copilotModel: CopilotStep?
+    /// The conversation of the Sessione's turns on Copilot: the session `copilot` resumes and Bubo keeps a copy of
+    /// (ADR 0006, 0012); `nil` until the first one.
+    var copilotConversation: String?
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
     /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
@@ -237,6 +240,7 @@ nonisolated extension Session {
         model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
         engine = try container.decodeIfPresent(Engine.self, forKey: .engine) ?? .claude
         copilotModel = try container.decodeIfPresent(CopilotStep.self, forKey: .copilotModel)
+        copilotConversation = try container.decodeIfPresent(String.self, forKey: .copilotConversation)
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false

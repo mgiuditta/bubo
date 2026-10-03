@@ -13,7 +13,7 @@ import { budgetOf } from "./budget";
 import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
-import { CopilotTurns, copilotEnvironment, reasoningEffortOf } from "./copilot";
+import { CopilotTurns, copiedMessages, copilotEnvironment, copilotProject, reasoningEffortOf } from "./copilot";
 import { CopilotQuestions, type CopilotQuestionEvent } from "./copilot-question";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
@@ -40,7 +40,7 @@ const version = 4;
 
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown }
-  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
+  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown }
   | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
@@ -215,9 +215,7 @@ const childEnv = { ...inherited };
 // Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
-// Le Sessioni su `copilot` (ADR 0012) e le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che
-// scavalcano il login dell'utente.
-const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv));
+// Le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
 const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv));
 
 // Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
@@ -244,6 +242,10 @@ const store = (() => {
     return undefined;
   }
 })();
+
+// Le Sessioni su `copilot` (ADR 0012), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+// Bubo ne conserva le conversazioni nello stesso store di quelle di Claude.
+const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv), store);
 
 const running = new Map<string, Query>();
 // Le chiamate a `cerca` e `ricorda` in attesa del risultato di Bubo, che arriva con `found`.
@@ -744,6 +746,12 @@ async function history(id: string, all: boolean) {
 // Gli ultimi messaggi di `session`, o tutti con `all`, per l'Indice: sempre con le funzioni dell'SDK.
 async function transcript(id: string, session: string, all: boolean) {
   try {
+    // Una conversazione Copilot c'è solo nella copia di Bubo, già nel formato di quelle di Claude.
+    const copilot = await store?.load({ projectKey: copilotProject, sessionId: session });
+    if (copilot) {
+      send({ type: "transcript", id, messages: copiedMessages(copilot, all ? Infinity : transcriptLimit) });
+      return;
+    }
     // Dopo la pulizia della CLI il transcript locale non c'è più: resta la copia.
     let read = await getSessionMessages(session);
     if (!read.length && store) read = await getSessionMessages(session, { sessionStore: store });
@@ -839,7 +847,8 @@ lines.on("line", (line) => {
       }
       void copilotTurns.run({ id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
                               model: typeof command.model === "string" ? command.model : undefined,
-                              effort: reasoningEffortOf(command.effort) });
+                              effort: reasoningEffortOf(command.effort),
+                              keep: typeof command.keep === "string" ? command.keep : undefined, resume: command.resume === true });
       break;
     case "copilotQuestion":
       if (isCopilotPath(command.copilot)) void askCopilot(command);

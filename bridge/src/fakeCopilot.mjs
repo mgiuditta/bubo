@@ -6,10 +6,21 @@
 // - "errore": finisce con `session.error`;
 // - "token": due chiamate al modello, una di un subagente, con i loro token;
 // - "ambiente": risponde con argomenti, cartella e token visti dal processo;
+// - "ricordi": risponde con i prompt di prima, letti dallo stato della sessione;
 // - altro: risponde "Ciao mondo".
+// Lo stato di ogni sessione sta in `.copilot-state/<id>.json` nella sua cartella, come `~/.copilot/session-state`:
+// un nuovo processo la riprende con `session.resume`, e senza quel file la ripresa fallisce.
 import { randomUUID } from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+
+const stateOf = (cwd, sessionId) => join(cwd, ".copilot-state", `${sessionId}.json`);
+
+function save(sessionId) {
+  const { cwd, prompts } = sessions.get(sessionId);
+  mkdirSync(join(cwd, ".copilot-state"), { recursive: true });
+  writeFileSync(stateOf(cwd, sessionId), JSON.stringify({ prompts }));
+}
 
 let buffer = Buffer.alloc(0);
 const sessions = new Map();
@@ -31,6 +42,7 @@ async function play(sessionId, prompt) {
   const session = sessions.get(sessionId);
   const say = (text) => emit(sessionId, "assistant.message_delta", { deltaContent: text, messageId: "m1" }, true);
   const idle = () => emit(sessionId, "session.idle", {}, true);
+  const earlier = session.prompts.slice(0, -1);
   emit(sessionId, "assistant.turn_start", { turnId: "t1" });
   if (prompt === "scrivi") {
     const requestId = randomUUID();
@@ -74,6 +86,11 @@ async function play(sessionId, prompt) {
       type: "assistant.usage", data: usage(50, 10) } } });
     say("Fatto");
     idle();
+  } else if (prompt === "ricordi" || prompt.endsWith("Ora: ricordi")) {
+    const text = prompt === "ricordi" ? `Prima: ${earlier.join(", ")}` : "Dalla copia";
+    say(text);
+    emit(sessionId, "assistant.message", { content: text, messageId: "m2" });
+    idle();
   } else {
     say("Ciao");
     say(" mondo");
@@ -90,10 +107,22 @@ function handle(message) {
     case "connect": return reply({ protocolVersion: 3 });
     case "session.create": {
       const sessionId = params.sessionId ?? randomUUID();
-      sessions.set(sessionId, { cwd: params.workingDirectory, model: params.model, effort: params.reasoningEffort });
+      sessions.set(sessionId, { cwd: params.workingDirectory, model: params.model, effort: params.reasoningEffort, prompts: [] });
+      save(sessionId);
       return reply({ sessionId, workspacePath: params.workingDirectory });
     }
+    case "session.resume": {
+      const { sessionId, workingDirectory: cwd } = params;
+      if (!existsSync(stateOf(cwd, sessionId))) {
+        return write({ id, error: { code: -32603, message: `Session not found: ${sessionId}` } });
+      }
+      const { prompts } = JSON.parse(readFileSync(stateOf(cwd, sessionId), "utf8"));
+      sessions.set(sessionId, { cwd, model: params.model, effort: params.reasoningEffort, prompts });
+      return reply({ sessionId, workspacePath: cwd });
+    }
     case "session.send":
+      sessions.get(params.sessionId).prompts.push(params.prompt);
+      save(params.sessionId);
       reply({ messageId: randomUUID() });
       void play(params.sessionId, params.prompt);
       return;

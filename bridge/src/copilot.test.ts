@@ -1,14 +1,15 @@
 import { expect, test } from "bun:test";
-import { existsSync, mkdtempSync, readFileSync, realpathSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, copilotEnvironment, decision, permissionRequest, reasoningEffortOf, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotTurns, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
+import { ConversationStore } from "./store";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
 const fake = join(import.meta.dir, "fakeCopilot.mjs");
 
-function harness(environment: Record<string, string> = copilotEnvironment(process.env)) {
+function harness(environment: Record<string, string> = copilotEnvironment(process.env), copy?: ConversationStore) {
   const events: CopilotEvent[] = [];
   const waiting: Array<{ match: (event: CopilotEvent) => boolean; resolve: (event: CopilotEvent) => void }> = [];
   const turns = new CopilotTurns((event) => {
@@ -17,7 +18,7 @@ function harness(environment: Record<string, string> = copilotEnvironment(proces
       if (wait.match(event)) wait.resolve(event);
       else waiting.push(wait);
     }
-  }, environment);
+  }, environment, copy);
   const next = (match: (event: CopilotEvent) => boolean) => new Promise<CopilotEvent>((resolve) => {
     const seen = events.find(match);
     if (seen) resolve(seen);
@@ -133,4 +134,41 @@ test("solo l'approvazione esplicita approva; sforzi validi soltanto", () => {
 test("la cartella di copilot va prima nel PATH", () => {
   expect(withFolderFirst({ PATH: "/usr/bin:/bin" }, "/Users/u/.npm-global/bin/copilot").PATH).toBe("/Users/u/.npm-global/bin:/usr/bin:/bin");
   expect(withFolderFirst({}, "/opt/homebrew/bin/copilot").PATH).toBe("/opt/homebrew/bin");
+});
+
+// ADR 0006: la conversazione Copilot nella copia di Bubo, ripresa con `resumeSession` da un altro `copilot`.
+const copyIn = (cwd: string) => new ConversationStore(join(cwd, "conversazioni.sqlite"));
+const copied = async (copy: ConversationStore, keep: string) =>
+  copiedMessages(await copy.load({ projectKey: copilotProject, sessionId: keep }) ?? []).map(({ role, text }) => ({ role, text }));
+
+test("la conversazione si copia e un nuovo copilot la riprende dal punto giusto", async () => {
+  const cwd = folder();
+  const copy = copyIn(cwd);
+  await harness(undefined, copy).turns.run({ id: "i", prompt: "ciao", cwd, copilot: fake, keep: "k1" });
+  // Un'altra istanza, come dopo un riavvio di Bubo: un altro processo `copilot`.
+  const { turns, events } = harness(undefined, copy);
+  await turns.run({ id: "j", prompt: "ricordi", cwd, copilot: fake, keep: "k1", resume: true });
+  expect(texts(events)).toBe("Prima: ciao");
+  expect(await copied(copy, "k1")).toEqual([
+    { role: "user", text: "ciao" }, { role: "assistant", text: "Ciao mondo" },
+    { role: "user", text: "ricordi" }, { role: "assistant", text: "Prima: ciao" },
+  ]);
+  expect(copy.entries("k1").every((entry) => typeof entry.timestamp === "string")).toBe(true);
+});
+
+test("se copilot non ha più la sessione, il turno riparte dalla copia di Bubo", async () => {
+  const cwd = folder();
+  const copy = copyIn(cwd);
+  await harness(undefined, copy).turns.run({ id: "l", prompt: "ciao", cwd, copilot: fake, keep: "k2" });
+  rmSync(join(cwd, ".copilot-state"), { recursive: true });
+  const { turns, events } = harness(undefined, copy);
+  await turns.run({ id: "m", prompt: "ricordi", cwd, copilot: fake, keep: "k2", resume: true });
+  expect(texts(events)).toBe("Dalla copia");
+  expect(events.at(-1)).toEqual({ type: "done", id: "m" });
+  expect((await copied(copy, "k2")).map((message) => message.text)).toEqual(["ciao", "Ciao mondo", "ricordi", "Dalla copia"]);
+});
+
+test("i messaggi copiati hanno il formato di quelli di Claude, con la data", () => {
+  const entries = [copiedEntry("user", "ciao", "u1", "2026-10-03T10:00:00.000Z"), copiedEntry("assistant", "  ", "a1")];
+  expect(copiedMessages(entries)).toEqual([{ id: "u1", role: "user", text: "ciao", date: Date.parse("2026-10-03T10:00:00.000Z") }]);
 });

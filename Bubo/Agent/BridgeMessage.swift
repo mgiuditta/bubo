@@ -39,7 +39,10 @@ enum BridgeCommand: Equatable {
     ///
     /// `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the reasoning effort;
     /// without it, the model's default. The answer, the Richieste di permesso and Ferma go as for `ask`.
-    case askCopilot(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil)
+    /// `keeping` is the conversation Bubo keeps a copy of (ADR 0006), also the id of the session of `copilot`, which
+    /// `resumes` continues instead of starting it.
+    case askCopilot(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil,
+                    keeping: String? = nil, resumes: Bool = false)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -124,10 +127,12 @@ enum BridgeCommand: Equatable {
             }
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
             object["maxBudget"] = maxBudget.map { NSDecimalNumber(decimal: $0) }
-        case let .askCopilot(id, prompt, directory, copilot, model, effort):
+        case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes):
             object = ["type": "copilot", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
             object["effort"] = effort?.rawValue
+            object["keep"] = keeping
+            if resumes { object["resume"] = true }
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):
