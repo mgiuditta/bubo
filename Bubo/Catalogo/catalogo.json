@@ -3184,6 +3184,174 @@
       "categoria": "chat",
       "descrizione": "Quando si uniscono documenti: PDF da unire, fascicoli, allegati in uno.",
       "parole": ["spillatrice", "stapler", "unisci", "merge", "unire pdf", "fascicolo", "raccogli", "allegati in uno"]
+    },
+    {
+      "nome": "cancello",
+      "forma": "cancello",
+      "categoria": "agente",
+      "descrizione": "Quando serve un permesso: approvare un comando, un accesso, un'azione.",
+      "parole": ["cancello", "permesso", "permission", "approva", "approve", "autorizza", "via libera", "access"]
+    },
+    {
+      "nome": "pane",
+      "forma": "pane",
+      "categoria": "chat",
+      "descrizione": "Quando si fa il pane: lievito, impasti, forno.",
+      "parole": ["pane", "bread", "lievito", "yeast", "impasto", "dough", "forno", "baking"]
+    },
+    {
+      "nome": "libro",
+      "forma": "libro",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di libri e letture: romanzi, autori, consigli.",
+      "parole": ["libro", "libri", "book", "books", "romanzo", "novel", "autore", "lettura"]
+    },
+    {
+      "nome": "quadrifoglio",
+      "forma": "quadrifoglio",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di fortuna e superstizioni.",
+      "parole": ["quadrifoglio", "four leaf clover", "fortuna", "luck", "portafortuna", "superstizione", "superstition"]
+    },
+    {
+      "nome": "cartella",
+      "forma": "cartella",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo lavora sulla struttura di file e cartelle del progetto.",
+      "parole": ["cartella", "cartelle", "folder", "directory", "struttura del progetto", "project structure", "file tree"]
+    },
+    {
+      "nome": "ventosa",
+      "forma": "ventosa",
+      "categoria": "codice",
+      "descrizione": "Quando qualcosa resta bloccato: deadlock, processi appesi, code ferme.",
+      "parole": ["ventosa", "deadlock", "bloccato", "stuck", "hang*", "appeso", "coda ferma", "freeze"]
+    },
+    {
+      "nome": "razzo",
+      "forma": "razzo",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo pubblica: deploy, release, rilascio in produzione.",
+      "parole": ["razzo", "rocket", "deploy", "rilascio", "release", "produzione", "go live", "pubblica"]
+    },
+    {
+      "nome": "tubatura",
+      "forma": "tubatura",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo costruisce una pipeline: CI, flussi di dati, script in catena.",
+      "parole": ["tubatura", "tubo", "pipe", "pipeline", "ci", "flusso di dati", "data flow", "script in catena"]
+    },
+    {
+      "nome": "asterisco",
+      "forma": "asterisco",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con testo e stringhe: espressioni regolari, Unicode, parsing.",
+      "parole": ["asterisco", "asterisk", "regex", "espressione regolare", "regular expression", "unicode", "stringa", "parsing"]
+    },
+    {
+      "nome": "stop",
+      "forma": "stop",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo usa il debugger: breakpoint, esecuzione passo passo.",
+      "parole": ["stop", "breakpoint", "debugger", "passo passo", "step through", "lldb", "gdb"]
+    },
+    {
+      "nome": "carattere",
+      "forma": "carattere",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di tipografia e font.",
+      "parole": ["carattere", "font", "tipografia", "typography", "typeface", "grazie", "serif", "lettering"]
+    },
+    {
+      "nome": "toro",
+      "forma": "toro",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di borsa e azioni che salgono.",
+      "parole": ["toro", "bull", "borsa", "stock market", "azioni", "stocks", "rialzo", "rally"]
+    },
+    {
+      "nome": "cartolina",
+      "forma": "cartolina",
+      "categoria": "mail",
+      "descrizione": "Quando si scrivono auguri e saluti brevi.",
+      "parole": ["cartolina", "postcard", "auguri", "greetings", "saluti", "saluto", "francobollo", "stamp"]
+    },
+    {
+      "nome": "rubrica",
+      "forma": "rubrica",
+      "categoria": "mail",
+      "descrizione": "Quando si cercano o salvano contatti.",
+      "parole": ["rubrica", "contatti", "contacts", "address book", "indirizzo", "contatto", "numero salvato"]
+    },
+    {
+      "nome": "vento",
+      "forma": "vento",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di vento: raffiche, direzione, velocità.",
+      "parole": ["vento", "wind", "raffica", "gust", "ventoso", "windy", "bufera", "brezza"]
+    },
+    {
+      "nome": "giradischi",
+      "forma": "giradischi",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di album e dischi: collezioni, edizioni, discografie.",
+      "parole": ["giradischi", "vinile", "vinyl", "turntable", "album", "disco", "discografia", "discography"]
+    },
+    {
+      "nome": "altoparlante",
+      "forma": "altoparlante",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di impianti audio: casse, volume, qualità del suono.",
+      "parole": ["altoparlante", "speaker", "casse", "volume", "impianto audio", "sound system", "hi-fi", "subwoofer"]
+    },
+    {
+      "nome": "orme",
+      "forma": "orme",
+      "categoria": "ricerca",
+      "descrizione": "Quando si ripercorre la cronologia: cosa è successo prima, conversazioni passate.",
+      "parole": ["orme", "impronte", "footprints", "cronologia", "history", "conversazioni passate", "past conversations", "cosa e successo"]
+    },
+    {
+      "nome": "microscopio",
+      "forma": "microscopio",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo esamina un dettaglio da vicino: un dato, una clausola, un numero.",
+      "parole": ["microscopio", "microscope", "esamina", "examine", "dettaglio", "closer look", "clausola", "ingrandisci"]
+    },
+    {
+      "nome": "dente",
+      "forma": "dente",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di denti e dentista.",
+      "parole": ["dente", "denti", "tooth", "teeth", "dentista", "dentist", "molare", "carie"]
+    },
+    {
+      "nome": "pesapersone",
+      "forma": "pesapersone",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di peso corporeo e dimagrimento.",
+      "parole": ["pesapersone", "bilancia", "scale", "peso", "weight", "dimagrire", "lose weight", "kg"]
+    },
+    {
+      "nome": "riunione",
+      "forma": "riunione",
+      "categoria": "tempo",
+      "descrizione": "Quando si fissa o prepara una riunione: orari, partecipanti, ordine del giorno.",
+      "parole": ["riunione", "meeting", "ordine del giorno", "agenda della riunione", "partecipanti", "attendees", "call di gruppo"]
+    },
+    {
+      "nome": "fuochi-artificio",
+      "forma": "fuochi_artificio",
+      "categoria": "tempo",
+      "descrizione": "Quando si parla di Capodanno e grandi feste.",
+      "parole": ["fuochi d'artificio", "fireworks", "capodanno", "new year", "festa", "party", "brindisi", "celebrazione"]
+    },
+    {
+      "nome": "tenda",
+      "forma": "tenda",
+      "categoria": "viaggi",
+      "descrizione": "Quando si va in campeggio.",
+      "parole": ["tenda", "tent", "campeggio", "camping", "campeggiare", "sacco a pelo", "sleeping bag", "glamping"]
     }
   ]
 }
