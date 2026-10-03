@@ -36,7 +36,7 @@ struct CatalogoTests {
 
     @Test func theRosaOfTheBundledCatalogoNamesEveryVarianteToday() throws {
         let catalogo = try Self.bundled.get()
-        #expect(Set(catalogo.rosa()) == Set(catalogo.varianti))
+        #expect(Set(catalogo.rosa(limit: catalogo.varianti.count)) == Set(catalogo.varianti))
     }
 
     @Test func theRosaKeepsTheFirstOfEachCategoriaThenTheCategoriaAskedFor() throws {

@@ -167,6 +167,174 @@
       "categoria": "meteo",
       "descrizione": "Quando si parla di temporali e fulmini.",
       "parole": ["fulmine", "fulmini", "lightning", "temporale", "thunderstorm", "tuono", "saetta"]
+    },
+    {
+      "nome": "cono",
+      "forma": "cono",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo è fermo per un ostacolo: errore, limite, blocco.",
+      "parole": ["errore", "blocco", "bloccato", "stop", "limite", "ostacolo", "blocked", "rate limit"]
+    },
+    {
+      "nome": "bicchiere-vino",
+      "forma": "bicchiere_vino",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di vino: abbinamenti, vitigni, cantine.",
+      "parole": ["vino", "wine", "calice", "vitigno", "cantina", "abbinamento", "sommelier", "rosso"]
+    },
+    {
+      "nome": "cappello-laurea",
+      "forma": "cappello_laurea",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di scuola e studio: compiti, esami, università.",
+      "parole": ["scuola", "school", "esame", "exam", "compiti", "homework", "università", "university"]
+    },
+    {
+      "nome": "telescopio",
+      "forma": "telescopio",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di stelle e astronomia.",
+      "parole": ["stelle", "stars", "astronomia", "astronomy", "telescopio", "pianeti", "galassia", "cielo notturno"]
+    },
+    {
+      "nome": "pila",
+      "forma": "pila",
+      "categoria": "codice",
+      "descrizione": "Quando si parla di consumo di energia dell'app: batteria, efficienza.",
+      "parole": ["batteria", "battery", "energia", "energy", "consumo", "efficienza", "autonomia", "scarica"]
+    },
+    {
+      "nome": "info",
+      "forma": "info",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo scrive documentazione: README, commenti, guide.",
+      "parole": ["documentazione", "documentation", "readme", "commento", "guida", "docstring", "manuale"]
+    },
+    {
+      "nome": "semaforo",
+      "forma": "semaforo",
+      "categoria": "codice",
+      "descrizione": "Quando si guarda lo stato della CI: build verdi, rosse o in corso.",
+      "parole": ["ci", "pipeline", "build", "verde", "rosso", "workflow", "github actions", "green build"]
+    },
+    {
+      "nome": "salvagente",
+      "forma": "salvagente",
+      "categoria": "codice",
+      "descrizione": "Quando si torna indietro: revert, ripristino, rollback.",
+      "parole": ["revert", "rollback", "ripristina", "restore", "torna indietro", "undo", "annulla", "salva"]
+    },
+    {
+      "nome": "estintore",
+      "forma": "estintore",
+      "categoria": "codice",
+      "descrizione": "Quando c'è un'emergenza in produzione: incidente, servizio giù, hotfix.",
+      "parole": ["incidente", "incident", "produzione", "production", "hotfix", "emergenza", "outage", "servizio giù"]
+    },
+    {
+      "nome": "neurone",
+      "forma": "neurone",
+      "categoria": "codice",
+      "descrizione": "Quando il codice lavora con modelli di IA: prompt, embedding, inferenza.",
+      "parole": ["prompt", "embedding", "inferenza", "inference", "modello", "llm", "rete neurale", "neural network"]
+    },
+    {
+      "nome": "proiettore",
+      "forma": "proiettore",
+      "categoria": "creativo",
+      "descrizione": "Quando si prepara una presentazione: slide, discorsi.",
+      "parole": ["presentazione", "presentation", "slide", "discorso", "speech", "keynote", "proiettore", "pitch"]
+    },
+    {
+      "nome": "cancelletto",
+      "forma": "cancelletto",
+      "categoria": "creativo",
+      "descrizione": "Quando si scrive per i social: post, didascalie, hashtag.",
+      "parole": ["social", "hashtag", "post", "didascalia", "caption", "instagram", "tweet", "cancelletto"]
+    },
+    {
+      "nome": "forziere",
+      "forma": "forziere",
+      "categoria": "creativo",
+      "descrizione": "Quando si inventano giochi e cacce al tesoro.",
+      "parole": ["gioco", "game", "tesoro", "treasure", "caccia al tesoro", "treasure hunt", "enigma", "avventura"]
+    },
+    {
+      "nome": "sedia-a-dondolo",
+      "forma": "sedia_a_dondolo",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di pensione e di piani a lungo termine.",
+      "parole": ["pensione", "retirement", "pensionamento", "previdenza", "pension", "vecchiaia", "piano a lungo termine"]
+    },
+    {
+      "nome": "palla-al-piede",
+      "forma": "palla_al_piede",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di debiti e prestiti da restituire.",
+      "parole": ["debito", "debt", "prestito", "loan", "mutuo", "mortgage", "rata", "interessi"]
+    },
+    {
+      "nome": "negozio",
+      "forma": "negozio",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di attività commerciali: negozi, piccole imprese, vendite.",
+      "parole": ["negozio", "shop", "piccola impresa", "small business", "vendite", "sales", "bottega", "commerciante"]
+    },
+    {
+      "nome": "onda",
+      "forma": "onda",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di mare: onde, maree, mare mosso.",
+      "parole": ["mare", "sea", "onde", "waves", "maree", "tide", "surf", "mareggiata"]
+    },
+    {
+      "nome": "occhiali-da-sole",
+      "forma": "occhiali_da_sole",
+      "categoria": "meteo",
+      "descrizione": "Quando si parla di raggi UV e di protezione dal sole.",
+      "parole": ["uv", "raggi uv", "protezione solare", "sunscreen", "abbronzatura", "sunglasses", "indice uv", "scottatura"]
+    },
+    {
+      "nome": "xilofono",
+      "forma": "xilofono",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica per bambini e strumenti didattici.",
+      "parole": ["xilofono", "xylophone", "musica per bambini", "kids music", "strumenti didattici", "filastrocca", "nursery rhyme"]
+    },
+    {
+      "nome": "palla-di-cristallo",
+      "forma": "palla_di_cristallo",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano previsioni e pronostici sul futuro.",
+      "parole": ["previsione", "forecast", "pronostico", "predict", "futuro", "future", "oroscopo", "tendenza"]
+    },
+    {
+      "nome": "abaco",
+      "forma": "abaco",
+      "categoria": "ricerca",
+      "descrizione": "Quando si conta: quante volte compare qualcosa, statistiche di una ricerca.",
+      "parole": ["conta", "count", "quante volte", "how many times", "statistiche", "frequenza", "conteggio", "tally"]
+    },
+    {
+      "nome": "zolletta",
+      "forma": "zolletta",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di zuccheri e glicemia.",
+      "parole": ["zucchero", "sugar", "glicemia", "glucose", "diabete", "diabetes", "dolce", "carboidrati"]
+    },
+    {
+      "nome": "contaminuti",
+      "forma": "contaminuti",
+      "categoria": "tempo",
+      "descrizione": "Quando si cronometra in cucina: cotture, lievitazioni, uova.",
+      "parole": ["timer", "contaminuti", "cottura", "cooking time", "lievitazione", "uova", "cronometro", "egg timer"]
+    },
+    {
+      "nome": "pompa-benzina",
+      "forma": "pompa_benzina",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di carburante e ricarica dell'auto in viaggio.",
+      "parole": ["benzina", "petrol", "gasolio", "diesel", "carburante", "fuel", "ricarica", "colonnina"]
     }
   ]
 }
