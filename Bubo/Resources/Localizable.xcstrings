@@ -5111,16 +5111,6 @@
         }
       }
     },
-    "Poi ne parli con il modello che scegli: ti fa qualche domanda e propone come configurarla." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Then you talk it over with the model you pick: it asks a few questions and proposes how to set it up."
-          }
-        }
-      }
-    },
     "Possibile segreto %@, inizia con %@, %lld caratteri" : {
       "localizations" : {
         "en" : {
@@ -5418,16 +5408,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meetings imported"
-          }
-        }
-      }
-    },
-    "Rivedi la configurazione…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Review Setup…"
           }
         }
       }
@@ -18696,26 +18676,6 @@
         }
       }
     },
-    "Ne parli con il modello che scegli: propone, tu confermi." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Talk it through with the model you pick: it proposes, you confirm."
-          }
-        }
-      }
-    },
-    "Vault di Obsidian trovati: %lld. Ne parli con il modello che scegli: propone, tu confermi." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obsidian vaults found: %lld. Talk it through with the model you pick: it proposes, you confirm."
-          }
-        }
-      }
-    },
     "Il modello scrive…" : {
       "localizations" : {
         "en" : {
@@ -18766,6 +18726,76 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ opens the bubble: dictation only is off."
+          }
+        }
+      }
+    },
+    "Personalizza a fondo…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalize in Depth…"
+          }
+        }
+      }
+    },
+    "Configura in 60 secondi…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up in 60 Seconds…"
+          }
+        }
+      }
+    },
+    "In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In 60 seconds, choose the folder. In depth, the model interviews you and drafts your Profile and Rules."
+          }
+        }
+      }
+    },
+    "Vault di Obsidian trovati: %lld. In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsidian vaults found: %lld. In 60 seconds, choose the folder. In depth, the model interviews you and drafts your Profile and Rules."
+          }
+        }
+      }
+    },
+    "Il modello che scegli ti fa qualche giro di domande, poi ti mostra la mappa. Non scrivo nulla finché non dici sì." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model you choose asks a few rounds of questions, then shows you the map. Nothing is written until you say yes."
+          }
+        }
+      }
+    },
+    "Profilo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        }
+      }
+    },
+    "Regole" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rules"
           }
         }
       }

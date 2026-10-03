@@ -7,6 +7,7 @@ struct SecondBrainSettingsSection: View {
     @State private var isObsidianVault = false
     @State private var vaultCount = 0
     @State private var isSettingUp = false
+    @State private var isSettingUpQuickly = false
     @AppStorage(SessionSummarizer.defaultsKey) private var writesSummaries = true
     @AppStorage(MeetingAudioRetention.defaultsKey) private var meetingAudio = MeetingAudioRetention.thirtyDays
 
@@ -29,18 +30,21 @@ struct SecondBrainSettingsSection: View {
                         .font(.callout)
                 }
                 HStack {
-                    Button("Rivedi la configurazione…") { isSettingUp = true }
+                    Button("Personalizza a fondo…") { isSettingUp = true }
                     Button("Non usare più") { secondBrain.stopUsing() }
                 }
             } else {
                 LabeledContent {
-                    Button("Configura…") { isSettingUp = true }
+                    HStack {
+                        Button("Configura in 60 secondi…") { isSettingUpQuickly = true }
+                        Button("Personalizza a fondo…") { isSettingUp = true }
+                    }
                 } label: {
                     Text("Nessuna cartella scelta")
                     if vaultCount == 0 {
-                        Text("Ne parli con il modello che scegli: propone, tu confermi.")
+                        Text("In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole.")
                     } else {
-                        Text("Vault di Obsidian trovati: \(vaultCount). Ne parli con il modello che scegli: propone, tu confermi.")
+                        Text("Vault di Obsidian trovati: \(vaultCount). In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole.")
                     }
                 }
             }
@@ -55,6 +59,7 @@ struct SecondBrainSettingsSection: View {
             Text("Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso.")
         }
         .sheet(isPresented: $isSettingUp) { SecondBrainConversationSheet() }
+        .sheet(isPresented: $isSettingUpQuickly) { SecondBrainSetupSheet() }
         .task(id: secondBrain.location) { refresh() }
     }
 

@@ -121,7 +121,7 @@ nonisolated struct NoteWriter: Sendable {
         let directory = root.appending(path: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         // A link in place of `Bubo/` or of one of its folders would take the note out of the Secondo cervello.
-        guard directory.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(realRoot + "/Bubo/") else {
+        guard (directory.resolvingSymlinksInPath().standardizedFileURL.path + "/").hasPrefix(realRoot + "/Bubo/") else {
             throw Failure.outsideBubo
         }
         return directory
@@ -184,6 +184,28 @@ nonisolated struct NoteWriter: Sendable {
     /// The SHA-256 of `data`, in hexadecimal.
     static func hash(of data: Data) -> String {
         SHA256.hash(data: data).map { ($0 < 0x10 ? "0" : "") + String($0, radix: 16) }.joined()
+    }
+
+    /// Who the user is, agreed in the interview of the Secondo cervello: every chat reads it.
+    static let profilePath = "Bubo/Profilo.md"
+    /// How Bubo keeps the Secondo cervello, agreed in the interview: what goes where, what it saves on its own.
+    static let rulesPath = "Bubo/Regole.md"
+    /// The user's own prompt for the interview, in place of Bubo's method when it is there.
+    static let interviewPath = "Bubo/Intervista.md"
+
+    /// Writes `profile` in `Bubo/Profilo.md` and `rules` in `Bubo/Regole.md`, each atomically and replacing the file;
+    /// an empty text leaves its file as it is.
+    ///
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/` leads out of it; a file system
+    ///   error when a file cannot be written.
+    func writeSetup(profile: String, rules: String) throws {
+        let directory = try folder("Bubo")
+        for (text, path) in [(profile, Self.profilePath), (rules, Self.rulesPath)] {
+            let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty else { continue }
+            let file = directory.appending(path: (path as NSString).lastPathComponent)
+            try Data((text + "\n").utf8).write(to: file, options: .atomic)
+        }
     }
 
     /// Where the imported documents go: in the Indice, since they are sources and not Bubo's summaries.

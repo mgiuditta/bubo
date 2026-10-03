@@ -1,9 +1,10 @@
 import Foundation
 import Observation
 
-/// The setup of the Secondo cervello as a conversation with the model the user picks in the chip, about the folder the
-/// user chose: Bubo gives it its standards and that folder, the model interviews the user and proposes its settings.
-/// The model never picks the folder, and only the user's confirmation applies the proposal.
+/// The setup of the Secondo cervello as an interview in rounds with the model the user picks in the chip, about the
+/// folder the user chose: Bubo gives it its standards and the facts it found, the model asks for the decisions, then
+/// shows the map with the Profilo and the Regole. The model never picks the folder, and only the user's yes applies the
+/// proposal and writes `Bubo/Profilo.md` and `Bubo/Regole.md`: nothing is written before.
 @Observable
 final class SecondBrainConversation {
     /// One message of the conversation.
@@ -44,7 +45,8 @@ final class SecondBrainConversation {
         self.isNew = isNew
         let current = secondBrain.location.flatMap { $0.path == folder.standardizedFileURL.path ? $0 : nil }
         instructions = Self.instructions(folder: current ?? SecondBrainLocation(folder: folder),
-                                         isConfigured: current != nil, isNew: isNew)
+                                         isConfigured: current != nil, isNew: isNew, method: Self.method(in: folder),
+                                         callApps: CallService.installed().map(\.name).sorted())
         ask()
     }
 
@@ -75,10 +77,11 @@ final class SecondBrainConversation {
         if !prose.isEmpty { turns.append(Turn(isUser: false, text: prose)) }
     }
 
-    /// Applies the proposal the user confirmed: creates the folder when asked, then chooses it with its settings.
+    /// Applies the proposal the user said yes to: creates the folder when asked, writes the Profilo and the Regole,
+    /// then chooses the folder with its settings.
     ///
-    /// - Throws: A file system error when the new folder cannot be created, or `CocoaError(.fileNoSuchFile)` when the
-    ///   folder to use does not exist.
+    /// - Throws: A file system error when the new folder or a file cannot be written, `NoteWriter.Failure` when `Bubo/`
+    ///   leads out of the folder, or `CocoaError(.fileNoSuchFile)` when the folder to use does not exist.
     func apply() throws {
         guard let proposal else { return }
         let folder = proposal.folder
@@ -90,6 +93,7 @@ final class SecondBrainConversation {
         case .use:
             guard SecondBrainLocation(folder: folder).isReachable else { throw CocoaError(.fileNoSuchFile) }
         }
+        try NoteWriter(root: folder).writeSetup(profile: proposal.profile, rules: proposal.rules)
         secondBrain.choose(folder)
         secondBrain.excludeOnly(Set(proposal.excludedFolders))
         secondBrain.prioritizeOnly(Set(proposal.priorityFolders))
@@ -109,15 +113,52 @@ final class SecondBrainConversation {
         \(instructions)
 
         ## Conversazione finora
-        \(conversation.isEmpty ? "(Nessun messaggio: apri tu la conversazione.)" : conversation)
+        \(conversation.isEmpty ? "(Nessun messaggio: apri tu con il primo round.)" : conversation)
 
         Scrivi solo il tuo prossimo messaggio all'utente.
         """
     }
 
-    /// Bubo's standards for the Secondo cervello and the folder the user chose, for the model: `isConfigured` when it
-    /// is already the Secondo cervello, `isNew` when Bubo is to create it.
-    static func instructions(folder: SecondBrainLocation, isConfigured: Bool, isNew: Bool) -> String {
+    /// How the model interviews: the user's `Bubo/Intervista.md` in `folder` when it holds any text, else Bubo's
+    /// ``defaultMethod``.
+    static func method(in folder: URL) -> String {
+        let custom = try? String(contentsOf: folder.appending(path: NoteWriter.interviewPath), encoding: .utf8)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return custom.flatMap { $0.isEmpty ? nil : $0 } ?? defaultMethod
+    }
+
+    /// Bubo's interview, after the method of `grill-me` (#651): rounds with the whole frontier, facts found by Bubo,
+    /// decisions left to the user, the map shown until the user says yes.
+    static let defaultMethod = """
+        Intervista l'utente finché non avete la stessa idea. Tieni in testa un albero di decisioni: ogni decisione \
+        apre quelle che dipendono da lei.
+
+        Lavora a round. La frontiera sono le decisioni i cui prerequisiti sono già decisi. In ogni round fai tutta la \
+        frontiera insieme, numerata, e per ogni domanda dai la tua risposta consigliata, così l'utente può rispondere \
+        solo «sì» o con i numeri da cambiare. Poi aspetta. Le risposte cambiano l'albero: ricalcola la frontiera e fai \
+        il round dopo. Una domanda che dipende da un'altra ancora aperta va nel round successivo.
+
+        I fatti li ha già cercati Bubo (cartelle, app installate, Profilo e Regole esistenti): non chiederli mai, dilli \
+        e basati su quelli. Le decisioni sono dell'utente: proponile e aspetta.
+
+        Rami da coprire, ognuno con le domande che ne dipendono:
+        - Chi è: lavoro, ruolo, contesto, lingua delle note.
+        - Cosa tracciare: progetti, aree, persone, riunioni, decisioni, obiettivi, apprendimento, altro; per ognuno \
+        dove va e cosa ci scrive.
+        - Storico: note da portare dentro o già nella cartella; cosa è archivio da escludere e cosa conta di più.
+        - Strumenti: con quali app lavora (riunioni, ticket, mail, calendario, chat).
+        - Routine: come apre e chiude giornata e settimana, cosa vuole trovare pronto.
+        - Cosa salvare da solo: quali fatti Bubo annota senza chiedere e cosa deve chiedere prima.
+
+        Quando la frontiera è vuota mostra la mappa: albero delle cartelle, cosa va dove, anteprima di Profilo e \
+        Regole. Chiedi se va bene e correggila finché l'utente non dice sì.
+        """
+
+    /// Bubo's standards for the Secondo cervello, the facts about the folder the user chose and `method`, for the model:
+    /// `isConfigured` when it is already the Secondo cervello, `isNew` when Bubo is to create it, `callApps` the call
+    /// apps on this Mac.
+    static func instructions(folder: SecondBrainLocation, isConfigured: Bool, isNew: Bool,
+                             method: String = defaultMethod, callApps: [String] = []) -> String {
         let folders = folder.topFolders()
         let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
         let kind = folder.isObsidianVault ? "vault di Obsidian" : "cartella di note"
@@ -125,58 +166,64 @@ final class SecondBrainConversation {
             """
             È il Secondo cervello già configurato: cartelle di primo livello \(listed); escluse \(folder.excludedFolders), \
             prioritarie \(folder.priorityFolders), persone \(folder.people), progetti \(folder.projects). Dillo \
-            all'utente («è quella già configurata»), riassumi in breve come è configurata, chiedi se gli funziona e \
-            proponi miglioramenti concreti, oppure di lasciarla così.
+            all'utente («è quella già configurata») e parti da com'è: chiedi solo cosa cambiare.
             """
         } else if isNew {
             """
             È un Secondo cervello nuovo, che Bubo creerà con le cartelle \
-            \(SecondBrainProposal.standardFolders.joined(separator: ", ")). Fai domande specifiche su come vuole \
-            organizzarlo e su cosa ci metterà.
+            \(SecondBrainProposal.standardFolders.joined(separator: ", ")).
             """
         } else {
-            """
-            È una cartella di note che l'utente ha già (\(kind)), con le cartelle di primo livello \(listed). \
-            Configurala con lui partendo da queste cartelle.
-            """
+            "È una cartella di note che l'utente ha già (\(kind)), con le cartelle di primo livello \(listed)."
         }
         return """
-        Sei l'assistente che configura il Secondo cervello di Bubo, un'app per Mac, in una conversazione con \
-        l'utente. Parla in italiano, in modo breve e personale. Il Secondo cervello deve essere fatto su misura: \
-        scopri come lo vuole l'utente intervistandolo, non con un questionario fisso.
+        Sei l'assistente che configura il Secondo cervello di Bubo, un'app per Mac, intervistando l'utente. Parla in \
+        italiano, in modo breve e personale. Il Secondo cervello deve essere fatto su misura per lui.
 
         ## Gli standard di Bubo
         - Il Secondo cervello è una cartella di note Markdown dell'utente: un vault di Obsidian o qualunque altra. \
         Obsidian può restare chiuso.
         - Bubo legge le note solo quando le cerca e scrive solo nella cartella `Bubo` alla radice (note, riassunti \
         delle Sessioni, Riunioni). Non tocca mai le altre note.
+        - `\(NoteWriter.profilePath)`: chi è l'utente, in breve. `\(NoteWriter.rulesPath)`: come tenere il Secondo \
+        cervello, cosa va dove, cosa Bubo salva da solo e cosa chiede prima. Bubo li dà a ogni chat: insieme stanno \
+        sotto le 1.500 parole.
         - Cartelle escluse: restano dove sono ma Bubo non le legge (di solito archivi, allegati, modelli).
         - Cartelle prioritarie: quando la ricerca trova note in più cartelle, queste vengono prima.
         - Persone e progetti: le note che li nominano vengono prima nella ricerca.
 
-        ## La cartella scelta dall'utente
-        \(folder.path)
+        ## I fatti che Bubo ha trovato
+        Cartella scelta dall'utente: \(folder.path)
         \(situation)
+        App per le riunioni su questo Mac: \(callApps.isEmpty ? "nessuna" : callApps.joined(separator: ", ")).
+        \(currentSetup(in: folder.url))
         La cartella l'ha scelta l'utente: non proporne altre e non metterla in discussione.
 
         ## Come intervistare
-        - Una sola domanda per messaggio, e accanto la risposta che consiglieresti tu, così può dire solo «sì».
-        - Segui i rami uno alla volta e non passare oltre finché uno non è chiaro: cosa ci mette, come è \
-        organizzata o come vuole organizzarla, cosa cerca più spesso, cosa va escluso, cosa conta di più, con chi \
-        lavora, quali progetti segue.
-        - Se una risposta si ricava dalle cartelle, non chiederla: dilla e chiedi conferma.
-        - Proponi solo quando hai capito abbastanza; di solito servono da tre a sei domande.
+        \(method)
 
-        Usa solo cartelle di primo livello per escluse e prioritarie. Non usare strumenti per scrivere file: Bubo \
-        applica la proposta solo dopo la conferma dell'utente.
-
-        Quando hai una proposta, spiegala in una frase e chiudi il messaggio con un solo blocco così, \
-        con JSON valido:
+        ## La proposta
+        Non usare strumenti per scrivere file: Bubo scrive solo dopo il sì dell'utente. Usa solo cartelle di primo \
+        livello per escluse e prioritarie. Quando mostri la mappa, chiudi il messaggio con un solo blocco così, con \
+        JSON valido; profilo e regole sono il Markdown completo dei due file:
         ```\(SecondBrainProposal.fence)
         {"azione": "\(isNew ? "crea" : "usa")", "cartella": "\(folder.path)", "escluse": [], "prioritarie": [], \
-        "persone": [], "progetti": []}
+        "persone": [], "progetti": [], "profilo": "", "regole": ""}
         ```
-        L'utente vede un bottone per applicarla; se cambia idea, proponi un nuovo blocco.
+        L'utente vede la mappa e un bottone per dire sì; se chiede modifiche, mostra la mappa corretta con un nuovo \
+        blocco.
         """
+    }
+
+    /// The Profilo and the Regole already in `folder`, for the model to start from; empty when there are none.
+    private static func currentSetup(in folder: URL) -> String {
+        [("Profilo attuale", NoteWriter.profilePath), ("Regole attuali", NoteWriter.rulesPath)]
+            .compactMap { title, path in
+                guard let text = try? String(contentsOf: folder.appending(path: path), encoding: .utf8) else {
+                    return nil
+                }
+                return "\(title) (`\(path)`):\n\(text.prefix(6_000))"
+            }
+            .joined(separator: "\n\n")
     }
 }

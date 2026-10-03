@@ -1,9 +1,9 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// The setup of the Secondo cervello: the user chooses the folder (the current one, a vault, any folder or a new one),
-/// then talks about it with the model they pick, which proposes its settings, applied only with "Applica". Without a
-/// model answering, the folder alone can still be used.
+/// The setup of the Secondo cervello, «Personalizza a fondo»: the user chooses the folder (the current one, a vault,
+/// any folder or a new one), then the model they pick interviews them in rounds and shows the map, with the Profilo and
+/// the Regole, written only with "Applica". Without a model answering, the folder alone can still be used.
 struct SecondBrainConversationSheet: View {
     @Environment(SecondBrain.self) private var secondBrain
     @Environment(QuestionModel.self) private var questions
@@ -69,7 +69,7 @@ struct SecondBrainConversationSheet: View {
                     .font(.title3.weight(.semibold))
                     .accessibilityAddTraits(.isHeader)
             } footer: {
-                Text("Poi ne parli con il modello che scegli: ti fa qualche domanda e propone come configurarla.")
+                Text("Il modello che scegli ti fa qualche giro di domande, poi ti mostra la mappa. Non scrivo nulla finché non dici sì.")
             }
         }
         .formStyle(.grouped)
@@ -145,6 +145,8 @@ struct SecondBrainConversationSheet: View {
             summary("Prioritarie", proposal.priorityFolders)
             summary("Persone", proposal.people)
             summary("Progetti", proposal.projects)
+            preview("Profilo", proposal.profile)
+            preview("Regole", proposal.rules)
             if applyFailed {
                 Text("Non riesco a usare questa cartella. Chiedi un'altra proposta o sceglila a mano.")
                     .font(.callout)
@@ -170,6 +172,21 @@ struct SecondBrainConversationSheet: View {
         if !names.isEmpty {
             LabeledContent(title) { Text(verbatim: names.joined(separator: ", ")) }
                 .font(.callout)
+        }
+    }
+
+    /// The file `text` becomes, to read before saying yes; nothing when it stays as it is.
+    @ViewBuilder private func preview(_ title: LocalizedStringKey, _ text: String) -> some View {
+        if !text.isEmpty {
+            DisclosureGroup(title) {
+                ScrollView {
+                    Text(Self.markdown(text))
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .frame(maxHeight: 120)
+            }
+            .font(.callout)
         }
     }
 
