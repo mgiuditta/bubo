@@ -4,6 +4,16 @@
     "%@" : {
       "shouldTranslate" : false
     },
+    "%@ (configurata)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ (configured)"
+          }
+        }
+      }
+    },
     "%@\n\nFile del Progetto da guardare:\n%@" : {
       "comment" : "First prompt of a Sessione from a Domanda's files: the request, then their paths in the Progetto, one per line",
       "localizations" : {
@@ -4259,6 +4269,16 @@
         }
       }
     },
+    "Il modello non risponde. Prova un altro modello o usa la cartella così com'è." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model isn't answering. Try another model or use the folder as it is."
+          }
+        }
+      }
+    },
     "Il ragionamento non passa." : {
       "localizations" : {
         "en" : {
@@ -4843,6 +4863,16 @@
         }
       }
     },
+    "Nuovo Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Second Brain"
+          }
+        }
+      }
+    },
     "Nuovo codice eseguibile dall'ultimo aggiornamento: %@" : {
       "localizations" : {
         "en" : {
@@ -4969,6 +4999,16 @@
         }
       }
     },
+    "Poi ne parli con il modello che scegli: ti fa qualche domanda e propone come configurarla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Then you talk it over with the model you pick: it asks a few questions and proposes how to set it up."
+          }
+        }
+      }
+    },
     "Possibile segreto %@, inizia con %@, %lld caratteri" : {
       "localizations" : {
         "en" : {
@@ -5011,6 +5051,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready: %@"
+          }
+        }
+      }
+    },
+    "Quale cartella?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which folder?"
           }
         }
       }
@@ -5398,6 +5448,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On individual Copilot plans (Free, Pro, Pro+, Max), GitHub uses what it receives to train its models by default. You can turn this off on GitHub in Copilot settings, under Privacy."
+          }
+        }
+      }
+    },
+    "Usa la cartella senza configurarla" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use the Folder Without Setting It Up"
           }
         }
       }
@@ -18398,16 +18458,6 @@
         }
       }
     },
-    "Il modello non risponde. Puoi scegliere la cartella a mano." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model isn't answering. You can choose the folder yourself."
-          }
-        }
-      }
-    },
     "Usa %@" : {
       "localizations" : {
         "en" : {
@@ -18474,16 +18524,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Send"
-          }
-        }
-      }
-    },
-    "Scegli la cartella a mano…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose the folder yourself…"
           }
         }
       }

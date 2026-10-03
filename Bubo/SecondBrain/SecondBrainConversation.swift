@@ -1,9 +1,9 @@
 import Foundation
 import Observation
 
-/// The setup of the Secondo cervello as a conversation with the model the user picks in the chip: Bubo gives it its
-/// standards and the folders on this Mac, the model asks what it needs and proposes either a folder the user has or a
-/// new one. Only the user's confirmation applies the proposal.
+/// The setup of the Secondo cervello as a conversation with the model the user picks in the chip, about the folder the
+/// user chose: Bubo gives it its standards and that folder, the model interviews the user and proposes its settings.
+/// The model never picks the folder, and only the user's confirmation applies the proposal.
 @Observable
 final class SecondBrainConversation {
     /// One message of the conversation.
@@ -20,27 +20,31 @@ final class SecondBrainConversation {
     private(set) var proposal: SecondBrainProposal?
     /// Whether the model is writing its next message.
     private(set) var isWaiting = false
+    /// The folder the user chose, `nil` until the conversation starts.
+    private(set) var folder: URL?
+    /// Whether ``folder`` is to be created rather than used as it is.
+    private(set) var isNew = false
 
     /// Who answers, with the model picked in its chip.
     let questions: QuestionModel
     @ObservationIgnored private let secondBrain: SecondBrain
-    @ObservationIgnored private let instructions: String
+    @ObservationIgnored private var instructions = ""
 
     /// Creates the conversation about `secondBrain`, asked through `questions`.
     init(questions: QuestionModel, secondBrain: SecondBrain) {
         self.questions = questions
         self.secondBrain = secondBrain
-        let current = secondBrain.location
-        let vaults = SecondBrainLocation.suggestedVaults()
-            .filter { $0.standardizedFileURL.path != current?.path }
-            .map(SecondBrainLocation.init(folder:))
-        instructions = Self.instructions(current: current, vaults: vaults,
-                                         home: FileManager.default.homeDirectoryForCurrentUser.path)
     }
 
-    /// Lets the model open the conversation.
-    func start() {
-        guard turns.isEmpty, !isWaiting else { return }
+    /// Starts the conversation about `folder`, which the user chose, and lets the model open it; `isNew` when it is
+    /// to be created.
+    func start(with folder: URL, isNew: Bool) {
+        guard self.folder == nil, !isWaiting else { return }
+        self.folder = folder
+        self.isNew = isNew
+        let current = secondBrain.location.flatMap { $0.path == folder.standardizedFileURL.path ? $0 : nil }
+        instructions = Self.instructions(folder: current ?? SecondBrainLocation(folder: folder),
+                                         isConfigured: current != nil, isNew: isNew)
         ask()
     }
 
@@ -60,7 +64,13 @@ final class SecondBrainConversation {
         guard questions.failure == nil else { return }
         let answer = questions.answer
         // Only the latest answer's proposal can be applied: a stale one is never offered.
-        proposal = SecondBrainProposal(in: answer)
+        proposal = SecondBrainProposal(in: answer).map { proposed in
+            // The folder is the user's choice, whatever the block says.
+            var proposed = proposed
+            proposed.path = folder?.path ?? proposed.path
+            proposed.action = isNew ? .create : .use
+            return proposed
+        }
         let prose = SecondBrainProposal.prose(of: answer)
         if !prose.isEmpty { turns.append(Turn(isUser: false, text: prose)) }
     }
@@ -105,22 +115,31 @@ final class SecondBrainConversation {
         """
     }
 
-    /// Bubo's standards for the Secondo cervello and the folders found on this Mac, for the model.
-    static func instructions(current: SecondBrainLocation?, vaults: [SecondBrainLocation], home: String) -> String {
-        func describe(_ location: SecondBrainLocation) -> String {
-            let kind = location.isObsidianVault ? "vault di Obsidian" : "cartella di note"
-            let folders = location.topFolders()
-            let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
-            return "- \(location.path) (\(kind)); cartelle di primo livello: \(listed)"
+    /// Bubo's standards for the Secondo cervello and the folder the user chose, for the model: `isConfigured` when it
+    /// is already the Secondo cervello, `isNew` when Bubo is to create it.
+    static func instructions(folder: SecondBrainLocation, isConfigured: Bool, isNew: Bool) -> String {
+        let folders = folder.topFolders()
+        let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
+        let kind = folder.isObsidianVault ? "vault di Obsidian" : "cartella di note"
+        let situation = if isConfigured {
+            """
+            È il Secondo cervello già configurato: cartelle di primo livello \(listed); escluse \(folder.excludedFolders), \
+            prioritarie \(folder.priorityFolders), persone \(folder.people), progetti \(folder.projects). Dillo \
+            all'utente («è quella già configurata»), riassumi in breve come è configurata, chiedi se gli funziona e \
+            proponi miglioramenti concreti, oppure di lasciarla così.
+            """
+        } else if isNew {
+            """
+            È un Secondo cervello nuovo, che Bubo creerà con le cartelle \
+            \(SecondBrainProposal.standardFolders.joined(separator: ", ")). Fai domande specifiche su come vuole \
+            organizzarlo e su cosa ci metterà.
+            """
+        } else {
+            """
+            È una cartella di note che l'utente ha già (\(kind)), con le cartelle di primo livello \(listed). \
+            Configurala con lui partendo da queste cartelle.
+            """
         }
-        var found: [String] = []
-        if let current {
-            found.append("Secondo cervello attuale, con escluse \(current.excludedFolders), prioritarie "
-                         + "\(current.priorityFolders), persone \(current.people), progetti \(current.projects):")
-            found.append(describe(current))
-        }
-        found.append(vaults.isEmpty ? "Nessun vault di Obsidian trovato sul Mac." : "Vault di Obsidian sul Mac:")
-        found += vaults.map(describe)
         return """
         Sei l'assistente che configura il Secondo cervello di Bubo, un'app per Mac, in una conversazione con \
         l'utente. Parla in italiano, in modo breve e personale. Il Secondo cervello deve essere fatto su misura: \
@@ -134,36 +153,27 @@ final class SecondBrainConversation {
         - Cartelle escluse: restano dove sono ma Bubo non le legge (di solito archivi, allegati, modelli).
         - Cartelle prioritarie: quando la ricerca trova note in più cartelle, queste vengono prima.
         - Persone e progetti: le note che li nominano vengono prima nella ricerca.
-        - Un Secondo cervello nuovo parte con le cartelle \(SecondBrainProposal.standardFolders.joined(separator: ", ")).
 
-        ## Cosa c'è su questo Mac
-        Cartella home: \(home)
-        \(found.joined(separator: "\n"))
+        ## La cartella scelta dall'utente
+        \(folder.path)
+        \(situation)
+        La cartella l'ha scelta l'utente: non proporne altre e non metterla in discussione.
 
-        ## Il tuo compito
-        Decidi tu quale di questi tre casi vale, da quello che vedi sopra e da quello che ti dice l'utente:
-        1. Secondo cervello già configurato: guarda come è configurato (cartelle, escluse, prioritarie, persone, \
-        progetti) e chiedi all'utente se gli funziona; poi proponi miglioramenti concreti, oppure di lasciarlo così.
-        2. Una cartella di note esistente (un vault sopra, o una cartella che l'utente sceglie): diglielo («questo \
-        è tuo, controlla») e configurala con lui, partendo dalle sue sottocartelle.
-        3. Nessuna cartella adatta, o l'utente vuole partire da zero: crea un Secondo cervello nuovo (per esempio \
-        \(home)/Documents/Secondo cervello) e fagli domande specifiche su come vuole organizzarlo.
-
-        Come intervistare:
+        ## Come intervistare
         - Una sola domanda per messaggio, e accanto la risposta che consiglieresti tu, così può dire solo «sì».
         - Segui i rami uno alla volta e non passare oltre finché uno non è chiaro: cosa ci mette, come è \
-        organizzato o come vuole organizzarlo, cosa cerca più spesso, cosa va escluso, cosa conta di più, con chi \
+        organizzata o come vuole organizzarla, cosa cerca più spesso, cosa va escluso, cosa conta di più, con chi \
         lavora, quali progetti segue.
-        - Se una risposta si ricava dalle cartelle elencate, non chiederla: dilla e chiedi conferma.
+        - Se una risposta si ricava dalle cartelle, non chiederla: dilla e chiedi conferma.
         - Proponi solo quando hai capito abbastanza; di solito servono da tre a sei domande.
 
-        Usa solo cartelle di primo livello elencate per escluse e prioritarie. Non usare strumenti per scrivere \
-        file: Bubo applica la proposta solo dopo la conferma dell'utente.
+        Usa solo cartelle di primo livello per escluse e prioritarie. Non usare strumenti per scrivere file: Bubo \
+        applica la proposta solo dopo la conferma dell'utente.
 
         Quando hai una proposta, spiegala in una frase e chiudi il messaggio con un solo blocco così, \
         con JSON valido:
         ```\(SecondBrainProposal.fence)
-        {"azione": "usa" oppure "crea", "cartella": "/percorso/assoluto", "escluse": [], "prioritarie": [], \
+        {"azione": "\(isNew ? "crea" : "usa")", "cartella": "\(folder.path)", "escluse": [], "prioritarie": [], \
         "persone": [], "progetti": []}
         ```
         L'utente vede un bottone per applicarla; se cambia idea, proponi un nuovo blocco.
