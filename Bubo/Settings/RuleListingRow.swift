@@ -13,9 +13,18 @@ struct RuleListingRow: View {
                 Text(verbatim: RepoActivations.escaped(item.rule))
                     .font(.callout.monospaced())
                     .textSelection(.enabled)
-                Text("\(Self.origin(of: item.origin)) · Livello \(item.level.rawValue) · \(Text(item.level.title))")
-                    .font(.callout)
-                    .foregroundStyle(item.level.isDangerous ? Palette.danger : Color.secondary)
+                // Danger is the icon's color, never the text's: red callout text falls short of 4.5:1. The level's
+                // title already says it in words.
+                HStack(spacing: Spacing.xxSmall) {
+                    if item.level.isDangerous {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundStyle(Palette.danger)
+                            .accessibilityHidden(true)
+                    }
+                    Text("\(Self.origin(of: item.origin)) · Livello \(item.level.rawValue) · \(Text(item.level.title))")
+                        .foregroundStyle(Color.secondary)
+                }
+                .font(.callout)
             }
             Spacer()
             if item.isRemovable {
