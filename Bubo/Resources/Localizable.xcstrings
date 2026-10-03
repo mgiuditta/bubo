@@ -5668,16 +5668,6 @@
         }
       }
     },
-    "Cambia cartella…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Change Folder…"
-          }
-        }
-      }
-    },
     "Cambia chiave" : {
       "localizations" : {
         "en" : {

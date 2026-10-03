@@ -30,8 +30,13 @@ struct SecondBrainConversationSheet: View {
         .frame(width: 520, height: 520)
         .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
             guard case let .success(folder) = result else { return }
-            secondBrain.choose(folder)
-            dismiss()
+            guard questions.failure == nil, let conversation else {
+                // No model answers: the folder is all the setup there can be.
+                secondBrain.choose(folder)
+                dismiss()
+                return
+            }
+            conversation.send(Self.chosen(folder))
         }
         .task {
             let started = SecondBrainConversation(questions: questions, secondBrain: secondBrain)
@@ -118,6 +123,7 @@ struct SecondBrainConversationSheet: View {
             }
             HStack {
                 Button("Scegli la cartella a mano…") { isChoosingFolder = true }
+                    .disabled(conversation?.isWaiting == true)
                 Spacer()
                 Button("Chiudi") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -130,6 +136,14 @@ struct SecondBrainConversationSheet: View {
         guard conversation?.isWaiting == false else { return }
         conversation?.send(draft)
         draft = ""
+    }
+
+    /// What the user tells the model on choosing `folder` by hand, so it proposes the settings of that folder.
+    private static func chosen(_ folder: URL) -> String {
+        let folders = SecondBrainLocation(folder: folder).topFolders()
+        let listed = folders.isEmpty ? "nessuna sottocartella" : folders.joined(separator: ", ")
+        // In Italian like the instructions the model reads, not shown as interface text.
+        return "Ho scelto la cartella \(folder.path) (cartelle in cima: \(listed)). Configuriamola insieme."
     }
 
     /// `text` with its inline Markdown, as the model writes it.
