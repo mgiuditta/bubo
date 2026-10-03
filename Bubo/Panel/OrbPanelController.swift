@@ -89,8 +89,6 @@ final class OrbPanelController {
         view.autoResizeDrawable = false
         // The bubble is the default way to ask; the HUD stays a hot key or a menu item away.
         view.onPress = { [weak self] in self?.askInPanel() }
-        // The Blob alone: a click opens the menu at once; with the bubble open it goes back to the prompt.
-        view.opensMenuOnClick = { [bubble] in !bubble.isOpen }
         view.onAsk = { [weak self] in self?.askInPanel() }
         view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }

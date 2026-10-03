@@ -173,6 +173,13 @@ struct PanelBubbleView: View {
                 hud.createSession(from: model.turnIntoSession())
             }
             .help("Trasforma in Sessione")
+            // The same Domanda in the HUD, with room for long answers and the Sessioni.
+            Button("Apri la chat completa", systemImage: "arrow.up.left.and.arrow.down.right") {
+                bubble.close()
+                hud.show()
+            }
+            .help("Apri la chat completa")
+            .accessibilityIdentifier("bubble.openHUD")
             Button("Chiudi", systemImage: "xmark", action: bubble.close)
                 .help("Chiudi")
         }

@@ -2699,6 +2699,16 @@
         }
       }
     },
+    "Apri la chat completa" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Full Chat"
+          }
+        }
+      }
+    },
     "Apri la nota" : {
       "localizations" : {
         "en" : {
