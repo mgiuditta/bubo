@@ -17,9 +17,9 @@ check() {
   done
 }
 
-# Feature 08: alla prima pressione della scorciatoia per parlare.
+# Feature 08: alla prima pressione della scorciatoia per parlare; Riunioni: quando si avvia la registrazione.
 check Microfono 'AVCaptureDevice\.requestAccess|requestRecordPermission|\.inputNode' \
-  "Bubo/Voice/MicrophoneAccess.swift Bubo/Voice/SpeechListener.swift"
+  "Bubo/Voice/MicrophoneAccess.swift Bubo/Voice/SpeechListener.swift Bubo/Meetings/MicrophoneTrack.swift"
 # Feature 09: quando si attiva la funzione.
 check Accessibilità 'AXIsProcessTrusted|kAXTrustedCheckOptionPrompt|AXUIElementCreate|CGEvent\.tapCreate|CGRequest(Post|Listen)EventAccess|IOHIDRequestAccess' ""
 check "Registrazione schermo" 'CGRequestScreenCaptureAccess|SCShareableContent|SCScreenshotManager|SCStream|CGWindowListCreateImage|CGDisplayCreateImage' ""

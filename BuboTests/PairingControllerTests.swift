@@ -57,7 +57,7 @@ struct PairingControllerTests {
         let invitation = try waitingInvitation()
         let signer = PhoneSigner()
         let (response, phoneSecrets) = try answer(invitation, signer: signer)
-        try await channel.send(response)
+        await channel.send(response)
 
         await controller.waitForResponse()
 
@@ -114,7 +114,7 @@ struct PairingControllerTests {
 
     @Test func revokeFromTheMacDeletesKeyAndRecords() async throws {
         let deviceID = try await pairedDevice()
-        try await channel.save(RemoteRecord(kind: .sessionCard, macID: controller.macID, deviceID: deviceID,
+        await channel.save(RemoteRecord(kind: .sessionCard, macID: controller.macID, deviceID: deviceID,
                                             expiresAt: .now.addingTimeInterval(60), payload: Data([1])))
         let device = try #require(controller.devices.first)
 
@@ -122,15 +122,15 @@ struct PairingControllerTests {
 
         #expect(controller.devices.isEmpty)
         #expect(await store.items().isEmpty)
-        #expect(try await channel.records(macID: controller.macID, deviceID: deviceID).isEmpty)
+        #expect(await channel.records(macID: controller.macID, deviceID: deviceID).isEmpty)
         #expect(await channel.revoked == [Revocation(macID: controller.macID, deviceID: deviceID)])
     }
 
     @Test(.timeLimit(.minutes(1))) func revokeFromTheIPhoneDeletesTheKeyOnTheMac() async throws {
         let deviceID = try await pairedDevice()
-        try await channel.revoke(Revocation(macID: controller.macID, deviceID: deviceID))
+        await channel.revoke(Revocation(macID: controller.macID, deviceID: deviceID))
         // Another Mac's revocation of the same iPhone is not for this one.
-        try await channel.revoke(Revocation(macID: UUID(), deviceID: deviceID))
+        await channel.revoke(Revocation(macID: UUID(), deviceID: deviceID))
         let running = Task { await controller.run() }
         defer { running.cancel() }
 

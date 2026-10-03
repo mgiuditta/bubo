@@ -186,6 +186,10 @@ targets:
           framework="$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/Sparkle.framework"
           [[ -d $framework ]] || exit 0
           rm -rf "$framework/Versions/B/XPCServices" "$framework/XPCServices"
+          # Dall'interno verso l'esterno: Autoupdate e Updater arrivano firmati da Sparkle, senza runtime rafforzato.
+          for helper in "$framework/Versions/B/Autoupdate" "$framework/Versions/B/Updater.app"; do
+            codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$helper"
+          done
           codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$framework"
         # Dopo la copia del framework e dopo la sua firma da parte di Xcode (che produce _CodeSignature): senza la
         # seconda dipendenza lo script toglie Installer.xpc mentre codesign lo legge, "cannot find code object" (#593).

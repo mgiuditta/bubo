@@ -1,7 +1,8 @@
 #!/bin/zsh
 # Confronta gli entitlement firmati di ogni eseguibile di Bubo.app con la lista ammessa (spec 27).
 # Uso: verify-entitlements.sh [--dev] <Bubo.app>
-#   --dev  build locale firmata Apple Development: tollera get-task-allow, che una release non deve avere.
+#   --dev  build locale firmata Apple Development: tollera get-task-allow e gli identificativi del profilo, che una
+#          release non deve avere.
 # Un entitlement in più entra solo con un test che mostra il guasto senza: si aggiunge qui, nella lista.
 set -euo pipefail
 
@@ -15,10 +16,10 @@ team=${BUBO_TEAM_ID:-U38D796ZBJ}
 typeset -A allowed
 # L'App Group dell'app e di BuboQuickLook è la cartella dei Biglietti: senza, l'estensione in sandbox non li legge e
 # ogni Consegna in Quick Look ha "mittente sconosciuto" (BuboFileSummaryTests). Senza app-sandbox macOS non carica
-# l'estensione Quick Look.
+# l'estensione Quick Look. Senza audio-input il runtime rafforzato tiene muto il microfono: niente push-to-talk né Riunioni.
 group=$team.com.mgiuditta.bubo
 allowed=(
-    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$group\"],\"com.apple.security.application-groups\":[\"$group\"]}"
+    Contents/MacOS/Bubo "{\"keychain-access-groups\":[\"$group\"],\"com.apple.security.application-groups\":[\"$group\"],\"com.apple.security.device.audio-input\":true}"
     Contents/Helpers/bubo-agent '{"com.apple.security.cs.allow-jit":true}'
     Contents/PlugIns/BuboQuickLook.appex/Contents/MacOS/BuboQuickLook "{\"com.apple.security.app-sandbox\":true,\"com.apple.security.application-groups\":[\"$group\"]}"
 )
@@ -39,7 +40,9 @@ for exe in $executables; do
     [[ $signature == *'(runtime)'* ]] || fail "$relative senza hardened runtime"
 
     actual=$(codesign -d --entitlements - --xml $exe 2>/dev/null | plutil -convert json -o - - 2>/dev/null || echo '{}')
-    (( dev )) && actual=$(jq -c 'del(.["com.apple.security.get-task-allow"])' <<< $actual)
+    # Il profilo di sviluppo aggiunge anche gli identificativi dell'app e del team.
+    (( dev )) && actual=$(jq -c 'del(.["com.apple.security.get-task-allow"], .["com.apple.application-identifier"],
+        .["com.apple.developer.team-identifier"])' <<< $actual)
     expected=${allowed[$relative]:-'{}'}
     if [[ $(jq -S -c . <<< $actual) != $(jq -S -c . <<< $expected) ]]; then
         fail "$relative: firmati $(jq -S -c . <<< $actual), ammessi $(jq -S -c . <<< $expected)"

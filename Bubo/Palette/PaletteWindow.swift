@@ -33,7 +33,7 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
     var searchedText: String { model.query.search.text }
 
     /// Whether the Palette is on screen.
-    var isShown: Bool { panel.isVisible }
+    private(set) var isShown = false
 
     /// Shows the Palette with an empty box, or closes it if it is shown: ⌘K.
     func toggle() {
@@ -53,7 +53,8 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
         query.absorbFilters()
         model.query = query
         NSApp.activate()
-        panel.makeKeyAndOrderFront(nil)
+        isShown = true
+        panel.makeKeyAndOrderFrontFading()
     }
 
     /// Searches again, as when the Sessioni or the Cronologia CLI changed.
@@ -63,7 +64,9 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
 
     /// Closes the Palette.
     func close() {
-        panel.orderOut(nil)
+        // At once, so ⌘K during the fade opens it again.
+        isShown = false
+        panel.orderOutFading()
     }
 
     func windowDidResignKey(_ notification: Notification) {

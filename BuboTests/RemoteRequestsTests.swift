@@ -43,7 +43,7 @@ struct RemoteRequestsTests {
     }
 
     func requestRecords() async throws -> [RemoteRecord] {
-        try await channel.records(macID: macID, deviceID: phone.id).filter { $0.kind == .request }
+        await channel.records(macID: macID, deviceID: phone.id).filter { $0.kind == .request }
     }
 
     /// The Richiesta the iPhone sees.
@@ -125,7 +125,7 @@ struct RemoteRequestsTests {
         let decisions = await relay.readVerdicts(now: now.addingTimeInterval(25))
 
         #expect(decisions == [.init(session: session.id, request: "1", answer: .allowForSession)])
-        #expect(try await channel.records(macID: macID, deviceID: phone.id).count { $0.kind == .verdict } == 0)
+        #expect(await channel.records(macID: macID, deviceID: phone.id).count { $0.kind == .verdict } == 0)
     }
 
     @Test func expiredVerdictIsDiscarded() async throws {

@@ -12,7 +12,6 @@ static float bandierine(float3 p, float t) {
         float2 b = float2(xb, -0.05 + 0.45 * (xb / 0.85) * (xb / 0.85));
         d = min(d, sdSegment(q, float3(a, 0), float3(b, 0), 0.03));
     }
-    float2 f = float2(0);
     float flags = 9.0;
     for (int i = 0; i < 5; i++) {
         float x = -0.6 + 0.3 * float(i);

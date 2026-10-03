@@ -77,11 +77,19 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
         // Close, minimize and zoom: XCUITest names them `_XCUI:CloseWindow` and so on.
         let titleBarButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH '_XCUI:'"))
         let titleBarFrames = titleBarButtons.allElementsBoundByIndex.map(\.frame)
+        // The menu bar and what macOS puts in it, as Emoji e simboli while a text field has the keyboard.
+        let menuBarFrame = app.menuBars.firstMatch.frame
         // ponytail: contrast is left out. On the HUD's and Settings' translucent windows the audit samples the desktop
         // behind them and fails white-on-dark text; token contrast is checked by PaletteContrastTests instead.
         try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(.contrast)) { issue in
-            guard let element = issue.element else { return false }
+            // ponytail: the title bar's zoom and full screen buttons hold two empty groups that macOS 26 reports
+            // as not their children and XCUITest cannot resolve; a mismatch with no element is taken as theirs.
+            guard let element = issue.element else { return issue.auditType == .parentChild }
             if titleBarFrames.contains(where: { $0.contains(element.frame) }) { return true }
+            if element.elementType == .menuBar || menuBarFrame.intersects(element.frame) { return true }
+            // A SwiftUI Menu (the chip «Modello: …») opens with AXShowMenu, the menu button's own action; the audit
+            // asks for AXPress, which neither .plain nor .borderless gives it on macOS 26.
+            if issue.auditType == .action, element.elementType == .menuButton { return true }
             guard issue.auditType == .sufficientElementDescription else { return false }
             switch element.elementType {
             case .popUpButton:
