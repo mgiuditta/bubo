@@ -111,7 +111,7 @@ struct SearchIndexTests {
 
     @Test func anEmptyResultSaysSo() async throws {
         let index = try claude.open()
-        #expect(await index.toolResult(for: "nulla", project: nil) == "Nessun risultato nell'Indice.")
+        #expect(await index.toolResult(for: "nulla", project: nil) == SearchIndex.noResults)
     }
 
     @Test func projectNamesMatchClaudeCode() {

@@ -15647,6 +15647,16 @@
         }
       }
     },
+    "«%@» non è nel Secondo cervello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” isn't in your Second Brain."
+          }
+        }
+      }
+    },
     "«%@» resta, ma l'issue non si chiuderà da sola al merge." : {
       "localizations" : {
         "en" : {

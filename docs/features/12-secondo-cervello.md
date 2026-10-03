@@ -40,7 +40,8 @@ Architettura comune in [INDEX.md](INDEX.md). Dipende dall'Indice ([indice-semant
 - **Flusso**:
   1. Scelta della cartella → l'Indice la osserva con FSEvents e la indicizza in background.
   2. Turno di Claude → il modello chiama `cerca` → frammenti con percorso → riga "Richiamato" con Apri (apre la nota nell'app predefinita per `.md`).
-  3. "Ricordati questo" in una Domanda → `NoteWriter` → `Bubo/Note/AAAA-MM-GG Titolo.md` → nota trovabile con `cerca` entro 5 s.
+  3. Risposta con citazioni ([#546](https://github.com/mgiuditta/bubo/issues/546)): `cerca` dà a ogni nota la sua citazione, `[[percorso senza .md]]`, e chiede al modello di metterla dopo ogni affermazione che ne viene (per una Riunione col minuto, `[[…#12:40]]`); con 0 risultati il modello dice che nel Secondo cervello non c'è niente. Nella risposta della Domanda (HUD e bolla del Panel) le citazioni diventano link: aprono la nota in Obsidian (`obsidian://open?path=`) se la cartella è un vault e Obsidian è sul Mac, altrimenti in Quick Look.
+  4. "Ricordati questo" in una Domanda → `NoteWriter` → `Bubo/Note/AAAA-MM-GG Titolo.md` → nota trovabile con `cerca` entro 5 s.
 - **Casi limite**:
   - Cartella in iCloud Drive non scaricata o disco esterno scollegato: `NoteWriter` non scrive, avviso; l'Indice mantiene l'ultima copia.
   - Obsidian Sync o iCloud che portano modifiche da un altro Mac: FSEvents le vede come modifiche esterne.

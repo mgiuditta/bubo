@@ -113,6 +113,13 @@ final class QuestionModel {
         self.makeSpeaker = speaker.map { speaker in { speaker } } ?? { SpeechOutput() }
     }
 
+    /// Where the note `citation` cites opens, with Obsidian on the Mac or not; `nil` without a Secondo cervello or
+    /// when the note is not in it.
+    func destination(of citation: NoteCitation, hasObsidian: Bool) -> NoteDestination? {
+        guard let location = secondBrain?.location, let file = citation.file(inFolder: location.url) else { return nil }
+        return NoteDestination(file: file, isObsidianVault: location.isObsidianVault, hasObsidian: hasObsidian)
+    }
+
     /// The task answering the last Domanda, or waiting to ask it again.
     @ObservationIgnored private(set) var answering: Task<Void, Never>?
     @ObservationIgnored private let cli: ClaudeCLI
