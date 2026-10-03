@@ -5055,6 +5055,17 @@
         }
       }
     },
+    "Qualcuno ti pensa sempre." : {
+      "comment" : "Line under the Orb in a greeting meant for one person.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Someone is always thinking of you."
+          }
+        }
+      }
+    },
     "Quale cartella?" : {
       "localizations" : {
         "en" : {
