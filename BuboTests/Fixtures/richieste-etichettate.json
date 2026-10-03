@@ -1265,7 +1265,7 @@
       "testo": "Prepara un messaggio di benvenuto per un nuovo collega.",
       "tipo": "domanda.scrittura",
       "categoria": "mail",
-      "variante": null
+      "variante": "porta"
     },
     {
       "id": "r149",

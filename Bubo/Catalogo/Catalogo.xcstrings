@@ -91,6 +91,24 @@
         }
       }
     },
+    "appendiporta" : {
+      "comment" : "Etichetta della Variante appendiporta (Categoria Mail): un cartellino da maniglia con il foro in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Door hanger"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appendiporta"
+          }
+        }
+      }
+    },
     "arcobaleno" : {
       "comment" : "Etichetta della Variante arcobaleno (Categoria Meteo): un arcobaleno a tre fasce.",
       "extractionState" : "manual",
@@ -177,6 +195,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Barattolo"
+          }
+        }
+      }
+    },
+    "bersaglio" : {
+      "comment" : "Etichetta della Variante bersaglio (Categoria Ricerca): un bersaglio a tre anelli con una freccia al centro.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Target"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bersaglio"
           }
         }
       }
@@ -289,6 +325,24 @@
         }
       }
     },
+    "borraccia" : {
+      "comment" : "Etichetta della Variante borraccia (Categoria Salute): una borraccia con il tappo a beccuccio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Water bottle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borraccia"
+          }
+        }
+      }
+    },
     "borsa-ghiaccio" : {
       "comment" : "Etichetta della Variante borsa-ghiaccio (Categoria Salute): una borsa del ghiaccio con il tappo.",
       "extractionState" : "manual",
@@ -397,6 +451,24 @@
         }
       }
     },
+    "canarino" : {
+      "comment" : "Etichetta della Variante canarino (Categoria Codice): un canarino seduto di profilo su un posatoio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canary"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Canarino"
+          }
+        }
+      }
+    },
     "carota" : {
       "comment" : "Etichetta della Variante carota (Categoria Salute): una carota con il ciuffo.",
       "extractionState" : "manual",
@@ -483,6 +555,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Carte"
+          }
+        }
+      }
+    },
+    "casa" : {
+      "comment" : "Etichetta della Variante casa (Categoria Finanza): una casetta con il tetto a punta e il camino.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "House"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casa"
           }
         }
       }
@@ -829,6 +919,24 @@
         }
       }
     },
+    "cornice" : {
+      "comment" : "Etichetta della Variante cornice (Categoria Creativo): una cornice rettangolare con il bordo spesso.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Picture frame"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cornice"
+          }
+        }
+      }
+    },
     "cronometro" : {
       "comment" : "Etichetta della Variante cronometro (Categoria Tempo): un cronometro tondo con il pulsante in alto.",
       "extractionState" : "manual",
@@ -915,6 +1023,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Database"
+          }
+        }
+      }
+    },
+    "domino" : {
+      "comment" : "Etichetta della Variante domino (Categoria Agente): tre tessere del domino, l'ultima inclinata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domino"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Domino"
           }
         }
       }
@@ -1095,6 +1221,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Forchetta"
+          }
+        }
+      }
+    },
+    "formaggio" : {
+      "comment" : "Etichetta della Variante formaggio (Categoria Chat): uno spicchio di formaggio con i buchi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cheese"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formaggio"
           }
         }
       }
@@ -1549,6 +1693,24 @@
         }
       }
     },
+    "lucchetto" : {
+      "comment" : "Etichetta della Variante lucchetto (Categoria Codice): un lucchetto chiuso con l'arco tondo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Padlock"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lucchetto"
+          }
+        }
+      }
+    },
     "lumaca" : {
       "comment" : "Etichetta della Variante lumaca (Categoria Codice): una lumaca di profilo con il guscio a spirale.",
       "extractionState" : "manual",
@@ -1725,6 +1887,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Meridiana"
+          }
+        }
+      }
+    },
+    "metronomo" : {
+      "comment" : "Etichetta della Variante metronomo (Categoria Musica): un metronomo a piramide con l'asta oscillante.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metronome"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metronomo"
           }
         }
       }
@@ -1927,6 +2107,42 @@
         }
       }
     },
+    "orso" : {
+      "comment" : "Etichetta della Variante orso (Categoria Finanza): un orso di profilo con la testa bassa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bear"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orso"
+          }
+        }
+      }
+    },
+    "osso" : {
+      "comment" : "Etichetta della Variante osso (Categoria Salute): un osso con le due estremità tonde.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bone"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Osso"
+          }
+        }
+      }
+    },
     "pacco" : {
       "comment" : "Etichetta della Variante pacco (Categoria Codice): una scatola di cartone chiusa.",
       "extractionState" : "manual",
@@ -2017,6 +2233,42 @@
         }
       }
     },
+    "passaporto" : {
+      "comment" : "Etichetta della Variante passaporto (Categoria Viaggi): un passaporto chiuso con un globo in copertina.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passport"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passaporto"
+          }
+        }
+      }
+    },
+    "pendolo" : {
+      "comment" : "Etichetta della Variante pendolo (Categoria Tempo): un pendolo con l'asta e il disco in basso.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pendulum"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pendolo"
+          }
+        }
+      }
+    },
     "pennello" : {
       "comment" : "Etichetta della Variante pennello (Categoria Creativo): un pennello.",
       "extractionState" : "manual",
@@ -2031,6 +2283,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pennello"
+          }
+        }
+      }
+    },
+    "pennino" : {
+      "comment" : "Etichetta della Variante pennino (Categoria Creativo): un pennino da grafica con due maniglie di curva.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pen nib"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pennino"
           }
         }
       }
@@ -2071,6 +2341,24 @@
         }
       }
     },
+    "pi-greco" : {
+      "comment" : "Etichetta della Variante pi-greco (Categoria Chat): il simbolo pi greco in rilievo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pi greco"
+          }
+        }
+      }
+    },
     "pianoforte" : {
       "comment" : "Etichetta della Variante pianoforte (Categoria Musica): un pianoforte a coda di profilo con il coperchio aperto.",
       "extractionState" : "manual",
@@ -2085,6 +2373,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pianoforte"
+          }
+        }
+      }
+    },
+    "piccone" : {
+      "comment" : "Etichetta della Variante piccone (Categoria Ricerca): un piccone con la testa a mezzaluna e il manico.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pickaxe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piccone"
           }
         }
       }
@@ -2197,6 +2503,24 @@
         }
       }
     },
+    "porta" : {
+      "comment" : "Etichetta della Variante porta (Categoria Mail): una porta socchiusa con la maniglia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Door"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Porta"
+          }
+        }
+      }
+    },
     "portafoglio" : {
       "comment" : "Etichetta della Variante portafoglio (Categoria Finanza): un portafoglio piegato con una banconota che sporge.",
       "extractionState" : "manual",
@@ -2247,6 +2571,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Punto interrogativo"
+          }
+        }
+      }
+    },
+    "puzzle" : {
+      "comment" : "Etichetta della Variante puzzle (Categoria Codice): un tassello di puzzle con due sporgenze e due incavi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puzzle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puzzle"
           }
         }
       }
@@ -2463,6 +2805,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Scontrino"
+          }
+        }
+      }
+    },
+    "scopa" : {
+      "comment" : "Etichetta della Variante scopa (Categoria Codice): una scopa di saggina con il manico lungo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Broom"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scopa"
           }
         }
       }
@@ -2719,6 +3079,24 @@
         }
       }
     },
+    "tabella" : {
+      "comment" : "Etichetta della Variante tabella (Categoria Codice): una griglia di tre righe per tre colonne con l'intestazione più spessa.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Table"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tabella"
+          }
+        }
+      }
+    },
     "tamburo" : {
       "comment" : "Etichetta della Variante tamburo (Categoria Musica): un tamburo con due bacchette incrociate.",
       "extractionState" : "manual",
@@ -2845,6 +3223,24 @@
         }
       }
     },
+    "tornado" : {
+      "comment" : "Etichetta della Variante tornado (Categoria Meteo): un vortice a imbuto più largo in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tornado"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tornado"
+          }
+        }
+      }
+    },
     "torta" : {
       "comment" : "Etichetta della Variante torta (Categoria Tempo): una torta a due piani con le candeline.",
       "extractionState" : "manual",
@@ -2859,6 +3255,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Torta"
+          }
+        }
+      }
+    },
+    "traguardo" : {
+      "comment" : "Etichetta della Variante traguardo (Categoria Agente): una bandiera a scacchi su un'asta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finish line"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traguardo"
           }
         }
       }
@@ -2985,6 +3399,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Violino"
+          }
+        }
+      }
+    },
+    "zaino" : {
+      "comment" : "Etichetta della Variante zaino (Categoria Viaggi): uno zaino con le tasche laterali.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Backpack"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zaino"
           }
         }
       }
