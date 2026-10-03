@@ -15,6 +15,8 @@ nonisolated struct Forma: RawRepresentable, Hashable, Sendable {
     static let blob = Forma(rawValue: "blob")
     /// The orbital diagram of the Orbite; it has no Variante in the Catalogo.
     static let orbite = Forma(rawValue: "orbite")
+    /// The owl of Bubo's Segno, the Orb's greeting; it has no Variante in the Catalogo.
+    static let gufo = Forma(rawValue: "gufo")
 
     /// The prefix of every Forma's fragment function in the shader library.
     static let fragmentFunctionPrefix = "forma_"

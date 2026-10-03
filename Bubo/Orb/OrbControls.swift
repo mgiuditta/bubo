@@ -31,7 +31,26 @@ final class OrbControls {
         variante = chosen
     }
 
-    /// The wait before the Orb goes back from the Orbite to the Blob.
+    /// Whether the Orb has already greeted as the owl since launch.
+    @ObservationIgnored private var hasGreeted = false
+
+    /// Greets once per launch: the Orb turns into the owl of the Segno, then goes back to the Blob on its own.
+    ///
+    /// Later calls change nothing, and so does a call while the Orb already shows a Variante.
+    /// - Parameter reducesMotion: Whether the owl fades in instead of morphing.
+    func greet(reducesMotion: Bool = Motion.isReduced) {
+        guard !hasGreeted, variante == nil else { return }
+        hasGreeted = true
+        variante = Gufo.variante
+        orbiteReturn?.cancel()
+        orbiteReturn = Task {
+            try? await Task.sleep(for: .seconds(Gufo.returnDelay(reducesMotion: reducesMotion)))
+            guard !Task.isCancelled, variante == Gufo.variante else { return }
+            variante = nil
+        }
+    }
+
+    /// The wait before the Orb goes back from the Orbite, or the owl, to the Blob.
     @ObservationIgnored private var orbiteReturn: Task<Void, Never>?
 
     /// Plays the Orbite: the Orb turns into the orbital diagram, then goes back to the Blob on its own.

@@ -279,6 +279,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { [meetings] in await meetings.removeExpiredAudio() }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
+            // The first opening after launch: the Orb greets as the owl of the Segno, then back to the Blob.
+            OrbControls.shared.greet()
             Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
