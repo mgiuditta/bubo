@@ -40,7 +40,7 @@ final class OrbPanelController {
     /// How the pill appears, read from Riduci movimento each time it comes back.
     private(set) var statusAppearance = PanelBubbleAppearance.grow
 
-    /// Creates the Panel, off screen until ``start(openingHUD:menu:questions:hud:sessions:)``.
+    /// Creates the Panel, off screen until ``start(openingHUD:menu:questions:hud:sessions:meetings:)``.
     init() {
         UserDefaults.standard.register(defaults: [Self.defaultsKey: true])
         isShown = UserDefaults.standard.bool(forKey: Self.defaultsKey)
@@ -53,7 +53,7 @@ final class OrbPanelController {
         }
     }
 
-    /// Builds the window and starts following the HUD and the Panel's occlusion.
+    /// Builds the window and starts following the HUD, the Panel's occlusion and the Riunioni.
     ///
     /// - Parameters:
     ///   - openHUD: Called when the Orb is clicked or pressed by VoiceOver.
@@ -62,8 +62,9 @@ final class OrbPanelController {
     ///   - hud: Where the bubble's "Rifai con…" and Sessione go.
     ///   - sessions: The Sessioni whose Attende te and Errore the status pill and VoiceOver tell; `nil` when they
     ///     cannot be kept.
+    ///   - meetings: The Riunioni, whose recording puts a red dot on the Orb.
     func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter,
-               sessions: SessionStore?) {
+               sessions: SessionStore?, meetings: MeetingRecorder) {
         self.openHUD = openHUD
         let frame = CGRect(origin: .zero, size: CGSize(width: size.side, height: size.side))
         let panel = OrbPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
@@ -111,6 +112,11 @@ final class OrbPanelController {
         self.view = view
         startBubble(questions: questions, hud: hud)
         startStatus(questions: questions, hud: hud, sessions: sessions)
+        Task { [weak self] in
+            for await isRecording in Observations({ meetings.isRecording }) {
+                self?.view?.isRecordingMeeting = isRecording
+            }
+        }
         moveToRememberedSpot()
 
         // A screen plugged, unplugged or rearranged: back to the remembered spot, or to the main screen.

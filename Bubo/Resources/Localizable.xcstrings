@@ -3440,6 +3440,16 @@
         }
       }
     },
+    "Bubo trascrive di nuovo la Riunione sul Mac." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo is transcribing the Meeting again on the Mac."
+          }
+        }
+      }
+    },
     "Bubo trascrive e riassume la Riunione sul Mac…" : {
       "localizations" : {
         "en" : {
@@ -4706,6 +4716,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Removed by Bubo"
+          }
+        }
+      }
+    },
+    "Trascrive e riassume di nuovo la Riunione dall'audio salvato sul Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribes and summarizes the Meeting again from the audio saved on the Mac"
           }
         }
       }

@@ -135,3 +135,89 @@ struct MeetingNoteTests {
         #expect(MeetingAudioRetention.saved(in: defaults) == .afterTranscription)
     }
 }
+
+/// A model that answers each piece with an action quoting the piece's last line, keeping every prompt it read.
+@MainActor
+final class FakeMeetingEngine: SummaryEngine {
+    let needsNetwork = false
+    private(set) var prompts: [(prompt: String, instructions: String)] = []
+
+    func summary(of input: SummaryInput) async throws -> SessionSummary { throw SummaryEngineError.unavailable }
+
+    func shortText(for prompt: String, following instructions: String, session: UUID) async throws -> String {
+        prompts.append((prompt, instructions))
+        let last = prompt.split(whereSeparator: \.isNewline).last.map(String.init) ?? ""
+        return "## Riassunto\n## Decisioni\n## Azioni\n- \(last.trimmingPrefix("- "))\n"
+    }
+}
+
+@MainActor
+@Suite(.timeLimit(.minutes(1)))
+struct MeetingRecorderTests {
+    @Test func aSixtyMinuteRiunioneIsSummarizedInPiecesUpToItsLastPart() async throws {
+        // One line every 10 seconds for an hour: about 40,000 characters.
+        let transcript = (0..<360).map { index in
+            MeetingLine(speaker: index.isMultiple(of: 2) ? .me : .others, start: .seconds(index * 10),
+                        text: "Frase numero \(index) della Riunione, con qualche parola in più per farla lunga.")
+        }
+        let text = transcript.map(\.markdown).joined(separator: "\n")
+        let engine = FakeMeetingEngine()
+
+        let answer = try await MeetingRecorder.summaryText(of: text, by: engine)
+
+        #expect(text.count > 30_000)
+        #expect(engine.prompts.allSatisfy { $0.prompt.count <= MeetingRecorder.pieceLimit })
+        #expect(engine.prompts.contains { $0.prompt.contains("Frase numero 359 ") })
+        #expect(engine.prompts.last?.instructions == MeetingSummary.joiningInstructions)
+        #expect(answer.contains("Frase numero 359 "))
+    }
+
+    @Test func aShortRiunioneIsSummarizedAtOnce() async throws {
+        let engine = FakeMeetingEngine()
+
+        _ = try await MeetingRecorder.summaryText(of: "**[0:00:01] Io:** Ciao.", by: engine)
+
+        #expect(engine.prompts.count == 1)
+        #expect(engine.prompts.first?.instructions == MeetingSummary.instructions)
+    }
+
+    @Test func piecesKeepEveryCharacterAndStayWithinTheLimit() {
+        let text = ["corta", String(repeating: "x", count: 25), "altra riga"].joined(separator: "\n")
+
+        let pieces = MeetingSummary.pieces(of: text, limit: 10)
+
+        #expect(pieces.allSatisfy { $0.count <= 10 })
+        #expect(pieces.joined().filter { $0 != "\n" } == text.filter { $0 != "\n" })
+    }
+
+    @Test func retryWritesTheNoteFromTheKeptAudioAfterAFailure() async throws {
+        let folder = try NotesFolder()
+        let defaults = try #require(UserDefaults(suiteName: "MeetingRecorderTests-\(UUID().uuidString)"))
+        let secondBrain = SecondBrain(index: nil, defaults: defaults)
+        secondBrain.choose(folder.notes)
+        var failsNext = true
+        let recorder = MeetingRecorder(secondBrain: secondBrain, engines: [FakeMeetingEngine()], store: nil,
+                                       defaults: defaults) { _, speaker throws(MeetingFailure) in
+            if failsNext {
+                failsNext = false
+                throw .transcriptionFailed
+            }
+            return [MeetingLine(speaker: speaker, start: .seconds(1), text: "Partiamo.")]
+        }
+        let recording = MeetingRecorder.Recording(title: "Prova", app: nil, start: .now,
+                                                  folder: folder.claude.folder)
+
+        await recorder.process(recording, lasting: .seconds(60))
+        #expect(recorder.phase == .failed(.transcriptionFailed))
+        #expect(recorder.canRetry)
+
+        await recorder.retry()
+
+        guard case let .saved(file) = recorder.phase else {
+            Issue.record("Not saved: \(recorder.phase)")
+            return
+        }
+        #expect(try String(contentsOf: file, encoding: .utf8).contains("Partiamo."))
+        #expect(!recorder.canRetry)
+    }
+}
