@@ -82,4 +82,75 @@ struct SecondBrainProfileTests {
         #expect(answer.hasSuffix(SearchIndex.citationRule))
         #expect(!alone.contains("una sola domanda"))
     }
+
+    @Test func peopleAndProjectsOfTheProfileComeFirstInCerca() async throws {
+        try folder.write("lemure lemure lemure lemure", to: "Note/a.md")
+        try folder.write("un lemure citato da Giulia Rossì, in mezzo a tante altre parole della nota", to: "Note/b.md")
+        try folder.write("un lemure per il progetto Quasar, in mezzo a tante altre parole della nota", to: "Note/c.md")
+        try folder.write("un lemure adattato da Giulia, in mezzo a tante altre parole della nota", to: "Note/d.md")
+        let index = try folder.claude.open()
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        for word in ["citato", "quasar", "adattato"] { #expect(try await waitUntil(word, in: index)) }
+        let before = try await index.hits(for: "lemure").map(\.path)
+        #expect(before.first?.hasSuffix("Note/a.md") == true)
+
+        await index.prioritize([], names: ["giulia rossi", "Quasar", "Ada"])
+        let after = try await index.hits(for: "lemure").map(\.path)
+
+        let named = after.prefix(2).map { ($0 as NSString).lastPathComponent }
+        #expect(Set(named) == ["b.md", "c.md"])
+        #expect(Array(after.dropFirst(2)) == before.filter { !$0.hasSuffix("b.md") && !$0.hasSuffix("c.md") })
+    }
+
+    @Test func priorityFoldersComeBeforeTheNamesOfTheProfile() async throws {
+        try folder.write("un capibara per Quasar, in mezzo a tante altre parole della nota", to: "Archivio/a.md")
+        try folder.write("un capibara qualunque, in mezzo a tante altre parole della nota", to: "Lavoro/b.md")
+        let index = try folder.claude.open()
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        for word in ["quasar", "qualunque"] { #expect(try await waitUntil(word, in: index)) }
+
+        await index.prioritize(["Lavoro"], names: ["Quasar"])
+        let hits = try await index.hits(for: "capibara").map(\.path)
+
+        #expect(hits.count == 2)
+        #expect(hits.first?.hasSuffix("Lavoro/b.md") == true)
+    }
+
+    @Test func thePeopleAndProjectsAreSavedInTheProfile() throws {
+        let defaults = try #require(UserDefaults(suiteName: "SecondBrainProfileTests-\(UUID().uuidString)"))
+        let secondBrain = SecondBrain(index: nil, defaults: defaults)
+        secondBrain.choose(folder.notes)
+
+        secondBrain.prioritize(people: SecondBrainLocation.names(in: " Giulia Rossi, marco,,Marco , "),
+                               projects: SecondBrainLocation.names(in: "Bubo"))
+
+        let saved = SecondBrain(index: nil, defaults: defaults).location
+        #expect(saved?.people == ["Giulia Rossi", "marco"])
+        #expect(saved?.projects == ["Bubo"])
+    }
+
+    @Test func aRiunioneProposesFirstTheAppOfTheChosenServices() {
+        let apps = [MeetingApp(name: "Note", bundleID: "com.apple.Notes"),
+                    MeetingApp(name: "Safari", bundleID: "com.apple.Safari"),
+                    MeetingApp(name: "Zoom", bundleID: "us.zoom.xos")]
+
+        #expect(CallService.preferredApp(among: apps, services: [.meet])?.name == "Safari")
+        #expect(CallService.preferredApp(among: apps, services: [])?.name == "Safari")
+        #expect(CallService.preferredApp(among: apps, services: [.teams, .zoom])?.name == "Zoom")
+        #expect(CallService.preferredApp(among: Array(apps.prefix(1)), services: [.zoom]) == nil)
+    }
+
+    @Test func theAnswersAboutTheRiunioniAreSaved() throws {
+        let defaults = try #require(UserDefaults(suiteName: "SecondBrainProfileTests-\(UUID().uuidString)"))
+        #expect(MeetingLanguage.saved(in: defaults) == .current)
+        #expect(CallService.saved(in: defaults).isEmpty)
+
+        defaults.set("en", forKey: MeetingLanguage.defaultsKey)
+        CallService.save([.teams, .zoom], in: defaults)
+
+        #expect(MeetingLanguage.saved(in: defaults).identifier == "en")
+        #expect(CallService.saved(in: defaults) == [.zoom, .teams])
+    }
 }

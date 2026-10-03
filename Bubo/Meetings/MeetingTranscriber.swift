@@ -2,7 +2,8 @@ import AVFoundation
 import os
 import Speech
 
-/// Transcribes a Riunione's track on the Mac with `SpeechAnalyzer` and `SpeechTranscriber`, in the Mac's language.
+/// Transcribes a Riunione's track on the Mac with `SpeechAnalyzer` and `SpeechTranscriber`, in the main language of
+/// the Riunioni.
 ///
 /// Nothing goes to the network but the one-time download of the language model.
 nonisolated enum MeetingTranscriber {
@@ -36,9 +37,9 @@ nonisolated enum MeetingTranscriber {
         }
     }
 
-    /// The transcriber of the Mac's language, its model downloaded first if needed.
+    /// The transcriber of the main language of the Riunioni, its model downloaded first if needed.
     private static func transcriber() async throws(MeetingFailure) -> SpeechTranscriber {
-        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: .current) else {
+        guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: MeetingLanguage.saved()) else {
             throw .languageUnsupported
         }
         let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)

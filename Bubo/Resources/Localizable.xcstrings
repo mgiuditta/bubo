@@ -3368,12 +3368,12 @@
         }
       }
     },
-    "Bubo non può trascrivere la lingua del Mac. L'audio è salvato sul Mac." : {
+    "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua delle Riunioni." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bubo can't transcribe the Mac's language. The audio is saved on the Mac."
+            "value" : "Bubo can't transcribe this language. The audio is saved on the Mac. Choose another Meeting language."
           }
         }
       }
@@ -3579,6 +3579,16 @@
         }
       }
     },
+    "Bubo, Sito nuovo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo, New website"
+          }
+        }
+      }
+    },
     "Budget" : {
       "localizations" : {
         "en" : {
@@ -3662,6 +3672,16 @@
         }
       }
     },
+    "Che app usi per le Riunioni?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which apps do you use for Meetings?"
+          }
+        }
+      }
+    },
     "Che cosa deve fare Claude?" : {
       "localizations" : {
         "en" : {
@@ -3708,6 +3728,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New components"
+          }
+        }
+      }
+    },
+    "Con chi lavori più spesso?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who do you work with most?"
           }
         }
       }
@@ -4025,6 +4055,16 @@
         }
       }
     },
+    "Giulia Rossi, Marco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alex Chen, Sam"
+          }
+        }
+      }
+    },
     "Già nel Secondo cervello: %@." : {
       "localizations" : {
         "en" : {
@@ -4268,6 +4308,16 @@
         }
       }
     },
+    "In che lingua sono le Riunioni?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What language are your Meetings in?"
+          }
+        }
+      }
+    },
     "In pausa: l'agente «%@» non c'è più. Ripristina il file o scegli un altro agente in Modifica, poi Riprendi." : {
       "localizations" : {
         "en" : {
@@ -4308,6 +4358,16 @@
         }
       }
     },
+    "L'audio resta sul Mac, mai nel Secondo cervello. Nella nota c'è sempre la trascrizione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Audio stays on the Mac, never in your second brain. The note always has the transcript."
+          }
+        }
+      }
+    },
     "L'autore non ha cambiato versione: questa è già l'ultima che pubblica." : {
       "localizations" : {
         "en" : {
@@ -4324,6 +4384,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Delivery couldn't be written. Try again."
+          }
+        }
+      }
+    },
+    "La lingua del Mac" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Same as Mac"
           }
         }
       }
@@ -4435,6 +4505,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "I read your notes only when I search them, and I write only in the Bubo folder. Obsidian can stay closed."
+          }
+        }
+      }
+    },
+    "Lingua delle Riunioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meeting language"
           }
         }
       }
@@ -4579,6 +4659,16 @@
         }
       }
     },
+    "Nomi separati da virgole. Le note che li nominano vengono prima nella ricerca." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Separate names with commas. Notes that mention them rank higher in search."
+          }
+        }
+      }
+    },
     "Non si revoca, non scade e non avvisa quando la apre." : {
       "localizations" : {
         "en" : {
@@ -4625,6 +4715,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "A small Orb in a corner, with the chat in the bubble. Applies only to the screen the Panel is on now."
+          }
+        }
+      }
+    },
+    "Otto domande, meno di un minuto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eight questions, under a minute."
           }
         }
       }
@@ -4695,12 +4795,32 @@
         }
       }
     },
+    "Per quanto tengo l'audio delle Riunioni?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How long should I keep Meeting audio?"
+          }
+        }
+      }
+    },
     "Percorsi del Mac, diventati %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Paths on this Mac, now %@"
+          }
+        }
+      }
+    },
+    "Persone" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "People"
           }
         }
       }
@@ -4771,6 +4891,16 @@
         }
       }
     },
+    "Quali progetti segui?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which projects are you working on?"
+          }
+        }
+      }
+    },
     "Quando la ricerca trova note in cartelle diverse, quelle scelte qui vengono prima. Puoi cambiarle in Impostazioni." : {
       "localizations" : {
         "en" : {
@@ -4787,6 +4917,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "When a search finds notes in different folders, these come first."
+          }
+        }
+      }
+    },
+    "Quando registri una Riunione, propongo prima queste app. Ho già attivato quelle installate." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When you record a Meeting, I suggest these apps first. The installed ones are already on."
           }
         }
       }
@@ -5228,12 +5368,12 @@
         }
       }
     },
-    "Tre passi, meno di un minuto." : {
+    "Trascrivo le Riunioni sul Mac, in questa lingua. La prima volta scarico il modello." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Three steps, under a minute."
+            "value" : "I transcribe Meetings on the Mac, in this language. The first time, I download the model."
           }
         }
       }
@@ -5278,12 +5418,12 @@
         }
       }
     },
-    "Vault di Obsidian trovati: %lld. Tre passi, meno di un minuto." : {
+    "Vault di Obsidian trovati: %lld. Otto domande, meno di un minuto." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obsidian vaults found: %lld. Three steps, under a minute."
+            "value" : "Obsidian vaults found: %lld. Eight questions, under a minute."
           }
         }
       }

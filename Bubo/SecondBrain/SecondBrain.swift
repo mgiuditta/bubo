@@ -82,7 +82,16 @@ final class SecondBrain {
         guard var location, Set(location.priorityFolders) != relativePaths else { return }
         location.priorityFolders = relativePaths.sorted()
         remember(location)
-        sendPriorityFolders()
+        sendProfile()
+    }
+
+    /// Makes `cerca` put first the notes naming one of `people` or `projects`, as the guided setup answers.
+    func prioritize(people: [String], projects: [String]) {
+        guard var location, location.people != people || location.projects != projects else { return }
+        location.people = people
+        location.projects = projects
+        remember(location)
+        sendProfile()
     }
 
     /// How full the Indice is; `nil` until first read.
@@ -165,19 +174,20 @@ final class SecondBrain {
         following?.cancel()
         let folder = location?.url
         let excludedFolders = Set(location?.excludedFolders ?? [])
-        sendPriorityFolders()
+        sendProfile()
         following = Task(priority: .utility) { [index] in
             await index?.keepSecondBrainFresh(at: folder, excluding: excludedFolders)
         }
     }
 
-    /// Hands the Indice the folders `cerca` puts first, without reading the notes again.
-    private func sendPriorityFolders() {
+    /// Hands the Indice the folders and the names `cerca` puts first, without reading the notes again.
+    private func sendProfile() {
         let priorityFolders = Set(location?.priorityFolders ?? [])
+        let names = (location?.people ?? []) + (location?.projects ?? [])
         // Chained, so the Indice ends with the last choice even when two are sent in a row.
         prioritizing = Task { [index, previous = prioritizing] in
             await previous?.value
-            await index?.prioritize(priorityFolders)
+            await index?.prioritize(priorityFolders, names: names)
         }
     }
 }

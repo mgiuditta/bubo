@@ -41,9 +41,9 @@ struct SecondBrainSettingsSection: View {
                 } label: {
                     Text("Nessuna cartella scelta")
                     if vaultCount == 0 {
-                        Text("Tre passi, meno di un minuto.")
+                        Text("Otto domande, meno di un minuto.")
                     } else {
-                        Text("Vault di Obsidian trovati: \(vaultCount). Tre passi, meno di un minuto.")
+                        Text("Vault di Obsidian trovati: \(vaultCount). Otto domande, meno di un minuto.")
                     }
                 }
             }

@@ -132,6 +132,8 @@ actor SearchIndex {
     private var excludedFolders: Set<String> = []
     /// Folders of the Secondo cervello whose notes a search puts first, relative to it.
     private var priorityFolders: Set<String> = []
+    /// The people and projects of the profile, as folded words: `cerca` puts first the notes naming them.
+    private var profileNames: [[String]] = []
     /// The real path of the `~/.claude` folder.
     private let root: String
     private let connection: OpaquePointer
@@ -163,30 +165,52 @@ actor SearchIndex {
     /// - Parameter project: A Progetto's folder; when given, only its memory is searched.
     /// - Parameter source: When given, only the files from there are searched.
     /// - Parameter limit: At most this many fragments. The notes in the folders put first come before the others,
-    ///   each group keeping its order.
+    ///   then the notes naming a person or project of the profile, each group keeping its order.
     func hits(for text: String, project: String? = nil, source: SearchSource? = nil, limit: Int = 8) async throws -> [SearchHit] {
-        guard !priorityFolders.isEmpty, let secondBrain else {
+        guard !priorityFolders.isEmpty || !profileNames.isEmpty, let secondBrain else {
             return try await rankedHits(for: text, project: project, source: source, limit: limit)
         }
         let folder = Self.realPath(secondBrain)
         let ranked = try await rankedHits(for: text, project: project, source: source, limit: Self.candidates)
-        let first = ranked.filter { Self.isNote($0, inside: priorityFolders, of: folder) }
-        let rest = ranked.filter { !Self.isNote($0, inside: priorityFolders, of: folder) }
-        return Array((first + rest).prefix(limit))
+        func weight(_ hit: SearchHit) -> Int {
+            guard hit.source == .secondBrain, hit.path.hasPrefix(folder + "/") else { return 0 }
+            return (Self.isNote(hit, inside: priorityFolders, of: folder) ? 2 : 0)
+                + (Self.names(profileNames, in: hit) ? 1 : 0)
+        }
+        // Grouped by weight, highest first; `sorted` is stable, so each group keeps its order.
+        return Array(ranked.map { ($0, weight($0)) }.sorted { $0.1 > $1.1 }.map(\.0).prefix(limit))
     }
 
-    /// Makes ``hits(for:project:source:limit:)`` put first the notes of `folders`, relative to the Secondo cervello.
-    func prioritize(_ folders: Set<String>) {
+    /// Makes ``hits(for:project:source:limit:)`` put first the notes of `folders`, relative to the Secondo cervello,
+    /// then the notes naming one of `names`: the people and projects of the profile.
+    func prioritize(_ folders: Set<String>, names: [String] = []) {
         priorityFolders = folders
+        profileNames = names.map(Self.words(of:)).filter { !$0.isEmpty }
     }
 
-    /// Whether `hit` is a note of the Secondo cervello at `folder` inside one of `folders`, relative to it.
+    /// Whether `folders` holds the note of `hit`, relative to the Secondo cervello at `folder`.
     ///
     /// Folders compare by whole names: `Lavoro` does not hold `Lavoro2/a.md`.
     private static func isNote(_ hit: SearchHit, inside folders: Set<String>, of folder: String) -> Bool {
-        guard hit.source == .secondBrain, hit.path.hasPrefix(folder + "/") else { return false }
         let parts = hit.path.dropFirst(folder.count + 1).split(separator: "/").dropLast()
         return folders.contains { parts.starts(with: $0.split(separator: "/")) }
+    }
+
+    /// Whether the fragment of `hit` or its note's name holds one of `names` as whole words, whatever the case and
+    /// accents: `Ada` names neither `adattare` nor `Adamo`.
+    private static func names(_ names: [[String]], in hit: SearchHit) -> Bool {
+        guard !names.isEmpty else { return false }
+        let words = Self.words(of: hit.text + " " + (hit.path as NSString).lastPathComponent)
+        return names.contains { name in
+            words.indices.contains { words[$0...].starts(with: name) }
+        }
+    }
+
+    /// The words of `text`, folded so that case and accents do not count.
+    private static func words(of text: String) -> [String] {
+        text.folding(options: [.caseInsensitive, .diacriticInsensitive], locale: nil)
+            .split { !$0.isLetter && !$0.isNumber }
+            .map(String.init)
     }
 
     /// Returns up to `limit` fragments matching `text`, best first, as ``hits(for:project:source:limit:)`` does

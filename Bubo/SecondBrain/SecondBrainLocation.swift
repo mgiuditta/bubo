@@ -12,6 +12,10 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
     var excludedFolders: [String] = []
     /// Folders whose notes `cerca` puts first, relative to the Secondo cervello, sorted.
     var priorityFolders: [String] = []
+    /// The people the user often works with, by name: `cerca` puts first the notes that name them.
+    var people: [String] = []
+    /// The projects the user follows, by name: `cerca` puts first the notes that name them.
+    var projects: [String] = []
 
     /// Creates the location of `folder`.
     init(folder: URL) {
@@ -19,13 +23,15 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
         bookmark = try? folder.bookmarkData(options: [], includingResourceValuesForKeys: nil, relativeTo: nil)
     }
 
-    /// Decodes a saved choice, also one saved before folders could be excluded or put first.
+    /// Decodes a saved choice, also one saved before folders could be excluded or put first, or people and projects named.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         path = try container.decode(String.self, forKey: .path)
         bookmark = try container.decodeIfPresent(Data.self, forKey: .bookmark)
         excludedFolders = try container.decodeIfPresent([String].self, forKey: .excludedFolders) ?? []
         priorityFolders = try container.decodeIfPresent([String].self, forKey: .priorityFolders) ?? []
+        people = try container.decodeIfPresent([String].self, forKey: .people) ?? []
+        projects = try container.decodeIfPresent([String].self, forKey: .projects) ?? []
     }
 
     /// The folder.
@@ -58,6 +64,8 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
         var moved = SecondBrainLocation(folder: folder)
         moved.excludedFolders = excludedFolders
         moved.priorityFolders = priorityFolders
+        moved.people = people
+        moved.projects = projects
         return moved
     }
 
@@ -79,6 +87,14 @@ nonisolated struct SecondBrainLocation: Codable, Equatable, Sendable {
             .map(\.lastPathComponent)
             .filter { $0 != "Bubo" }
             .sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+    }
+
+    /// The names in `text`, as the guided setup asks them: separated by commas, without blanks or repeats.
+    static func names(in text: String) -> [String] {
+        var seen = Set<String>()
+        return text.split(separator: ",")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty && seen.insert($0.lowercased()).inserted }
     }
 
     // MARK: Saved choice

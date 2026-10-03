@@ -12,7 +12,7 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
     case appAudioDenied
     /// The chosen app, named, has no audio for Core Audio yet.
     case appSilent(String)
-    /// The Mac's language cannot be transcribed.
+    /// The main language of the Riunioni cannot be transcribed.
     case languageUnsupported
     /// The transcription stopped; the audio is kept.
     case transcriptionFailed
@@ -35,7 +35,7 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
         case let .appSilent(app):
             "\(app) non sta riproducendo audio. Entra nella chiamata e riprova."
         case .languageUnsupported:
-            "Bubo non può trascrivere la lingua del Mac. L'audio è salvato sul Mac."
+            "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua delle Riunioni."
         case .transcriptionFailed:
             "Trascrizione non riuscita. L'audio è salvato sul Mac."
         case .noteNotWritten:
