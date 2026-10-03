@@ -51,6 +51,11 @@ while IFS= read -r -d '' service; do
     fail "${service#$app/}: servizio XPC nel bundle"
 done < <(find $app -name '*.xpc' -print0)
 
+# Un link simbolico rotto (es. XPCServices del framework di Sparkle) fa fallire codesign --verify --strict.
+while IFS= read -r -d '' link; do
+    [[ -e $link ]] || fail "${link#$app/}: link simbolico rotto"
+done < <(find $app -type l -print0)
+
 for relative in ${(k)allowed}; do
     [[ -f $app/$relative ]] || fail "$relative manca nel bundle"
 done
