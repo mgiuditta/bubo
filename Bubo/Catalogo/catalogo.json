@@ -3016,6 +3016,174 @@
       "categoria": "musica",
       "descrizione": "Quando si parla di batteria della band: groove, rock, pop.",
       "parole": ["batteria", "drums", "drummer", "batterista", "groove", "rock", "ritmo", "band"]
+    },
+    {
+      "nome": "televisore",
+      "forma": "televisore",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di serie TV e programmi.",
+      "parole": ["serie tv", "serie", "tv", "television", "tv show", "programma", "puntata", "streaming"]
+    },
+    {
+      "nome": "bowling",
+      "forma": "bowling",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di bowling.",
+      "parole": ["bowling", "birilli", "pins", "strike", "pista", "boccia", "lanciare la palla"]
+    },
+    {
+      "nome": "torre-controllo",
+      "forma": "torre_controllo",
+      "categoria": "viaggi",
+      "descrizione": "Quando si parla di aeroporti: ritardi, gate, coincidenze.",
+      "parole": ["aeroporto", "airport", "gate", "coincidenza", "layover", "ritardo del volo", "flight delay", "check-in"]
+    },
+    {
+      "nome": "pesce",
+      "forma": "pesce",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di pesci, pesca e acquari.",
+      "parole": ["pesce", "pesci", "fish", "pesca", "fishing", "acquario", "aquarium", "pescare"]
+    },
+    {
+      "nome": "stampella",
+      "forma": "stampella",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di infortuni e riabilitazione.",
+      "parole": ["stampella", "stampelle", "crutch", "crutches", "infortunio", "injury", "riabilitazione", "rehab"]
+    },
+    {
+      "nome": "igloo",
+      "forma": "igloo",
+      "categoria": "viaggi",
+      "descrizione": "Quando si viaggia al freddo: paesi nordici, aurore boreali.",
+      "parole": ["igloo", "freddo", "cold", "nordic", "paesi nordici", "aurora boreale", "northern lights", "lapponia"]
+    },
+    {
+      "nome": "termosifone",
+      "forma": "termosifone",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di riscaldamento e clima in casa.",
+      "parole": ["termosifone", "radiator", "riscaldamento", "heating", "caldaia", "boiler", "termostato"]
+    },
+    {
+      "nome": "arco",
+      "forma": "arco",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di tiro con l'arco.",
+      "parole": ["arco", "tiro con l'arco", "archery", "freccia", "arrow", "bersaglio", "target", "arciere"]
+    },
+    {
+      "nome": "popcorn",
+      "forma": "popcorn",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di cinema e film da vedere.",
+      "parole": ["popcorn", "cinema", "film", "movie", "movies", "serata film", "movie night"]
+    },
+    {
+      "nome": "polpo",
+      "forma": "polpo",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di creature marine e fondali.",
+      "parole": ["polpo", "octopus", "calamaro", "squid", "fondale", "seabed", "creature marine", "tentacoli"]
+    },
+    {
+      "nome": "biberon",
+      "forma": "biberon",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di neonati, gravidanza e allattamento.",
+      "parole": ["biberon", "neonato", "newborn", "gravidanza", "pregnancy", "allattamento", "breastfeeding", "svezzamento"]
+    },
+    {
+      "nome": "aquilone",
+      "forma": "aquilone",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di tempo libero all'aria aperta.",
+      "parole": ["aquilone", "kite", "picnic", "tempo libero", "free time", "parco", "park", "all'aperto"]
+    },
+    {
+      "nome": "cintura",
+      "forma": "cintura",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di arti marziali: karate, judo, taekwondo.",
+      "parole": ["karate", "judo", "taekwondo", "arti marziali", "martial arts", "cintura nera", "black belt", "dojo"]
+    },
+    {
+      "nome": "segnale",
+      "forma": "segnale",
+      "categoria": "chat",
+      "descrizione": "Quando la connessione di casa non va: wifi, internet lento.",
+      "parole": ["wifi", "wi-fi", "modem", "router", "internet lento", "slow internet", "connessione", "segnale"]
+    },
+    {
+      "nome": "balena",
+      "forma": "balena",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di balene e delfini.",
+      "parole": ["balena", "balene", "whale", "delfino", "dolphin", "orca", "cetacei"]
+    },
+    {
+      "nome": "sedia-a-rotelle",
+      "forma": "sedia_a_rotelle",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di disabilità e mobilità ridotta.",
+      "parole": ["sedia a rotelle", "carrozzina", "wheelchair", "disabilità", "disability", "mobilità ridotta", "accessibilità", "accessible"]
+    },
+    {
+      "nome": "trattore",
+      "forma": "trattore",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di campagna e agricoltura.",
+      "parole": ["trattore", "tractor", "campagna", "countryside", "agricoltura", "agriculture", "contadino", "farmer"]
+    },
+    {
+      "nome": "fischietto",
+      "forma": "fischietto",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di regole dello sport e arbitri.",
+      "parole": ["fischietto", "whistle", "arbitro", "referee", "regole", "rules", "fallo", "foul"]
+    },
+    {
+      "nome": "stampante",
+      "forma": "stampante",
+      "categoria": "chat",
+      "descrizione": "Quando si hanno problemi con stampanti e scanner.",
+      "parole": ["stampante", "printer", "scanner", "stampa", "print", "inceppata", "paper jam", "toner"]
+    },
+    {
+      "nome": "zampa",
+      "forma": "zampa",
+      "categoria": "salute",
+      "descrizione": "Quando si parla della salute degli animali di casa: veterinario.",
+      "parole": ["zampa", "paw", "veterinario", "vet", "cane", "dog", "gatto", "cat"]
+    },
+    {
+      "nome": "mucca",
+      "forma": "mucca",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di fattorie e animali da allevamento.",
+      "parole": ["mucca", "cow", "fattoria", "farm", "allevamento", "livestock", "latte", "mungitura"]
+    },
+    {
+      "nome": "anguria",
+      "forma": "anguria",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di frutta e verdura di stagione.",
+      "parole": ["anguria", "cocomero", "watermelon", "frutta", "fruit", "verdura di stagione", "seasonal produce", "estate"]
+    },
+    {
+      "nome": "moschettone",
+      "forma": "moschettone",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di arrampicata e montagna sportiva.",
+      "parole": ["moschettone", "carabiner", "arrampicata", "climbing", "parete", "boulder", "via ferrata", "imbrago"]
+    },
+    {
+      "nome": "spillatrice",
+      "forma": "spillatrice",
+      "categoria": "chat",
+      "descrizione": "Quando si uniscono documenti: PDF da unire, fascicoli, allegati in uno.",
+      "parole": ["spillatrice", "stapler", "unisci", "merge", "unire pdf", "fascicolo", "raccogli", "allegati in uno"]
     }
   ]
 }

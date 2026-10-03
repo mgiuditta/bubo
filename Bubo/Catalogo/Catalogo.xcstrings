@@ -145,6 +145,24 @@
         }
       }
     },
+    "anguria" : {
+      "comment" : "Etichetta della Variante anguria (Categoria Chat): una fetta di anguria a mezzaluna con i semi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Watermelon"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anguria"
+          }
+        }
+      }
+    },
     "annaffiatoio" : {
       "comment" : "Etichetta della Variante annaffiatoio (Categoria Chat): un annaffiatoio.",
       "extractionState" : "manual",
@@ -213,6 +231,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appendiporta"
+          }
+        }
+      }
+    },
+    "aquilone" : {
+      "comment" : "Etichetta della Variante aquilone (Categoria Chat): un aquilone a rombo con la coda a fiocchi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kite"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aquilone"
+          }
+        }
+      }
+    },
+    "arco" : {
+      "comment" : "Etichetta della Variante arco (Categoria Salute): un arco teso con una freccia incoccata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bow"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arco"
           }
         }
       }
@@ -321,6 +375,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bacchetta magica"
+          }
+        }
+      }
+    },
+    "balena" : {
+      "comment" : "Etichetta della Variante balena (Categoria Chat): una balena con la coda alzata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whale"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balena"
           }
         }
       }
@@ -483,6 +555,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bersaglio"
+          }
+        }
+      }
+    },
+    "biberon" : {
+      "comment" : "Etichetta della Variante biberon (Categoria Salute): un biberon con la tettarella.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Baby bottle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Biberon"
           }
         }
       }
@@ -717,6 +807,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Borsa della spesa"
+          }
+        }
+      }
+    },
+    "bowling" : {
+      "comment" : "Etichetta della Variante bowling (Categoria Salute): tre birilli con una boccia davanti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bowling"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bowling"
           }
         }
       }
@@ -1711,6 +1819,24 @@
         }
       }
     },
+    "cintura" : {
+      "comment" : "Etichetta della Variante cintura (Categoria Salute): una cintura annodata con i due capi pendenti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Belt"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cintura"
+          }
+        }
+      }
+    },
     "clessidra" : {
       "comment" : "Etichetta della Variante clessidra (Categoria Tempo): una clessidra che scorre.",
       "extractionState" : "manual",
@@ -2665,6 +2791,24 @@
         }
       }
     },
+    "fischietto" : {
+      "comment" : "Etichetta della Variante fischietto (Categoria Salute): un fischietto con il cordino.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whistle"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fischietto"
+          }
+        }
+      }
+    },
     "flauto" : {
       "comment" : "Etichetta della Variante flauto (Categoria Musica): un flauto traverso con i fori e le chiavi.",
       "extractionState" : "manual",
@@ -3345,6 +3489,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Iceberg"
+          }
+        }
+      }
+    },
+    "igloo" : {
+      "comment" : "Etichetta della Variante igloo (Categoria Viaggi): un igloo a cupola di blocchi con l'ingresso a tunnel.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Igloo"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Igloo"
           }
         }
       }
@@ -4321,6 +4483,24 @@
         }
       }
     },
+    "moschettone" : {
+      "comment" : "Etichetta della Variante moschettone (Categoria Salute): un moschettone a D con la leva.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Carabiner"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Moschettone"
+          }
+        }
+      }
+    },
     "motocicletta" : {
       "comment" : "Etichetta della Variante motocicletta (Categoria Viaggi): una motocicletta di profilo.",
       "extractionState" : "manual",
@@ -4335,6 +4515,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Motocicletta"
+          }
+        }
+      }
+    },
+    "mucca" : {
+      "comment" : "Etichetta della Variante mucca (Categoria Chat): una mucca di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cow"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mucca"
           }
         }
       }
@@ -5239,6 +5437,24 @@
         }
       }
     },
+    "pesce" : {
+      "comment" : "Etichetta della Variante pesce (Categoria Chat): un pesce con la coda a V.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fish"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pesce"
+          }
+        }
+      }
+    },
     "pettine" : {
       "comment" : "Etichetta della Variante pettine (Categoria Salute): un pettine dritto.",
       "extractionState" : "manual",
@@ -5491,6 +5707,24 @@
         }
       }
     },
+    "polpo" : {
+      "comment" : "Etichetta della Variante polpo (Categoria Chat): un polpo con otto tentacoli.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Octopus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Polpo"
+          }
+        }
+      }
+    },
     "pompa-benzina" : {
       "comment" : "Etichetta della Variante pompa-benzina (Categoria Viaggi): una pompa di benzina con la pistola.",
       "extractionState" : "manual",
@@ -5523,6 +5757,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ponte"
+          }
+        }
+      }
+    },
+    "popcorn" : {
+      "comment" : "Etichetta della Variante popcorn (Categoria Chat): un secchiello di popcorn a strisce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popcorn"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Popcorn"
           }
         }
       }
@@ -6481,6 +6733,24 @@
         }
       }
     },
+    "sedia-a-rotelle" : {
+      "comment" : "Etichetta della Variante sedia-a-rotelle (Categoria Salute): una sedia a rotelle di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wheelchair"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sedia a rotelle"
+          }
+        }
+      }
+    },
     "sega" : {
       "comment" : "Etichetta della Variante sega (Categoria Codice): una sega a mano con lama dentata.",
       "extractionState" : "manual",
@@ -6495,6 +6765,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sega"
+          }
+        }
+      }
+    },
+    "segnale" : {
+      "comment" : "Etichetta della Variante segnale (Categoria Chat): un modem con due antenne.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Signal"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Segnale"
           }
         }
       }
@@ -6787,6 +7075,24 @@
         }
       }
     },
+    "spillatrice" : {
+      "comment" : "Etichetta della Variante spillatrice (Categoria Chat): una spillatrice da scrivania.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stapler"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spillatrice"
+          }
+        }
+      }
+    },
     "spina" : {
       "comment" : "Etichetta della Variante spina (Categoria Codice): una spina elettrica a due poli con il cavo.",
       "extractionState" : "manual",
@@ -6855,6 +7161,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Squadra"
+          }
+        }
+      }
+    },
+    "stampante" : {
+      "comment" : "Etichetta della Variante stampante (Categoria Chat): una stampante con un foglio che esce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Printer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stampante"
+          }
+        }
+      }
+    },
+    "stampella" : {
+      "comment" : "Etichetta della Variante stampella (Categoria Salute): una stampella con l'appoggio per il braccio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crutch"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stampella"
           }
         }
       }
@@ -7147,6 +7489,24 @@
         }
       }
     },
+    "televisore" : {
+      "comment" : "Etichetta della Variante televisore (Categoria Chat): un televisore d'epoca con due antenne.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Television"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Televisore"
+          }
+        }
+      }
+    },
     "terminale" : {
       "comment" : "Etichetta della Variante terminale (Categoria Codice): una finestra di terminale con il prompt.",
       "extractionState" : "manual",
@@ -7179,6 +7539,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Termometro"
+          }
+        }
+      }
+    },
+    "termosifone" : {
+      "comment" : "Etichetta della Variante termosifone (Categoria Chat): un termosifone con sei elementi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Radiator"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Termosifone"
           }
         }
       }
@@ -7251,6 +7629,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tornado"
+          }
+        }
+      }
+    },
+    "torre-controllo" : {
+      "comment" : "Etichetta della Variante torre-controllo (Categoria Viaggi): una torre di controllo con la cabina a vetri in cima.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control tower"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Torre controllo"
           }
         }
       }
@@ -7359,6 +7755,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trapano"
+          }
+        }
+      }
+    },
+    "trattore" : {
+      "comment" : "Etichetta della Variante trattore (Categoria Chat): un trattore di profilo con la ruota grande dietro.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tractor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trattore"
           }
         }
       }
@@ -7701,6 +8115,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zaino"
+          }
+        }
+      }
+    },
+    "zampa" : {
+      "comment" : "Etichetta della Variante zampa (Categoria Salute): un'impronta di zampa con quattro cuscinetti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paw"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zampa"
           }
         }
       }
