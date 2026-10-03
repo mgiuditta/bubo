@@ -94,10 +94,17 @@ final class DeliveriesController {
         person = defaults.string(forKey: Self.personKey) ?? NSFullUserName()
     }
 
-    /// The controller of this Mac: key in the Secure Enclave, Biglietti in Application Support.
+    /// The controller of this Mac: key in the Secure Enclave, Biglietti in the folder shared with Quick Look.
     static func live() -> DeliveriesController {
-        DeliveriesController(key: .live, store: .standard, machine: Host.current().localizedName ?? "Mac",
-                             folder: URL.temporaryDirectory.appending(path: "Biglietti"))
+        let store = TicketStore.standard
+        do {
+            try store.adoptLegacyFile(at: TicketStore.legacyFile)
+        } catch {
+            Logger(subsystem: "com.mgiuditta.bubo", category: "deliveries")
+                .error("Biglietti not moved to the App Group: \(error)")
+        }
+        return DeliveriesController(key: .live, store: store, machine: Host.current().localizedName ?? "Mac",
+                                    folder: URL.temporaryDirectory.appending(path: "Biglietti"))
     }
 
     /// Loads the key, created the first time, and the Biglietti; writes this Mac's Biglietto to share.
@@ -105,8 +112,14 @@ final class DeliveriesController {
         loadTickets()
         guard ownKey == nil else { return }
         do {
-            ownKey = try await key.privateKey().publicKey
+            let publicKey = try await key.privateKey().publicKey
+            ownKey = publicKey
             writeOwnTicket()
+            do {
+                try store.saveOwnKeyID(KeyID(publicKey))
+            } catch {
+                log.error("Own key identifier not saved for Quick Look: \(error)")
+            }
         } catch .noSecureEnclave {
             failure = String(localized: "Questo Mac non ha il Secure Enclave: non può mandare né ricevere Consegne.")
         } catch {

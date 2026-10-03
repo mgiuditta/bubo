@@ -67,6 +67,7 @@ targets:
     dependencies:
       - package: RemoteKit
       - package: DeliveryKit
+      - target: BuboQuickLook
       - package: SwiftTerm
       - package: MLXSwiftLM
         product: MLXEmbedders
@@ -107,6 +108,9 @@ targets:
       properties:
         keychain-access-groups:
           - $(AppIdentifierPrefix)com.mgiuditta.bubo
+        # La cartella dei Biglietti e della chiave di questa Macchina, condivisa con BuboQuickLook (spec 24).
+        com.apple.security.application-groups:
+          - $(TeamIdentifierPrefix)com.mgiuditta.bubo
         # Il runtime rinforzato nega il microfono senza questa eccezione (push-to-talk, spec 08).
         com.apple.security.device.audio-input: true
     settings:
@@ -186,6 +190,44 @@ targets:
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.metallib
           - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.mtl4archive
+  # Quick Look del .bubo: solo l'intestazione in chiaro e i Biglietti ricevuti, mai il contenuto cifrato (spec 24).
+  BuboQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: BuboQuickLook
+        excludes:
+          - "*.entitlements"
+      - path: Bubo/Deliveries/TicketStore.swift
+      - path: Bubo/Deliveries/BuboFileSummary.swift
+    dependencies:
+      - package: DeliveryKit
+    # Un'estensione Quick Look gira solo in sandbox; legge i Biglietti dall'App Group che l'app scrive.
+    entitlements:
+      path: BuboQuickLook/BuboQuickLook.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - $(TeamIdentifierPrefix)com.mgiuditta.bubo
+    info:
+      path: BuboQuickLook/Info.plist
+      properties:
+        CFBundleDisplayName: Bubo
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.quicklook.preview
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewProvider
+          NSExtensionAttributes:
+            QLIsDataBasedPreview: true
+            QLSupportedContentTypes:
+              - com.mgiuditta.bubo.consegna
+            QLSupportsSearchableItems: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.quicklook
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
   # Il Telecomando: l'app iPhone di Bubo (spec 21, ADR 0007).
   BuboRemote:
     type: application

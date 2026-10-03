@@ -9,7 +9,8 @@ app=${1:?uso: sign.sh <Bubo.app>}
 identity=${BUBO_SIGN_IDENTITY:-Developer ID Application}
 sign=(codesign --force --timestamp --options runtime --sign $identity)
 
-# Entitlement dei figli; gli eseguibili non elencati si firmano senza.
+# Entitlement dei figli; gli eseguibili e i bundle non elencati tengono quelli che ha messo l'export (l'estensione
+# Quick Look: sandbox e App Group).
 typeset -A entitlements
 entitlements=(
     Contents/Helpers/bubo-agent bridge/entitlements.plist
@@ -21,14 +22,14 @@ while IFS= read -r -d '' item; do
     if [[ -d $item ]] || { [[ $item != $app/Contents/MacOS/Bubo ]] && file -b $item | grep -q 'Mach-O' }; then
         nested+=$item
     fi
-done < <(find $app/Contents \( -type d \( -name '*.app' -o -name '*.framework' -o -name '*.xpc' \) -o -type f -perm -u+x \) -print0)
+done < <(find $app/Contents \( -type d \( -name '*.app' -o -name '*.framework' -o -name '*.xpc' -o -name '*.appex' \) -o -type f -perm -u+x \) -print0)
 nested=(${(f)"$(for item in $nested; do print -r -- "${#${(s:/:)item}} $item"; done | sort -rn -s -k1,1 | cut -d' ' -f2-)"})
 for item in $nested; do
     relative=${item#$app/}
     if [[ -n ${entitlements[$relative]:-} ]]; then
         $sign --entitlements ${entitlements[$relative]} $item
     else
-        $sign $item
+        $sign --preserve-metadata=entitlements $item
     fi
 done
 
