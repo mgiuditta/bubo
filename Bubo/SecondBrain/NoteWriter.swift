@@ -2,10 +2,11 @@ import CryptoKit
 import Darwin
 import Foundation
 
-/// The only writer of the Secondo cervello: it writes only under `Bubo/` at the folder's root, never anywhere else.
+/// The only writer of the Secondo cervello: it creates notes only under `Bubo/` at the folder's root; outside it, it
+/// only adds to a note of the user's, or rewrites one the user confirmed, for `ricorda`.
 ///
-/// Notes are Markdown with properties Obsidian reads (dates `AAAA-MM-GG`), written atomically, and never replace a
-/// file: a name already taken gets a number.
+/// Notes are Markdown with properties Obsidian reads (dates `AAAA-MM-GG`), written atomically, and new ones never
+/// replace a file: a name already taken gets a number.
 nonisolated struct NoteWriter: Sendable {
     /// Why a note was not written.
     enum Failure: Error, Equatable {
@@ -13,6 +14,12 @@ nonisolated struct NoteWriter: Sendable {
         case unreachable
         /// `Bubo/` leads out of the Secondo cervello, through a link.
         case outsideBubo
+        /// The note asked for is not a Markdown note inside the Secondo cervello, or is hidden.
+        case outsideSecondBrain
+        /// The note to add to, outside `Bubo/`, does not exist.
+        case notFound
+        /// Rewriting a note of the user's, outside `Bubo/`, needs their confirmation first.
+        case needsConfirmation
     }
 
     /// A note Bubo wrote.
@@ -102,6 +109,70 @@ nonisolated struct NoteWriter: Sendable {
                          in: Self.meetingFolder)
     }
 
+    /// Adds `text` at the end of the note at `relativePath`, after a blank line; a note under `Bubo/` that is not
+    /// there yet is created.
+    ///
+    /// - Returns: The write, with the note as it was before.
+    /// - Throws: `Failure` when the Secondo cervello cannot be reached, the note is outside it, or a note outside
+    ///   `Bubo/` is not there; a file system error when the note cannot be written.
+    func append(_ text: String, to relativePath: String) throws -> BrainChange {
+        let (file, isBubo) = try note(at: relativePath)
+        let previous = try? Data(contentsOf: file)
+        guard previous != nil || isBubo else { throw Failure.notFound }
+        let current = previous ?? Data()
+        let separator = current.isEmpty ? "" : current.last == UInt8(ascii: "\n") ? "\n" : "\n\n"
+        return try replace(file, previous: previous,
+                           with: current + Data((separator + text.trimmingCharacters(in: .whitespacesAndNewlines) + "\n").utf8))
+    }
+
+    /// Replaces the whole note at `relativePath` with `text`, creating it under `Bubo/` when it is not there.
+    ///
+    /// A note outside `Bubo/` is the user's: it is rewritten only when `isConfirmed`.
+    ///
+    /// - Returns: The write, with the note as it was before.
+    /// - Throws: `Failure.needsConfirmation` for a note of the user's not confirmed; another `Failure` when the
+    ///   Secondo cervello cannot be reached, the note is outside it, or is not there; a file system error.
+    func rewrite(_ relativePath: String, with text: String, isConfirmed: Bool) throws -> BrainChange {
+        let (file, isBubo) = try note(at: relativePath)
+        guard isBubo || isConfirmed else { throw Failure.needsConfirmation }
+        let previous = try? Data(contentsOf: file)
+        guard previous != nil || isBubo else { throw Failure.notFound }
+        return try replace(file, previous: previous,
+                           with: Data((text.trimmingCharacters(in: .whitespacesAndNewlines) + "\n").utf8))
+    }
+
+    /// The Markdown note at `relativePath` inside the Secondo cervello, and whether it is under `Bubo/`.
+    private func note(at relativePath: String) throws -> (file: URL, isBubo: Bool) {
+        let components = relativePath.split(separator: "/").map(String.init)
+        guard let name = components.last, name.lowercased().hasSuffix(".md"), name.count > 3,
+              !components.contains(where: { $0.hasPrefix(".") })
+        else { throw Failure.outsideSecondBrain }
+        if components.count > 1, components[0] == "Bubo" {
+            return (try folder(components.dropLast().joined(separator: "/")).appending(path: name), true)
+        }
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+            throw Failure.unreachable
+        }
+        let file = root.appending(path: components.joined(separator: "/"))
+        guard FileManager.default.fileExists(atPath: file.path) else { throw Failure.notFound }
+        // A link could take the note out of the Secondo cervello, or into `Bubo/` under another name.
+        let realRoot = root.resolvingSymlinksInPath().standardizedFileURL.path
+        let realFile = file.resolvingSymlinksInPath().standardizedFileURL.path
+        guard realFile.hasPrefix(realRoot + "/"), !realFile.hasPrefix(realRoot + "/Bubo/") else {
+            throw Failure.outsideSecondBrain
+        }
+        return (file, false)
+    }
+
+    /// Replaces `file`, which held `previous`, with `data` atomically.
+    private func replace(_ file: URL, previous: Data?, with data: Data) throws -> BrainChange {
+        let temporary = try temporaryFile(holding: data, in: file.deletingLastPathComponent())
+        defer { try? FileManager.default.removeItem(at: temporary) }
+        guard rename(temporary.path, file.path) == 0 else { throw POSIXError(POSIXErrorCode(rawValue: errno) ?? .EIO) }
+        return BrainChange(file: file, previous: previous, hash: Self.hash(of: data))
+    }
+
     /// Where the Riunioni go: in the Indice, unlike the Riassunti, since they are sources and not Bubo's summaries.
     static let meetingFolder = "Bubo/Riunioni"
 
@@ -121,7 +192,8 @@ nonisolated struct NoteWriter: Sendable {
         let directory = root.appending(path: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         // A link in place of `Bubo/` or of one of its folders would take the note out of the Secondo cervello.
-        guard directory.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(realRoot + "/Bubo/") else {
+        let realDirectory = directory.resolvingSymlinksInPath().standardizedFileURL.path
+        guard realDirectory == realRoot + "/Bubo" || realDirectory.hasPrefix(realRoot + "/Bubo/") else {
             throw Failure.outsideBubo
         }
         return directory

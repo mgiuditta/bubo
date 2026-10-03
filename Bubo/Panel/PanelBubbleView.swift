@@ -81,6 +81,9 @@ struct PanelBubbleView: View {
                         QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
                             .transition(.opacity)
                     }
+                    if let savedChange = model.savedChange {
+                        SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
+                    }
                 }
                 .padding(Spacing.large)
                 .animation(Motion.isReduced ? nil : Motion.standard, value: contentPhase)

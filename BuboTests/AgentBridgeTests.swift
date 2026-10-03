@@ -8,7 +8,7 @@ struct AgentBridgeTests {
     static func bridge(_ script: String) -> AgentBridge {
         AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
                     environment: ["PATH": "/usr/bin:/bin"],
-                    remember: { text, title in "salvata \(title): \(text)" }) { query, project, source in
+                    remember: { request in ("salvata \(request.title ?? ""): \(request.text)", nil) }) { query, project, source in
             "\(query) in \(project ?? "tutto")\(source.map { " (\($0.rawValue))" } ?? "")"
         }
     }
@@ -127,6 +127,22 @@ struct AgentBridgeTests {
             """#)
         let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), remembers: true))
         #expect(answer == "salvata Ombrello: portarlo")
+    }
+
+    @Test func aWriteOfRicordaReachesTheConversationThatAskedAsSalvato() async throws {
+        let change = BrainChange(file: URL(filePath: "/tmp/Bubo/Profilo.md"), previous: nil, hash: "h")
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", Self.answering(#"""
+            echo "{\"v\":4,\"type\":\"remember\",\"id\":\"r1\",\"conversation\":\"$id\",\"mode\":\"riscrivi\",\"note\":\"Bubo/Profilo.md\",\"text\":\"x\"}"
+            read found
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#)], environment: ["PATH": "/usr/bin:/bin"],
+                                 remember: { _ in ("Salvato", change) }) { _, _, _ in "" }
+        var received: [AgentProgress] = []
+
+        _ = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), remembers: true) { received.append($0) })
+
+        #expect(received == [.memory(.saved(change))])
     }
 
     @Test func theProgressArrivesBeforeTheAnswerEndsAndNotAfter() async throws {

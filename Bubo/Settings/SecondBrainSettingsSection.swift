@@ -11,6 +11,7 @@ struct SecondBrainSettingsSection: View {
     @AppStorage(MeetingAudioRetention.defaultsKey) private var meetingAudio = MeetingAudioRetention.thirtyDays
 
     var body: some View {
+        @Bindable var secondBrain = secondBrain
         Section {
             if let location = secondBrain.location {
                 LabeledContent {
@@ -44,6 +45,17 @@ struct SecondBrainSettingsSection: View {
                     }
                 }
             }
+            Toggle(isOn: $secondBrain.savesOnItsOwn) {
+                Text("Salva da solo")
+                Text("Claude salva preferenze, persone, progetti e decisioni seguendo Bubo/Regole.md. Spento, salva solo quando glielo chiedi.")
+            }
+            if secondBrain.location != nil, !secondBrain.recentChanges.isEmpty {
+                DisclosureGroup("Ultime modifiche") {
+                    ForEach(secondBrain.recentChanges.prefix(10)) { change in
+                        BrainChangeRow(change: change)
+                    }
+                }
+            }
             Toggle("Scrivi un riassunto quando una Sessione è Fusa o Archiviata", isOn: $writesSummaries)
             Picker("Audio delle Riunioni", selection: $meetingAudio) {
                 Text("Conserva per 30 giorni").tag(MeetingAudioRetention.thirtyDays)
@@ -52,7 +64,7 @@ struct SecondBrainSettingsSection: View {
         } header: {
             Text("Secondo cervello")
         } footer: {
-            Text("Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso.")
+            Text("Ogni conversazione riceve Bubo/Profilo.md e Bubo/Regole.md; le altre note Claude le legge quando le cerca. Obsidian può restare chiuso.")
         }
         .sheet(isPresented: $isSettingUp) { SecondBrainConversationSheet() }
         .task(id: secondBrain.location) { refresh() }

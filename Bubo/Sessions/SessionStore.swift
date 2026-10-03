@@ -27,6 +27,9 @@ final class SessionStore {
     /// Riassunto di Sessione starts there. The Archiviata that ends a Fusa calls nothing.
     @ObservationIgnored var onPhaseChange: ((UUID, Session.Phase) -> Void)?
 
+    /// Annulla of a line Salvato: puts the note of the Secondo cervello back as it was before the write.
+    @ObservationIgnored var undoSaved: ((BrainChange) throws -> Void)?
+
     /// How long Annulla merge is offered after Fondi.
     static let undoWindow = Duration.seconds(10)
 
@@ -1239,7 +1242,7 @@ final class SessionStore {
                           forkingFrom: resumed, upTo: cut, keeping: kept,
                           isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                           permissionMode: permissionMode, id: answerID,
-                          offersPreview: hasServer, unattended: unattended,
+                          offersPreview: hasServer, remembers: unattended == nil, unattended: unattended,
                           readableDirectories: QuestionModel.readableDirectories(for: attachments),
                           maxBudget: maxBudget, progress: onProgress, permissions: onPermission) { [weak self, ledger] usage in
                 ledger.record(usage, turn: kept, session: id, project: session.project)
@@ -1453,18 +1456,25 @@ final class SessionStore {
         sessions.contains { $0.project == project && $0.isRunning }
     }
 
-    /// Annulla of the line Ricordato `line` of the Sessione `id`: puts the memory file back as it was before the write.
+    /// Annulla of the line Ricordato or Salvato `line` of the Sessione `id`: puts the file back as it was before the
+    /// write.
     ///
     /// - Throws: ``ProjectMemoryError/inTurn`` while a Sessione of the Progetto is in a turn,
     ///   ``ProjectMemoryError/changedOnDisk`` when the file changed after the write, or another error of
     ///   ``MemoryWrite/undo(in:)``. The line stays as it was then.
     func undo(_ line: MemoryLine.ID, in id: UUID) throws {
         guard let session = sessions.first(where: { $0.id == id }),
-              let memoryLine = session.memoryLines.first(where: { $0.id == line }), memoryLine.canUndo,
-              case let .remembered(write) = memoryLine.event
+              let memoryLine = session.memoryLines.first(where: { $0.id == line }), memoryLine.canUndo
         else { return }
-        guard !isInTurn(session.project) else { throw ProjectMemoryError.inTurn }
-        try write.undo(in: ProjectMemory.directory(ofProject: session.project))
+        switch memoryLine.event {
+        case let .remembered(write):
+            guard !isInTurn(session.project) else { throw ProjectMemoryError.inTurn }
+            try write.undo(in: ProjectMemory.directory(ofProject: session.project))
+        case let .saved(change):
+            try undoSaved?(change)
+        case .recalled, .searched:
+            return
+        }
         update(id) { session in
             guard let index = session.memoryLines.firstIndex(where: { $0.id == line }) else { return }
             session.memoryLines[index].isUndone = true

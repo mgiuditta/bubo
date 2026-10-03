@@ -218,6 +218,14 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","keep":"k-1","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func theProfiloAndTheRegoleGoWithTheAskAsBrain() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         secondBrain: "## Bubo/Profilo.md").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == ###"{"brain":"## Bubo/Profilo.md","cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"###
+            + "\n")
+    }
+
     @Test func onlyAnAskThatRemembersCarriesRemember() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
                                          remembers: true).line()
@@ -315,7 +323,10 @@ struct BridgeMessageTests {
          .search(id: "s1", query: "ci", project: nil, source: .secondBrain)),
         (#"{"v":4,"type":"search","id":"s1","query":"ci","source":"altrove"}"#, .search(id: "s1", query: "ci", project: nil)),
         (#"{"v":4,"type":"remember","id":"r1","title":"Ombrello","text":"portarlo"}"#,
-         .remember(id: "r1", title: "Ombrello", text: "portarlo")),
+         .remember(id: "r1", NoteRequest(title: "Ombrello", text: "portarlo"))),
+        (#"{"v":4,"type":"remember","id":"r2","conversation":"a1","mode":"riscrivi","note":"Diario/oggi.md","text":"x","confirmed":true}"#,
+         .remember(id: "r2", NoteRequest(mode: .replace, note: "Diario/oggi.md", text: "x", isConfirmed: true),
+                   conversation: "a1")),
         (#"{"v":4,"type":"quota","fiveHour":{"used":0.19,"resetsAt":1790852400.5},"sevenDay":{"used":0.02,"resetsAt":1791428400}}"#,
          .quota(Quota(fiveHour: Quota.Window(used: 0.19, resetsAt: Date(timeIntervalSince1970: 1_790_852_400.5)),
                       sevenDay: Quota.Window(used: 0.02, resetsAt: Date(timeIntervalSince1970: 1_791_428_400))))),

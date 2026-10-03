@@ -220,6 +220,14 @@ _Avoid_: contesto, knowledge base
 Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
 _Avoid_: vault (quando non è Obsidian), wiki, archivio
 
+**Profilo**:
+La nota `Bubo/Profilo.md` del **Secondo cervello**: chi è l'utente, le sue preferenze, le persone e i progetti ricorrenti. Entra nel prompt di ogni turno di **Domanda** e **Sessione**; la scrivono l'utente e l'agente con `ricorda`.
+_Avoid_: persona, memoria utente, about me
+
+**Regole**:
+La nota `Bubo/Regole.md` del **Secondo cervello**: cosa l'agente salva da solo, dove e come. Entra nel prompt di ogni turno insieme al **Profilo**; con «Salva da solo» spento l'agente salva solo su richiesta. Non è una **Regola di permesso**.
+_Avoid_: istruzioni, prompt di sistema, policy
+
 **Riassunto di Sessione**:
 La nota Markdown che Bubo scrive nel **Secondo cervello** quando una **Sessione** diventa Fusa o Archiviata; una per Sessione.
 _Avoid_: recap, log, diario

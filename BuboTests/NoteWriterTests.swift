@@ -241,44 +241,136 @@ struct SessionSummaryNoteTests {
 struct RememberToolTests {
     let folder: NotesFolder
     let defaults: UserDefaults
+    let journal: BrainJournal
 
     init() throws {
         folder = try NotesFolder()
         defaults = try #require(UserDefaults(suiteName: "RememberToolTests-\(UUID().uuidString)"))
+        journal = BrainJournal(file: folder.claude.folder.appending(path: "brain-journal/changes.json"))
+    }
+
+    /// A Secondo cervello at the test's folder, with its diario in the test's folder too.
+    func chosenSecondBrain() -> SecondBrain {
+        let secondBrain = SecondBrain(index: nil, defaults: defaults, journal: journal)
+        secondBrain.choose(folder.notes)
+        return secondBrain
+    }
+
+    func text(at path: String) throws -> String {
+        try String(contentsOf: folder.notes.appending(path: path), encoding: .utf8)
     }
 
     @Test func withoutASecondBrainNothingIsSavedAndClaudeIsToldWhere() async {
-        let model = QuestionModel(secondBrain: SecondBrain(index: nil, defaults: defaults))
+        let secondBrain = SecondBrain(index: nil, defaults: defaults, journal: journal)
 
-        let result = await model.remember("testo", titled: "Nota")
+        let outcome = await secondBrain.remember(NoteRequest(title: "Nota", text: "testo"))
 
-        #expect(result.hasPrefix("Nota non salvata"))
-        #expect(result.contains("Impostazioni"))
-        #expect(model.savedNote == nil)
+        #expect(outcome.reply.hasPrefix("Nota non salvata"))
+        #expect(outcome.reply.contains("Impostazioni"))
+        #expect(outcome.change == nil)
     }
 
-    @Test func aSavedNoteIsShownInTheDomandaAndItsPathGoesToClaude() async throws {
-        let secondBrain = SecondBrain(index: nil, defaults: defaults)
-        secondBrain.choose(folder.notes)
-        let model = QuestionModel(secondBrain: secondBrain)
+    @Test func aNewNoteGoesInBuboNoteAndInTheDiario() async throws {
+        let secondBrain = chosenSecondBrain()
 
-        let result = await model.remember("testo", titled: "Ombrello")
+        let outcome = await secondBrain.remember(NoteRequest(title: "Ombrello", text: "testo"))
 
-        let file = try #require(model.savedNote)
-        #expect(file.deletingLastPathComponent().path == folder.notes.appending(path: "Bubo/Note").path)
-        #expect(result == "Nota salvata nel Secondo cervello: Bubo/Note/\(file.lastPathComponent)")
-        #expect(FileManager.default.fileExists(atPath: file.path))
+        let change = try #require(outcome.change)
+        #expect(change.file.deletingLastPathComponent().path == folder.notes.appending(path: "Bubo/Note").path)
+        #expect(change.previous == nil)
+        #expect(outcome.reply.contains("Bubo/Note/\(change.file.lastPathComponent)"))
+        #expect(secondBrain.recentChanges == [change])
+        #expect(journal.changes() == [change])
     }
 
     @Test func aSecondBrainOutOfReachSaysSo() async throws {
-        let secondBrain = SecondBrain(index: nil, defaults: defaults)
-        secondBrain.choose(folder.notes)
+        let secondBrain = chosenSecondBrain()
         try FileManager.default.removeItem(at: folder.notes)
-        let model = QuestionModel(secondBrain: secondBrain)
 
-        let result = await model.remember("testo", titled: "Nota")
+        let outcome = await secondBrain.remember(NoteRequest(title: "Nota", text: "testo"))
 
-        #expect(result.contains("non è raggiungibile"))
-        #expect(model.savedNote == nil)
+        #expect(outcome.reply.contains("non è raggiungibile"))
+        #expect(outcome.change == nil)
+    }
+
+    @Test func undoOfANewNoteDeletesIt() async throws {
+        let secondBrain = chosenSecondBrain()
+        let change = try #require(await secondBrain.remember(NoteRequest(title: "Ombrello", text: "testo")).change)
+
+        try secondBrain.undo(change)
+
+        #expect(!FileManager.default.fileExists(atPath: change.file.path))
+        #expect(secondBrain.recentChanges.first?.isUndone == true)
+        #expect(journal.changes().first?.isUndone == true)
+    }
+
+    @Test func undoPutsTheProfiloBackAsItWas() async throws {
+        try folder.write("# Profilo\n\nVive a Roma.\n", to: "Bubo/Profilo.md")
+        let secondBrain = chosenSecondBrain()
+
+        let outcome = await secondBrain.remember(NoteRequest(mode: .replace, note: "Bubo/Profilo.md",
+                                                             text: "# Profilo\n\nVive a Milano."))
+        #expect(try text(at: "Bubo/Profilo.md") == "# Profilo\n\nVive a Milano.\n")
+        try secondBrain.undo(try #require(outcome.change))
+
+        #expect(try text(at: "Bubo/Profilo.md") == "# Profilo\n\nVive a Roma.\n")
+    }
+
+    @Test func undoLeavesANoteChangedAfterTheWrite() async throws {
+        let secondBrain = chosenSecondBrain()
+        let change = try #require(await secondBrain.remember(NoteRequest(title: "Ombrello", text: "testo")).change)
+        try "modificata a mano".write(to: change.file, atomically: true, encoding: .utf8)
+
+        #expect(throws: BrainChange.UndoFailure.changedOnDisk) { try secondBrain.undo(change) }
+        #expect(try String(contentsOf: change.file, encoding: .utf8) == "modificata a mano")
+    }
+
+    @Test func aNoteOfTheUserIsNotRewrittenWithoutConfirmation() async throws {
+        try folder.write("# Diario\n", to: "Diario/oggi.md")
+        let secondBrain = chosenSecondBrain()
+
+        let refused = await secondBrain.remember(NoteRequest(mode: .replace, note: "Diario/oggi.md", text: "altro"))
+
+        #expect(refused.change == nil)
+        #expect(refused.reply.contains("Chiedigli"))
+        #expect(try text(at: "Diario/oggi.md") == "# Diario\n")
+        #expect(secondBrain.recentChanges.isEmpty)
+
+        let confirmed = await secondBrain.remember(NoteRequest(mode: .replace, note: "Diario/oggi.md", text: "altro",
+                                                               isConfirmed: true))
+
+        #expect(confirmed.change != nil)
+        #expect(try text(at: "Diario/oggi.md") == "altro\n")
+    }
+
+    @Test func textGoesAtTheEndOfANoteOfTheUserWithoutConfirmation() async throws {
+        try folder.write("# Diario\n", to: "Diario/oggi.md")
+        let secondBrain = chosenSecondBrain()
+
+        let outcome = await secondBrain.remember(NoteRequest(mode: .append, note: "Diario/oggi.md", text: "Riunione alle 10."))
+
+        #expect(try text(at: "Diario/oggi.md") == "# Diario\n\nRiunione alle 10.\n")
+        try secondBrain.undo(try #require(outcome.change))
+        #expect(try text(at: "Diario/oggi.md") == "# Diario\n")
+    }
+
+    @Test(arguments: ["../fuori.md", ".obsidian/app.md", "Diario/oggi.txt", "Bubo/../../fuori.md"])
+    func nothingIsWrittenOutsideTheSecondBrainOrInHiddenFolders(_ path: String) async throws {
+        try folder.write("# Diario\n", to: "Diario/oggi.txt")
+        let secondBrain = chosenSecondBrain()
+
+        let outcome = await secondBrain.remember(NoteRequest(mode: .append, note: path, text: "x", isConfirmed: true))
+
+        #expect(outcome.change == nil)
+        #expect(!FileManager.default.fileExists(atPath: folder.claude.folder.appending(path: "fuori.md").path))
+    }
+
+    @Test func theDiarioKeepsOnlyTheLatestWrites() throws {
+        let file = folder.notes.appending(path: "x.md")
+        for _ in 0..<(BrainJournal.capacity + 5) {
+            try journal.record(BrainChange(file: file, previous: nil, hash: ""))
+        }
+
+        #expect(journal.changes().count == BrainJournal.capacity)
     }
 }

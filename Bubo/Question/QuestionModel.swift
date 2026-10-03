@@ -32,8 +32,8 @@ final class QuestionModel {
     private(set) var usesAPIKey = false
     /// What the reason line under the last answer says: who answered, why, and at what cost; `nil` before the first.
     private(set) var routedAnswer: RoutedAnswer?
-    /// The note the last Domanda saved in the Secondo cervello ("Ricordati questo"), if any.
-    private(set) var savedNote: URL?
+    /// The last write of the Domanda in the Secondo cervello, with `ricorda`, if any: «Salvato in [[nota]] · Annulla».
+    private(set) var savedChange: BrainChange?
     /// The Sintesi parlata while Bubo says it, as subtitles; `nil` when Bubo is silent.
     private(set) var subtitle: String?
     /// Whether to invite the user to download a better voice: Bubo spoke with a basic-quality one, and the user did not
@@ -736,7 +736,7 @@ final class QuestionModel {
         answer = ""
         failure = nil
         resumesAt = nil
-        savedNote = nil
+        savedChange = nil
         routedAnswer = nil
         isAnswering = true
         let attachments = lastAttachments
@@ -939,8 +939,9 @@ final class QuestionModel {
                                     remembers: true, rosa: rosa,
                                     readableDirectories: Self.readableDirectories(for: richiesta.attachments),
                                     maxBudget: maxBudget,
-                                    progress: { [orb] progress in
+                                    progress: { [orb, weak self] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
+                                        if case let .memory(.saved(change)) = progress { self?.savedChange = change }
                                     },
                                     usage: { [weak self] usage in
                                         guard let self else { return }
@@ -1159,31 +1160,23 @@ final class QuestionModel {
                                      quota.save(to: defaults)
                                  },
                                  catalog: { [weak self] in self?.catalog = $0 },
-                                 remember: { [weak self] text, title in
-                                     await self?.remember(text, titled: title) ?? "Bubo non è disponibile."
-                                 }) { [index] query, project, source in
+                                 remember: { [secondBrain] request in
+                                     await secondBrain?.remember(request) ?? ("Bubo non è disponibile.", nil)
+                                 },
+                                 basics: { [secondBrain] in secondBrain?.basics() }) { [index] query, project, source in
             await index?.toolResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
         return bridge
     }
 
-    /// Saves a note for the `ricorda` tool, and returns what the tool answers `claude`.
-    func remember(_ text: String, titled title: String) async -> String {
-        do {
-            guard let note = try await secondBrain?.remember(text, titled: title) else {
-                return "Nota non salvata: l'utente non ha scelto il Secondo cervello. Digli di sceglierlo in "
-                    + "Impostazioni › Generale › Secondo cervello."
-            }
-            savedNote = note.file
-            return "Nota salvata nel Secondo cervello: Bubo/Note/\(note.file.lastPathComponent)"
-        } catch NoteWriter.Failure.unreachable {
-            return "Nota non salvata: la cartella del Secondo cervello non è raggiungibile (disco scollegato o "
-                + "cartella spostata)."
-        } catch {
-            Logger.index.error("Note not saved: \(error)")
-            return "Nota non salvata: Bubo non è riuscito a scriverla."
-        }
+    /// Annulla of «Salvato in [[nota]]»: puts the note back as it was before the Domanda's write.
+    ///
+    /// - Throws: ``BrainChange/UndoFailure/changedOnDisk`` when the note changed after the write, or a file error.
+    func undoSavedChange() throws {
+        guard let savedChange, !savedChange.isUndone else { return }
+        try secondBrain?.undo(savedChange)
+        self.savedChange?.isUndone = true
     }
 
     /// Where Domande run: they have no Progetto, so an empty folder of Bubo's own.

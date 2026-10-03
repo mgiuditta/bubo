@@ -32,14 +32,14 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools } from "./tools";
+import { allowedBuboTools, systemPromptOf } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown }
   | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
@@ -84,7 +84,7 @@ type Event =
   | { type: "outdated"; id: string; version?: string }
   | { type: "search"; id: string; query: string; project?: string; source?: string; conversation: string }
   | (PreviewCall & { id: string })
-  | { type: "remember"; id: string; title: string; text: string }
+  | { type: "remember"; id: string; conversation: string; mode: "nuova" | "aggiungi" | "riscrivi"; title?: string; note?: string; text: string; confirmed?: boolean }
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
@@ -248,6 +248,8 @@ const store = (() => {
 const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv), store);
 
 const running = new Map<string, Query>();
+// Le conversazioni in corso che hanno `ricorda`: lo tengono anche quando cambia l'Anteprima.
+const remembering = new Set<string>();
 // Le chiamate a `cerca` e `ricorda` in attesa del risultato di Bubo, che arriva con `found`.
 const toolCalls = new Map<string, (text: string) => void>();
 
@@ -261,7 +263,8 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
 }
 
 // `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
-// `ricorda`, solo con `remembers`, fa scrivere a Bubo una nota in `Bubo/Note/` del Secondo cervello.
+// `ricorda`, solo con `remembers`, fa scrivere a Bubo nel Secondo cervello: una nota nuova in `Bubo/Note/`, del testo
+// in coda a una nota, o una nota riscritta; quelle dell'utente, fuori da `Bubo/`, solo dopo la sua conferma.
 // Un server per conversazione: un'istanza MCP si collega a un solo trasporto. `conversation` dice a Bubo di chi è
 // ogni chiamata a `cerca`, per la riga "Richiamato" della Sessione.
 function buboTools(conversation: string, remembers = false) {
@@ -282,16 +285,19 @@ function buboTools(conversation: string, remembers = false) {
   );
   const remember = tool(
     "ricorda",
-    "Salva una nota nuova nel Secondo cervello dell'utente, la sua cartella di note Markdown, in Bubo/Note. Usalo solo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\"). Non modifica né sostituisce note esistenti. Restituisce il percorso della nota, o perché non è stata salvata.",
+    "Scrive nel Secondo cervello dell'utente, la sua cartella di note Markdown. Usalo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\") o quando il prompt di sistema ti dice di salvare da solo. Modi: \"nuova\" crea una nota in Bubo/Note con titolo; \"aggiungi\" mette il testo in coda alla nota indicata; \"riscrivi\" sostituisce tutta la nota indicata (per esempio Bubo/Profilo.md). Le note fuori da Bubo/ sono dell'utente: per riscriverle chiedigli prima e passa confermato solo se ha detto di sì. Non cancella note. L'utente può annullare ogni scrittura. Restituisce dove ha scritto, o perché non l'ha fatto.",
     {
-      titolo: z.string().describe("Un titolo breve, che diventa il nome del file"),
-      testo: z.string().describe("Cosa ricordare, in Markdown, comprensibile anche letto da solo tra mesi"),
+      testo: z.string().describe("Cosa scrivere, in Markdown, comprensibile anche letto da solo tra mesi"),
+      modo: z.enum(["nuova", "aggiungi", "riscrivi"]).optional().describe("Come scrivere; senza, \"nuova\""),
+      titolo: z.string().optional().describe("Per una nota nuova: un titolo breve, che diventa il nome del file"),
+      nota: z.string().optional().describe("Per aggiungere o riscrivere: il percorso della nota .md relativo al Secondo cervello, per esempio Bubo/Profilo.md"),
+      confermato: z.boolean().optional().describe("Solo dopo che l'utente ha detto di sì a riscrivere una sua nota fuori da Bubo/"),
     },
-    async ({ titolo, testo }) => {
-      const text = await askBuboFor((id) => ({ type: "remember", id, title: titolo, text: testo }));
+    async ({ testo, modo, titolo, nota, confermato }) => {
+      const text = await askBuboFor((id) => ({ type: "remember", id, conversation, mode: modo ?? "nuova", title: titolo, note: nota, text: testo, confirmed: confermato }));
       return { content: [{ type: "text", text }] };
     },
-    { annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+    { annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false } },
   );
   return createSdkMcpServer({ name: "bubo", tools: remembers ? [search, remember] : [search] });
 }
@@ -362,7 +368,8 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
-// `remembers` dà lo strumento `ricorda`: solo alle Domande.
+// `remembers` dà lo strumento `ricorda`: alle Domande e alle Sessioni.
+// `brain` sono il Profilo e le Regole del Secondo cervello, in coda al prompt di sistema; senza, nulla.
 // `permissionMode` è `auto` nella Modalità autonoma, `default` nelle altre Sessioni; senza, decide `claude`.
 // `rosa` sono i nomi delle Varianti che l'agente può dare all'Orb con `⟦orb:nome⟧` (ADR 0002): vanno in coda al prompt
 // di sistema, che senza resta quello vuoto dell'SDK. Il tag non arriva mai a Bubo come testo, diventa `variante`.
@@ -377,7 +384,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
                    permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended,
-                   dirs: string[] = [], maxBudget?: number) {
+                   dirs: string[] = [], maxBudget?: number, brain?: string) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
   const restored = resumed?.restored;
   const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
@@ -408,6 +415,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   };
   const memory = keep === undefined ? undefined : memoryHooks(id);
   const witness = new AnswerWitness();
+  const systemPrompt = systemPromptOf(rosa.length > 0 ? orbInstruction(rosa) : undefined, brain);
   const conversation = query({
     prompt,
     options: {
@@ -428,7 +436,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       ...(resume !== undefined && upTo !== undefined ? { resumeSessionAt: upTo } : {}),
       sandbox,
       permissionMode,
-      ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
+      ...(systemPrompt !== undefined ? { systemPrompt } : {}),
       ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
       ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined, subagents) }),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
@@ -452,6 +460,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     },
   });
   running.set(id, conversation);
+  if (remembers) remembering.add(id);
   // Perché il turno si è fermato: un limite rifiutato o un accesso non valido diventano eventi a sé.
   let limit: Limit | undefined;
   let failure: SDKAssistantMessageError | undefined;
@@ -548,6 +557,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     if (outdated !== undefined) conversation.close();
     stopped.abort();
     running.delete(id);
+    remembering.delete(id);
     for (const session of torn) await repair(session);
   }
 }
@@ -793,7 +803,7 @@ lines.on("line", (line) => {
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
                command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended),
-               directoriesOf(command.dirs), budgetOf(command.maxBudget));
+               directoriesOf(command.dirs), budgetOf(command.maxBudget), typeof command.brain === "string" ? command.brain : undefined);
       break;
     }
     case "config": {
@@ -870,7 +880,7 @@ lines.on("line", (line) => {
       // Il server della Sessione è comparso o sparito a turno in corso.
       const conversation = running.get(command.id);
       if (conversation) {
-        void offerPreview(conversation, buboTools(command.id), command.available === true ? previewTools(command.id, previewCalls) : undefined);
+        void offerPreview(conversation, buboTools(command.id, remembering.has(command.id)), command.available === true ? previewTools(command.id, previewCalls) : undefined);
       }
       break;
     }
