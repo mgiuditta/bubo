@@ -32,6 +32,9 @@ final class OrbPanelController {
         set { resize(to: newValue ? .reduced : .normal) }
     }
 
+    /// Imports the recordings and trascrizioni dropped on the Orb as Riunioni; set by the app.
+    var importMeetings: ([URL]) -> Void = { _ in }
+
     /// The bubble beside the Orb, with the prompt and the answer of the Domanda.
     let bubble = PanelBubble()
 
@@ -164,6 +167,12 @@ final class OrbPanelController {
     private func drop(_ pasteboard: NSPasteboard, into questions: QuestionModel) -> Bool {
         let interval = Signposts.beginInterval(.dropToListening)
         defer { Signposts.endInterval(.dropToListening, interval) }
+        let files = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
+        if MeetingImportFile.isMeetingDrop(files) {
+            if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
+            importMeetings(files)
+            return true
+        }
         let attachments: [Allegato]
         do {
             let images = try QuestionModel.directory().appending(path: "Allegati", directoryHint: .isDirectory)

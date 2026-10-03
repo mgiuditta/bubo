@@ -6,11 +6,11 @@ import Speech
 ///
 /// Nothing goes to the network but the one-time download of the language model.
 nonisolated enum MeetingTranscriber {
-    /// The sentences of the track at `url`, said by `speaker`, with their time from the start.
+    /// The sentences of the track at `url`, said by `speaker` (`nil` when unknown), with their time from the start.
     ///
     /// - Throws: ``MeetingFailure/languageUnsupported`` for a language without a model;
     ///   ``MeetingFailure/transcriptionFailed`` when the file cannot be read or the analysis stops.
-    static func transcribe(_ url: URL, as speaker: MeetingLine.Speaker) async throws(MeetingFailure) -> [MeetingLine] {
+    static func transcribe(_ url: URL, as speaker: MeetingLine.Speaker?) async throws(MeetingFailure) -> [MeetingLine] {
         let transcriber = try await transcriber()
         do {
             let file = try AVAudioFile(forReading: url)

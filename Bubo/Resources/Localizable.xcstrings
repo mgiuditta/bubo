@@ -3360,6 +3360,16 @@
         }
       }
     },
+    "Bubo non riesce a leggere il file o il video non ha audio." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can’t read the file, or the video has no audio."
+          }
+        }
+      }
+    },
     "Bubo non si fida di questo certificato e non apre la pagina. Puoi aprirla nel browser." : {
       "localizations" : {
         "en" : {
@@ -3456,6 +3466,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo is transcribing and summarizing the Meeting on the Mac…"
+          }
+        }
+      }
+    },
+    "Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo transcribes audio and video (m4a, mp3, wav, mp4, mov) on the Mac and cleans up transcripts (vtt, srt, txt). You can also choose a folder."
           }
         }
       }
@@ -4013,6 +4033,26 @@
         }
       }
     },
+    "Importa Riunioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Meetings"
+          }
+        }
+      }
+    },
+    "Importa Riunioni…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import Meetings…"
+          }
+        }
+      }
+    },
     "Importa nel Secondo cervello…" : {
       "localizations" : {
         "en" : {
@@ -4029,6 +4069,53 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Imported: %@."
+          }
+        }
+      }
+    },
+    "Importazione %lld di %lld: %@" : {
+      "comment" : "Progress of an import of Riunioni: the file number, the total, the file name",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Importing %1$lld of %2$lld: %3$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Importazione %1$lld di %2$lld: %3$@"
+          }
+        }
+      }
+    },
+    "Importazione annullata." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import cancelled."
+          }
+        }
+      }
+    },
+    "Importazione annullata. Riunioni importate: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import cancelled. Meetings imported: %lld"
+          }
+        }
+      }
+    },
+    "Importazione completata. Riunioni importate: %lld" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import complete. Meetings imported: %lld"
           }
         }
       }
@@ -4699,6 +4786,16 @@
         }
       }
     },
+    "Riunioni importate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meetings imported"
+          }
+        }
+      }
+    },
     "Rivedi la configurazione…" : {
       "localizations" : {
         "en" : {
@@ -4725,6 +4822,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Skip All"
+          }
+        }
+      }
+    },
+    "Saltate perché già importate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped, already imported"
           }
         }
       }

@@ -18,6 +18,8 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
     case transcriptionFailed
     /// The note could not be written; the audio is kept.
     case noteNotWritten
+    /// An imported file cannot be read, or a video has no audio.
+    case fileUnreadable
 
     /// What happened and what to do, for the window and VoiceOver.
     var explanation: LocalizedStringResource {
@@ -38,6 +40,8 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
             "Trascrizione non riuscita. L'audio è salvato sul Mac."
         case .noteNotWritten:
             "Cartella del Secondo cervello non trovata: la nota non è stata salvata. L'audio è salvato sul Mac. Controlla la cartella in Impostazioni › Generale."
+        case .fileUnreadable:
+            "Bubo non riesce a leggere il file o il video non ha audio."
         }
     }
 

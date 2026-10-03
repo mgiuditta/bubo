@@ -24,6 +24,7 @@ struct MeetingView: View {
                 outcome
                 setup
             }
+            MeetingImportSection(importer: recorder.imports)
         }
         .formStyle(.grouped)
         .frame(width: 440)
@@ -119,6 +120,57 @@ private struct RecordingSection: View {
             }
             Button("Ferma e salva", action: stop)
                 .keyboardShortcut(.defaultAction)
+        }
+    }
+}
+
+/// The import of recordings and trascrizioni: how far it is with Annulla, or how it ended.
+private struct MeetingImportSection: View {
+    let importer: MeetingImporter
+
+    var body: some View {
+        Section {
+            if let progress = importer.progress {
+                LoadingLabel("Importazione \(progress.done + 1) di \(progress.total): \(progress.fileName)")
+                Button("Annulla", action: importer.cancel)
+            } else {
+                if let outcome = importer.outcome { OutcomeRows(outcome: outcome) }
+                Button("Importa Riunioni…", action: importer.chooseFiles)
+            }
+        } header: {
+            Text("Importa Riunioni")
+        } footer: {
+            Text("Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella.")
+        }
+    }
+}
+
+/// How the last import ended: the notes written, the files skipped and those not imported, with why.
+private struct OutcomeRows: View {
+    let outcome: MeetingImporter.Outcome
+
+    var body: some View {
+        LabeledContent("Riunioni importate", value: outcome.saved.count, format: .number)
+        if outcome.duplicates > 0 {
+            LabeledContent("Saltate perché già importate", value: outcome.duplicates, format: .number)
+        }
+        if outcome.isCancelled {
+            Text("Importazione annullata.")
+        }
+        ForEach(outcome.failures) { failure in
+            Label {
+                if let fileName = failure.fileName {
+                    Text("\(fileName): \(failure.reason.explanation)")
+                } else {
+                    Text(failure.reason.explanation)
+                }
+            } icon: {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Palette.danger)
+            }
+        }
+        if outcome.saved.count == 1, let file = outcome.saved.first {
+            Button("Apri la nota") { NSWorkspace.shared.open(file) }
         }
     }
 }

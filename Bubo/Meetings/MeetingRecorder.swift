@@ -50,6 +50,13 @@ final class MeetingRecorder {
     /// Opens the window of the Riunioni; set at launch.
     @ObservationIgnored var showWindow: () -> Void = {}
 
+    /// The imports of recordings and trascrizioni, summarized as the recorded Riunioni.
+    @ObservationIgnored private(set) lazy var imports = MeetingImporter(secondBrain: secondBrain) { [unowned self] transcript in
+        await summary(of: transcript)
+    } showWindow: { [unowned self] in
+        showWindow()
+    }
+
     @ObservationIgnored private let secondBrain: SecondBrain
     @ObservationIgnored private let engines: [any SummaryEngine]
     @ObservationIgnored private let store: MeetingAudioStore?
@@ -160,7 +167,7 @@ final class MeetingRecorder {
     }
 
     /// The summary of the first engine that writes one, of `transcript` without its secrets; `nil` when none does.
-    private func summary(of transcript: [MeetingLine]) async -> MeetingSummary? {
+    func summary(of transcript: [MeetingLine]) async -> MeetingSummary? {
         guard !transcript.isEmpty else { return nil }
         let filter = SecretFilter()
         let text = filter.redacting(transcript.map(\.markdown).joined(separator: "\n"))
