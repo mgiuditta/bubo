@@ -79,6 +79,16 @@
         }
       }
     },
+    "%@ allega già una finestra. Scegline un'altra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ already attaches a window. Choose a different one."
+          }
+        }
+      }
+    },
     "%@ della finestra di 5 ore" : {
       "comment" : "Cost of an answer as a share of the subscription's 5-hour window.",
       "localizations" : {
@@ -123,6 +133,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ used up"
+          }
+        }
+      }
+    },
+    "%@ mostra la scelta della finestra: fai clic su quella da allegare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ shows the window picker: click the window to attach."
           }
         }
       }
@@ -361,6 +381,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ is left out for this question: you didn’t give consent."
+          }
+        }
+      }
+    },
+    "%@ è già una scorciatoia di Bubo. Scegline un'altra." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is already a Bubo shortcut. Choose a different one."
           }
         }
       }
@@ -1534,6 +1564,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Add a Folder…"
+          }
+        }
+      }
+    },
+    "Allega finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach Window"
+          }
+        }
+      }
+    },
+    "Allega finestra…  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attach Window…  %@"
           }
         }
       }
@@ -4219,6 +4269,38 @@
         }
       }
     },
+    "Finestra" : {
+      "comment" : "File name of a window shot, before .png",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        }
+      }
+    },
+    "Finestra di %@" : {
+      "comment" : "File name of a window shot of an app, before .png",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ Window"
+          }
+        }
+      }
+    },
+    "Finestra non allegata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window Not Attached"
+          }
+        }
+      }
+    },
     "Forse c'è un aggiornamento: il repository è passato a %@" : {
       "localizations" : {
         "en" : {
@@ -5529,6 +5611,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Always use for this Project"
+          }
+        }
+      }
+    },
+    "macOS non ha mostrato la scelta della finestra o non ha dato lo scatto. Premi ⌃⌘⇧4, poi Spazio, fai clic sulla finestra e incollala nel prompt con ⌘V." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS didn't show the window picker or didn't take the shot. Press ⌃⌘⇧4, then Space, click the window and paste it into the prompt with ⌘V."
           }
         }
       }

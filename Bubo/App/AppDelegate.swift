@@ -170,6 +170,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // With the Panel hidden there is no Bolla: the Domanda of the HUD instead.
         guard let self, panel.isShown else { self?.hud.show(); return }
         panel.askInPanel()
+    } attachWindow: { [weak self] in
+        self?.panel.attachWindow()
     }
     /// The global shortcut held down: dictation into the Domanda, sent at release unless it was the sola dettatura.
     private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [questions] in

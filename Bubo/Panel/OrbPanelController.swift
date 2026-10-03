@@ -178,6 +178,42 @@ final class OrbPanelController {
         }
     }
 
+    /// «Allega finestra» (#485): the system's picker, then the window the user clicks goes in the prompt as an
+    /// Allegato, in the bubble, or in the HUD when the Panel is hidden or the HUD open.
+    func attachWindow() {
+        guard let questions else { return }
+        Task {
+            let allegato: Allegato?
+            do {
+                let directory = try QuestionModel.directory().appending(path: "Allegati", directoryHint: .isDirectory)
+                allegato = try await windowCapture.attachment(savingIn: directory)
+            } catch {
+                Logger.panel.error("Window not attached: \(error)")
+                Self.explainCaptureFailure()
+                return
+            }
+            guard let allegato else { return }
+            questions.attach([allegato])
+            if isShown, !isHUDOpen { bubble.open(focus: .prompt) } else { openHUD() }
+            NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                                 userInfo: [.announcement: String(localized: "Allegato: \(allegato.name)"),
+                                            .priority: NSAccessibilityPriorityLevel.high.rawValue])
+        }
+    }
+
+    /// Says that the window could not be attached, and the way that always works: no setting to change, because Bubo
+    /// asks for no Screen Recording (ADR 0005).
+    private static func explainCaptureFailure() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Finestra non allegata")
+        alert.informativeText = String(localized: """
+            macOS non ha mostrato la scelta della finestra o non ha dato lo scatto. Premi ⌃⌘⇧4, poi Spazio, fai clic \
+            sulla finestra e incollala nel prompt con ⌘V.
+            """)
+        NSApp.activate()
+        alert.runModal()
+    }
+
     /// Puts what is dropped on the Orb in the prompt of the bubble, with the Orb in Ascolto; returns whether anything
     /// could be attached.
     private func drop(_ pasteboard: NSPasteboard, into questions: QuestionModel) -> Bool {
@@ -221,6 +257,7 @@ final class OrbPanelController {
 
     @ObservationIgnored private var openHUD: () -> Void = {}
     @ObservationIgnored private weak var questions: QuestionModel?
+    @ObservationIgnored private let windowCapture = WindowCapture()
     @ObservationIgnored private var bubbleWindow: PanelBubbleWindow?
     @ObservationIgnored private var statusWindow: PanelStatusWindow?
     /// What the pill would say were it on screen, as last computed from the Sessioni and the Domanda.
