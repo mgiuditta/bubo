@@ -307,8 +307,11 @@ final class QuestionModel {
 
     /// Whether picking `alternative` must first ask the user's consent: a cloud that is not Claude, never allowed.
     func needsConsent(for alternative: RetryAlternative) -> Bool {
-        guard case let .endpoint(endpoint) = alternative.target else { return false }
-        return !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
+        switch alternative.target {
+        case .claude: false
+        case let .endpoint(endpoint): !endpoint.isOnMac && !endpoints.consents.contains(endpoint.id)
+        case .copilot: !endpoints.allowsCopilot
+        }
     }
 
     /// The share of the 5-hour window used, for the router; `nil` with the API key, which has no Quota, and when the
@@ -325,8 +328,9 @@ final class QuestionModel {
             $0.isOnMac || endpoints.consents.contains($0.id)
         })
         routed.localModel = endpoints.localModel
-        // Read only when the user opened "Rifai con…": until then a Copilot preference is taken on trust.
-        routed.copilotModels = copilotModels.isEmpty ? nil : copilotModels
+        // Read only when the user opened "Rifai con…": until then a Copilot preference is taken on trust. Without
+        // the user's consent it pauses, as a cloud endpoint does.
+        routed.copilotModels = endpoints.allowsCopilot ? (copilotModels.isEmpty ? nil : copilotModels) : []
         async let isOnline = cli.isOnline()
         var asked = Set(routed.choices.values.compactMap { choice -> String? in
             if case let .endpoint(id) = choice { id } else { nil }
@@ -993,7 +997,7 @@ final class QuestionModel {
         var firstAudio: OSSignpostIntervalState?
         do {
             let stream = try await readyBridge().askCopilotQuestion(
-                asked, copilot: copilot, model: model.id, effort: route.effort,
+                asked, copilot: copilot, consents: endpoints.consents, model: model.id, effort: route.effort,
                 usage: { [weak self] usage in
                     guard let self else { return }
                     // The Spesa estimated on GitHub's list prices, the same in the line and in the ledger.
@@ -1023,6 +1027,9 @@ final class QuestionModel {
         } catch is CancellationError {
         } catch let failure as QuestionFailure {
             self.failure = failure
+        } catch CopilotFailure.consentMissing {
+            // Nothing was sent: the same notice as a cloud endpoint without consent.
+            failure = .endpoint(.consentMissing)
         } catch let AgentBridgeError.failed(message) {
             Logger.agent.error("Copilot failed: \(message, privacy: .public)")
             failure = .copilotFailed(message)

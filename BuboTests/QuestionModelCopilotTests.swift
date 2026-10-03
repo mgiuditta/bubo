@@ -28,16 +28,18 @@ struct QuestionModelCopilotTests {
         """#
 
     /// A Domanda of Scrittura answered by Sonnet, with `copilot` found by `copilot`.
-    func answeredModel(orb: OrbControls = OrbControls(),
+    func answeredModel(orb: OrbControls = OrbControls(), allowsCopilot: Bool = true,
                        copilot: @escaping () async -> URL? = { URL(filePath: "/opt/homebrew/bin/copilot") }) async -> QuestionModel {
         let cli = ClaudeCLI(isOnline: { true }, locator: ClaudeLocator(isExecutable: { _ in true }))
         let rules = try? RuleClassifier(catalogo: Catalogo(bundle: .main))
         let intake = IntakePipeline(orb: orb, onDevice: .off) {
             rules.map { RequestClassifier(engines: [QuestionModelTests.FixedEngine(type: .writing)], rules: $0) }
         }
+        let endpoints = EndpointSettings(defaults: UserDefaults(suiteName: "QuestionModelCopilotTests-\(UUID().uuidString)")!)
+        if allowsCopilot { endpoints.grantCopilotConsent() }
         let model = QuestionModel(cli: cli, orb: orb, intake: intake, bridgeExecutable: URL(filePath: "/bin/sh"),
                                   bridgeArguments: ["-c", Self.bridge], apiKey: { nil },
-                                  endpoints: EndpointSettings(defaults: UserDefaults(suiteName: "QuestionModelCopilotTests-\(UUID().uuidString)")!),
+                                  endpoints: endpoints,
                                   preferences: preferences, copilot: copilot)
         await QuestionModelTests.ask(model)
         return model
@@ -98,6 +100,21 @@ struct QuestionModelCopilotTests {
         #expect(model.answer == "da copilot")
         #expect(model.routedAnswer?.route.reason == .preferred(.writing))
         #expect(model.routedAnswer?.provider == .openAI)
+    }
+
+    // #543: without the consent for Copilot, "Rifai con…" asks it first and nothing is sent.
+    @Test func withoutConsentNothingGoesToCopilot() async throws {
+        let model = await answeredModel(allowsCopilot: false)
+        await model.readCopilotModels()
+        let gpt = try gpt(in: model)
+        #expect(model.needsConsent(for: gpt))
+
+        model.retry(with: gpt, alwaysUse: true)
+        await model.answering?.value
+
+        #expect(model.failure == .endpoint(.consentMissing))
+        #expect(model.answer.isEmpty)
+        #expect(preferences.choices.isEmpty)
     }
 
     @Test func withoutAPaidCopilotNothingIsListedNorSent() async throws {
