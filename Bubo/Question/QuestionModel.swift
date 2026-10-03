@@ -533,14 +533,15 @@ final class QuestionModel {
 
     private static let betterVoiceDismissedKey = "voice.betterVoiceDismissed"
 
-    /// Asks `text` with `attachments`, from outside the HUD, replacing any answer in progress; what is typed in the
-    /// prompt stays there.
+    /// Asks `text` with `attachments`, from outside the HUD, as a new Domanda: Comandi rapidi, Spotlight and any
+    /// other app. Any answer in progress stops; what is typed in the prompt stays there.
     ///
-    /// The Allegati go only to Claude or to the model on the Mac, as their content.
+    /// The turns of the Domanda in the Bolla do not follow it: another app gets no answer that read them, and they
+    /// reach no model on its behalf (#668). The Allegati go only to Claude or to the model on the Mac, as their content.
     func ask(_ text: String, attachments: [Allegato]) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
-        followLastTurn()
+        startNewQuestion()
         lastPrompt = text
         lastAttachments = attachments
         confirmedAttachments = [:]
@@ -588,7 +589,9 @@ final class QuestionModel {
     /// ``idleLimit`` without a prompt or an answer, a new Domanda starts instead.
     private func followLastTurn() {
         resetIfIdle()
-        if !lastPrompt.isEmpty, !answer.isEmpty { turns.append(QuestionTurn(prompt: lastPrompt, answer: answer)) }
+        guard !lastPrompt.isEmpty, !answer.isEmpty else { return }
+        // A turn whose answerer is unknown counts as one on the Mac: it never leaves for a cloud.
+        turns.append(QuestionTurn(prompt: lastPrompt, answer: answer, isOnMac: routedAnswer?.isOnMac ?? true))
     }
 
     /// Starts a new Domanda ("Nuova Domanda"): the answer in progress stops, and the turns so far go with it.
@@ -815,7 +818,9 @@ final class QuestionModel {
         defer { intake.finish(submission) }
         lastType = submission.classification?.type
         guard !Task.isCancelled else { return }
-        await answer(AttachmentPolicy.prompt(QuestionTurn.transcript(turns, then: text), attachments: attachments),
+        // The turns answered on the Mac stay there when the endpoint is in a cloud.
+        let readable = endpoint.isOnMac ? turns : QuestionTurn.leavingTheMac(turns)
+        await answer(AttachmentPolicy.prompt(QuestionTurn.transcript(readable, then: text), attachments: attachments),
                      from: endpoint, route: .retriedElsewhere,
                      submission: submission, speaksAnswer: false)
     }
@@ -882,8 +887,11 @@ final class QuestionModel {
             Signposts.signposter.beginInterval("Domanda, primo token", id: signpostID)
         defer { waitingForFirstToken.map { Signposts.signposter.endInterval("Domanda, primo token", $0) } }
         // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
-        // The router classifies the prompt alone; the model reads it after the earlier turns.
-        let text = QuestionTurn.transcript(turns, then: richiesta.text)
+        // The router classifies the prompt alone; the model reads it after the earlier turns, but a model outside
+        // the Mac only after those that did not stay on it.
+        func text(onMac: Bool) -> String {
+            QuestionTurn.transcript(onMac ? turns : QuestionTurn.leavingTheMac(turns), then: richiesta.text)
+        }
         // The user's choice for this turn goes before any preference.
         let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog,
                                              preferences: chosen == nil ? await routerPreferences() : .none)
@@ -894,7 +902,8 @@ final class QuestionModel {
             guard !Task.isCancelled else { return }
             // The Tinta of the model's vendor, whatever the router would choose (ADR 0011).
             intake.answer(submission, movedTo: copilot.provider)
-            await answer(Richiesta(text: text, attachments: richiesta.attachments), withCopilot: copilot, route: route,
+            await answer(Richiesta(text: text(onMac: false), attachments: richiesta.attachments), withCopilot: copilot,
+                         route: route,
                          submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
             return
         }
@@ -905,13 +914,17 @@ final class QuestionModel {
                 failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
                 return
             }
-            await answer(text, from: endpoint, route: route, submission: submission, speaksAnswer: speaksAnswer)
+            await answer(text(onMac: endpoint.isOnMac), from: endpoint, route: route, submission: submission,
+                         speaksAnswer: speaksAnswer)
             return
         }
         // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
-        let asked = speaksAnswer ? text + SpokenSummary.instruction : text
+        func asked(onMac: Bool) -> String {
+            speaksAnswer ? text(onMac: onMac) + SpokenSummary.instruction : text(onMac: onMac)
+        }
         if route.destination == .onDevice {
             guard !Task.isCancelled else { return }
+            let asked = asked(onMac: true)
             routedAnswer = RoutedAnswer(route: route, provider: nil)
             do {
                 var summary = speaksAnswer ? SpokenSummary() : nil
@@ -982,7 +995,8 @@ final class QuestionModel {
             let bridge = try await readyBridge()
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
-            let prompt = Self.prompt(asked, attachments: richiesta.attachments)
+            // Claude is in a cloud, also when it answers for Apple FM.
+            let prompt = Self.prompt(asked(onMac: false), attachments: richiesta.attachments)
             let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     readableDirectories: Self.readableDirectories(for: richiesta.attachments),
@@ -1120,10 +1134,14 @@ final class QuestionModel {
 
     /// What `claude` reads of a Domanda: `question`, each Allegato with no file behind it under its name, then the
     /// paths of the others, which the agent reads from the disk (spec 09).
+    ///
+    /// Names and paths are anyone's text, from Comandi rapidi too: their control and separator characters are escaped,
+    /// so none of them adds a line that passes for the user's request.
     static func prompt(_ question: String, attachments: [Allegato]) -> String {
         guard !attachments.isEmpty else { return question }
-        let inline = attachments.filter { $0.path == nil }.map { "--- \($0.name) ---\n\($0.text ?? "")" }
-        let paths = attachments.compactMap(\.path).map { "- \($0.path(percentEncoded: false))" }
+        let inline = attachments.filter { $0.path == nil }
+            .map { "--- \(RepoActivations.escaped($0.name)) ---\n\($0.text ?? "")" }
+        let paths = attachments.compactMap(\.path).map { "- \(RepoActivations.escaped($0.path(percentEncoded: false)))" }
         let onDisk = paths.isEmpty ? [] : ["Allegati da leggere dal disco:\n" + paths.joined(separator: "\n")]
         return ([question] + inline + onDisk).joined(separator: "\n\n")
     }

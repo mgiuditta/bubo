@@ -25,7 +25,8 @@ nonisolated struct SessionDraft: Equatable, Sendable {
     var canStartEmpty: Bool { continuesQuestion || conversation != nil }
 
     /// The Sessione's first prompt: the Domanda's turns, if any, quoted as context and never as instructions (see
-    /// ``QuestionTurn/transcript(_:then:)``), then `request`, the only instruction.
+    /// ``QuestionTurn/transcript(_:then:)``), then `request`, the only instruction, then the paths of `files`, each
+    /// on its own line with its control and separator characters escaped.
     ///
     /// It starts the Sessione like any other, through ``SessionStore/start(_:title:branch:in:onCheckout:forkingFrom:upTo:issue:choice:)``:
     /// the trust dialog first, then the Progetto's Sandbox and the Modalità manuale.
@@ -38,7 +39,8 @@ nonisolated struct SessionDraft: Equatable, Sendable {
         let paths = files.map { file in
             let components = file.standardizedFileURL.pathComponents
             let inside = components.starts(with: root) ? Array(components.dropFirst(root.count)) : components
-            return "- " + (inside.isEmpty ? "." : inside.joined(separator: "/"))
+            // A file name is anyone's text: on one line, it cannot add a line that passes for the user's request.
+            return "- " + RepoActivations.escaped(inside.isEmpty ? "." : inside.joined(separator: "/"))
         }
         return String(localized: "\(prompt)\n\nFile del Progetto da guardare:\n\(paths.joined(separator: "\n"))",
                       comment: "First prompt of a Sessione from a Domanda's files: the request, then their paths in the Progetto, one per line")
