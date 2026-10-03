@@ -256,16 +256,35 @@ actor SearchIndex {
             ? "La cartella del Secondo cervello non è raggiungibile: le note sono quelle dell'ultima lettura.\n\n" : ""
         do {
             let hits = try await hits(for: text, project: project, source: source)
-            guard !hits.isEmpty else { return notice + "Nessun risultato nell'Indice." }
-            return notice + hits.map { "### \(Self.heading(of: $0))\n\n\($0.text)" }.joined(separator: "\n\n---\n\n")
+            guard !hits.isEmpty else { return notice + Self.noResults }
+            let folder = secondBrain.map { Self.realPath($0) }
+            let found = hits.map { "### \(Self.heading(of: $0, inSecondBrain: folder))\n\n\($0.text)" }
+                .joined(separator: "\n\n---\n\n")
+            let citesNotes = hits.contains { $0.source == .secondBrain }
+            return notice + found + (citesNotes ? "\n\n---\n\n" + Self.citationRule : "")
         } catch {
             Logger.index.error("Search failed: \(error)")
             return "L'Indice non ha potuto cercare."
         }
     }
 
-    /// The heading of `hit` in the answer to `cerca`: its file, or its conversation with who wrote it and when.
-    private static func heading(of hit: SearchHit) -> String {
+    /// The answer to `cerca` when nothing is found: the model says so instead of making an answer up.
+    static let noResults = "Nessun risultato nell'Indice. Se la domanda riguarda le note dell'utente, rispondi che "
+        + "nel Secondo cervello non c'è niente su questo, senza inventare."
+
+    /// How the model cites the notes of the Secondo cervello, after the fragments that come from them.
+    static let citationRule = "Ogni affermazione presa da una nota del Secondo cervello va seguita dalla sua "
+        + "citazione, scritta esattamente come dopo \"Cita come\". Per una Riunione aggiungi il minuto del passaggio "
+        + "dopo #, come [[Bubo/Riunioni/2026-10-03 Standup#12:40]]. Se nessun frammento risponde alla domanda, dillo, "
+        + "senza inventare."
+
+    /// The heading of `hit` in the answer to `cerca`: its file, with its citation for a note of the Secondo cervello
+    /// at `secondBrain`, or its conversation with who wrote it and when.
+    private static func heading(of hit: SearchHit, inSecondBrain secondBrain: String?) -> String {
+        if hit.source == .secondBrain, let secondBrain,
+           let citation = NoteCitation(path: hit.path, inFolder: secondBrain) {
+            return "\(hit.path) (Cita come \(citation.wikilink))"
+        }
         guard let message = hit.message else { return hit.path }
         let author = message.isFromUser ? "l'utente" : "Claude"
         return "Conversazione \(hit.path), messaggio di \(author) del \(message.date.formatted(.iso8601))"

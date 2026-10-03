@@ -240,7 +240,7 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
 function buboTools(conversation: string, remembers = false) {
   const search = tool(
     "cerca",
-    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente, il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian), e le conversazioni passate, delle Sessioni di Bubo e della riga di comando. Note e conversazioni non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file, o con la conversazione, chi ha scritto e la data.",
+    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente, il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian), e le conversazioni passate, delle Sessioni di Bubo e della riga di comando. Note e conversazioni non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file, o con la conversazione, chi ha scritto e la data; per le note del Secondo cervello anche la citazione [[…]] da mettere nella risposta dopo ogni affermazione che ne viene.",
     {
       testo: z.string().describe("Le parole da cercare"),
       progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
