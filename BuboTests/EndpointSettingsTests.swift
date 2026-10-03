@@ -37,4 +37,18 @@ struct EndpointSettingsTests {
 
         #expect(EndpointSettings(defaults: defaults).consents.isEmpty)
     }
+
+    @Test func copilotsConsentIsItsOwnAndRevocable() {
+        let settings = EndpointSettings(defaults: defaults)
+        settings.grantConsent(to: settings.endpoints[0])
+        #expect(!settings.allowsCopilot)
+
+        settings.grantCopilotConsent()
+        #expect(EndpointSettings(defaults: defaults).allowsCopilot)
+
+        settings.revokeCopilotConsent()
+        let relaunched = EndpointSettings(defaults: defaults)
+        #expect(!relaunched.allowsCopilot)
+        #expect(relaunched.consents == [settings.endpoints[0].id])
+    }
 }

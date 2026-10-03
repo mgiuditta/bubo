@@ -145,6 +145,8 @@ final class SessionStore {
     @ObservationIgnored var claudeProjects = URL.homeDirectory.appending(path: ".claude/projects", directoryHint: .isDirectory)
     /// The user's `copilot`, for the Sessioni that run on it (ADR 0012); `nil` when there is none.
     @ObservationIgnored var locateCopilot: () async -> URL? = { await CopilotLocator().executableURL() }
+    /// The clouds the user allowed: a Sessione on Copilot sends its turns only with Copilot's consent (spec 10).
+    @ObservationIgnored var copilotConsents: () -> Set<String> = { EndpointSettings.shared.consents }
     /// Called when a turn did not start because `claude` is too old, with its version if known.
     @ObservationIgnored var onClaudeOutdated: (_ version: String?) -> Void = { _ in }
     /// The Sessioni whose turn waits for `claude` to be updated, started again by ``startTurnsAwaitingUpdate()``.
@@ -1210,8 +1212,9 @@ final class SessionStore {
             let copilot = isCopilot ? try await copilotURL() : nil
             let answer = if let copilot {
                 // ponytail: the Copilot model and effort come with the choice per Sessione (#551).
-                agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, id: answerID,
-                                 progress: onProgress, permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
+                agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
+                                 id: answerID, progress: onProgress,
+                                 permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
                                   provider: Budgets.copilot)
                     self?.stopTurnsPastBudget(besides: id)
@@ -1256,7 +1259,8 @@ final class SessionStore {
             update(id) { session in
                 session.enter(.errore)
                 switch error {
-                case AgentBridgeError.sandboxUnavailable, AgentBridgeError.claudeOutdated:
+                case AgentBridgeError.sandboxUnavailable, AgentBridgeError.claudeOutdated,
+                     CopilotFailure.consentMissing:
                     session.unstartedPrompt = prompt
                 default:
                     session.unstartedPrompt = nil
@@ -1278,6 +1282,8 @@ final class SessionStore {
                     String(localized: "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 case CopilotFailure.missing: String(localized: "GitHub Copilot non trovato: installa la CLI copilot.")
+                case CopilotFailure.consentMissing:
+                    String(localized: "Senza il tuo consenso Copilot non può ricevere i file del Progetto. Puoi darlo in Impostazioni › Modelli.")
                 default: String(localized: "Il collegamento con Claude si è interrotto.")
                 }
             }
