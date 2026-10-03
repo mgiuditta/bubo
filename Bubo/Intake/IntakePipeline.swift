@@ -120,7 +120,21 @@ final class IntakePipeline {
             orb.provider = tinta
             forecast = Forecast(variante: classification.variante, provider: tinta)
         }
+        if classification.engine == .foundationModels, classification.variante == nil {
+            // The Blob with the Categoria has started; the Variante comes from a second step and morphs on arrival.
+            Task { await chooseVariante(for: richiesta.classifierInput, in: classification.categoria, of: id, with: classifier) }
+        }
         return Submission(id: id, classification: classification, route: route)
+    }
+
+    /// Morphs the Orb into the Variante a second step chooses for the Richiesta `id`, unless a newer one came meanwhile
+    /// or its answer is over.
+    private func chooseVariante(for input: ClassifierInput, in categoria: Categoria, of id: Int,
+                                with classifier: RequestClassifier) async {
+        guard let variante = await classifier.variante(of: input, in: categoria),
+              id == latest, !isAnswered, orb.variante == nil else { return }
+        orb.variante = variante
+        forecast = forecast.map { Forecast(variante: variante, provider: $0.provider) }
     }
 
     /// Predicts Tipo and Variante on the partial text of the Ascolto (spec 08), only with Apple Foundation Models on the

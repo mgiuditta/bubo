@@ -82,7 +82,7 @@
       "forma": "robot",
       "categoria": "agente",
       "descrizione": "Quando Bubo lavora da agente: avvia sessioni, usa strumenti, delega compiti.",
-      "parole": ["agente", "robot", "automatizza", "sessione", "strumenti", "delega"]
+      "parole": ["agente", "robot", "automatizza", "strumenti", "delega"]
     },
     {
       "nome": "terminale",
@@ -355,7 +355,7 @@
       "forma": "bilancia",
       "categoria": "chat",
       "descrizione": "Quando si decide tra opzioni: pro e contro, confronti.",
-      "parole": ["bilancia", "scale", "confronta*", "compare", "decidere", "decide"]
+      "parole": ["bilancia", "scale", "confronta*", "decidere", "decide"]
     },
     {
       "nome": "giornale",
@@ -551,14 +551,14 @@
       "forma": "luna",
       "categoria": "meteo",
       "descrizione": "Quando si parla della notte e delle fasi lunari.",
-      "parole": ["luna", "moon", "notte", "night", "fasi lunari", "moon phases", "falce"]
+      "parole": ["luna", "moon", "notte", "fasi lunari", "moon phases", "falce"]
     },
     {
       "nome": "periscopio",
       "forma": "periscopio",
       "categoria": "ricerca",
       "descrizione": "Quando si vuole un'occhiata veloce: anteprima, panoramica, il succo.",
-      "parole": ["occhiata", "quick look", "anteprima", "preview", "panoramica rapida", "sguardo veloce", "periscopio"]
+      "parole": ["quick look", "anteprima", "preview", "panoramica rapida", "sguardo veloce", "periscopio"]
     },
     {
       "nome": "mattoni",
@@ -908,7 +908,7 @@
       "forma": "spina",
       "categoria": "codice",
       "descrizione": "Quando Bubo collega servizi esterni: API, integrazioni, webhook.",
-      "parole": ["spina", "plug", "api", "integrazione", "integration", "webhook", "servizi esterni"]
+      "parole": ["spina", "api", "integrazione", "integration", "webhook", "servizi esterni"]
     },
     {
       "nome": "fiocco-di-neve",
@@ -929,7 +929,7 @@
       "forma": "automobile",
       "categoria": "viaggi",
       "descrizione": "Quando si viaggia in auto: noleggio, strade, pedaggi.",
-      "parole": ["auto", "automobile", "car", "noleggio", "car rental", "pedaggio", "toll", "in macchina"]
+      "parole": ["auto", "automobile", "noleggio", "car rental", "pedaggio", "toll", "in macchina"]
     },
     {
       "nome": "fotocopiatrice",
@@ -950,14 +950,14 @@
       "forma": "calcolatrice",
       "categoria": "finanza",
       "descrizione": "Quando si fanno calcoli con i soldi: rate, interessi, percentuali.",
-      "parole": ["calcolatrice", "calculator", "rata", "rate", "interessi", "interest", "percentuale", "percentage"]
+      "parole": ["calcolatrice", "calculator", "rata", "interessi", "interest"]
     },
     {
       "nome": "rocchetto",
       "forma": "rocchetto",
       "categoria": "creativo",
       "descrizione": "Quando si cuce o si fa artigianato con stoffa e filo.",
-      "parole": ["rocchetto", "filo", "thread", "cucire", "sewing", "ago", "needle", "stoffa"]
+      "parole": ["rocchetto", "filo", "cucire", "sewing", "ago", "needle", "stoffa"]
     },
     {
       "nome": "segnaposto",
@@ -992,7 +992,7 @@
       "forma": "megafono",
       "categoria": "mail",
       "descrizione": "Quando si scrive per molte persone: annunci, newsletter, comunicazioni.",
-      "parole": ["megafono", "megaphone", "annuncio", "announcement", "newsletter", "comunicazione", "comunicazioni"]
+      "parole": ["megafono", "megaphone", "annuncio", "newsletter", "comunicazione", "comunicazioni"]
     },
     {
       "nome": "siringa",
@@ -1132,7 +1132,7 @@
       "forma": "scaffale",
       "categoria": "ricerca",
       "descrizione": "Quando Bubo cerca in una raccolta di documenti: archivi, PDF, biblioteche.",
-      "parole": ["scaffale", "biblioteca", "library", "archivio", "archive", "raccolta di documenti", "pdf"]
+      "parole": ["scaffale", "biblioteca", "library", "archivio", "archive", "raccolta di documenti"]
     },
     {
       "nome": "segnalibro",
@@ -1363,7 +1363,7 @@
       "forma": "chiave",
       "categoria": "codice",
       "descrizione": "Quando servono segreti: token, chiavi API, credenziali.",
-      "parole": ["chiave", "key", "token", "api key", "chiavi api", "credenziali", "credentials", "segreti"]
+      "parole": ["key", "token", "api key", "chiavi api", "credenziali", "credentials", "segreti"]
     },
     {
       "nome": "diagramma",
@@ -1398,7 +1398,7 @@
       "forma": "compasso",
       "categoria": "codice",
       "descrizione": "Quando Bubo pianifica il lavoro prima di scrivere codice.",
-      "parole": ["compasso", "compass", "pianifica", "plan first", "prima di scrivere codice", "roadmap", "progetta", "design doc"]
+      "parole": ["compasso", "compass", "pianifica", "plan first", "prima di scrivere codice", "roadmap", "design doc"]
     },
     {
       "nome": "bacchetta-magica",
@@ -1552,7 +1552,7 @@
       "forma": "podio",
       "categoria": "ricerca",
       "descrizione": "Quando si confrontano opzioni e si stila una classifica.",
-      "parole": ["podio", "podium", "classifica", "ranking", "confronta", "compare", "top"]
+      "parole": ["podio", "podium", "classifica", "ranking", "confronta", "top"]
     },
     {
       "nome": "percentuale",
@@ -1692,7 +1692,7 @@
       "forma": "taccuino",
       "categoria": "ricerca",
       "descrizione": "Quando Bubo cerca tra i tuoi appunti e le tue note.",
-      "parole": ["taccuino", "notebook", "appunti", "note", "notes", "quaderno", "memo"]
+      "parole": ["taccuino", "notebook", "appunti", "note", "quaderno", "memo"]
     },
     {
       "nome": "flauto",
@@ -1713,7 +1713,7 @@
       "forma": "elefante",
       "categoria": "agente",
       "descrizione": "Quando Bubo ricorda o riprende qualcosa: memoria, cose da non dimenticare.",
-      "parole": ["elefante", "elephant", "memoria", "memory", "ricorda", "remember", "non dimenticare"]
+      "parole": ["elefante", "elephant", "memoria", "ricorda", "remember", "non dimenticare"]
     },
     {
       "nome": "palma",
@@ -1881,7 +1881,7 @@
       "forma": "info",
       "categoria": "codice",
       "descrizione": "Quando Bubo scrive documentazione: README, commenti, guide.",
-      "parole": ["documentazione", "documentation", "readme", "commento", "guida", "docstring", "manuale"]
+      "parole": ["documentazione", "documentation", "readme", "commento", "docstring", "manuale"]
     },
     {
       "nome": "semaforo",
@@ -2350,7 +2350,7 @@
       "forma": "valigetta",
       "categoria": "agente",
       "descrizione": "Quando si lavora su un Progetto: aprirlo, organizzarlo, cambiarlo.",
-      "parole": ["valigetta", "progetto", "project", "apri il progetto", "open project", "organizza il progetto", "cartella di lavoro", "workspace"]
+      "parole": ["valigetta", "project", "apri il progetto", "open project", "organizza il progetto", "cartella di lavoro", "workspace"]
     },
     {
       "nome": "puntina",
@@ -2574,7 +2574,7 @@
       "forma": "formica",
       "categoria": "agente",
       "descrizione": "Quando Bubo lavora a lungo in background, senza disturbare.",
-      "parole": ["formica", "ant", "automazione", "ciclo di lavoro", "pipeline", "instancabile"]
+      "parole": ["formica", "ant", "automazione", "ciclo di lavoro", "instancabile"]
     },
     {
       "nome": "motocicletta",
@@ -2805,7 +2805,7 @@
       "forma": "timone",
       "categoria": "agente",
       "descrizione": "Quando Bubo procede in autonomia senza chiedere a ogni passo.",
-      "parole": ["timone", "helm", "ship's wheel", "guida", "prendi il comando", "take the lead", "dirigi", "steer"]
+      "parole": ["timone", "helm", "ship's wheel", "prendi il comando", "take the lead", "dirigi", "steer"]
     },
     {
       "nome": "paracadute",
@@ -3239,7 +3239,7 @@
       "forma": "tubatura",
       "categoria": "codice",
       "descrizione": "Quando Bubo costruisce una pipeline: CI, flussi di dati, script in catena.",
-      "parole": ["tubatura", "tubo", "pipe", "pipeline", "ci", "flusso di dati", "data flow", "script in catena"]
+      "parole": ["tubatura", "tubo", "pipe", "ci", "flusso di dati", "data flow", "script in catena"]
     },
     {
       "nome": "asterisco",
@@ -3309,7 +3309,7 @@
       "forma": "orme",
       "categoria": "ricerca",
       "descrizione": "Quando si ripercorre la cronologia: cosa è successo prima, conversazioni passate.",
-      "parole": ["orme", "impronte", "footprints", "cronologia", "history", "conversazioni passate", "past conversations", "cosa e successo"]
+      "parole": ["orme", "impronte", "footprints", "history", "conversazioni passate", "past conversations", "cosa e successo"]
     },
     {
       "nome": "microscopio",

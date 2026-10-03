@@ -72,6 +72,45 @@ struct IntakePipelineTests {
         }
     }
 
+    /// An engine whose classification leaves the Variante to a second step, which answers `variante`.
+    nonisolated struct TwoStepEngine: ClassificationEngine {
+        let variante: Variante
+        var budget: Duration { .seconds(1) }
+
+        func classification(of input: ClassifierInput) async throws -> RequestClassification {
+            RequestClassification(type: .webSearch, categoria: variante.categoria, variante: nil, engine: .foundationModels)
+        }
+
+        func variante(of input: ClassifierInput, in categoria: Categoria) async throws -> Variante? {
+            variante
+        }
+    }
+
+    // #381: the Blob with the Categoria does not wait for the second step; its Variante morphs on arrival.
+    @Test func theSecondStepMorphsAfterTheBlob() async throws {
+        let lente = try #require(catalogo.variante(named: "lente"))
+        let intake = pipeline(engine: TwoStepEngine(variante: lente))
+
+        let submission = await intake.submit(Richiesta(text: "Trova il file dei colori."), to: .anthropic)
+        #expect(submission.classification?.variante == nil)
+        #expect(orb.variante == nil)
+
+        for _ in 0..<100 where orb.variante == nil { try await Task.sleep(for: .milliseconds(10)) }
+        #expect(orb.variante == lente)
+        #expect(intake.forecast?.variante == lente)
+    }
+
+    @Test func aSecondStepAfterTheAnswerLeavesTheOrbAlone() async throws {
+        let lente = try #require(catalogo.variante(named: "lente"))
+        let intake = pipeline(engine: TwoStepEngine(variante: lente))
+
+        let submission = await intake.submit(Richiesta(text: "Trova il file dei colori."), to: .anthropic)
+        intake.finish(submission)
+
+        try await Task.sleep(for: .milliseconds(200))
+        #expect(orb.variante == nil)
+    }
+
     // #106: the final text confirms the prediction, so the classifier is not asked again.
     @Test func aConfirmedPredictionMorphsWithoutTheClassifier() async throws {
         let lente = try #require(catalogo.variante(named: "lente"))

@@ -68,18 +68,27 @@ nonisolated struct RuleClassifier: ClassificationEngine {
         return (ranked[0].0, true, ranked[0].1 - ranked[1].1 >= 1)
     }
 
-    /// The Variante of `categoria` whose words appear most in `text`; with none, its first Variante when the Categoria won
-    /// clearly; otherwise `nil` for Blob with the Categoria, since a wrong Morph is worse than none.
+    /// The Variante of `categoria` whose words appear in `text` more than any other's, when the Categoria won clearly;
+    /// otherwise `nil` for Blob with the Categoria, since a wrong Morph is worse than none.
     private func variante(in categoria: Categoria, text: String, isClear: Bool) -> Variante? {
-        guard isClear else { return nil }
-        let candidates = catalogo.varianti(in: categoria)
-        let scored = candidates.map { variante in
-            (variante, variante.parole.count { Self.contains($0, in: text) })
-        }
-        if let best = scored.max(by: { $0.1 < $1.1 }), best.1 > 0 {
-            return best.0
-        }
-        return candidates.first
+        isClear ? variante(in: categoria, normalizedText: text) : nil
+    }
+
+    /// The Variante of `categoria` whose words appear most in `normalizedText`, alone at the top; `nil` with no word or a tie.
+    private func variante(in categoria: Categoria, normalizedText text: String) -> Variante? {
+        let scored = catalogo.varianti(in: categoria)
+            .map { variante in (variante, variante.parole.count { Self.contains($0, in: text) }) }
+            .filter { $0.1 > 0 }
+            .sorted { $0.1 > $1.1 }
+        // With hundreds of Varianti one shared word is weak evidence: a tie at the top is Blob.
+        guard let best = scored.first, scored.dropFirst().first?.1 != best.1 else { return nil }
+        return best.0
+    }
+
+    /// The Variante of `categoria` whose words appear most in `input`, for a Categoria another engine chose;
+    /// `nil` when none of them appears.
+    func variante(matching input: ClassifierInput, in categoria: Categoria) -> Variante? {
+        variante(in: categoria, normalizedText: Self.normalized(input.text))
     }
 
     /// Words that ask to find something, which turn exploring the code into Ricerca.
