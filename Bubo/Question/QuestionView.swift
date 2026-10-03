@@ -61,12 +61,9 @@ struct QuestionView: View {
                 RoundedRectangle(cornerRadius: CornerRadius.large).strokeBorder(Palette.line)
             }
 
-            if showsChip, let route = model.chipRoute {
-                RouterChip(route: route)
-                    .accessibilityAction(named: "Modello successivo") { model.chooseModel(forward: true) }
-                    .accessibilityAction(named: "Sforzo più alto") { model.chooseEffort(stronger: true) }
-                    .accessibilityAction(named: "Sforzo più basso") { model.chooseEffort(stronger: false) }
-                    .accessibilityAction(named: "Torna al router") { model.returnToRouter() }
+            // Always there, also before typing: the user picks who answers the chat, or leaves it to the router.
+            if voice?.isListening != true {
+                ModelPicker(model: model)
             }
 
             if let voice, let failure = voice.failure {

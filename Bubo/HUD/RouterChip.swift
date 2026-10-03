@@ -41,6 +41,18 @@ struct RouterChip: View {
         .accessibilityIdentifier("question.routerChip")
     }
 
+    /// The chip before anything is typed and with no model picked: the router will choose.
+    static var automatic: some View {
+        Text("Automatico")
+            .font(Typography.body(size: 12))
+            .foregroundStyle(Palette.textSecondary)
+            .padding(.horizontal, Spacing.xSmall)
+            .padding(.vertical, Spacing.xxSmall)
+            .background(Palette.surface, in: .capsule)
+            .overlay { Capsule().strokeBorder(Palette.line) }
+            .accessibilityLabel("Modello: automatico")
+    }
+
     /// Anthropic's Tinta for Claude, the neutral one for the Mac, an endpoint's own.
     private var tint: Color {
         let provider: Provider? = switch route.destination {

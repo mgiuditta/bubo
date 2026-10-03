@@ -206,6 +206,20 @@ final class QuestionModel {
         return true
     }
 
+    /// Picks who answers the Domande from the chip's menu, until the user picks again; `nil` gives them back to the
+    /// router.
+    func choose(_ route: Route?) {
+        chipChoice = route
+    }
+
+    /// The Claude families of the user's plan, for the chip's menu.
+    var claudeChoices: [Route] {
+        ModelFamily.allCases
+            .filter { family in catalog.map { $0.entry(for: family.alias) != nil } ?? (family != .fable) }
+            .map { Route(family: $0, model: catalog?.entry(for: $0.alias)?.value ?? $0.alias, effort: nil,
+                         reason: .chosenByUser) }
+    }
+
     /// Hands the next Domanda back to the router (Esc); `false` when the router already chooses.
     @discardableResult
     func returnToRouter() -> Bool {
@@ -219,9 +233,9 @@ final class QuestionModel {
     private func updateForecast() {
         forecasting?.cancel()
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        // The user's choice stays with an empty prompt: it holds for the whole chat, not for one Domanda.
         guard !text.isEmpty else {
             forecast = nil
-            chipChoice = nil
             return
         }
         forecasting = Task {

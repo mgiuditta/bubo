@@ -79,10 +79,11 @@ struct RouterChipTests {
 
         #expect(model.failure == nil)
         #expect(model.routedAnswer?.route == .chosen("haiku"))
-        #expect(model.chipChoice == nil)
+        // The pick holds for the whole chat.
+        #expect(model.chipChoice?.family == .haiku)
     }
 
-    @Test func escAndAnEmptyPromptHandBackToTheRouter() async throws {
+    @Test func escHandsBackToTheRouterAndAnEmptyPromptKeepsThePick() async throws {
         let model = try QuestionModelTests.routedModel(.writing)
         model.prompt = "Scrivi una mail"
         model.chooseModel(forward: true)
@@ -92,7 +93,6 @@ struct RouterChipTests {
 
         model.chooseModel(forward: true)
         model.prompt = ""
-        #expect(model.chipChoice == nil)
-        #expect(model.chipRoute == nil)
+        #expect(model.chipChoice != nil)
     }
 }

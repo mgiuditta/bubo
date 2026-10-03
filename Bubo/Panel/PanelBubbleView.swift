@@ -95,6 +95,7 @@ struct PanelBubbleView: View {
                 .accessibilityLabel("Chiedi qualcosa a Claude")
                 .accessibilityIdentifier("bubble.prompt")
                 .onExitCommand(perform: bubble.close)
+            ModelPicker(model: model)
             if model.isAnswering {
                 Button("Ferma", systemImage: "stop.fill", action: model.stop)
                     .help("Ferma la risposta")
