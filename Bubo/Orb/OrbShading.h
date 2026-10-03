@@ -251,7 +251,9 @@ static inline float4 orbColor(VOut in, constant Uniforms &u) {
         col += float3(1.0, 0.93, 0.88) * pow(clamp(dot(reflect(-L, n), -rd), 0.0, 1.0), mix(10.0, 90.0, u.gloss)) * (0.3 + u.gloss * 0.7);
         al = 1.0;
     }
-    float g = exp(-max(md, 0.0) * 5.5) * u.glow * 0.55;
+    // The halo fades to zero before the view's shorter side: at the edge it is still ~3% and
+    // the cut shows the view's square.
+    float g = exp(-max(md, 0.0) * 5.5) * u.glow * 0.55 * (1.0 - smoothstep(0.7, 1.0, length(uv)));
     if (!hit) { col = u.a * g + u.b * g * g * 0.4; al = clamp(g, 0.0, 1.0); }
     col = col / (1.0 + col * 0.35);
     return float4(col, al); // premultiplied
