@@ -100,6 +100,8 @@ struct BuboApp: App {
                 // ⌥⌘G, not ⇧⌘G: that is Trova precedente in the HIG (preflight #119).
                 Button("Mostra la Galassia") { appDelegate.showGalaxy() }
                     .keyboardShortcut("g", modifiers: [.option, .command])
+                // Also in the Palette and in the Orb's menu; no shortcut.
+                Button("Mostra i Neuroni") { appDelegate.showNeurons() }
                 Divider()
             }
         }
@@ -156,7 +158,8 @@ struct BuboApp: App {
         }
 
         MenuBarExtra {
-            MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions, meetings: appDelegate.meetings)
+            MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions, meetings: appDelegate.meetings,
+                           showNeurons: appDelegate.showNeurons)
                 .environment(appDelegate.hud)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.panel)

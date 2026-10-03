@@ -130,6 +130,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     /// The notifications of a Budget past its threshold, read at each turn the ledger records.
     private lazy var budgetAlerts = BudgetAlerts(ledger: ledger) { [notifier] status in await notifier.announce(status) }
+    /// The window of the Neuroni, while open.
+    private var neurons: NeuronWindow?
     /// The Galassia windows, one per Progetto.
     private(set) lazy var galaxies = GalaxyStore { [weak self] in
         self?.sessions?.projects ?? []
@@ -292,7 +294,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
-        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions, meetings: meetings)
+        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions, meetings: meetings) { [weak self] in
+            self?.showNeurons()
+        }
             .environment(hud)
             .environment(hotKeys)
             .environment(panel)
@@ -492,6 +496,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             galaxies.chooseFolder()
         }
+    }
+
+    /// Shows the Neuroni of the Secondo cervello, in their window if open; without a Secondo cervello, says to choose one.
+    func showNeurons() {
+        guard ReleaseArea.neurons.isAvailable() else { return showComingSoon(.neurons) }
+        guard let location = secondBrain.location else {
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Nessun Secondo cervello")
+            alert.informativeText = String(localized: "Scegli la cartella delle tue note nelle Impostazioni, poi apri i Neuroni.")
+            NSApp.activate()
+            alert.runModal()
+            return
+        }
+        if neurons?.model.secondBrain.path != location.path {
+            neurons = NeuronWindow(model: NeuronModel(secondBrain: location), questions: questions) { [weak self] in
+                self?.neurons = nil
+            }
+        }
+        neurons?.show()
     }
 
     /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.

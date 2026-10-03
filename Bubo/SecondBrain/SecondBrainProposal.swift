@@ -22,6 +22,10 @@ nonisolated struct SecondBrainProposal: Decodable, Equatable, Sendable {
     var people: [String] = []
     /// The projects the user follows.
     var projects: [String] = []
+    /// The Profilo agreed in the interview, Markdown for `Bubo/Profilo.md`; empty to leave the file as it is.
+    var profile = ""
+    /// The Regole agreed in the interview, Markdown for `Bubo/Regole.md`; empty to leave the file as it is.
+    var rules = ""
 
     /// The language of the block and the info string of its fence.
     static let fence = "secondo-cervello"
@@ -31,17 +35,19 @@ nonisolated struct SecondBrainProposal: Decodable, Equatable, Sendable {
 
     private enum CodingKeys: String, CodingKey {
         case action = "azione", path = "cartella", excludedFolders = "escluse", priorityFolders = "prioritarie"
-        case people = "persone", projects = "progetti"
+        case people = "persone", projects = "progetti", profile = "profilo", rules = "regole"
     }
 
     init(action: Action, path: String, excludedFolders: [String] = [], priorityFolders: [String] = [],
-         people: [String] = [], projects: [String] = []) {
+         people: [String] = [], projects: [String] = [], profile: String = "", rules: String = "") {
         self.action = action
         self.path = path
         self.excludedFolders = excludedFolders
         self.priorityFolders = priorityFolders
         self.people = people
         self.projects = projects
+        self.profile = profile
+        self.rules = rules
     }
 
     /// Decodes a proposal, with only `azione` and `cartella` required.
@@ -53,6 +59,8 @@ nonisolated struct SecondBrainProposal: Decodable, Equatable, Sendable {
         priorityFolders = try container.decodeIfPresent([String].self, forKey: .priorityFolders) ?? []
         people = try container.decodeIfPresent([String].self, forKey: .people) ?? []
         projects = try container.decodeIfPresent([String].self, forKey: .projects) ?? []
+        profile = try container.decodeIfPresent(String.self, forKey: .profile) ?? ""
+        rules = try container.decodeIfPresent(String.self, forKey: .rules) ?? ""
     }
 
     /// The folder, with `~` expanded.
