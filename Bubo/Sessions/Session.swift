@@ -21,6 +21,14 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     ///
     /// In revisione once Apri PR opened its pull request; Fusa lasts as long as the merge can be undone, then the
     /// Sessione is Archiviata.
+    /// The agent a Sessione runs on (ADR 0012).
+    enum Engine: String, Codable, Sendable {
+        /// Claude Code, through the Agent SDK: the default.
+        case claude
+        /// GitHub Copilot CLI, through the Copilot SDK.
+        case copilot
+    }
+
     enum Phase: String, Codable, Sendable {
         case aperta, inRevisione, fusa, archiviata
 
@@ -94,6 +102,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// The model · sforzo the user chose for the Sessione's turns, from the next one, without restarting it (spec 10,
     /// Nella Sessione); `nil` for the model and effort the user set in `claude`.
     var model: Scala.Step?
+    /// The agent that runs the Sessione's turns: `claude` unless the user chose `copilot` (ADR 0012).
+    var engine: Engine = .claude
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
     /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
@@ -169,6 +179,12 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     }
 }
 
+/// Why a Sessione on Copilot did not start (ADR 0012).
+nonisolated enum CopilotFailure: Error, Equatable {
+    /// No `copilot` was found.
+    case missing
+}
+
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
     /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
@@ -205,6 +221,7 @@ nonisolated extension Session {
         budgetStop = try container.decodeIfPresent(BudgetGuard.Scope.self, forKey: .budgetStop)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
         model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
+        engine = try container.decodeIfPresent(Engine.self, forKey: .engine) ?? .claude
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false

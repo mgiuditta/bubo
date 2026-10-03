@@ -264,6 +264,28 @@ struct AgentBridgeTests {
         read _
         """#)
 
+    // ADR 0012: a Copilot turn streams and asks as a Claude one, on the same bridge.
+    @Test func aCopilotAnswerStreamsAndItsPermissionIsAnswered() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            case "$line" in *'"type":"copilot"'*'"v":4'*) ;; *) exit 1 ;; esac
+            echo "{\"v\":4,\"type\":\"permission\",\"id\":\"$id\",\"request\":\"p1\",\"tool\":\"Edit\",\"path\":\"/tmp/w/a\"}"
+            read answer
+            case "$answer" in *'"behavior":"allow"'*) said=scritto ;; *) said=no ;; esac
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$said\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var asked: [PermissionEvent] = []
+        let answer = try await Self.collect(bridge.askCopilot("x", in: URL(filePath: "/tmp/w"),
+                                                              copilot: URL(filePath: "/c")) { _ in
+        } permissions: { event in
+            asked.append(event)
+            if case let .asked(request) = event { bridge.answerPermission(request.id, allows: true) }
+        })
+        #expect(answer == "scritto")
+        #expect(asked == [.asked(PermissionRequest(id: "p1", tool: "Edit", path: "/tmp/w/a"))])
+    }
+
     @Test func aPermissionIsAnsweredOnTheBridgesInput() async throws {
         let bridge = Self.bridge(Self.askingPermission)
         var asked: [PermissionEvent] = []

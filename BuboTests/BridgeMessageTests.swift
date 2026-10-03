@@ -10,6 +10,17 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":["user"],"type":"ask","v":4}"# + "\n")
     }
 
+    // ADR 0012: a Sessione on Copilot names the user's `copilot`, and its model and effort only when chosen.
+    @Test func askCopilotCarriesTheBinaryAndTheFolder() throws {
+        let line = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                copilot: URL(filePath: "/opt/homebrew/bin/copilot")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"copilot":"/opt/homebrew/bin/copilot","cwd":"/tmp/w","id":"a1","prompt":"Ciao","type":"copilot","v":4}"# + "\n")
+        let chosen = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                  copilot: URL(filePath: "/c"), model: "gpt-6", effort: .high).line()
+        #expect(String(decoding: chosen, as: UTF8.self).contains(#""effort":"high","id":"a1","model":"gpt-6""#))
+    }
+
     @Test func askWithAllegatiCarriesTheirFolders() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
                                          settingSources: [], readableDirectories: [URL(filePath: "/tmp/allegati/")]).line()
