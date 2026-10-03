@@ -2680,6 +2680,174 @@
       "categoria": "viaggi",
       "descrizione": "Quando si cerca parcheggio.",
       "parole": ["parcheggio", "parcheggiare", "parking", "park the car", "posteggio", "garage", "dove lascio l'auto"]
+    },
+    {
+      "nome": "crema",
+      "forma": "crema",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di pelle: scottature, eczema, creme.",
+      "parole": ["crema", "lotion", "idratante", "moisturizer", "pelle", "skincare", "solare", "sunscreen"]
+    },
+    {
+      "nome": "corona",
+      "forma": "corona",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di re, regine e storia delle monarchie.",
+      "parole": ["corona", "crown", "re", "regina", "king", "queen", "monarchia", "royalty"]
+    },
+    {
+      "nome": "cilindro",
+      "forma": "cilindro",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di giochi di prestigio e spettacoli di magia.",
+      "parole": ["cilindro", "top hat", "mago", "magician", "magia", "trucco di magia", "gentiluomo", "gala"]
+    },
+    {
+      "nome": "jukebox",
+      "forma": "jukebox",
+      "categoria": "musica",
+      "descrizione": "Quando si chiede un consiglio di brani da ascoltare.",
+      "parole": ["jukebox", "juke box", "anni 50", "rock and roll", "fifties", "canzoni a richiesta", "scegli una canzone", "oldies"]
+    },
+    {
+      "nome": "tesserino",
+      "forma": "tesserino",
+      "categoria": "agente",
+      "descrizione": "Quando si parla di account e accessi: login, piano, identità.",
+      "parole": ["tesserino", "badge", "identità", "identity", "accesso", "login", "permessi", "permissions"]
+    },
+    {
+      "nome": "cascata",
+      "forma": "cascata",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cercano luoghi naturali da visitare: cascate, parchi, riserve.",
+      "parole": ["cascata", "waterfall", "cascate", "falls", "salto d'acqua", "trekking alle cascate", "niagara", "rapids"]
+    },
+    {
+      "nome": "gatto",
+      "forma": "gatto",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di gatti.",
+      "parole": ["gatto", "gatti", "cat", "kitten", "gattino", "micio", "felino", "feline"]
+    },
+    {
+      "nome": "golf",
+      "forma": "golf",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di golf.",
+      "parole": ["golf", "mazza", "golf club", "green", "campo da golf", "putt", "hole in one", "swing"]
+    },
+    {
+      "nome": "colla",
+      "forma": "colla",
+      "categoria": "creativo",
+      "descrizione": "Quando si fanno collage e lavoretti manuali.",
+      "parole": ["colla", "glue", "incollare", "attaccare", "bricolage", "fai da te", "craft", "scrapbooking"]
+    },
+    {
+      "nome": "lavatrice",
+      "forma": "lavatrice",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di bucato e macchie.",
+      "parole": ["lavatrice", "bucato", "washing machine", "laundry", "lavare", "panni", "faccende di casa", "chores"]
+    },
+    {
+      "nome": "carillon",
+      "forma": "carillon",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di ninne nanne e musica dolce.",
+      "parole": ["carillon", "music box", "ninna nanna", "lullaby", "melodia dolce", "gentle melody", "ballerina", "nostalgia"]
+    },
+    {
+      "nome": "pedine",
+      "forma": "pedine",
+      "categoria": "agente",
+      "descrizione": "Quando si lavora in squadra: risorse condivise, colleghi, più persone.",
+      "parole": ["pedine", "pawns", "squadra di agenti", "agent team", "più agenti", "multi-agent", "coordina", "delega a più"]
+    },
+    {
+      "nome": "monopattino",
+      "forma": "monopattino",
+      "categoria": "viaggi",
+      "descrizione": "Quando ci si muove in città in monopattino o bici a noleggio.",
+      "parole": ["monopattino", "kick scooter", "monopattino elettrico", "electric scooter", "mobilità urbana", "micromobilità", "city commute"]
+    },
+    {
+      "nome": "pettine",
+      "forma": "pettine",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di capelli e cuoio capelluto.",
+      "parole": ["pettine", "comb", "capelli", "hair", "acconciatura", "hairstyle", "parrucchiere", "barber"]
+    },
+    {
+      "nome": "fedi",
+      "forma": "fedi",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di relazioni: coppia, matrimonio, amicizie.",
+      "parole": ["fedi", "anelli", "wedding rings", "matrimonio", "wedding", "nozze", "fidanzamento", "engagement"]
+    },
+    {
+      "nome": "pastelli",
+      "forma": "pastelli",
+      "categoria": "creativo",
+      "descrizione": "Quando si colora o si disegna con i bambini.",
+      "parole": ["pastelli", "pastello", "crayons", "colorare", "disegno per bambini", "coloring", "scarabocchio", "doodle"]
+    },
+    {
+      "nome": "diapason",
+      "forma": "diapason",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di accordatura e intonazione.",
+      "parole": ["diapason", "tuning fork", "accordare", "tune", "intonazione", "pitch", "la a 440", "orecchio musicale"]
+    },
+    {
+      "nome": "timone",
+      "forma": "timone",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo procede in autonomia senza chiedere a ogni passo.",
+      "parole": ["timone", "helm", "ship's wheel", "guida", "prendi il comando", "take the lead", "dirigi", "steer"]
+    },
+    {
+      "nome": "paracadute",
+      "forma": "paracadute",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cercano esperienze estreme: paracadutismo, parapendio.",
+      "parole": ["paracadute", "parachute", "paracadutismo", "skydiving", "lancio", "atterraggio", "volo libero", "paragliding"]
+    },
+    {
+      "nome": "pattino",
+      "forma": "pattino",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di pattinaggio su ghiaccio o a rotelle.",
+      "parole": ["pattino", "pattinaggio", "ice skate", "skating", "ghiaccio", "ice rink", "pista di ghiaccio", "hockey"]
+    },
+    {
+      "nome": "cane",
+      "forma": "cane",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di cani: razze, educazione, passeggiate.",
+      "parole": ["cane", "cani", "dog", "cucciolo", "puppy", "fido", "canino", "adottare un cane"]
+    },
+    {
+      "nome": "spugna",
+      "forma": "spugna",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di pulizie di casa.",
+      "parole": ["spugna", "sponge", "pulire", "clean the kitchen", "pulizie", "detersivo", "lavare i piatti", "dishes"]
+    },
+    {
+      "nome": "indicatore",
+      "forma": "indicatore",
+      "categoria": "agente",
+      "descrizione": "Quando si parla di quota e limiti d'uso: token, rinnovo, quanto resta.",
+      "parole": ["indicatore", "gauge", "quadrante", "progresso", "progress", "livello", "level", "stato di avanzamento"]
+    },
+    {
+      "nome": "faro",
+      "forma": "faro",
+      "categoria": "viaggi",
+      "descrizione": "Quando si visitano coste, isole e porti.",
+      "parole": ["faro", "lighthouse", "costa", "coast", "scogliera", "navigazione", "marinaio", "sailor"]
     }
   ]
 }
