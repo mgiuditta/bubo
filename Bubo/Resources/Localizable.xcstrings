@@ -7809,16 +7809,6 @@
         }
       }
     },
-    "Elimina il modello" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Delete the Model"
-          }
-        }
-      }
-    },
     "Eliminare «%@»?" : {
       "localizations" : {
         "en" : {
@@ -9204,16 +9194,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The model didn’t answer"
-          }
-        }
-      }
-    },
-    "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model is downloaded once from Hugging Face, then runs only on this Mac: your notes never leave it. Changing the model recalculates the Index."
           }
         }
       }
@@ -12747,16 +12727,6 @@
         }
       }
     },
-    "Ora l'Indice cerca solo per parole." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "For now the Index searches by words only."
-          }
-        }
-      }
-    },
     "Orb" : {
       "localizations" : {
         "en" : {
@@ -13852,16 +13822,6 @@
         }
       }
     },
-    "Ricerca per significato" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search by Meaning"
-          }
-        }
-      }
-    },
     "Ricerca sul web" : {
       "localizations" : {
         "en" : {
@@ -14575,16 +14535,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sandbox off from the next turn"
-          }
-        }
-      }
-    },
-    "Scarica il modello (%@)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Download the Model (%@)"
           }
         }
       }
@@ -18766,6 +18716,66 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ opens the bubble: dictation only is off."
+          }
+        }
+      }
+    },
+    "Capisce il senso anche con altre parole. Scarica un modello locale (%@) e usa GPU e batteria." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Understands meaning, even in other words. Downloads a local model (%@) and uses the GPU and battery."
+          }
+        }
+      }
+    },
+    "Come grep: preciso su nomi e frasi esatte, non trova i sinonimi. Niente da scaricare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Like grep: precise on names and exact phrases, but doesn’t find synonyms. Nothing to download."
+          }
+        }
+      }
+    },
+    "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice; tornare a Per parole lo elimina." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model is downloaded once from Hugging Face, then runs only on this Mac: your notes never leave it. Changing the model recalculates the Index; going back to By Words deletes it."
+          }
+        }
+      }
+    },
+    "Per parole" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Words"
+          }
+        }
+      }
+    },
+    "Per significato (RAG)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Meaning (RAG)"
+          }
+        }
+      }
+    },
+    "Ricerca" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search"
           }
         }
       }
