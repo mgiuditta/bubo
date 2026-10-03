@@ -223,6 +223,7 @@ extension BudgetStopTests {
         try JSONEncoder().encode([session]).write(to: file)
         let store = store(copilotBridge())
         store.locateCopilot = { URL(filePath: "/usr/bin/true") }
+        store.copilotConsents = { [EndpointSettings.copilotConsentID] }
         store.copilotPrices = CopilotPriceTableTests.table
         return (store, session.id)
     }
