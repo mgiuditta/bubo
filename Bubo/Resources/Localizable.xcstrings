@@ -796,6 +796,47 @@
         }
       }
     },
+    "%lld in Errore" : {
+      "comment" : "Status pill beside the reduced Orb: how many Sessioni are in Errore",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld in Error"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld in Error"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld in Errore"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld in Errore"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld letture" : {
       "localizations" : {
         "en" : {
@@ -998,6 +1039,88 @@
         }
       }
     },
+    "%lld Sessioni in Errore" : {
+      "comment" : "VoiceOver: status pill and Orb value, Sessioni in Errore",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Session in Error"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessions in Error"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessione in Errore"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessioni in Errore"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld Sessioni ti attendono" : {
+      "comment" : "VoiceOver: status pill and Orb value, Sessioni in Attende te",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Session waiting on you"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessions waiting on you"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessione ti attende"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld Sessioni ti attendono"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld subagent" : {
       "localizations" : {
         "en" : {
@@ -1031,6 +1154,47 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld subagent"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld ti attendono" : {
+      "comment" : "Status pill beside the reduced Orb: how many Sessioni are in Attende te",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld waiting on you"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld waiting on you"
+                }
+              }
+            }
+          }
+        },
+        "it" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld ti attende"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld ti attendono"
                 }
               }
             }
@@ -2141,6 +2305,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Opens this Session's review at this file, block by block"
+          }
+        }
+      }
+    },
+    "Apre la Sessione nell'HUD" : {
+      "comment" : "Help of the status pill: a click shows the first Sessione that waits or fails",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the Session in the HUD"
           }
         }
       }
@@ -3581,6 +3756,17 @@
         }
       }
     },
+    "Domanda non riuscita" : {
+      "comment" : "Status pill beside the reduced Orb: the Domanda failed with the bubble closed",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question failed"
+          }
+        }
+      }
+    },
     "Email e organizzazione dell'account" : {
       "localizations" : {
         "en" : {
@@ -4096,6 +4282,17 @@
         }
       }
     },
+    "Riapre la Domanda nel Panel" : {
+      "comment" : "Help of the status pill: a click reopens the bubble with the Domanda",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reopens the Question in the Panel"
+          }
+        }
+      }
+    },
     "Ricarica comunque (cache del prompt persa)" : {
       "localizations" : {
         "en" : {
@@ -4212,6 +4409,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Only this time spending goes past the limit. For later turns the budget stays as it is."
+          }
+        }
+      }
+    },
+    "Stato del Panel" : {
+      "comment" : "VoiceOver name of the status pill's window",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panel status"
           }
         }
       }

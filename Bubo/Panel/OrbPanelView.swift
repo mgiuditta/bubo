@@ -12,6 +12,9 @@ final class OrbPanelView: MTKView {
     var onAsk: () -> Void = {}
     /// Called by the VoiceOver action that switches the Panel to the other size.
     var onToggleSize: () -> Void = {}
+    /// What VoiceOver hears about the Sessioni after the Orb's Stato, such as "2 Sessioni ti attendono"; `nil` when
+    /// none waits or fails.
+    var sessionsDescription: String?
     /// The Panel's size, which names the action that switches it.
     var size = PanelPlacement.defaultSize
     /// Called when a drag of the Panel ends, to snap it to the grid.
@@ -86,6 +89,10 @@ final class OrbPanelView: MTKView {
     override func accessibilityRole() -> NSAccessibility.Role? { .button }
     override func accessibilityLabel() -> String? { String(localized: "Bubo") }
     override func accessibilityHelp() -> String? { String(localized: "Apre l'HUD") }
+    override func accessibilityValue() -> Any? {
+        let state = String(localized: OrbControls.shared.displayedState.title)
+        return [state, sessionsDescription].compactMap(\.self).joined(separator: ", ")
+    }
 
     override func accessibilityPerformPress() -> Bool {
         onPress()

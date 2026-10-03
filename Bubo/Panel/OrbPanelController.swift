@@ -35,7 +35,12 @@ final class OrbPanelController {
     /// The bubble beside the Orb, with the prompt and the answer of the Domanda.
     let bubble = PanelBubble()
 
-    /// Creates the Panel, off screen until ``start(openingHUD:menu:questions:hud:)``.
+    /// What the pill beside the reduced Orb says; `nil` while it is not on screen.
+    private(set) var status: PanelStatus?
+    /// How the pill appears, read from Riduci movimento each time it comes back.
+    private(set) var statusAppearance = PanelBubbleAppearance.grow
+
+    /// Creates the Panel, off screen until ``start(openingHUD:menu:questions:hud:sessions:)``.
     init() {
         UserDefaults.standard.register(defaults: [Self.defaultsKey: true])
         isShown = UserDefaults.standard.bool(forKey: Self.defaultsKey)
@@ -55,7 +60,10 @@ final class OrbPanelController {
     ///   - menu: The menu of a right click on the Orb, the same as the menu bar's.
     ///   - questions: The Domanda of the HUD, which the bubble shows too.
     ///   - hud: Where the bubble's "Rifai con…" and Sessione go.
-    func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter) {
+    ///   - sessions: The Sessioni whose Attende te and Errore the status pill and VoiceOver tell; `nil` when they
+    ///     cannot be kept.
+    func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter,
+               sessions: SessionStore?) {
         self.openHUD = openHUD
         let frame = CGRect(origin: .zero, size: CGSize(width: size.side, height: size.side))
         let panel = OrbPanel(contentRect: frame, styleMask: [.borderless, .nonactivatingPanel],
@@ -103,6 +111,7 @@ final class OrbPanelController {
         self.panel = panel
         self.view = view
         startBubble(questions: questions, hud: hud)
+        startStatus(questions: questions, hud: hud, sessions: sessions)
         moveToRememberedSpot()
 
         // A screen plugged, unplugged or rearranged: back to the remembered spot, or to the main screen.
@@ -182,6 +191,9 @@ final class OrbPanelController {
 
     @ObservationIgnored private var openHUD: () -> Void = {}
     @ObservationIgnored private var bubbleWindow: PanelBubbleWindow?
+    @ObservationIgnored private var statusWindow: PanelStatusWindow?
+    /// What the pill would say were it on screen, as last computed from the Sessioni and the Domanda.
+    @ObservationIgnored private var pendingStatus: PanelStatus?
     @ObservationIgnored private var panel: NSPanel?
     @ObservationIgnored private var view: OrbPanelView?
     @ObservationIgnored private var renderer: OrbRenderer?
@@ -256,6 +268,84 @@ final class OrbPanelController {
         }
     }
 
+    private func startStatus(questions: QuestionModel, hud: HUDPresenter, sessions: SessionStore?) {
+        let bubble = bubble
+        let view = PanelStatusView(panel: self) { [weak self] status in
+            self?.press(status, hud: hud)
+        } onResize: { [weak self] size in
+            self?.placeStatus(size: size)
+        }
+        statusWindow = PanelStatusWindow.make(content: view)
+        // The Sessioni and the Domanda decide what the pill says; the Orb's VoiceOver value tells the Sessioni too.
+        Task { [weak self] in
+            for await (status, description) in Observations({
+                let all = sessions?.sessions ?? []
+                let hasOutcome = !questions.answer.isEmpty || questions.failure != nil
+                let status = PanelStatus.status(sessions: all, hasUnseenOutcome: bubble.hasUnseenOutcome && hasOutcome,
+                                                questionFailed: questions.failure != nil)
+                return (status, PanelStatus.sessionsDescription(of: all))
+            }) {
+                self?.view?.sessionsDescription = description
+                self?.pendingStatus = status
+                self?.updateStatus()
+            }
+        }
+        // The bubble says it all while it is open: the pill steps aside.
+        Task { [weak self] in
+            for await _ in Observations({ bubble.isOpen }) {
+                self?.updateStatus()
+            }
+        }
+    }
+
+    /// Follows the pill: the Sessione in the HUD, or the bubble back with its Domanda.
+    private func press(_ status: PanelStatus, hud: HUDPresenter) {
+        switch status {
+        case .waiting(_, let session), .failing(_, let session): hud.show(session: session)
+        case .answerReady, .questionFailed: bubble.open(focus: .prompt)
+        }
+    }
+
+    /// Shows the pill when there is something to say beside a visible reduced Panel with the bubble closed, and hides
+    /// it otherwise; VoiceOver hears it once as it comes.
+    private func updateStatus() {
+        let isShowable = size == .reduced && !bubble.isOpen && panel?.isVisible == true
+        let newStatus = isShowable ? pendingStatus : nil
+        guard newStatus != status else { return }
+        if status == nil, let newStatus {
+            statusAppearance = .appearance(reducesMotion: Motion.isReduced)
+            NSAccessibility.post(element: NSApp as Any, notification: .announcementRequested,
+                                 userInfo: [.announcement: newStatus.accessibilityLabel,
+                                            .priority: NSAccessibilityPriorityLevel.medium.rawValue])
+        }
+        status = newStatus
+        updateStatusWindow()
+    }
+
+    private func updateStatusWindow() {
+        guard let panel, let statusWindow else { return }
+        guard status != nil else {
+            if statusWindow.isVisible {
+                panel.removeChildWindow(statusWindow)
+                statusWindow.orderOut(nil)
+            }
+            return
+        }
+        guard !statusWindow.isVisible else { return }
+        placeStatus(size: statusWindow.frame.size)
+        statusWindow.orderFrontRegardless()
+        // A child moves with the Panel while it is dragged.
+        panel.addChildWindow(statusWindow, ordered: .above)
+    }
+
+    /// Puts a pill of `size` beside the Orb, toward the screen's center.
+    private func placeStatus(size: CGSize) {
+        guard let panel, let statusWindow, let screen = panel.screen ?? NSScreen.main else { return }
+        let frame = PanelStatusLayout.frame(ofSize: size, besidePanel: panel.frame, in: zone,
+                                            visibleFrame: screen.visibleFrame)
+        if frame != statusWindow.frame { statusWindow.setFrame(frame, display: true) }
+    }
+
     /// Puts a bubble of `size` beside the Panel, toward the screen's center.
     private func placeBubble(size: CGSize) {
         guard let panel, let bubbleWindow, let screen = panel.screen ?? NSScreen.main else { return }
@@ -312,6 +402,8 @@ final class OrbPanelController {
         }
         panel?.setFrame(spot.panelFrame, display: true, animate: animated)
         if let bubbleWindow, bubbleWindow.isVisible { placeBubble(size: bubbleWindow.frame.size) }
+        if let statusWindow, statusWindow.isVisible { placeStatus(size: statusWindow.frame.size) }
+        updateStatus()
         updateClickThrough()
     }
 
@@ -330,14 +422,18 @@ final class OrbPanelController {
     private func updateVisibility() {
         guard let panel, let view else { return }
         let isHUDOpen = isHUDOpen
-        // The Domanda goes on in the HUD.
-        if isHUDOpen { bubble.close() }
+        // The Domanda goes on in the HUD, where the user sees how it ended.
+        if isHUDOpen {
+            bubble.close()
+            bubble.markOutcomeSeen()
+        }
         let wantsPanel = isShown && !isHUDOpen
         if wantsPanel != panel.isVisible {
             if wantsPanel { panel.orderFrontRegardless() } else { panel.orderOut(nil) }
         }
         view.isPaused = !(panel.isVisible && panel.occlusionState.contains(.visible))
         updateBubbleWindow()
+        updateStatus()
     }
 }
 

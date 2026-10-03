@@ -284,7 +284,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(hud)
             .environment(hotKeys)
             .environment(panel))
-        panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud)
+        panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
+                    sessions: sessions)
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
     }
