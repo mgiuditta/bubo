@@ -48,6 +48,11 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         }
     }
 
+    /// Where the pointer is over the view, -1…1 on each axis from the centre with y up; `nil` when it is outside.
+    ///
+    /// The Orb eases toward it at the frames it draws anyway: the pointer alone never wakes a still Orb.
+    var pointer: SIMD2<Float>?
+
     private let queue: MTLCommandQueue
     private let pipelines: OrbPipelines
     private let controls: OrbControls
@@ -83,8 +88,9 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         animation.reducesMotion = reducesMotion
         animation.voiceLevel = controls.voiceLevel
         animation.advance(by: now - lastFrameTime)
-        lastFrameTime = now
         uniforms.apply(animation)
+        followPointer(over: now - lastFrameTime, reducesMotion: reducesMotion)
+        lastFrameTime = now
         uniforms.resolution = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
 
         if controls.variante != requestedVariante {
@@ -136,6 +142,18 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         }
         commands.present(drawable)
         commands.commit()
+    }
+
+    /// Eases the Orb's lean toward the pointer, or back to rest once it leaves; with Reduce Motion the Orb never leans.
+    private func followPointer(over elapsed: CFTimeInterval, reducesMotion: Bool) {
+        guard !reducesMotion else {
+            uniforms.pointer = .zero
+            return
+        }
+        let target = pointer ?? .zero
+        // About a quarter of a second to get there, whatever the frame rate.
+        let step = Float(1 - exp(-min(elapsed, 0.1) * 8))
+        uniforms.pointer += (target - uniforms.pointer) * step
     }
 
     /// Switches the view's frame rate to `newPace`; this frame is drawn either way.
