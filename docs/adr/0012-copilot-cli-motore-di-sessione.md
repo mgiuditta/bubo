@@ -7,6 +7,6 @@ Il fondatore vuole usare Copilot CLI come oggi si usa Claude Code, e vuole che l
 - **Come.** Il Copilot SDK nel bridge Node lancia il `copilot` dell'utente: `createSession` sul worktree che crea Bubo, streaming, richieste di permesso con `onPermissionRequest`, poi `abort` e `resumeSession`. Login e binario sono dell'utente, come in ADR 0003. `GH_TOKEN` e `GITHUB_TOKEN` vengono tolti dall'ambiente del figlio. I messaggi verso Swift sono quelli neutri del bridge.
 - **Cosa non c'è su Copilot.** Quota, Memoria di Progetto, Plugin, Agenti e Sandbox (ADR 0005) restano solo di Claude. In una Sessione Copilot queste parti dicono «Non disponibile con Copilot», non restano vuote in silenzio. Il costo è Spesa stimata in crediti.
 - **Conversazioni.** Bubo le conserva anche per Copilot (ADR 0006), nello stesso formato neutro.
-- **Quando.** Milestone 1.1. In 1.0 Copilot compare come «Arriverà presto».
+- **Quando.** Milestone 1.0 (decisione del fondatore del 2026-10-03), insieme alle Domande via Copilot di ADR 0011.
 
 Rischio accettato: ogni spec di Sessione riceve un ramo "e con Copilot?". Il Copilot SDK cambia spesso, quindi la versione si fissa e si aggiorna con CI (#226).

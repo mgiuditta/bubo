@@ -27,5 +27,5 @@ Si riapre (b) se si verifica una di queste condizioni: Anthropic chiude il login
 2. **Tinta**: quella del vendor del modello (GPT via Copilot = Tinta OpenAI). "via Copilot" va nella riga del motivo.
 3. **Claude via Copilot**: Claude passa sempre da `claude`. Copilot serve per i modelli non Anthropic, salvo scelta esplicita dell'utente in "Rifai con…".
 4. **Copilot Free**: escluso, come in Zed e opencode. Senza scelta del modello il router non serve. Bubo lo rileva e lo spiega.
-5. **1.0**: Copilot compare in Impostazioni › Modelli come «Arriverà presto», con il cancello di rilascio (#516). Niente codice Copilot.
+5. **1.0**: Copilot entra nella 1.0, sia per le Domande sia per le Sessioni (ADR 0012).
 6. **Partnership con GitHub**: per ora no. Si rivaluta se il processo `copilot` per le Domande si dimostra troppo lento (misura nel ticket del bridge).
