@@ -9126,6 +9126,16 @@
         }
       }
     },
+    "Impostazioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
     "Impostazioni condivise del Progetto" : {
       "localizations" : {
         "en" : {

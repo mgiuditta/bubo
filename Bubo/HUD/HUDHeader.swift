@@ -4,6 +4,22 @@ import SwiftUI
 /// (design system).
 struct HUDHeader: View {
     var body: some View {
+        HStack {
+            brand
+            Spacer()
+            SettingsLink {
+                Label("Impostazioni", systemImage: "gearshape")
+                    .labelStyle(.iconOnly)
+                    .font(.title3)
+                    .foregroundStyle(Palette.textSecondary)
+            }
+            .buttonStyle(.borderless)
+            .help("Impostazioni")
+        }
+    }
+
+    /// The owl and the name, read by VoiceOver as one header.
+    private var brand: some View {
         HStack(spacing: Spacing.small) {
             Circle()
                 .fill(
@@ -35,7 +51,6 @@ struct HUDHeader: View {
                 .font(Typography.display(size: 20))
                 .tracking(8.4)
                 .accessibilityLabel("Bubo")
-            Spacer()
         }
         .accessibilityElement(children: .combine)
         .accessibilityAddTraits(.isHeader)
