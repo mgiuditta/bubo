@@ -6,6 +6,8 @@ nonisolated struct QuestionTurn: Equatable, Sendable {
     var prompt: String
     /// What arrived of the answer.
     var answer: String
+    /// Whether a model on the Mac answered it: Apple FM, or an endpoint on the Mac such as the Modello locale.
+    var isOnMac = false
 
     /// The info string of the block that quotes the earlier turns.
     static let quoteLabel = "conversazione-precedente"
@@ -29,6 +31,14 @@ nonisolated struct QuestionTurn: Equatable, Sendable {
         let ask = String(localized: "La mia richiesta: \(request)",
                          comment: "Sent to the model after the quoted earlier turns of a Domanda: the user's request, the only instruction")
         return [note, "\(fence)\(quoteLabel)\n\(quoted)\n\(fence)", ask].joined(separator: "\n\n")
+    }
+
+    /// The turns of `turns` that a model outside the Mac may read: those answered on the Mac stay on it.
+    ///
+    /// A seguito that moves from the Mac to a cloud (Claude, an endpoint, Copilot) would otherwise carry them there
+    /// unseen; without them it starts from the user's request, as a new Domanda would.
+    static func leavingTheMac(_ turns: [QuestionTurn]) -> [QuestionTurn] {
+        turns.filter { !$0.isOnMac }
     }
 
     /// The length of the longest run of backticks in `text`.

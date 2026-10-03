@@ -45,6 +45,11 @@ nonisolated struct RoutedAnswer: Equatable, Sendable {
         self.endpoint = endpoint
     }
 
+    /// Whether a model on the Mac answered: Apple FM, or an endpoint on the Mac such as the Modello locale.
+    var isOnMac: Bool {
+        route.destination == .onDevice || endpoint?.isOnMac == true
+    }
+
     /// The cost the line shows; `nil` when nothing is known of it.
     ///
     /// With the subscription the window's share comes first: it is what the user runs out of. A share that did not
