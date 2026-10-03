@@ -80,7 +80,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var meetings = MeetingRecorder(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()],
                                                      store: try? MeetingAudioStore.makeDefault())
     /// The window of the Riunioni.
-    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings)
+    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings, secondBrain: secondBrain)
     /// Writes the pending Riassunti di Sessione each time the network returns.
     private var summaryRetries: Task<Void, Never>?
     /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.

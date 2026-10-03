@@ -8,6 +8,9 @@ struct MeetingView: View {
     @State private var app: MeetingApp?
     @State private var hasInformed = false
     @Environment(\.openURL) private var openURL
+    @Environment(SecondBrain.self) private var secondBrain
+    @AppStorage(SecondBrainSetupStep.meetingsShownKey) private var wereMeetingQuestionsShown = false
+    @State private var isSettingUp = false
 
     var body: some View {
         Form {
@@ -32,8 +35,17 @@ struct MeetingView: View {
         .task(id: recorder.isRecording) {
             guard !recorder.isRecording else { return }
             apps = MeetingApp.running()
-            if app.map(apps.contains) != true { app = apps.first { MeetingApp.callApps.contains($0.bundleID) } }
+            if app.map(apps.contains) != true {
+                app = CallService.preferredApp(among: apps, services: CallService.saved())
+            }
             hasInformed = false
+        }
+        // The first Riunione is the first use of the Secondo cervello for many: the whole setup without a folder,
+        // else only the questions about the Riunioni (#563).
+        .task { isSettingUp = !wereMeetingQuestionsShown }
+        .sheet(isPresented: $isSettingUp) {
+            SecondBrainSetupSheet(steps: secondBrain.location == nil ? SecondBrainSetupStep.allCases
+                                                                     : SecondBrainSetupStep.meetings)
         }
     }
 
