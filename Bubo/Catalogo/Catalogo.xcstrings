@@ -19,6 +19,60 @@
         }
       }
     },
+    "ancora" : {
+      "comment" : "Etichetta della Variante ancora (Categoria Codice): un'ancora con l'anello in alto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anchor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ancora"
+          }
+        }
+      }
+    },
+    "autobus" : {
+      "comment" : "Etichetta della Variante autobus (Categoria Viaggi): un autobus di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Autobus"
+          }
+        }
+      }
+    },
+    "bancomat" : {
+      "comment" : "Etichetta della Variante bancomat (Categoria Finanza): uno sportello automatico.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATM"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bancomat"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -51,6 +105,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Borsa del ghiaccio"
+          }
+        }
+      }
+    },
+    "borsa-spesa" : {
+      "comment" : "Etichetta della Variante borsa-spesa (Categoria Finanza): una borsa della spesa con una baguette.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shopping Bag"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borsa della spesa"
+          }
+        }
+      }
+    },
+    "bullone" : {
+      "comment" : "Etichetta della Variante bullone (Categoria Codice): un bullone esagonale con il dado.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bolt"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bullone"
           }
         }
       }
@@ -127,6 +217,24 @@
         }
       }
     },
+    "casco-astronauta" : {
+      "comment" : "Etichetta della Variante casco-astronauta (Categoria Chat): un casco da astronauta con la visiera.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Astronaut Helmet"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Casco da astronauta"
+          }
+        }
+      }
+    },
     "cavalluccio-marino" : {
       "comment" : "Etichetta della Variante cavalluccio-marino (Categoria Chat): un cavalluccio marino di profilo.",
       "extractionState" : "manual",
@@ -177,6 +285,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cervo"
+          }
+        }
+      }
+    },
+    "chicco-caffe" : {
+      "comment" : "Etichetta della Variante chicco-caffe (Categoria Chat): un chicco di caffè con il solco al centro.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coffee Bean"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chicco di caffè"
           }
         }
       }
@@ -235,6 +361,24 @@
         }
       }
     },
+    "corno" : {
+      "comment" : "Etichetta della Variante corno (Categoria Musica): un corno da caccia arrotolato.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Horn"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corno"
+          }
+        }
+      }
+    },
     "cuore" : {
       "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
       "extractionState" : "manual",
@@ -249,6 +393,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuore"
+          }
+        }
+      }
+    },
+    "dna" : {
+      "comment" : "Etichetta della Variante dna (Categoria Salute): una doppia elica.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNA"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DNA"
           }
         }
       }
@@ -285,6 +447,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Evidenziatore"
+          }
+        }
+      }
+    },
+    "finestra" : {
+      "comment" : "Etichetta della Variante finestra (Categoria Codice): una finestra a quattro riquadri.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Window"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finestra"
           }
         }
       }
@@ -361,6 +541,24 @@
         }
       }
     },
+    "gomitolo" : {
+      "comment" : "Etichetta della Variante gomitolo (Categoria Agente): un gomitolo di lana con un filo libero.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ball of Yarn"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gomitolo"
+          }
+        }
+      }
+    },
     "gomma" : {
       "comment" : "Etichetta della Variante gomma (Categoria Chat): una gomma per cancellare.",
       "extractionState" : "manual",
@@ -375,6 +573,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Gomma"
+          }
+        }
+      }
+    },
+    "gong" : {
+      "comment" : "Etichetta della Variante gong (Categoria Musica): un gong appeso a un telaio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gong"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gong"
+          }
+        }
+      }
+    },
+    "gruccia" : {
+      "comment" : "Etichetta della Variante gruccia (Categoria Creativo): una gruccia appendiabiti.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clothes Hanger"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruccia"
           }
         }
       }
@@ -433,6 +667,42 @@
         }
       }
     },
+    "lampada" : {
+      "comment" : "Etichetta della Variante lampada (Categoria Creativo): una lampada da tavolo con il paralume.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lamp"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lampada"
+          }
+        }
+      }
+    },
+    "lavagna" : {
+      "comment" : "Etichetta della Variante lavagna (Categoria Codice): una lavagna su un cavalletto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blackboard"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lavagna"
+          }
+        }
+      }
+    },
     "lente" : {
       "comment" : "Etichetta della Variante lente (Categoria Ricerca): una lente d'ingrandimento.",
       "extractionState" : "manual",
@@ -447,6 +717,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lente"
+          }
+        }
+      }
+    },
+    "martelletto" : {
+      "comment" : "Etichetta della Variante martelletto (Categoria Chat): un martelletto da giudice sul suo blocco.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gavel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Martelletto"
           }
         }
       }
@@ -469,6 +757,24 @@
         }
       }
     },
+    "mirino" : {
+      "comment" : "Etichetta della Variante mirino (Categoria Codice): i quattro angoli di un mirino con una croce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Viewfinder"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirino"
+          }
+        }
+      }
+    },
     "moneta" : {
       "comment" : "Etichetta della Variante moneta (Categoria Finanza): una moneta.",
       "extractionState" : "manual",
@@ -483,6 +789,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Moneta"
+          }
+        }
+      }
+    },
+    "nastro-adesivo" : {
+      "comment" : "Etichetta della Variante nastro-adesivo (Categoria Codice): un rotolo di nastro adesivo con un lembo che pende.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duct Tape"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nastro adesivo"
           }
         }
       }
@@ -537,6 +861,42 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nuvola"
+          }
+        }
+      }
+    },
+    "occhio" : {
+      "comment" : "Etichetta della Variante occhio (Categoria Agente): un occhio socchiuso con le ciglia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eye"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Occhio"
+          }
+        }
+      }
+    },
+    "pallone" : {
+      "comment" : "Etichetta della Variante pallone (Categoria Salute): un pallone da calcio.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Football"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pallone"
           }
         }
       }
@@ -735,6 +1095,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Robot"
+          }
+        }
+      }
+    },
+    "rossetto" : {
+      "comment" : "Etichetta della Variante rossetto (Categoria Creativo): un rossetto con il tappo accanto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lipstick"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rossetto"
+          }
+        }
+      }
+    },
+    "ruota-panoramica" : {
+      "comment" : "Etichetta della Variante ruota-panoramica (Categoria Viaggi): una ruota panoramica.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferris Wheel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruota panoramica"
+          }
+        }
+      }
+    },
+    "schermo" : {
+      "comment" : "Etichetta della Variante schermo (Categoria Codice): un monitor su un piedistallo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Monitor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schermo"
+          }
+        }
+      }
+    },
+    "sciarpa" : {
+      "comment" : "Etichetta della Variante sciarpa (Categoria Meteo): una sciarpa avvolta con due lembi.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarf"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sciarpa"
           }
         }
       }
