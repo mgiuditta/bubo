@@ -37,7 +37,7 @@ struct RemoteBridgeTests {
     }
 
     func cardCount() async throws -> Int {
-        try await channel.records(macID: macID, deviceID: phone.id).count { $0.kind == .sessionCard }
+        await channel.records(macID: macID, deviceID: phone.id).count { $0.kind == .sessionCard }
     }
 
     func session(_ title: String, in project: URL, activity: Session.Activity = .lavora) -> Session {
@@ -113,7 +113,7 @@ struct RemoteBridgeTests {
         await bridge.publish([session("Correggi il login", in: app)], now: now)
         await bridge.beat(now: now)
 
-        #expect(try await channel.records(macID: macID, deviceID: phone.id).isEmpty)
+        #expect(await channel.records(macID: macID, deviceID: phone.id).isEmpty)
     }
 
     @Test func turningOffWithdrawsTheCardsAndTheHeartbeat() async throws {
@@ -124,7 +124,7 @@ struct RemoteBridgeTests {
         remoteSwitch.isOn = false
         await bridge.publish([login], now: now.addingTimeInterval(1))
 
-        #expect(try await channel.records(macID: macID, deviceID: phone.id).isEmpty)
+        #expect(await channel.records(macID: macID, deviceID: phone.id).isEmpty)
     }
 
     @Test func heartbeatTellsTheMacAndWhetherItSleeps() async throws {
@@ -133,7 +133,7 @@ struct RemoteBridgeTests {
 
         await bridge.beat(isAsleep: true, now: now.addingTimeInterval(30))
         #expect(try await phoneSnapshot().heartbeat?.isStale(at: now.addingTimeInterval(31)) == true)
-        #expect(try await channel.records(macID: macID, deviceID: phone.id).count == 1)
+        #expect(await channel.records(macID: macID, deviceID: phone.id).count == 1)
     }
 
     @Test func cleanupLeavesNoRecordOlderThanADay() async throws {
@@ -143,7 +143,7 @@ struct RemoteBridgeTests {
 
         await bridge.cleanUp(now: now.addingTimeInterval(RemoteBridge.recordLifetime + 1))
 
-        let records = try await channel.records(macID: macID, deviceID: phone.id)
+        let records = await channel.records(macID: macID, deviceID: phone.id)
         #expect(records.map(\.kind) == [.heartbeat])
     }
 
@@ -151,7 +151,7 @@ struct RemoteBridgeTests {
         let login = session("Correggi il login", in: app)
         await bridge.publish([login], now: now)
 
-        let record = try #require(try await channel.records(macID: macID, deviceID: phone.id).first)
+        let record = try #require(await channel.records(macID: macID, deviceID: phone.id).first)
         #expect(!record.id.contains(login.id.uuidString))
         #expect(record.payload.range(of: Data("Correggi".utf8)) == nil)
         #expect(record.payload.range(of: Data("gestionale".utf8)) == nil)
