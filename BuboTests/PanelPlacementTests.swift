@@ -111,4 +111,66 @@ struct PanelPlacementTests {
         let data = try JSONEncoder().encode(placement)
         #expect(try JSONDecoder().decode(PanelPlacement.self, from: data) == placement)
     }
+
+    @Test func firstLaunchIsReducedEverywhere() {
+        let placement = PanelPlacement()
+        #expect(placement.spot(among: [main, external])?.size == .reduced)
+        #expect(placement.size(on: external.id) == .reduced)
+    }
+
+    @Test func eachScreenRemembersItsOwnSize() {
+        var placement = PanelPlacement()
+        placement.drop(center: CGPoint(x: 100, y: 800), among: [main, external])
+        placement.resize(to: .normal, among: [main, external])
+        let spot = placement.drop(center: CGPoint(x: 2700, y: 700), among: [main, external])
+        #expect(spot?.size == .reduced)
+        #expect(placement.size(on: main.id) == .normal)
+        #expect(placement.drop(center: CGPoint(x: 100, y: 100), among: [main, external])?.size == .normal)
+    }
+
+    @Test func resizeKeepsTheZone() {
+        var placement = PanelPlacement()
+        placement.drop(center: CGPoint(x: 100, y: 800), among: [main, external])
+        let spot = placement.resize(to: .normal, among: [main, external])
+        #expect(spot == PanelSpot(screen: main, zone: .topLeft, size: .normal))
+    }
+
+    @Test func resizeOnFallbackScreenGoesWithTheMissingScreen() {
+        var placement = PanelPlacement()
+        placement.drop(center: CGPoint(x: 2700, y: 700), among: [main, external])
+        placement.resize(to: .normal, among: [main])
+        #expect(placement.size(on: external.id) == .normal)
+        #expect(placement.size(on: main.id) == .reduced)
+        #expect(placement.spot(among: [main])?.size == .normal)
+    }
+
+    @Test func sizesSurviveEncoding() throws {
+        var placement = PanelPlacement()
+        placement.resize(to: .normal, among: [main, external])
+        let data = try JSONEncoder().encode(placement)
+        #expect(try JSONDecoder().decode(PanelPlacement.self, from: data) == placement)
+    }
+
+    @Test func memoryFromBeforeSizesStillReads() throws {
+        let data = Data(#"{"zones":{"main":"topLeft"},"screenID":"main"}"#.utf8)
+        let placement = try JSONDecoder().decode(PanelPlacement.self, from: data)
+        #expect(placement.spot(among: [main]) == PanelSpot(screen: main, zone: .topLeft, size: .reduced))
+    }
+}
+
+struct PanelSpotTests {
+    let screen = PanelScreen(id: "main", visibleFrame: CGRect(x: 100, y: 50, width: 900, height: 600))
+
+    @Test(arguments: PanelZone.allCases, PanelSize.allCases)
+    func frameStaysInsideTheVisibleFrame(zone: PanelZone, size: PanelSize) {
+        let frame = PanelSpot(screen: screen, zone: zone, size: size).panelFrame
+        #expect(screen.visibleFrame.contains(frame))
+        #expect(frame.width == size.side && frame.height == size.side)
+        #expect(PanelZone(containing: CGPoint(x: frame.midX, y: frame.midY), in: screen.visibleFrame) == zone)
+    }
+
+    @Test func reducedPanelSitsInTheCorner() {
+        let frame = PanelSpot(screen: screen, zone: .bottomRight, size: .reduced).panelFrame
+        #expect(frame == CGRect(x: 888, y: 50, width: 112, height: 112))
+    }
 }

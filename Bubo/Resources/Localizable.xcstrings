@@ -2175,6 +2175,16 @@
         }
       }
     },
+    "Apri HUD" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open HUD"
+          }
+        }
+      }
+    },
     "Apri Impostazioni" : {
       "localizations" : {
         "en" : {
@@ -3607,6 +3617,16 @@
         }
       }
     },
+    "Ingrandisci il Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enlarge the Panel"
+          }
+        }
+      }
+    },
     "L'agente «%@» non c'è più in questo Progetto: l'Automazione andrebbe in pausa. Scegline un altro." : {
       "localizations" : {
         "en" : {
@@ -3803,6 +3823,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Orb piccolo in un angolo, con la chat nella bolla. Vale solo per lo schermo in cui si trova ora il Panel." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A small Orb in a corner, with the chat in the bubble. Applies only to the screen the Panel is on now."
+          }
+        }
+      }
+    },
+    "Panel ridotto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compact Panel"
           }
         }
       }
@@ -4022,6 +4062,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reloading plugins…"
+          }
+        }
+      }
+    },
+    "Riduci il Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shrink the Panel"
           }
         }
       }

@@ -11,6 +11,8 @@ enum Motion {
     static let standard = Animation.easeInOut(duration: 0.2)
     /// Panels appearing and moving, 250 ms.
     static let emphasized = Animation.spring(duration: 0.25, bounce: 0.15)
+    /// The Panel snapping to a zone or changing size, in seconds: it is an `NSWindow` animation, not a SwiftUI one.
+    static let panelFrameChange: TimeInterval = 0.2
     /// The press that approves a Richiesta di permesso of level 4–5, 1 s, filling at an even pace.
     static let hold = Animation.linear(duration: 1)
     /// The camera's flight to a file or a folder of the Galassia, in seconds: the map moves, not the container.

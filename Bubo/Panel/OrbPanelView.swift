@@ -3,12 +3,17 @@ import MetalKit
 /// The Metal view inside the Panel: a click opens the HUD, a drag moves the Panel, a right click opens the menu, and
 /// what is dropped on it becomes an Allegato.
 ///
-/// Reads as a button to VoiceOver, with the same menu as its secondary action and "Chiedi nel Panel" among its actions.
+/// Reads as a button to VoiceOver, with the same menu as its secondary action and "Apri HUD", "Chiedi nel Panel" and the
+/// switch to the other size among its actions.
 final class OrbPanelView: MTKView {
     /// Called when the Orb is clicked or pressed by VoiceOver.
     var onPress: () -> Void = {}
     /// Called by the VoiceOver action "Chiedi nel Panel", to open the bubble.
     var onAsk: () -> Void = {}
+    /// Called by the VoiceOver action that switches the Panel to the other size.
+    var onToggleSize: () -> Void = {}
+    /// The Panel's size, which names the action that switches it.
+    var size = PanelPlacement.defaultSize
     /// Called when a drag of the Panel ends, to snap it to the grid.
     var onDragEnd: () -> Void = {}
     /// Called when the pointer moves over the Panel or leaves it, to update the click circle.
@@ -88,10 +93,23 @@ final class OrbPanelView: MTKView {
     }
 
     override func accessibilityCustomActions() -> [NSAccessibilityCustomAction]? {
-        [NSAccessibilityCustomAction(name: String(localized: "Chiedi nel Panel")) { [weak self] in
-            self?.onAsk()
-            return true
-        }]
+        // A verb, as the other actions: a name like "Panel ridotto" would read as the state the Panel is already in.
+        let sizeAction = size == .reduced ? String(localized: "Ingrandisci il Panel")
+            : String(localized: "Riduci il Panel")
+        return [
+            NSAccessibilityCustomAction(name: String(localized: "Apri HUD")) { [weak self] in
+                self?.onPress()
+                return true
+            },
+            NSAccessibilityCustomAction(name: String(localized: "Chiedi nel Panel")) { [weak self] in
+                self?.onAsk()
+                return true
+            },
+            NSAccessibilityCustomAction(name: sizeAction) { [weak self] in
+                self?.onToggleSize()
+                return true
+            },
+        ]
     }
 
     override func accessibilityPerformShowMenu() -> Bool {

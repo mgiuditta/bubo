@@ -7,9 +7,8 @@ struct PanelBubbleLayoutTests {
     let screen = CGRect(x: 100, y: 50, width: 900, height: 600)
     let bubble = CGSize(width: 360, height: 180)
 
-    private func panelFrame(in zone: PanelZone) -> CGRect {
-        CGRect(origin: zone.panelOrigin(side: OrbPanelController.side, in: screen),
-               size: CGSize(width: OrbPanelController.side, height: OrbPanelController.side))
+    private func panelFrame(in zone: PanelZone, size: PanelSize = .normal) -> CGRect {
+        PanelSpot(screen: PanelScreen(id: "main", visibleFrame: screen), zone: zone, size: size).panelFrame
     }
 
     @Test(arguments: [
@@ -40,14 +39,31 @@ struct PanelBubbleLayoutTests {
         #expect(screen.contains(frame))
     }
 
-    @Test(arguments: PanelZone.allCases)
-    func theBubbleNeverCoversTheClickCircle(zone: PanelZone) {
-        let panel = panelFrame(in: zone)
+    @Test(arguments: PanelZone.allCases, PanelSize.allCases)
+    func theBubbleNeverCoversTheClickCircle(zone: PanelZone, size: PanelSize) {
+        let panel = panelFrame(in: zone, size: size)
         let frame = PanelBubbleLayout.frame(ofSize: bubble, besidePanel: panel, in: zone, visibleFrame: screen)
-        let radius = PanelClickCircle.radius
+        let radius = size.clickRadius
         // The point of the bubble nearest to the circle's center stays out of the circle.
         let nearest = CGPoint(x: min(max(panel.midX, frame.minX), frame.maxX),
                               y: min(max(panel.midY, frame.minY), frame.maxY))
         #expect(hypot(nearest.x - panel.midX, nearest.y - panel.midY) > radius)
+    }
+
+    @Test func onlyTheReducedBubbleHasAMaxHeight() {
+        #expect(PanelBubbleLayout.maxHeight(for: .normal, visibleFrame: screen) == nil)
+        #expect(PanelBubbleLayout.maxHeight(for: .reduced, visibleFrame: screen) == 240)
+    }
+
+    @Test func onA13InchScreenTheBubbleStopsAt40Percent() throws {
+        // A MacBook Air 13" at 1470×956, less the menu bar and a Dock below.
+        let air = CGRect(x: 0, y: 70, width: 1470, height: 853)
+        let maxHeight = try #require(PanelBubbleLayout.maxHeight(for: .reduced, visibleFrame: air))
+        #expect(maxHeight <= air.height * 0.4)
+        let tall = CGSize(width: 360, height: maxHeight)
+        let panel = PanelSpot(screen: PanelScreen(id: "air", visibleFrame: air), zone: .bottomRight,
+                              size: .reduced).panelFrame
+        let frame = PanelBubbleLayout.frame(ofSize: tall, besidePanel: panel, in: .bottomRight, visibleFrame: air)
+        #expect(air.contains(frame))
     }
 }

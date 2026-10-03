@@ -47,32 +47,38 @@ struct PanelBubbleView: View {
 
     private var content: some View {
         GlassEffectContainer {
-            VStack(alignment: .leading, spacing: Spacing.small) {
-                // The Sintesi parlata as subtitles, while Bubo says it; VoiceOver users hear the voice already.
-                if let subtitle = model.subtitle {
-                    Text(verbatim: subtitle)
-                        .font(Typography.body(size: 15))
-                        .foregroundStyle(Palette.textPrimary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .accessibilityHidden(true)
+            // Beside the reduced Panel the bubble stops at a share of the screen and scrolls, for a 13" screen; the
+            // scroll view hugs its content below that.
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.small) {
+                    // The Sintesi parlata as subtitles, while Bubo says it; VoiceOver users hear the voice already.
+                    if let subtitle = model.subtitle {
+                        Text(verbatim: subtitle)
+                            .font(Typography.body(size: 15))
+                            .foregroundStyle(Palette.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityHidden(true)
+                    }
+                    // What was dropped on the Orb, waiting for the Domanda about it.
+                    if !model.attachments.isEmpty {
+                        AttachmentChips(attachments: model.attachments, remove: model.detach)
+                    }
+                    SessionProposalButton(model: model, hud: hud)
+                    prompt
+                    if let notice = bubble.notice {
+                        ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
+                    } else if let failure = model.failure {
+                        QuestionNotice(failure: failure, model: model, pickRetry: hud.show)
+                    } else if model.isAnswering && model.answer.isEmpty {
+                        LoadingLabel("Chiedo a Claude…")
+                    } else if !model.answer.isEmpty {
+                        QuestionAnswer(model: model, pickRetry: hud.show)
+                    }
                 }
-                // What was dropped on the Orb, waiting for the Domanda about it.
-                if !model.attachments.isEmpty {
-                    AttachmentChips(attachments: model.attachments, remove: model.detach)
-                }
-                SessionProposalButton(model: model, hud: hud)
-                prompt
-                if let notice = bubble.notice {
-                    ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
-                } else if let failure = model.failure {
-                    QuestionNotice(failure: failure, model: model, pickRetry: hud.show)
-                } else if model.isAnswering && model.answer.isEmpty {
-                    LoadingLabel("Chiedo a Claude…")
-                } else if !model.answer.isEmpty {
-                    QuestionAnswer(model: model, pickRetry: hud.show)
-                }
+                .padding(Spacing.medium)
             }
-            .padding(Spacing.medium)
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxHeight: bubble.maxHeight)
             .frame(width: Self.width, alignment: .leading)
             .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
         }

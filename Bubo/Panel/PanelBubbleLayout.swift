@@ -31,8 +31,17 @@ extension PanelZone {
 
 /// Where the bubble goes beside the Panel.
 nonisolated enum PanelBubbleLayout {
-    /// How far the bubble reaches into the Panel's transparent margin, outside the click circle.
-    static let overlap: CGFloat = 24
+    /// How far the bubble reaches into the Panel's transparent margin, as a share of the Panel's side: 24 pt of 240,
+    /// outside the click circle at both sizes.
+    static let overlapRatio: CGFloat = 0.1
+    /// The bubble's tallest share of the visible frame in the reduced Panel; past it, the bubble scrolls.
+    static let reducedHeightRatio: CGFloat = 0.4
+
+    /// Returns the bubble's greatest height beside a Panel of `size` on a screen with `visibleFrame`, or `nil` when
+    /// only the content limits it.
+    static func maxHeight(for size: PanelSize, visibleFrame: CGRect) -> CGFloat? {
+        size == .reduced ? (visibleFrame.height * reducedHeightRatio).rounded(.down) : nil
+    }
 
     /// Returns the bubble's frame for content of `size`, beside a Panel at `panelFrame` in `zone`, inside
     /// `visibleFrame`.
@@ -41,6 +50,7 @@ nonisolated enum PanelBubbleLayout {
     /// center column; opening left or right, with the Panel's middle.
     static func frame(ofSize size: CGSize, besidePanel panelFrame: CGRect, in zone: PanelZone,
                       visibleFrame: CGRect) -> CGRect {
+        let overlap = panelFrame.width * overlapRatio
         var origin: CGPoint
         switch zone.bubbleSide {
         case .above, .below:
