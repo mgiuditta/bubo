@@ -121,7 +121,7 @@ nonisolated struct NoteWriter: Sendable {
         let directory = root.appending(path: path, directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         // A link in place of `Bubo/` or of one of its folders would take the note out of the Secondo cervello.
-        guard (directory.resolvingSymlinksInPath().standardizedFileURL.path + "/").hasPrefix(realRoot + "/Bubo/") else {
+        guard directory.resolvingSymlinksInPath().standardizedFileURL.path.hasPrefix(realRoot + "/Bubo/") else {
             throw Failure.outsideBubo
         }
         return directory
@@ -199,13 +199,51 @@ nonisolated struct NoteWriter: Sendable {
     /// - Throws: `Failure` when the Secondo cervello cannot be reached or `Bubo/` leads out of it; a file system
     ///   error when a file cannot be written.
     func writeSetup(profile: String, rules: String) throws {
-        let directory = try folder("Bubo")
+        // Only here, after the user's yes, are the Profilo and the Regole written: every other write goes in a folder
+        // under `Bubo/`, and `Bubo/Intervista.md` is the user's alone.
+        var isDirectory: ObjCBool = false
+        guard FileManager.default.fileExists(atPath: root.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+            throw Failure.unreachable
+        }
+        guard Self.setupFile(Self.profilePath, in: root) != nil else { throw Failure.outsideBubo }
+        try FileManager.default.createDirectory(at: root.appending(path: "Bubo"), withIntermediateDirectories: true)
         for (text, path) in [(profile, Self.profilePath), (rules, Self.rulesPath)] {
             let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !text.isEmpty else { continue }
-            let file = directory.appending(path: (path as NSString).lastPathComponent)
+            guard let file = Self.setupFile(path, in: root) else { throw Failure.outsideBubo }
             try Data((text + "\n").utf8).write(to: file, options: .atomic)
         }
+    }
+
+    /// The most a file of the setup is read: a vault could hold anything under its name.
+    static let setupReadLimit = 64 * 1024
+
+    /// The text of the setup file at `path` under `Bubo/` in `root`: `nil` when it is missing, not a regular file, a
+    /// link, larger than ``setupReadLimit``, or `Bubo/` leads out of `root`.
+    static func setupText(_ path: String, in root: URL) -> String? {
+        guard let file = setupFile(path, in: root) else { return nil }
+        let descriptor = open(file.path, O_RDONLY | O_NOFOLLOW)
+        guard descriptor >= 0 else { return nil }
+        let handle = FileHandle(fileDescriptor: descriptor, closeOnDealloc: true)
+        var info = stat()
+        guard fstat(descriptor, &info) == 0, info.st_mode & S_IFMT == S_IFREG, Int(info.st_size) <= setupReadLimit,
+              let data = try? handle.read(upToCount: setupReadLimit)
+        else { return nil }
+        return String(decoding: data, as: UTF8.self)
+    }
+
+    /// The setup file at `path` under `Bubo/` in `root`, the only place it is read or written from: `nil` when `Bubo/`
+    /// is a link or leads out of `root`, or the file is there as anything but a regular file, such as a link.
+    private static func setupFile(_ path: String, in root: URL) -> URL? {
+        let bubo = root.appending(path: "Bubo", directoryHint: .isDirectory)
+        let realBubo = root.resolvingSymlinksInPath().standardizedFileURL.path + "/Bubo"
+        var info = stat()
+        guard bubo.resolvingSymlinksInPath().standardizedFileURL.path == realBubo,
+              lstat(bubo.path, &info) == 0 ? info.st_mode & S_IFMT == S_IFDIR : errno == ENOENT
+        else { return nil }
+        let file = bubo.appending(path: (path as NSString).lastPathComponent)
+        guard lstat(file.path, &info) == 0 else { return errno == ENOENT ? file : nil }
+        return info.st_mode & S_IFMT == S_IFREG ? file : nil
     }
 
     /// Where the imported documents go: in the Indice, since they are sources and not Bubo's summaries.

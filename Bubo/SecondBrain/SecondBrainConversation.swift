@@ -122,7 +122,7 @@ final class SecondBrainConversation {
     /// How the model interviews: the user's `Bubo/Intervista.md` in `folder` when it holds any text, else Bubo's
     /// ``defaultMethod``.
     static func method(in folder: URL) -> String {
-        let custom = try? String(contentsOf: folder.appending(path: NoteWriter.interviewPath), encoding: .utf8)
+        let custom = NoteWriter.setupText(NoteWriter.interviewPath, in: folder)?
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return custom.flatMap { $0.isEmpty ? nil : $0 } ?? defaultMethod
     }
@@ -219,9 +219,7 @@ final class SecondBrainConversation {
     private static func currentSetup(in folder: URL) -> String {
         [("Profilo attuale", NoteWriter.profilePath), ("Regole attuali", NoteWriter.rulesPath)]
             .compactMap { title, path in
-                guard let text = try? String(contentsOf: folder.appending(path: path), encoding: .utf8) else {
-                    return nil
-                }
+                guard let text = NoteWriter.setupText(path, in: folder) else { return nil }
                 return "\(title) (`\(path)`):\n\(text.prefix(6_000))"
             }
             .joined(separator: "\n\n")
