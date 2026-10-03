@@ -12,7 +12,7 @@ struct PanelBubbleView: View {
     @FocusState private var promptHasFocus: Bool
 
     /// The bubble's width, in points; the height follows the content.
-    static let width: CGFloat = 360
+    static let width: CGFloat = 460
 
     var body: some View {
         ZStack {
@@ -47,10 +47,9 @@ struct PanelBubbleView: View {
 
     private var content: some View {
         GlassEffectContainer {
-            // Beside the reduced Panel the bubble stops at a share of the screen and scrolls, for a 13" screen; the
-            // scroll view hugs its content below that.
+            // The bubble stops at half the screen and scrolls; the scroll view hugs its content below that.
             ScrollView {
-                VStack(alignment: .leading, spacing: Spacing.small) {
+                VStack(alignment: .leading, spacing: Spacing.medium) {
                     // The Sintesi parlata as subtitles, while Bubo says it; VoiceOver users hear the voice already.
                     if let subtitle = model.subtitle {
                         Text(verbatim: subtitle)
@@ -65,6 +64,8 @@ struct PanelBubbleView: View {
                     }
                     SessionProposalButton(model: model, hud: hud)
                     prompt
+                    // On its own line, so a long reason truncates instead of pushing the bubble past its width.
+                    ModelPicker(model: model)
                     if let notice = bubble.notice {
                         ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
                     } else if let failure = model.failure {
@@ -72,12 +73,15 @@ struct PanelBubbleView: View {
                     } else if model.isAnswering && model.answer.isEmpty {
                         LoadingLabel("Chiedo a Claude…")
                     } else if !model.answer.isEmpty {
-                        QuestionAnswer(model: model, pickRetry: hud.show)
+                        // As tall as the bubble lets it: the bubble scrolls past half the screen.
+                        QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
                     }
                 }
-                .padding(Spacing.medium)
+                .padding(Spacing.large)
             }
             .scrollBounceBehavior(.basedOnSize)
+            // Follows the answer as it streams once the bubble scrolls.
+            .defaultScrollAnchor(.bottom, for: .sizeChanges)
             .frame(maxHeight: bubble.maxHeight)
             .frame(width: Self.width, alignment: .leading)
             .glassEffect(.regular, in: .rect(cornerRadius: CornerRadius.panel))
@@ -95,7 +99,6 @@ struct PanelBubbleView: View {
                 .accessibilityLabel("Chiedi qualcosa a Claude")
                 .accessibilityIdentifier("bubble.prompt")
                 .onExitCommand(perform: bubble.close)
-            ModelPicker(model: model)
             if model.isAnswering {
                 Button("Ferma", systemImage: "stop.fill", action: model.stop)
                     .help("Ferma la risposta")

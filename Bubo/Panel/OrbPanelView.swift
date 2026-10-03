@@ -126,7 +126,7 @@ final class OrbPanelView: MTKView {
     override func isAccessibilityElement() -> Bool { true }
     override func accessibilityRole() -> NSAccessibility.Role? { .button }
     override func accessibilityLabel() -> String? { String(localized: "Bubo") }
-    override func accessibilityHelp() -> String? { String(localized: "Apre l'HUD") }
+    override func accessibilityHelp() -> String? { String(localized: "Apre la Domanda") }
     override func accessibilityValue() -> Any? {
         let state = String(localized: OrbControls.shared.displayedState.title)
         let meeting = isRecordingMeeting ? String(localized: "Registrazione della Riunione in corso") : nil

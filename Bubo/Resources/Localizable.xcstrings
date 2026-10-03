@@ -2257,12 +2257,12 @@
         }
       }
     },
-    "Apre l'HUD" : {
+    "Apre la Domanda" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Opens the HUD"
+            "value" : "Opens the question"
           }
         }
       }

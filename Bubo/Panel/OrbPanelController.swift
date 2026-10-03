@@ -86,7 +86,8 @@ final class OrbPanelController {
 
         let view = OrbPanelView(frame: frame, device: MTLCreateSystemDefaultDevice())
         view.autoResizeDrawable = false
-        view.onPress = openHUD
+        // The bubble is the default way to ask; the HUD stays a hot key or a menu item away.
+        view.onPress = { [weak self] in self?.askInPanel() }
         view.onAsk = { [weak self] in self?.askInPanel() }
         view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
@@ -408,7 +409,7 @@ final class OrbPanelController {
         zone = spot.zone
         size = spot.size
         bubble.side = spot.zone.bubbleSide
-        bubble.maxHeight = PanelBubbleLayout.maxHeight(for: spot.size, visibleFrame: spot.screen.visibleFrame)
+        bubble.maxHeight = PanelBubbleLayout.maxHeight(in: spot.screen.visibleFrame)
         if let view {
             view.size = spot.size
             let pixels = spot.size.side * spot.size.renderScale
@@ -424,8 +425,18 @@ final class OrbPanelController {
     /// Lets clicks through to the windows below unless the pointer is in the click circle.
     private func updateClickThrough() {
         guard let panel else { return }
-        panel.ignoresMouseEvents = !PanelClickCircle.contains(NSEvent.mouseLocation, inPanel: panel.frame, of: size)
+        let isPointerOnOrb = panel.isVisible
+            && PanelClickCircle.contains(NSEvent.mouseLocation, inPanel: panel.frame, of: size)
+        panel.ignoresMouseEvents = !isPointerOnOrb
+        // Only on the way in or out: a pointer elsewhere must not cut the launch greeting short.
+        if isPointerOnOrb != wasPointerOnOrb {
+            wasPointerOnOrb = isPointerOnOrb
+            OrbControls.shared.hover(isPointerInside: isPointerOnOrb)
+        }
     }
+
+    /// Whether the pointer was on the Orb at the last move, so the owl follows only entering and leaving.
+    @ObservationIgnored private var wasPointerOnOrb = false
 
     private var isHUDOpen: Bool {
         NSApp.windows.contains {

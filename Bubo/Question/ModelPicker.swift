@@ -30,7 +30,8 @@ struct ModelPicker: View {
         .menuStyle(.button)
         .buttonStyle(.plain)
         .menuIndicator(.hidden)
-        .fixedSize()
+        // Only vertically: the reason truncates in a narrow place, like the Panel's bubble.
+        .fixedSize(horizontal: false, vertical: true)
         // Reads the plan's models once; without a paid `copilot` the section stays out.
         .task { await model.readCopilotModels() }
         .accessibilityAction(named: "Modello successivo") { model.chooseModel(forward: true) }

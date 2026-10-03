@@ -5,7 +5,7 @@ import Testing
 struct PanelBubbleLayoutTests {
     /// A 900×600 visible frame shifted off the origin, as in `PanelZoneTests`.
     let screen = CGRect(x: 100, y: 50, width: 900, height: 600)
-    let bubble = CGSize(width: 360, height: 180)
+    let bubble = CGSize(width: 460, height: 180)
 
     private func panelFrame(in zone: PanelZone, size: PanelSize = .normal) -> CGRect {
         PanelSpot(screen: PanelScreen(id: "main", visibleFrame: screen), zone: zone, size: size).panelFrame
@@ -33,10 +33,10 @@ struct PanelBubbleLayoutTests {
     }
 
     @Test(arguments: PanelZone.allCases)
-    func theBubbleStaysInsideTheVisibleFrame(zone: PanelZone) {
+    func theBubbleKeepsAMarginInsideTheVisibleFrame(zone: PanelZone) {
         let frame = PanelBubbleLayout.frame(ofSize: bubble, besidePanel: panelFrame(in: zone), in: zone,
                                             visibleFrame: screen)
-        #expect(screen.contains(frame))
+        #expect(screen.insetBy(dx: 16, dy: 16).contains(frame))
     }
 
     @Test(arguments: PanelZone.allCases, PanelSize.allCases)
@@ -50,17 +50,23 @@ struct PanelBubbleLayoutTests {
         #expect(hypot(nearest.x - panel.midX, nearest.y - panel.midY) > radius)
     }
 
-    @Test func onlyTheReducedBubbleHasAMaxHeight() {
-        #expect(PanelBubbleLayout.maxHeight(for: .normal, visibleFrame: screen) == nil)
-        #expect(PanelBubbleLayout.maxHeight(for: .reduced, visibleFrame: screen) == 240)
+    @Test(arguments: PanelZone.allCases.filter { $0 != .center }, PanelSize.allCases)
+    func theBubbleLeavesTheOrbInSight(zone: PanelZone, size: PanelSize) {
+        let panel = panelFrame(in: zone, size: size)
+        let frame = PanelBubbleLayout.frame(ofSize: bubble, besidePanel: panel, in: zone, visibleFrame: screen)
+        #expect(!frame.intersects(panel))
     }
 
-    @Test func onA13InchScreenTheBubbleStopsAt40Percent() throws {
+    @Test func theBubbleReachesHalfTheScreen() {
+        #expect(PanelBubbleLayout.maxHeight(in: screen) == 300)
+    }
+
+    @Test func onA13InchScreenTheBubbleStopsAtHalf() {
         // A MacBook Air 13" at 1470×956, less the menu bar and a Dock below.
         let air = CGRect(x: 0, y: 70, width: 1470, height: 853)
-        let maxHeight = try #require(PanelBubbleLayout.maxHeight(for: .reduced, visibleFrame: air))
-        #expect(maxHeight <= air.height * 0.4)
-        let tall = CGSize(width: 360, height: maxHeight)
+        let maxHeight = PanelBubbleLayout.maxHeight(in: air)
+        #expect(maxHeight <= air.height * 0.5)
+        let tall = CGSize(width: 460, height: maxHeight)
         let panel = PanelSpot(screen: PanelScreen(id: "air", visibleFrame: air), zone: .bottomRight,
                               size: .reduced).panelFrame
         let frame = PanelBubbleLayout.frame(ofSize: tall, besidePanel: panel, in: .bottomRight, visibleFrame: air)

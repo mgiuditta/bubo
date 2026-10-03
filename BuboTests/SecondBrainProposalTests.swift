@@ -26,6 +26,12 @@ struct SecondBrainProposalTests {
         #expect(SecondBrainProposal.prose(of: answer).hasSuffix("Meglio così:"))
     }
 
+    @Test func aBlockStillStreamingNeverShows() {
+        let answer = "Uso questa cartella.\n\n```secondo-cervello\n{\"azione\": \"usa\", \"cartella\": \"/x"
+
+        #expect(SecondBrainProposal.prose(of: answer) == "Uso questa cartella.")
+    }
+
     @Test func onlyActionAndFolderAreRequired() throws {
         let proposal = try #require(SecondBrainProposal(in: "```secondo-cervello\n{\"azione\":\"crea\",\"cartella\":\"/x\"}\n```"))
 

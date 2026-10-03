@@ -69,11 +69,13 @@ nonisolated struct SecondBrainProposal: Decodable, Equatable, Sendable {
         self = proposal
     }
 
-    /// `answer` without its proposal block, as the conversation shows it.
+    /// `answer` without its proposal block, as the conversation shows it; a block still streaming, not yet closed, goes
+    /// too.
     static func prose(of answer: String) -> String {
-        guard let block = block(in: answer) else { return answer }
+        guard let opening = answer.range(of: "```" + fence, options: .backwards) else { return answer }
+        let end = answer.range(of: "```", range: opening.upperBound..<answer.endIndex)?.upperBound ?? answer.endIndex
         var prose = answer
-        prose.removeSubrange(block.whole)
+        prose.removeSubrange(opening.lowerBound..<end)
         return prose.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
