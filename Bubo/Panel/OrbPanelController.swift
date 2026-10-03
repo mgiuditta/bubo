@@ -66,8 +66,9 @@ final class OrbPanelController {
     ///   - sessions: The Sessioni whose Attende te and Errore the status pill and VoiceOver tell; `nil` when they
     ///     cannot be kept.
     ///   - meetings: The Riunioni, whose recording puts a red dot on the Orb.
+    ///   - brainSetup: The interview that sets up the Secondo cervello, held in the bubble.
     func start(openingHUD openHUD: @escaping () -> Void, menu: NSMenu, questions: QuestionModel, hud: HUDPresenter,
-               sessions: SessionStore?, meetings: MeetingRecorder) {
+               sessions: SessionStore?, meetings: MeetingRecorder, brainSetup: SecondBrainConversation) {
         self.openHUD = openHUD
         self.questions = questions
         let frame = CGRect(origin: .zero, size: CGSize(width: size.side, height: size.side))
@@ -115,7 +116,7 @@ final class OrbPanelController {
         panel.contentView = view
         self.panel = panel
         self.view = view
-        startBubble(questions: questions, hud: hud)
+        startBubble(questions: questions, hud: hud, brainSetup: brainSetup)
         startStatus(questions: questions, hud: hud, sessions: sessions)
         Task { [weak self] in
             for await isRecording in Observations({ meetings.isRecording }) {
@@ -272,9 +273,9 @@ final class OrbPanelController {
         NSScreen.screens.map { PanelScreen(id: $0.stableID, visibleFrame: $0.visibleFrame) }
     }
 
-    private func startBubble(questions: QuestionModel, hud: HUDPresenter) {
+    private func startBubble(questions: QuestionModel, hud: HUDPresenter, brainSetup: SecondBrainConversation) {
         let bubble = bubble
-        let view = PanelBubbleView(bubble: bubble, model: questions, hud: hud) { [weak self] size in
+        let view = PanelBubbleView(bubble: bubble, model: questions, hud: hud, brainSetup: brainSetup) { [weak self] size in
             self?.placeBubble(size: size)
         }
         let window = PanelBubbleWindow.make(content: view)

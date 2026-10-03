@@ -46,7 +46,6 @@ struct SecondBrainInterviewTests {
 
         conversation.start(with: folder.notes, isNew: false)
         await questions.answering?.value
-        conversation.receive()
 
         let proposal = try #require(conversation.proposal)
         #expect(proposal.profile == "# Profilo\nSviluppatore a Roma.")
@@ -56,6 +55,27 @@ struct SecondBrainInterviewTests {
 
         #expect(try String(contentsOf: profile, encoding: .utf8) == "# Profilo\nSviluppatore a Roma.\n")
         #expect(try String(contentsOf: rules, encoding: .utf8) == "# Regole\nLe riunioni vanno in Bubo/Riunioni.\n")
+        #expect(conversation.proposal == nil)
+    }
+
+    @Test func newQuestionEndsTheInterview() async throws {
+        let answer = """
+            ```secondo-cervello
+            {"azione": "usa", "cartella": "/altrove", "profilo": "# Profilo", "regole": "# Regole"}
+            ```
+            """
+        let questions = try model(answering: answer)
+        let defaults = try #require(UserDefaults(suiteName: UUID().uuidString))
+        let conversation = SecondBrainConversation(questions: questions,
+                                                   secondBrain: SecondBrain(index: nil, defaults: defaults))
+
+        conversation.start(with: folder.notes, isNew: false)
+        await questions.answering?.value
+        #expect(conversation.proposal != nil)
+
+        questions.startNewQuestion()
+
+        #expect(!conversation.isActive)
         #expect(conversation.proposal == nil)
     }
 

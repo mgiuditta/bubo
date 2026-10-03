@@ -6,14 +6,17 @@ final class MeetingWindow {
     private let recorder: MeetingRecorder
     private let secondBrain: SecondBrain
     private let questions: QuestionModel
+    private let brainSetup: SecondBrainConversation
     private lazy var window = makeWindow()
 
-    /// Creates the window of `recorder`, writing in `secondBrain`, built at its first opening; `questions` holds the
-    /// conversation that sets up the Secondo cervello when there is none.
-    init(recorder: MeetingRecorder, secondBrain: SecondBrain, questions: QuestionModel) {
+    /// Creates the window of `recorder`, writing in `secondBrain`, built at its first opening; `brainSetup`, asked
+    /// through `questions`, is the conversation that sets up the Secondo cervello when there is none.
+    init(recorder: MeetingRecorder, secondBrain: SecondBrain, questions: QuestionModel,
+         brainSetup: SecondBrainConversation) {
         self.recorder = recorder
         self.secondBrain = secondBrain
         self.questions = questions
+        self.brainSetup = brainSetup
     }
 
     /// Brings the window forward.
@@ -24,6 +27,7 @@ final class MeetingWindow {
 
     private func makeWindow() -> NSWindow {
         let view = MeetingView(recorder: recorder).environment(secondBrain).environment(questions)
+            .environment(brainSetup)
         let window = NSWindow(contentViewController: NSHostingController(rootView: view))
         window.styleMask = [.titled, .closable]
         window.title = String(localized: "Riunione")
