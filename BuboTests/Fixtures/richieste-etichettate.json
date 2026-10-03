@@ -716,7 +716,7 @@
       "testo": "Revisione della PR di Luca sul parser: stile, correttezza e prestazioni.",
       "tipo": "sessione.revisione",
       "categoria": "codice",
-      "variante": "parentesi"
+      "variante": "occhiali"
     },
     {
       "id": "r089",
@@ -948,7 +948,7 @@
       "testo": "What's a haiku's syllable pattern?",
       "tipo": "domanda.fatto-breve",
       "categoria": "creativo",
-      "variante": "pennello"
+      "variante": "piuma"
     },
     {
       "id": "r118",
@@ -1208,7 +1208,7 @@
       "testo": "Scrivimi una poesia breve sull'autunno.",
       "tipo": "domanda.scrittura",
       "categoria": "creativo",
-      "variante": "pennello"
+      "variante": "piuma"
     },
     {
       "id": "r143",
@@ -1305,7 +1305,7 @@
       "testo": "Draft a packing list note for a week of hiking in Scotland.",
       "tipo": "domanda.scrittura",
       "categoria": "viaggi",
-      "variante": "aereo"
+      "variante": "valigia"
     },
     {
       "id": "r154",
@@ -1538,7 +1538,7 @@
       "testo": "Cerca le ultime notizie sull'uscita di macOS 27.",
       "tipo": "domanda.ricerca-web",
       "categoria": "ricerca",
-      "variante": "lente"
+      "variante": "giornale"
     },
     {
       "id": "r182",

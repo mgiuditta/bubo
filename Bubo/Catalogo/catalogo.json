@@ -335,6 +335,174 @@
       "categoria": "chat",
       "descrizione": "Quando si parla di ragni e aracnidi.",
       "parole": ["ragno", "ragni", "spider", "aracnidi", "ragnatela", "tarantola"]
+    },
+    {
+      "nome": "foglio",
+      "forma": "foglio",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo crea un file nuovo da zero.",
+      "parole": ["nuovo file", "new file", "crea un file", "create a file", "file vuoto", "foglio"]
+    },
+    {
+      "nome": "occhiali",
+      "forma": "occhiali",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo rivede codice scritto da altri: diff, pull request.",
+      "parole": ["occhiali", "glasses", "pull request", "code review", "diff", "revisiona*"]
+    },
+    {
+      "nome": "bilancia",
+      "forma": "bilancia",
+      "categoria": "chat",
+      "descrizione": "Quando si decide tra opzioni: pro e contro, confronti.",
+      "parole": ["bilancia", "scale", "confronta*", "compare", "decidere", "decide"]
+    },
+    {
+      "nome": "giornale",
+      "forma": "giornale",
+      "categoria": "ricerca",
+      "descrizione": "Quando si cercano notizie e fatti di attualità.",
+      "parole": ["giornale", "newspaper", "notizie", "news", "attualita", "headline*"]
+    },
+    {
+      "nome": "frullatore",
+      "forma": "frullatore",
+      "categoria": "codice",
+      "descrizione": "Quando si uniscono modifiche: merge, rebase, conflitti.",
+      "parole": ["merge", "rebase", "conflitt*", "conflict*", "unisci", "frullatore"]
+    },
+    {
+      "nome": "salvadanaio",
+      "forma": "salvadanaio",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di risparmi e di come mettere soldi da parte.",
+      "parole": ["risparmi*", "savings", "salvadanaio", "piggy bank", "mettere da parte", "save money"]
+    },
+    {
+      "nome": "tavolozza",
+      "forma": "tavolozza",
+      "categoria": "creativo",
+      "descrizione": "Quando si scelgono colori: palette, abbinamenti, sfumature.",
+      "parole": ["colori", "colors", "palette", "tavolozza", "sfumatur*", "abbinament*"]
+    },
+    {
+      "nome": "cassetta-postale",
+      "forma": "cassetta_postale",
+      "categoria": "mail",
+      "descrizione": "Quando si controlla cosa è arrivato: posta nuova, messaggi non letti.",
+      "parole": ["posta in arrivo", "new mail", "non letti", "unread", "cassetta postale", "mailbox"]
+    },
+    {
+      "nome": "cerotto",
+      "forma": "cerotto",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di piccole ferite: tagli, graffi, vesciche.",
+      "parole": ["cerotto", "plaster", "band aid", "ferita", "taglio", "graffio", "vescica"]
+    },
+    {
+      "nome": "cassetta-attrezzi",
+      "forma": "cassetta_attrezzi",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo sceglie e usa strumenti: tool, skill, server MCP.",
+      "parole": ["strumenti", "tool", "skill", "mcp", "cassetta degli attrezzi", "toolbox"]
+    },
+    {
+      "nome": "valigia",
+      "forma": "valigia",
+      "categoria": "viaggi",
+      "descrizione": "Quando si prepara il bagaglio: cosa portare, liste.",
+      "parole": ["valigia", "suitcase", "bagaglio", "luggage", "cosa portare", "packing list"]
+    },
+    {
+      "nome": "chitarra",
+      "forma": "chitarra",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di chitarra: accordi, tablature, strumenti a corda pizzicata.",
+      "parole": ["chitarra", "guitar", "accordi", "chords", "tablatur*", "plettro"]
+    },
+    {
+      "nome": "sveglia",
+      "forma": "sveglia",
+      "categoria": "tempo",
+      "descrizione": "Quando si mettono sveglie e promemoria.",
+      "parole": ["sveglia", "alarm", "svegliami", "wake me", "alarm clock"]
+    },
+    {
+      "nome": "database",
+      "forma": "database",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con database e query.",
+      "parole": ["database", "db", "sql", "query", "tabella", "postgres", "sqlite"]
+    },
+    {
+      "nome": "sole",
+      "forma": "sole",
+      "categoria": "meteo",
+      "descrizione": "Quando si chiede se farà bel tempo o sereno.",
+      "parole": ["sole", "sun", "sereno", "sunny", "bel tempo", "sunshine"]
+    },
+    {
+      "nome": "albero",
+      "forma": "albero",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di alberi, boschi e natura.",
+      "parole": ["albero", "alberi", "tree", "trees", "bosco", "foresta", "forest"]
+    },
+    {
+      "nome": "forbici",
+      "forma": "forbici",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo toglie codice: righe morte, funzioni inutili.",
+      "parole": ["forbici", "scissors", "codice morto", "dead code", "rimuovi*", "elimina righe"]
+    },
+    {
+      "nome": "binocolo",
+      "forma": "binocolo",
+      "categoria": "ricerca",
+      "descrizione": "Quando Bubo fa una ricerca ampia e confronta molte fonti.",
+      "parole": ["binocolo", "binoculars", "fonti", "sources", "ricerca ampia", "panoramica"]
+    },
+    {
+      "nome": "timbro",
+      "forma": "timbro",
+      "categoria": "codice",
+      "descrizione": "Quando una modifica va approvata o firmata: merge della PR, via libera.",
+      "parole": ["timbro", "stamp", "approva*", "approve", "via libera", "firma"]
+    },
+    {
+      "nome": "banconota",
+      "forma": "banconota",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di stipendio, entrate e contanti.",
+      "parole": ["stipendio", "salary", "contanti", "cash", "banconota", "banknote", "entrate"]
+    },
+    {
+      "nome": "piuma",
+      "forma": "piuma",
+      "categoria": "creativo",
+      "descrizione": "Quando si scrive poesia: versi, rime, haiku.",
+      "parole": ["poesia", "poem", "versi", "rima", "haiku", "piuma"]
+    },
+    {
+      "nome": "francobollo",
+      "forma": "francobollo",
+      "categoria": "mail",
+      "descrizione": "Quando si parla di posta cartacea: lettere, spedizioni, francobolli.",
+      "parole": ["francobollo", "postage", "lettera", "letter", "spedizione", "cartolina"]
+    },
+    {
+      "nome": "manubrio",
+      "forma": "manubrio",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di allenamento con i pesi e forza.",
+      "parole": ["manubrio", "dumbbell", "pesi", "weights", "palestra", "gym", "forza"]
+    },
+    {
+      "nome": "uncino",
+      "forma": "uncino",
+      "categoria": "agente",
+      "descrizione": "Quando scattano gli hook: azioni automatiche prima o dopo un passo.",
+      "parole": ["hook", "hooks", "uncino", "azioni automatiche", "pre commit", "post commit"]
     }
   ]
 }
