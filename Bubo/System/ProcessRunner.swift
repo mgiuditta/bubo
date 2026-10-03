@@ -11,6 +11,20 @@ nonisolated struct ProcessRunner: Sendable {
 }
 
 nonisolated extension ProcessRunner {
+    /// Runs `executable` with `arguments`; `nil` when it cannot start, fails to answer, or takes longer than
+    /// `timeout`, which then terminates it.
+    func run(_ executable: URL, _ arguments: [String], timeout: Duration) async -> ProcessOutput? {
+        try? await withThrowingTaskGroup { group in
+            group.addTask { try await run(executable, arguments) }
+            group.addTask {
+                try await Task.sleep(for: timeout)
+                throw CancellationError()
+            }
+            defer { group.cancelAll() }
+            return try await group.next()
+        }
+    }
+
     /// Runs real processes with `Process`, standard input closed.
     static let live = ProcessRunner { executable, arguments in
         try await runProcess(executable, arguments: arguments)

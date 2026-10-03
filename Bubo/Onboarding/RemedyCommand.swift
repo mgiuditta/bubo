@@ -13,6 +13,15 @@ nonisolated enum RemedyCommand {
         "\(quoted(claude.path)) auth login"
     }
 
+    /// Installs GitHub Copilot CLI with Homebrew (ADR 0011), found in either of its folders: the `.command` shell
+    /// reads no profile.
+    static let installCopilot = #"PATH=/opt/homebrew/bin:/usr/local/bin:"$PATH" brew install copilot-cli"#
+
+    /// Signs `copilot` in through the browser; the token stays where `copilot` puts it.
+    static func loginCopilot(_ copilot: URL) -> String {
+        "\(quoted(copilot.path)) login"
+    }
+
     /// Diagnoses `claude` without a session: its output and exit code are not documented, so the user reads them.
     static func doctor(claude: URL) -> String {
         "\(quoted(claude.path)) doctor"
