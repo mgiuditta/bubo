@@ -69,7 +69,10 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 ## Movimento
 
 - Il contenitore si muove poco e in fretta (150–250 ms); l'Orb è l'unica cosa che respira.
-- `prefers-reduced-motion` / Riduci movimento: anelli fermi, Morph in dissolvenza.
+- Le finestre di Bubo (Panel, Bolla, pillola, HUD, Palette) entrano ed escono in dissolvenza di 0,25 s (`Motion.windowFade`, `NSWindow.orderFrontFading`/`orderOutFading`): l'uscita aspetta la dissolvenza, così la transizione della Bolla e della pillola si vede.
+- La Bolla cresce dall'Orb e ci rientra; quando la Domanda passa all'HUD cresce oltre la sua misura e svanisce mentre l'HUD entra.
+- I numeri che cambiano (costi, quote) scorrono con `contentTransition(.numericText())`.
+- `prefers-reduced-motion` / Riduci movimento: anelli fermi, Morph in dissolvenza, finestre che appaiono e spariscono subito, Bolla senza scala.
 
 ## Nel codice
 

@@ -260,15 +260,17 @@ final class OrbPanelController {
     private func updateBubbleWindow() {
         guard let panel, let bubbleWindow else { return }
         guard bubble.isOpen, panel.isVisible else {
-            if bubbleWindow.isVisible {
-                panel.removeChildWindow(bubbleWindow)
-                bubbleWindow.orderOut(nil)
+            if bubbleWindow.isVisible, isBubbleWindowShown {
+                isBubbleWindowShown = false
+                // After the fade, so the bubble's own transition is seen; it keeps following the Panel meanwhile.
+                bubbleWindow.orderOutFading { [weak panel] in panel?.removeChildWindow(bubbleWindow) }
             }
             return
         }
-        if !bubbleWindow.isVisible {
-            placeBubble(size: bubbleWindow.frame.size)
-            bubbleWindow.orderFrontRegardless()
+        if !isBubbleWindowShown {
+            isBubbleWindowShown = true
+            if !bubbleWindow.isVisible { placeBubble(size: bubbleWindow.frame.size) }
+            bubbleWindow.orderFrontFading()
             // A child moves with the Panel while it is dragged.
             panel.addChildWindow(bubbleWindow, ordered: .above)
         }
@@ -340,15 +342,16 @@ final class OrbPanelController {
     private func updateStatusWindow() {
         guard let panel, let statusWindow else { return }
         guard status != nil else {
-            if statusWindow.isVisible {
-                panel.removeChildWindow(statusWindow)
-                statusWindow.orderOut(nil)
+            if statusWindow.isVisible, isStatusWindowShown {
+                isStatusWindowShown = false
+                statusWindow.orderOutFading { [weak panel] in panel?.removeChildWindow(statusWindow) }
             }
             return
         }
-        guard !statusWindow.isVisible else { return }
-        placeStatus(size: statusWindow.frame.size)
-        statusWindow.orderFrontRegardless()
+        guard !isStatusWindowShown else { return }
+        isStatusWindowShown = true
+        if !statusWindow.isVisible { placeStatus(size: statusWindow.frame.size) }
+        statusWindow.orderFrontFading()
         // A child moves with the Panel while it is dragged.
         panel.addChildWindow(statusWindow, ordered: .above)
     }
@@ -435,6 +438,11 @@ final class OrbPanelController {
         }
     }
 
+    /// Whether the Panel, the bubble and the pill were last asked on screen: while one fades out it is still visible.
+    @ObservationIgnored private var isPanelShown = false
+    @ObservationIgnored private var isBubbleWindowShown = false
+    @ObservationIgnored private var isStatusWindowShown = false
+
     /// Whether the pointer was on the Orb at the last move, so the owl follows only entering and leaving.
     @ObservationIgnored private var wasPointerOnOrb = false
 
@@ -447,14 +455,20 @@ final class OrbPanelController {
     private func updateVisibility() {
         guard let panel else { return }
         let isHUDOpen = isHUDOpen
-        // The Domanda goes on in the HUD, where the user sees how it ended.
+        // The Domanda goes on in the HUD, where the user sees how it ended: the bubble grows into it.
         if isHUDOpen {
-            bubble.close()
+            bubble.closeIntoHUD()
             bubble.markOutcomeSeen()
         }
         let wantsPanel = isShown && !isHUDOpen
-        if wantsPanel != panel.isVisible {
-            if wantsPanel { panel.orderFrontRegardless() } else { panel.orderOut(nil) }
+        if wantsPanel != isPanelShown {
+            isPanelShown = wantsPanel
+            if wantsPanel {
+                panel.orderFrontFading()
+            } else {
+                // Once out, the Orb stops rendering.
+                panel.orderOutFading { [weak self] in self?.updateVisibility() }
+            }
         }
         renderer?.isVisible = panel.isVisible && panel.occlusionState.contains(.visible)
         updateBubbleWindow()

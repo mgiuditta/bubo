@@ -32,6 +32,9 @@ struct SessionCostTotal: View {
             }
             .font(Typography.mono(size: 11))
             .lineLimit(1)
+            .contentTransition(.numericText())
+            .animation(Motion.isReduced ? nil : Motion.standard, value: total[.spesa]?.value)
+            .animation(Motion.isReduced ? nil : Motion.standard, value: total[.valoreListino]?.value)
             .help(origin)
         }
     }

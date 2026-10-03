@@ -40,11 +40,10 @@ struct PanelBubbleView: View {
         }
     }
 
+    /// Grows from the Orb and shrinks back into it, or grows on into the HUD; only fades with Riduci movimento.
     private var transition: AnyTransition {
-        switch bubble.appearance {
-        case .grow: .scale(scale: 0.9, anchor: bubble.side.anchor).combined(with: .opacity)
-        case .fade: .opacity
-        }
+        .modifier(active: BubbleMotion(bubble: bubble, isPresented: false),
+                  identity: BubbleMotion(bubble: bubble, isPresented: true))
     }
 
     private var content: some View {
@@ -70,16 +69,21 @@ struct PanelBubbleView: View {
                     ModelPicker(model: model)
                     if let notice = bubble.notice {
                         ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
+                            .transition(.opacity)
                     } else if let failure = model.failure {
                         QuestionNotice(failure: failure, model: model, pickRetry: hud.show)
+                            .transition(.opacity)
                     } else if model.isAnswering && model.answer.isEmpty {
                         LoadingLabel("Chiedo a Claude…")
+                            .transition(.opacity)
                     } else if !model.answer.isEmpty {
                         // As tall as the bubble lets it: the bubble scrolls past half the screen.
                         QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
+                            .transition(.opacity)
                     }
                 }
                 .padding(Spacing.large)
+                .animation(Motion.isReduced ? nil : Motion.standard, value: contentPhase)
             }
             .scrollBounceBehavior(.basedOnSize)
             // Follows the answer as it streams once the bubble scrolls.
@@ -105,6 +109,15 @@ struct PanelBubbleView: View {
 
     private var isOpaque: Bool { reducesTransparency || contrast == .increased }
 
+    /// What the bubble shows under the prompt, so a change between them fades rather than jumps.
+    private var contentPhase: Int {
+        if bubble.notice != nil { 1 }
+        else if model.failure != nil { 2 }
+        else if model.isAnswering && model.answer.isEmpty { 3 }
+        else if !model.answer.isEmpty { 4 }
+        else { 0 }
+    }
+
     private var prompt: some View {
         // At the bottom, beside the last line, once a long prompt wraps.
         HStack(alignment: .bottom, spacing: Spacing.xSmall) {
@@ -125,6 +138,7 @@ struct PanelBubbleView: View {
                 Button("Ferma", systemImage: "stop.fill", action: model.stop)
                     .keyboardShortcut(".", modifiers: .command)
                     .help("Ferma la risposta")
+                    .transition(.opacity)
             }
             // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD.
             Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
@@ -134,6 +148,7 @@ struct PanelBubbleView: View {
             Button("Chiudi", systemImage: "xmark", action: bubble.close)
                 .help("Chiudi")
         }
+        .animation(Motion.isReduced ? nil : Motion.quick, value: model.isAnswering)
         .labelStyle(.iconOnly)
         .buttonStyle(.plain)
         .foregroundStyle(Palette.textSecondary)
@@ -158,6 +173,21 @@ struct PanelBubbleView: View {
               model.handleChipKey(press.key, modifiers: press.modifiers, escapeReturnsToRouter: false)
         else { return .ignored }
         return .handled
+    }
+}
+
+/// The bubble on its way in or out: scaled toward the Orb's side, or past full size when it grows into the HUD.
+private struct BubbleMotion: ViewModifier {
+    let bubble: PanelBubble
+    let isPresented: Bool
+
+    func body(content: Content) -> some View {
+        // Read as the bubble leaves, not when it came: it only then knows whether it goes into the HUD.
+        let grows = bubble.appearance == .grow && !isPresented
+        content
+            .scaleEffect(grows ? (bubble.closesExpanding ? 1.06 : 0.9) : 1,
+                         anchor: bubble.closesExpanding ? .center : bubble.side.anchor)
+            .opacity(isPresented ? 1 : 0)
     }
 }
 

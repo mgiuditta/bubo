@@ -123,7 +123,7 @@ final class HUDPresenter {
     /// Brings the HUD to the front, or hides it if it is already frontmost.
     func toggle() {
         if isFrontmost {
-            hudWindow?.orderOut(nil)
+            hudWindow?.orderOutFading()
         } else {
             show()
         }
@@ -133,10 +133,19 @@ final class HUDPresenter {
     func show() {
         didShow?()
         NSApp.activate()
-        if let window = hudWindow {
+        if let window = hudWindow, window.isMiniaturized {
+            // The Dock's own animation brings it back.
             window.makeKeyAndOrderFront(nil)
+        } else if let window = hudWindow {
+            // Also while it fades out: it comes back instead of going.
+            window.makeKeyAndOrderFrontFading()
         } else {
             openWindow?(id: Self.windowID)
+            // Made now, drawn at the end of the turn: it fades in from there.
+            if let window = hudWindow {
+                window.alphaValue = 0
+                window.makeKeyAndOrderFrontFading()
+            }
         }
     }
 

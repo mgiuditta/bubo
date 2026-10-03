@@ -48,6 +48,8 @@ private struct QuotaWindowLabel: View {
                     .foregroundStyle(Palette.textSecondary)
                 Text(used, format: .percent.precision(.fractionLength(0)))
                     .monospacedDigit()
+                    .contentTransition(.numericText(value: used))
+                    .animation(Motion.isReduced ? nil : Motion.standard, value: used)
             }
             .font(Typography.mono(size: 11, weight: .medium))
             Text(reset)

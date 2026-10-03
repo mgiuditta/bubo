@@ -26,6 +26,19 @@ struct PanelBubbleTests {
         #expect(!bubble.takesKeyboard)
     }
 
+    @Test func closingIntoTheHUDGrowsUntilTheNextOpening() {
+        let bubble = PanelBubble()
+        bubble.closeIntoHUD()
+        #expect(!bubble.closesExpanding, "A closed bubble has nothing to grow")
+        bubble.open(focus: .prompt)
+        bubble.closeIntoHUD()
+        #expect(!bubble.isOpen)
+        #expect(bubble.closesExpanding)
+        bubble.open(focus: .none)
+        bubble.close()
+        #expect(!bubble.closesExpanding)
+    }
+
     @Test func openingWithoutFocusLeavesTheKeyboardWhereItIs() {
         let bubble = PanelBubble()
         bubble.open(focus: .none)

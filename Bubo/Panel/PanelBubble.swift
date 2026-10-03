@@ -35,6 +35,8 @@ final class PanelBubble {
     var maxHeight: CGFloat?
     /// How the bubble appears, read from Riduci movimento at each opening.
     private(set) var appearance = PanelBubbleAppearance.grow
+    /// Whether the bubble last closed into the HUD, growing, rather than back into the Orb.
+    private(set) var closesExpanding = false
     /// Whether the Domanda ended while the bubble was closed beside a visible Panel, and nobody has looked since; the
     /// status pill says so.
     private(set) var hasUnseenOutcome = false
@@ -47,7 +49,10 @@ final class PanelBubble {
 
     /// Opens the bubble, giving the keyboard to the prompt when `focus` is `.prompt`.
     func open(focus: Focus, reducesMotion: Bool = Motion.isReduced) {
-        if !isOpen { appearance = .appearance(reducesMotion: reducesMotion) }
+        if !isOpen {
+            appearance = .appearance(reducesMotion: reducesMotion)
+            closesExpanding = false
+        }
         isOpen = true
         hasUnseenOutcome = false
         if focus == .prompt { takesKeyboard = true }
@@ -57,6 +62,13 @@ final class PanelBubble {
     func show(notice: String, reducesMotion: Bool = Motion.isReduced) {
         self.notice = notice
         open(focus: .none, reducesMotion: reducesMotion)
+    }
+
+    /// Closes the bubble growing, as the Domanda goes on in the HUD.
+    func closeIntoHUD() {
+        guard isOpen else { return }
+        closesExpanding = true
+        close()
     }
 
     /// Closes the bubble; an answer on its way keeps going.
