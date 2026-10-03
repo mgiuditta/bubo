@@ -6,12 +6,15 @@ import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import type { Progress } from "./activity";
+import { CopilotUsage } from "./copilot-question";
+import type { TurnUsage } from "./usage";
 
 type ReasoningEffort = NonNullable<SessionConfig["reasoningEffort"]>;
 
 export type CopilotEvent =
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
+  | ({ type: "usage"; id: string } & TurnUsage)
   | { type: "error"; id: string; message: string }
   | (Progress & { id: string })
   | (PermissionRequest & { id: string })
@@ -100,6 +103,8 @@ export class CopilotTurns {
       workingDirectory: turn.cwd,
     });
     const finished = Promise.withResolvers<"done" | "stopped" | { error: string }>();
+    // Anche i token dei subagenti: li paga l'utente. Bubo ne fa la Spesa stimata (#542).
+    const usage = new CopilotUsage();
     this.running.set(id, {
       stop: () => {
         if (stopped.signal.aborted) return;
@@ -121,6 +126,8 @@ export class CopilotTurns {
       session.on((event: SessionEvent) => {
         if (event.type === "assistant.message_delta") {
           if (event.data.deltaContent) this.send({ type: "text", id, text: event.data.deltaContent });
+        } else if (event.type === "assistant.usage") {
+          usage.add(event.data);
         } else if (event.type === "session.idle") {
           finished.resolve("done");
         } else if (event.type === "session.error") {
@@ -130,6 +137,8 @@ export class CopilotTurns {
       this.send({ type: "state", id, state: "running" });
       await session.send({ prompt: turn.prompt });
       const end = await finished.promise;
+      const tokens = usage.turn();
+      if (tokens) this.send({ type: "usage", id, ...tokens, complete: end === "done" });
       if (end === "done") {
         this.send({ type: "state", id, state: "idle" });
         this.send({ type: "done", id });
