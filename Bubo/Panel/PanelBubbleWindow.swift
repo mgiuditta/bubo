@@ -23,8 +23,9 @@ final class PanelBubbleWindow: NSPanel {
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         window.isOpaque = false
         window.backgroundColor = .clear
-        // The Panel's elevation, the one place a shadow is allowed.
-        window.hasShadow = true
+        // No window shadow: AppKit takes it from the content as the bubble grows in, which leaves dark, square edges;
+        // the glass carries its own edge.
+        window.hasShadow = false
         window.isReleasedWhenClosed = false
         window.appearance = NSAppearance(named: .darkAqua)
         // Borderless windows have no title, so VoiceOver would announce a nameless window.
