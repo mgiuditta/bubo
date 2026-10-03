@@ -19,6 +19,78 @@
         }
       }
     },
+    "ambulanza" : {
+      "comment" : "Etichetta della Variante ambulanza (Categoria Salute): un'ambulanza di profilo con il lampeggiante.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambulance"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ambulanza"
+          }
+        }
+      }
+    },
+    "ape" : {
+      "comment" : "Etichetta della Variante ape (Categoria Chat): un'ape di profilo con le ali e le strisce.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bee"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ape"
+          }
+        }
+      }
+    },
+    "barca-a-vela" : {
+      "comment" : "Etichetta della Variante barca-a-vela (Categoria Viaggi): una barca a vela con due vele triangolari.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sailboat"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Barca a vela"
+          }
+        }
+      }
+    },
+    "batteria" : {
+      "comment" : "Etichetta della Variante batteria (Categoria Musica): una batteria con cassa, due tamburi e un piatto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drums"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Batteria"
+          }
+        }
+      }
+    },
     "boccale" : {
       "comment" : "Etichetta della Variante boccale (Categoria Chat): un boccale di birra con la schiuma e il manico.",
       "extractionState" : "manual",
@@ -235,6 +307,24 @@
         }
       }
     },
+    "cornamusa" : {
+      "comment" : "Etichetta della Variante cornamusa (Categoria Musica): una cornamusa con la sacca e tre canne.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bagpipe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cornamusa"
+          }
+        }
+      }
+    },
     "cuore" : {
       "comment" : "Etichetta della Variante cuore (Categoria Salute): un cuore che batte.",
       "extractionState" : "manual",
@@ -249,6 +339,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuore"
+          }
+        }
+      }
+    },
+    "elicottero" : {
+      "comment" : "Etichetta della Variante elicottero (Categoria Viaggi): un elicottero di profilo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Helicopter"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elicottero"
           }
         }
       }
@@ -289,6 +397,24 @@
         }
       }
     },
+    "farfalla" : {
+      "comment" : "Etichetta della Variante farfalla (Categoria Chat): una farfalla con quattro ali aperte.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Butterfly"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farfalla"
+          }
+        }
+      }
+    },
     "fulmine" : {
       "comment" : "Etichetta della Variante fulmine (Categoria Meteo): una saetta.",
       "extractionState" : "manual",
@@ -321,6 +447,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Fumetto"
+          }
+        }
+      }
+    },
+    "funivia" : {
+      "comment" : "Etichetta della Variante funivia (Categoria Viaggi): una cabina di funivia appesa a un cavo.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cable car"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Funivia"
           }
         }
       }
@@ -487,6 +631,24 @@
         }
       }
     },
+    "morsa" : {
+      "comment" : "Etichetta della Variante morsa (Categoria Agente): una morsa da banco con le ganasce e la vite.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vise"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morsa"
+          }
+        }
+      }
+    },
     "nodo" : {
       "comment" : "Etichetta della Variante nodo (Categoria Chat): un nodo di corda stretto.",
       "extractionState" : "manual",
@@ -537,6 +699,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nuvola"
+          }
+        }
+      }
+    },
+    "orsacchiotto" : {
+      "comment" : "Etichetta della Variante orsacchiotto (Categoria Chat): un orsacchiotto seduto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teddy bear"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Orsacchiotto"
           }
         }
       }
@@ -721,6 +901,78 @@
         }
       }
     },
+    "rasoio" : {
+      "comment" : "Etichetta della Variante rasoio (Categoria Salute): un rasoio di sicurezza con il manico.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Razor"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rasoio"
+          }
+        }
+      }
+    },
+    "regalo" : {
+      "comment" : "Etichetta della Variante regalo (Categoria Chat): un pacco regalo con il fiocco.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gift"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Regalo"
+          }
+        }
+      }
+    },
+    "ricetrasmittente" : {
+      "comment" : "Etichetta della Variante ricetrasmittente (Categoria Agente): una ricetrasmittente con l'antenna corta e la griglia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Walkie-talkie"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ricetrasmittente"
+          }
+        }
+      }
+    },
+    "riflettore" : {
+      "comment" : "Etichetta della Variante riflettore (Categoria Musica): un faro da palco su un supporto a forcella.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Spotlight"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riflettore"
+          }
+        }
+      }
+    },
     "robot" : {
       "comment" : "Etichetta della Variante robot (Categoria Agente): la testa di un robot.",
       "extractionState" : "manual",
@@ -735,6 +987,78 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Robot"
+          }
+        }
+      }
+    },
+    "rubinetto" : {
+      "comment" : "Etichetta della Variante rubinetto (Categoria Chat): un rubinetto con la manopola e una goccia.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rubinetto"
+          }
+        }
+      }
+    },
+    "ruota-criceto" : {
+      "comment" : "Etichetta della Variante ruota-criceto (Categoria Agente): una ruota da criceto su un supporto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hamster wheel"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ruota criceto"
+          }
+        }
+      }
+    },
+    "saponetta" : {
+      "comment" : "Etichetta della Variante saponetta (Categoria Salute): una saponetta ovale con tre bolle.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soap"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saponetta"
+          }
+        }
+      }
+    },
+    "scarpetta" : {
+      "comment" : "Etichetta della Variante scarpetta (Categoria Musica): una scarpetta da punta con i nastri.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ballet shoe"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scarpetta"
           }
         }
       }
@@ -775,6 +1099,24 @@
         }
       }
     },
+    "secchiello" : {
+      "comment" : "Etichetta della Variante secchiello (Categoria Agente): un secchiello da spiaggia con la paletta appoggiata.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bucket"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secchiello"
+          }
+        }
+      }
+    },
     "sfigmomanometro" : {
       "comment" : "Etichetta della Variante sfigmomanometro (Categoria Salute): un bracciale con il tubo e la pompetta.",
       "extractionState" : "manual",
@@ -789,6 +1131,60 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Misuratore di pressione"
+          }
+        }
+      }
+    },
+    "sintetizzatore" : {
+      "comment" : "Etichetta della Variante sintetizzatore (Categoria Musica): una tastiera corta con una fila di manopole sopra.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synthesizer"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sintetizzatore"
+          }
+        }
+      }
+    },
+    "skateboard" : {
+      "comment" : "Etichetta della Variante skateboard (Categoria Salute): uno skateboard di profilo con le ruote.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skateboard"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skateboard"
+          }
+        }
+      }
+    },
+    "surf" : {
+      "comment" : "Etichetta della Variante surf (Categoria Salute): una tavola da surf verticale con la pinna.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surf"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Surf"
           }
         }
       }
@@ -829,6 +1225,24 @@
         }
       }
     },
+    "taxi" : {
+      "comment" : "Etichetta della Variante taxi (Categoria Viaggi): un'auto di profilo con l'insegna sul tetto.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taxi"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Taxi"
+          }
+        }
+      }
+    },
     "terminale" : {
       "comment" : "Etichetta della Variante terminale (Categoria Codice): una finestra di terminale con il prompt.",
       "extractionState" : "manual",
@@ -843,6 +1257,24 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminale"
+          }
+        }
+      }
+    },
+    "trapano" : {
+      "comment" : "Etichetta della Variante trapano (Categoria Chat): un trapano con la punta.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drill"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trapano"
           }
         }
       }
