@@ -34,13 +34,14 @@ nonisolated enum PanelBubbleLayout {
     /// How far the bubble reaches into the Panel, as a share of the Panel's side: none, so the Orb and its Varianti
     /// stay in sight beside the answer.
     static let overlapRatio: CGFloat = 0
-    /// The bubble's tallest share of the visible frame in the reduced Panel; past it, the bubble scrolls.
-    static let reducedHeightRatio: CGFloat = 0.4
+    /// The bubble's tallest share of the visible frame; past it, the bubble scrolls.
+    static let heightRatio: CGFloat = 0.5
+    /// The space the bubble keeps from the visible frame's edges.
+    static let edgeMargin: CGFloat = 16
 
-    /// Returns the bubble's greatest height beside a Panel of `size` on a screen with `visibleFrame`, or `nil` when
-    /// only the content limits it.
-    static func maxHeight(for size: PanelSize, visibleFrame: CGRect) -> CGFloat? {
-        size == .reduced ? (visibleFrame.height * reducedHeightRatio).rounded(.down) : nil
+    /// Returns the bubble's greatest height on a screen with `visibleFrame`, at both Panel sizes.
+    static func maxHeight(in visibleFrame: CGRect) -> CGFloat {
+        (visibleFrame.height * heightRatio).rounded(.down)
     }
 
     /// Returns the bubble's frame for content of `size`, beside a Panel at `panelFrame` in `zone`, inside
@@ -66,8 +67,9 @@ nonisolated enum PanelBubbleLayout {
         case .right:
             origin = CGPoint(x: panelFrame.maxX - overlap, y: panelFrame.midY - size.height / 2)
         }
-        origin.x = min(max(origin.x, visibleFrame.minX), visibleFrame.maxX - size.width)
-        origin.y = min(max(origin.y, visibleFrame.minY), visibleFrame.maxY - size.height)
+        let inside = visibleFrame.insetBy(dx: edgeMargin, dy: edgeMargin)
+        origin.x = min(max(origin.x, inside.minX), inside.maxX - size.width)
+        origin.y = min(max(origin.y, inside.minY), inside.maxY - size.height)
         return CGRect(origin: origin, size: size)
     }
 }

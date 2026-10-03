@@ -409,7 +409,7 @@ final class OrbPanelController {
         zone = spot.zone
         size = spot.size
         bubble.side = spot.zone.bubbleSide
-        bubble.maxHeight = PanelBubbleLayout.maxHeight(for: spot.size, visibleFrame: spot.screen.visibleFrame)
+        bubble.maxHeight = PanelBubbleLayout.maxHeight(in: spot.screen.visibleFrame)
         if let view {
             view.size = spot.size
             let pixels = spot.size.side * spot.size.renderScale
