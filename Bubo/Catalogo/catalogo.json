@@ -2176,6 +2176,174 @@
       "categoria": "viaggi",
       "descrizione": "Quando si parla di deserti e mete calde e aride.",
       "parole": ["deserto", "desert", "caldo secco", "arid", "meta calda", "hot destination", "arido", "cactus"]
+    },
+    {
+      "nome": "occhio",
+      "forma": "occhio",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo osserva in attesa di un evento: cartelle, notifiche, cambiamenti.",
+      "parole": ["occhio", "osserva*", "watch folder", "monitora*", "tieni d'occhio", "keep an eye", "watcher"]
+    },
+    {
+      "nome": "gomitolo",
+      "forma": "gomitolo",
+      "categoria": "agente",
+      "descrizione": "Quando Bubo scompone un compito intricato in passi semplici.",
+      "parole": ["gomitolo", "districa*", "scomponi", "passo dopo passo", "step by step", "break down", "intricato"]
+    },
+    {
+      "nome": "casco-astronauta",
+      "forma": "casco_astronauta",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di esplorazione spaziale e missioni.",
+      "parole": ["astronauta", "astronaut", "spazio", "space", "missione spaziale", "nasa", "razzo", "rocket"]
+    },
+    {
+      "nome": "chicco-caffe",
+      "forma": "chicco_caffe",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di caffè.",
+      "parole": ["caffè", "caffe", "coffee", "espresso", "moka", "cappuccino", "barista"]
+    },
+    {
+      "nome": "martelletto",
+      "forma": "martelletto",
+      "categoria": "chat",
+      "descrizione": "Quando si parla di leggi e diritti.",
+      "parole": ["legge", "leggi", "law", "legal", "diritto", "tribunale", "avvocato", "sentenza"]
+    },
+    {
+      "nome": "ancora",
+      "forma": "ancora",
+      "categoria": "codice",
+      "descrizione": "Quando si fissa una versione: lock file, versioni bloccate.",
+      "parole": ["lock file", "package.resolved", "versioni bloccate", "pin version", "pinned", "bloccare la versione", "lockfile"]
+    },
+    {
+      "nome": "schermo",
+      "forma": "schermo",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo costruisce l'interfaccia: viste, layout, schermate.",
+      "parole": ["interfaccia", "swiftui", "layout", "schermata", "vista", "view", "ui", "screen design"]
+    },
+    {
+      "nome": "lavagna",
+      "forma": "lavagna",
+      "categoria": "codice",
+      "descrizione": "Quando Bubo spiega come funziona il codice: architettura, flussi.",
+      "parole": ["lavagna", "spiega il codice", "architettura", "architecture", "come funziona", "how does it work", "flusso", "diagramma"]
+    },
+    {
+      "nome": "nastro-adesivo",
+      "forma": "nastro_adesivo",
+      "categoria": "codice",
+      "descrizione": "Quando si mette una soluzione temporanea: workaround, pezza in attesa di meglio.",
+      "parole": ["workaround", "pezza", "hack", "temporaneo", "temporary fix", "quick fix", "soluzione tampone", "stopgap"]
+    },
+    {
+      "nome": "finestra",
+      "forma": "finestra",
+      "categoria": "codice",
+      "descrizione": "Quando si lavora con finestre e pannelli dell'app: dimensioni, barre, menu.",
+      "parole": ["finestra", "window", "pannello", "panel", "sidebar", "barra degli strumenti", "toolbar", "menu bar"]
+    },
+    {
+      "nome": "mirino",
+      "forma": "mirino",
+      "categoria": "codice",
+      "descrizione": "Quando si confrontano schermate dell'interfaccia: snapshot, test visivi.",
+      "parole": ["snapshot", "test visivo", "visual test", "screenshot test", "regressione visiva", "visual regression", "confronta le schermate"]
+    },
+    {
+      "nome": "bullone",
+      "forma": "bullone",
+      "categoria": "codice",
+      "descrizione": "Quando si rifinisce prima del rilascio: ultimi dettagli, controlli finali.",
+      "parole": ["bullone", "rifinisci", "polish", "ultimi dettagli", "final touches", "controlli finali", "pre-release", "prima del rilascio"]
+    },
+    {
+      "nome": "lampada",
+      "forma": "lampada",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di arredamento e design d'interni.",
+      "parole": ["arredamento", "interior design", "design d'interni", "mobili", "furniture", "decorare casa", "home decor", "illuminazione"]
+    },
+    {
+      "nome": "gruccia",
+      "forma": "gruccia",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di moda: vestiti, abbinamenti, stile.",
+      "parole": ["moda", "fashion", "outfit", "vestiti", "abbinamenti", "stile", "armadio", "wardrobe"]
+    },
+    {
+      "nome": "rossetto",
+      "forma": "rossetto",
+      "categoria": "creativo",
+      "descrizione": "Quando si parla di trucco e makeup.",
+      "parole": ["trucco", "makeup", "make-up", "rossetto", "lipstick", "cosmetici", "cosmetics", "mascara"]
+    },
+    {
+      "nome": "borsa-spesa",
+      "forma": "borsa_spesa",
+      "categoria": "finanza",
+      "descrizione": "Quando si parla di spesa quotidiana e prezzi al supermercato.",
+      "parole": ["spesa", "supermercato", "supermarket", "groceries", "prezzi", "scontrino", "carrello", "grocery list"]
+    },
+    {
+      "nome": "bancomat",
+      "forma": "bancomat",
+      "categoria": "finanza",
+      "descrizione": "Quando si prelevano contanti: sportelli, commissioni, limiti.",
+      "parole": ["bancomat", "atm", "prelievo", "prelevare", "withdraw", "contanti", "cash", "sportello"]
+    },
+    {
+      "nome": "sciarpa",
+      "forma": "sciarpa",
+      "categoria": "meteo",
+      "descrizione": "Quando si chiede come vestirsi per il tempo che fa.",
+      "parole": ["sciarpa", "scarf", "come vestirsi", "what to wear", "giacca", "jacket", "ombrello", "cappotto"]
+    },
+    {
+      "nome": "gong",
+      "forma": "gong",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di suoni per meditare: campane tibetane, suoni rilassanti.",
+      "parole": ["gong", "meditazione", "meditation", "campane tibetane", "singing bowl", "suoni rilassanti", "relaxing sounds", "mindfulness"]
+    },
+    {
+      "nome": "corno",
+      "forma": "corno",
+      "categoria": "musica",
+      "descrizione": "Quando si parla di musica classica sinfonica.",
+      "parole": ["sinfonia", "symphony", "orchestra", "musica classica", "classical music", "sinfonica", "concerto", "beethoven"]
+    },
+    {
+      "nome": "dna",
+      "forma": "dna",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di genetica ed ereditarietà.",
+      "parole": ["dna", "genetica", "genetics", "gene", "geni", "ereditarietà", "heredity", "genoma"]
+    },
+    {
+      "nome": "pallone",
+      "forma": "pallone",
+      "categoria": "salute",
+      "descrizione": "Quando si parla di calcio, giocato o da allenare.",
+      "parole": ["calcio", "football", "soccer", "partita", "serie a", "champions", "allenamento calcistico", "pallone"]
+    },
+    {
+      "nome": "ruota-panoramica",
+      "forma": "ruota_panoramica",
+      "categoria": "viaggi",
+      "descrizione": "Quando si cercano attrazioni e cose da fare in città.",
+      "parole": ["attrazioni", "attractions", "cose da fare", "things to do", "luna park", "amusement park", "cosa visitare", "sights"]
+    },
+    {
+      "nome": "autobus",
+      "forma": "autobus",
+      "categoria": "viaggi",
+      "descrizione": "Quando si usano i mezzi pubblici: autobus, linee, orari.",
+      "parole": ["autobus", "bus", "mezzi pubblici", "public transport", "linea", "fermata", "bus stop", "orari"]
     }
   ]
 }
