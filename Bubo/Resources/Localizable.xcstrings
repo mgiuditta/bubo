@@ -6605,16 +6605,6 @@
         }
       }
     },
-    "Subagent: %lld, ripuliti allo stesso modo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Subagents: %lld, cleaned the same way"
-          }
-        }
-      }
-    },
     "Token contati da Copilot. Il modello non è nel listino GitHub di Bubo, quindi la cifra manca." : {
       "comment" : "Help of the cost of an answer from GitHub Copilot on a model missing from Bubo's list of GitHub's prices.",
       "localizations" : {
@@ -8566,16 +8556,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Locally destructive"
-          }
-        }
-      }
-    },
-    "Diventa una Bozza. Quando la avvii, riprende col tuo account e i tuoi Livelli di permesso." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "It becomes a Draft. When you start it, it resumes with your account and your Permission Levels."
           }
         }
       }
@@ -15069,16 +15049,6 @@
         }
       }
     },
-    "Riporta nell'HUD" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Move Back to HUD"
-          }
-        }
-      }
-    },
     "Riportata dal fornitore" : {
       "localizations" : {
         "en" : {
@@ -19740,6 +19710,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "My request: %@"
+          }
+        }
+      }
+    },
+    "Apri come bozza su GitHub" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open as Draft on GitHub"
+          }
+        }
+      }
+    },
+    "Diventa una Bozza. Quando la avvii, riprende col tuo account e le tue Regole di permesso." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It becomes a Draft. When you start it, it resumes with your account and your Permission Rules."
+          }
+        }
+      }
+    },
+    "Sotto-agenti: %lld, ripuliti allo stesso modo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subagents: %lld, cleaned the same way"
+          }
+        }
+      }
+    },
+    "Riporta nella finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move Back to Window"
+          }
+        }
+      }
+    },
+    "Ferma il turno: poi puoi continuare la Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop the turn: you can continue the Session afterwards"
           }
         }
       }

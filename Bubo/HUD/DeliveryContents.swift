@@ -61,7 +61,7 @@ struct DeliveryContents: View {
                 .font(.headline)
                 .accessibilityAddTraits(.isHeader)
             Text("Conversazione: \(preview.cleaned.messageCount) messaggi, con strumenti e risultati")
-            Text("Subagent: \(preview.cleaned.files.subagents.count), ripuliti allo stesso modo")
+            Text("Sotto-agenti: \(preview.cleaned.files.subagents.count), ripuliti allo stesso modo")
             if let branch = preview.branch {
                 if branch.isEmpty {
                     Text("Ramo \(branch.branch): niente di nuovo rispetto alla base")

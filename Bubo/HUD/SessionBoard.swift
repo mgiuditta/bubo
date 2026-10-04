@@ -379,6 +379,10 @@ struct SessionBoard: View {
         .overlay {
             RoundedRectangle(cornerRadius: CornerRadius.medium).strokeBorder(border)
         }
+        // A click opens the Sessione to read and continue it; the buttons inside keep their own action.
+        .contentShape(.rect)
+        .onTapGesture { hud.selection = .session(session.id) }
+        .accessibilityAction(named: "Apri la Sessione") { hud.selection = .session(session.id) }
     }
 }
 

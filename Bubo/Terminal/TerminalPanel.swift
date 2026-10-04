@@ -65,7 +65,7 @@ struct TerminalPanel: View {
                 .help("Apre un'altra shell nella cartella della Sessione")
             Spacer(minLength: Spacing.xSmall)
             if isInWindow {
-                Button("Riporta nell'HUD", systemImage: "rectangle.bottomhalf.inset.filled") {
+                Button("Riporta nella finestra", systemImage: "rectangle.bottomhalf.inset.filled") {
                     store.setDetached(false)
                 }
                 .help("Riporta il terminale nell'HUD")

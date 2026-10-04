@@ -22,6 +22,8 @@ struct SessionDetail: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // The terminal and the Anteprima opened from this Sessione's card: here too, not only in the home.
+            PanelRow(terminals: store.terminals, previews: store.previews)
             composer
         }
         // A finished turn adds its conversation: read it again.
@@ -37,11 +39,19 @@ struct SessionDetail: View {
                 .lineLimit(1...6)
                 .onSubmit(send)
                 .disabled(!session.canTakeTurn)
-            Button("Invia", systemImage: "arrow.up", action: send)
-                .labelStyle(.iconOnly)
-                .buttonStyle(.borderedProminent)
-                .disabled(!session.canTakeTurn || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                .keyboardShortcut(.return, modifiers: .command)
+            // While it works the turn can be stopped, and continued afterwards.
+            if session.isLive && session.isRunning {
+                Button("Ferma", systemImage: "stop.fill") { store.interrupt(session.id) }
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderedProminent)
+                    .help("Ferma il turno: poi puoi continuare la Sessione")
+            } else {
+                Button("Invia", systemImage: "arrow.up", action: send)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderedProminent)
+                    .disabled(!session.canTakeTurn || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .keyboardShortcut(.return, modifiers: .command)
+            }
         }
         .padding(.horizontal, Spacing.m)
         .padding(.vertical, Spacing.s)

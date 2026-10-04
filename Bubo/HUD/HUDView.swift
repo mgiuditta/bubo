@@ -57,6 +57,24 @@ struct HUDView: View {
                         }
                     }
                 }
+            // The sheets below open from the Board, a Sessione's card, the menus and the Palette: on the whole window,
+            // so they show whatever the sidebar has selected.
+            Color.clear
+                .sheet(item: $hud.pullRequestSession) { session in
+                    if let sessions { PullRequestSheet(session: session, store: sessions) }
+                }
+            Color.clear
+                .sheet(item: $hud.deliverySession) { session in
+                    DeliverySheet(flow: .live(for: session, deliveries: deliveries))
+                }
+            Color.clear
+                .sheet(isPresented: $hud.isPickingIssue) {
+                    if let sessions { IssuePicker(store: sessions) }
+                }
+            Color.clear
+                .sheet(isPresented: $hud.isCreatingDraft) {
+                    if let sessions { NewDraftSheet(store: sessions) }
+                }
         }
         // A drop with no Sessione in front: recordings and trascrizioni become Riunioni, the rest a new Domanda with the
         // Allegati (regola "Sessione davanti").
@@ -146,20 +164,8 @@ struct HUDView: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
-                    // Here, not next to the other sheets: one sheet modifier per view.
-                    .sheet(item: Bindable(hud).pullRequestSession) { session in
-                        if let sessions { PullRequestSheet(session: session, store: sessions) }
-                    }
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
                 QuotaView(quota: questions.quota) { hud.showCosts?() }
-                    // Here, not next to the other sheets: one sheet modifier per view.
-                    .sheet(item: Bindable(hud).deliverySession) { session in
-                        DeliverySheet(flow: .live(for: session, deliveries: deliveries))
-                    }
-            }
-            // Here, not next to the other sheets: one sheet modifier per view.
-            .sheet(isPresented: Bindable(hud).isPickingIssue) {
-                if let sessions { IssuePicker(store: sessions) }
             }
             // The Risorse di squadra to look at, or that cannot be read, of each Progetto with Sessioni.
             if let sessions {
@@ -216,10 +222,6 @@ struct HUDView: View {
             }
         }
         .padding(.vertical, Spacing.medium)
-        // Here, not next to the new Sessione's: one sheet modifier per view.
-        .sheet(isPresented: Bindable(hud).isCreatingDraft) {
-            if let sessions { NewDraftSheet(store: sessions) }
-        }
     }
 }
 

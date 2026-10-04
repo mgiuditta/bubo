@@ -30,7 +30,7 @@ struct DeliveryReceivedSheet: View {
             header
             whereSection
             contentsSection
-            Text("Diventa una Bozza. Quando la avvii, riprende col tuo account e i tuoi Livelli di permesso.")
+            Text("Diventa una Bozza. Quando la avvii, riprende col tuo account e le tue Regole di permesso.")
                 .foregroundStyle(Palette.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
             footer

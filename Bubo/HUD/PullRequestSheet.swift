@@ -89,7 +89,7 @@ struct PullRequestSheet: View {
                 .foregroundStyle(Palette.textSecondary)
         }
         HStack {
-            Toggle("Bozza", isOn: $isDraft)
+            Toggle("Apri come bozza su GitHub", isOn: $isDraft)
                 .help("Apre la PR come bozza, che non si può ancora fondere")
             Spacer()
             Button("Anteprima", action: showPreview)

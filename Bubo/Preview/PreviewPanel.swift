@@ -111,7 +111,7 @@ private struct PreviewPageView: View {
             .toggleStyle(.button)
             .help("Mostra i messaggi della console della pagina")
             if isInWindow {
-                Button("Riporta nell'HUD", systemImage: "rectangle.bottomhalf.inset.filled") {
+                Button("Riporta nella finestra", systemImage: "rectangle.bottomhalf.inset.filled") {
                     store.setDetached(false)
                 }
                 .help("Riporta l'anteprima nell'HUD")
