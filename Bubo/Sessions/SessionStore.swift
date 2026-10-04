@@ -449,6 +449,16 @@ final class SessionStore {
         turnPrompts[id] != nil && sessions.first { $0.id == id }?.resolution == nil
     }
 
+    /// Asks `prompt` as the next turn of the open Sessione `id`, in its copy and its conversation; `false`, and
+    /// nothing asked, when the Sessione cannot take a turn now (``Session/canTakeTurn``) or `prompt` is empty.
+    @discardableResult
+    func send(_ prompt: String, to id: UUID) -> Bool {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, sessions.first(where: { $0.id == id })?.canTakeTurn == true else { return false }
+        restart(id, prompt: trimmed)
+        return true
+    }
+
     /// Asks `claude` `prompt` in the open Sessione `id`, once the turn in progress, if any, is interrupted.
     private func restart(_ id: UUID, prompt: String) {
         guard let session = sessions.first(where: { $0.id == id }), session.isLive else { return }

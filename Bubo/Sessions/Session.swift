@@ -144,6 +144,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Whether the Sessione still has its copy and can work: Aperta, or In revisione with its pull request open.
     var isLive: Bool { phase == .aperta || phase == .inRevisione }
 
+    /// Whether the Sessione can take a new turn from its composer: open, and neither working nor waiting for the user.
+    var canTakeTurn: Bool { isLive && activity != .lavora && activity != .attende }
+
     /// Whether the Modalità autonoma is possible: only in the Sessione's own worktree, never on the checkout nor
     /// outside git.
     var allowsAutonomy: Bool { !isOnCheckout && workspace?.branch != nil }
