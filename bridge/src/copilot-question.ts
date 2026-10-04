@@ -62,11 +62,13 @@ export function buboTools(conversation: string, askBubo: AskBubo): Tool<any>[] {
   return [
     defineTool(searchTool.name, {
       description: searchTool.description, parameters: search, skipPermission: true, defer: "never",
-      handler: (args) => askBubo(searchCall(search.parse(args), conversation)),
+      // Il consenso vale per le note: mai la memoria dei Progetti né le conversazioni passate.
+      handler: (args) => askBubo({ ...searchCall(search.parse(args), conversation), project: undefined, source: "secondo-cervello" }),
     }),
     defineTool(rememberTool.name, {
       description: rememberTool.description, parameters: remember, skipPermission: true, defer: "never",
-      handler: (args) => askBubo(rememberCall(remember.parse(args), conversation)),
+      // Mai `confermato` dal modello: Copilot non riscrive le note dell'utente né il Profilo, solo Bubo/.
+      handler: (args) => askBubo({ ...rememberCall(remember.parse(args), conversation), confirmed: false }),
     }),
   ];
 }

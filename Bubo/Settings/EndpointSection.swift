@@ -129,6 +129,15 @@ struct EndpointSection: View {
             LabeledContent("Può ricevere il testo delle Domande") {
                 Button("Revoca") { settings.revokeConsent(of: endpoint) }
             }
+            if EndpointBrainContext.allowsNotes(to: endpoint, consents: settings.consents) {
+                LabeledContent("Riceve anche le note del Secondo cervello") {
+                    Button("Revoca") { settings.revokeNotesConsent(of: endpoint) }
+                }
+            } else {
+                LabeledContent("Non riceve le note del Secondo cervello") {
+                    Button("Consenti") { settings.grantNotesConsent(to: endpoint) }
+                }
+            }
         } else {
             Text("La prima volta che lo scegli in «Rifai con…» Bubo ti chiede il consenso. Riceve solo il testo della Domanda, mai file o memoria dei Progetti.")
                 .font(.callout)

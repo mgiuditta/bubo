@@ -3,7 +3,7 @@ import { mkdtempSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { copilotEnvironment } from "./copilot";
-import { CopilotQuestions, questionSession, refused, type AskBubo, type CopilotQuestionEvent } from "./copilot-question";
+import { buboTools, CopilotQuestions, questionSession, refused, type AskBubo, type CopilotQuestionEvent } from "./copilot-question";
 import type { BuboToolCall } from "./tools";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
@@ -86,7 +86,7 @@ test("cerca e ricorda arrivano a Bubo con la Domanda come conversazione, e la ri
   await questions.ask({ id: "i", prompt: "note", copilot: fake, cwd: folder(), brain: "## Bubo/Regole.md" });
   expect(calls).toEqual([
     { type: "search", query: "gatto", project: undefined, source: "secondo-cervello", conversation: "i" },
-    { type: "remember", conversation: "i", mode: "nuova", title: "Gatto", note: undefined, text: "Il gatto si chiama Bubo", confirmed: undefined },
+    { type: "remember", conversation: "i", mode: "nuova", title: "Gatto", note: undefined, text: "Il gatto si chiama Bubo", confirmed: false },
   ]);
   expect(texts(events)).toBe("Bubo/Note/Gatto.md: un gatto | Salvato in [[Gatto]]");
   expect(events.at(-1)).toEqual({ type: "done", id: "i" });
@@ -128,4 +128,15 @@ test("un copilot che non parte dà un errore", async () => {
   await questions.models("g", "/nessuno/copilot");
   expect(events).toHaveLength(1);
   expect(events[0]).toMatchObject({ type: "error", id: "g" });
+});
+
+test("Copilot cerca solo nelle note e non riscrive mai le note dell'utente, qualunque cosa dica", async () => {
+  const calls: unknown[] = [];
+  const [search, remember] = buboTools("c", async (call) => { calls.push(call); return "ok"; });
+  await search.handler({ testo: "x", fonte: "conversazioni", progetto: "/p" }, {} as never);
+  await remember.handler({ testo: "y", modo: "riscrivi", nota: "Mie/nota.md", confermato: true }, {} as never);
+  expect(calls).toEqual([
+    { type: "search", query: "x", project: undefined, source: "secondo-cervello", conversation: "c" },
+    { type: "remember", conversation: "c", mode: "riscrivi", title: undefined, note: "Mie/nota.md", text: "y", confirmed: false },
+  ]);
 });

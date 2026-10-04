@@ -134,6 +134,8 @@ final class AgentBridge {
     ///     Richiesta that arrives anyway is refused at once. Its denials and mode reach `progress`.
     ///   - maxBudget: What the tightest Budget has left, in US dollars: `claude` stops past it with
     ///     `AgentBridgeError.budgetExhausted`, at most one answer over. `nil` for no cap.
+    ///   - readOnly: Makes the turn one that reads files and never changes them, a Domanda's; `nil` for the tools of
+    ///     `claude`.
     ///   - progress: Receives what the conversation is doing and its summary, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`,
     ///     and the agent's questions, answered with `answerQuestion(_:with:)`; `nil` refuses them all.
@@ -151,7 +153,7 @@ final class AgentBridge {
              sandboxAllowances: SandboxAllowances = SandboxAllowances(), permissionMode: PermissionMode? = nil,
              id: String = UUID().uuidString, offersPreview: Bool = false, remembers: Bool = false,
              rosa: [Variante] = Catalogo.bundled?.rosa() ?? [], unattended: UnattendedTurn? = nil,
-             readableDirectories: [URL] = [], maxBudget: Decimal? = nil,
+             readableDirectories: [URL] = [], maxBudget: Decimal? = nil, readOnly: ReadOnlyTurn? = nil,
              progress: @escaping (AgentProgress) -> Void = { _ in },
              permissions: ((PermissionEvent) -> Void)? = nil,
              usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -188,7 +190,7 @@ final class AgentBridge {
                                             remembers: remembers, permissionMode: permissionMode, effort: effort,
                                             rosa: rosa.map(\.nome), unattended: unattended,
                                             readableDirectories: readableDirectories, maxBudget: maxBudget,
-                                            secondBrain: basics())
+                                            secondBrain: basics(), readOnly: readOnly)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

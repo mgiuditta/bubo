@@ -132,6 +132,9 @@ final class QuestionModel {
         }
     }
 
+    /// Whether the user chose a Secondo cervello, whose notes an endpoint may receive with its consent.
+    var hasSecondBrain: Bool { secondBrain?.location != nil }
+
     /// Where the note `citation` cites opens, with Obsidian on the Mac or not; `nil` without a Secondo cervello or
     /// when the note is not in it.
     func destination(of citation: NoteCitation, hasObsidian: Bool) -> NoteDestination? {
@@ -832,14 +835,16 @@ final class QuestionModel {
         // The turns answered on the Mac stay there when the endpoint is in a cloud.
         let readable = endpoint.isOnMac ? turns : QuestionTurn.leavingTheMac(turns)
         await answer(AttachmentPolicy.prompt(QuestionTurn.transcript(readable, then: text), attachments: attachments),
-                     from: endpoint, route: .retriedElsewhere,
+                     about: text, from: endpoint, route: .retriedElsewhere,
                      submission: submission, speaksAnswer: false)
     }
 
     /// Streams `endpoint`'s answer to `text` for `submission`, the reason line saying `route`.
     ///
-    /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
-    private func answer(_ text: String, from endpoint: OpenAICompatibleEndpoint, route: Route,
+    /// - Parameters:
+    ///   - query: The Domanda alone, without its earlier turns: what the notes of the Secondo cervello are found for.
+    ///   - speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
+    private func answer(_ text: String, about query: String, from endpoint: OpenAICompatibleEndpoint, route: Route,
                         submission: IntakePipeline.Submission, speaksAnswer: Bool) async {
         var routedAnswer = RoutedAnswer(route: route, provider: endpoint.provider, endpoint: endpoint)
         routedAnswer.answeringModel = AnsweringModel(model: endpoint.model, effort: nil)
@@ -847,6 +852,8 @@ final class QuestionModel {
         let start = ContinuousClock.now
         var waitingForFirstToken = true
         let turn = UUID().uuidString, question = question
+        let text = await withSecondBrain(text, about: query, for: endpoint)
+        guard !Task.isCancelled else { return }
         let asked = speaksAnswer ? text + SpokenSummary.instruction : text
         var summary = speaksAnswer ? SpokenSummary() : nil
         var firstAudio: OSSignpostIntervalState?
@@ -889,6 +896,19 @@ final class QuestionModel {
         }
     }
 
+    /// `text` after what `endpoint` may receive of the Secondo cervello for `query` (#678): the Profilo, the Regole and
+    /// the notes found for it; `text` alone without a Secondo cervello, or for a cloud without the consent for its notes.
+    func withSecondBrain(_ text: String, about query: String, for endpoint: OpenAICompatibleEndpoint) async -> String {
+        guard let root = secondBrain?.location?.url,
+              EndpointBrainContext.allowsNotes(to: endpoint, consents: endpoints.consents) else { return text }
+        let found = await searchResult(for: query, project: nil, source: .secondBrain)
+        return await Self.prompt(text, in: root, found: found)
+    }
+
+    @concurrent private static func prompt(_ text: String, in root: URL, found: String) async -> String {
+        EndpointBrainContext.prompt(text, in: root, found: found)
+    }
+
     /// Streams the answer to `richiesta`, which the model reads after the Domanda's earlier `turns`.
     private func stream(_ richiesta: Richiesta, after turns: [QuestionTurn], route chosen: Route?, speaksAnswer: Bool,
                         ignoringBudget: Bool) async {
@@ -925,7 +945,7 @@ final class QuestionModel {
                 failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
                 return
             }
-            await answer(text(onMac: endpoint.isOnMac), from: endpoint, route: route, submission: submission,
+            await answer(text(onMac: endpoint.isOnMac), about: richiesta.text, from: endpoint, route: route, submission: submission,
                          speaksAnswer: speaksAnswer)
             return
         }
@@ -1008,10 +1028,11 @@ final class QuestionModel {
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
             // Claude is in a cloud, also when it answers for Apple FM.
             let prompt = Self.prompt(asked(onMac: false), attachments: richiesta.attachments)
-            let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
+            let workplace = try Self.workplace(in: secondBrain?.location)
+            let stream = bridge.ask(prompt, in: workplace.directory, model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     readableDirectories: Self.readableDirectories(for: richiesta.attachments),
-                                    maxBudget: maxBudget,
+                                    maxBudget: maxBudget, readOnly: workplace.readOnly,
                                     progress: { [orb, weak self] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                         if case let .memory(.saved(change)) = progress { self?.savedChange = change }
@@ -1279,7 +1300,15 @@ final class QuestionModel {
         self.savedChange?.isUndone = true
     }
 
-    /// Where Domande run: they have no Progetto, so an empty folder of Bubo's own.
+    /// Where a Claude Domanda runs, and what it reads: the Secondo cervello at `location` when it can be reached,
+    /// but not its excluded folders; otherwise ``directory()``. Either way the Domanda only reads files.
+    static func workplace(in location: SecondBrainLocation?) throws -> (directory: URL, readOnly: ReadOnlyTurn) {
+        guard let location, location.isReachable else { return (try directory(), ReadOnlyTurn()) }
+        let hidden = location.excludedFolders.map { location.url.appending(path: $0, directoryHint: .isDirectory) }
+        return (location.url, ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: hidden))
+    }
+
+    /// Where Domande run without a Secondo cervello: they have no Progetto, so an empty folder of Bubo's own.
     static func directory() throws -> URL {
         let directory = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)

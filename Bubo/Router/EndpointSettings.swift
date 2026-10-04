@@ -86,6 +86,7 @@ final class EndpointSettings {
         guard endpoint.kind == .custom else { return }
         endpoints.removeAll { $0.id == endpoint.id }
         consents.remove(endpoint.id)
+        consents.remove(EndpointBrainContext.notesConsentID(of: endpoint))
         persist()
     }
 
@@ -94,8 +95,10 @@ final class EndpointSettings {
         grantConsent(toProvider: endpoint.id)
     }
 
-    /// Takes back the consent of `endpoint`: it receives nothing more until the user allows it again.
+    /// Takes back the consent of `endpoint`, and the one for the notes: it receives nothing more until the user allows
+    /// it again.
     func revokeConsent(of endpoint: OpenAICompatibleEndpoint) {
+        consents.remove(EndpointBrainContext.notesConsentID(of: endpoint))
         revokeConsent(ofProvider: endpoint.id)
     }
 

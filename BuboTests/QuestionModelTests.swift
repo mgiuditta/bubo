@@ -295,3 +295,32 @@ struct QuestionModelTests {
         #expect(model.routedAnswer?.route.reason == .unclassified)
     }
 }
+
+/// #678: a Claude Domanda runs in the Secondo cervello when there is one, reading it but not its excluded folders.
+struct QuestionWorkplaceTests {
+    @Test func aReachableSecondBrainIsTheWorkplace() throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "Cervello-\(UUID().uuidString)",
+                                                                      directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var location = SecondBrainLocation(folder: folder)
+        location.excludedFolders = ["Privato"]
+
+        let workplace = try QuestionModel.workplace(in: location)
+
+        #expect(workplace.directory == location.url)
+        let hidden = location.url.appending(path: "Privato", directoryHint: .isDirectory)
+        #expect(workplace.readOnly == ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [hidden]))
+    }
+
+    @Test(arguments: [false, true])
+    func withoutAReachableSecondBrainTheDomandeFolderIsTheWorkplace(isConfigured: Bool) throws {
+        let missing = FileManager.default.temporaryDirectory.appending(path: "Sparito-\(UUID().uuidString)")
+        let location = isConfigured ? SecondBrainLocation(folder: missing) : nil
+
+        let workplace = try QuestionModel.workplace(in: location)
+
+        #expect(workplace.directory == (try QuestionModel.directory()))
+        #expect(workplace.readOnly == ReadOnlyTurn())
+    }
+}
