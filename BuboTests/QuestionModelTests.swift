@@ -81,12 +81,13 @@ struct QuestionModelTests {
         await model.useAPIKey()
         await model.answering?.value
         model.prompt = "Fallo"
+        let origin = model.currentQuestionID
 
         let draft = model.turnIntoSession()
 
         #expect(draft.prompt == "Fallo")
         #expect(draft.turns == [QuestionTurn(prompt: "Ciao", answer: "a consumo")])
-        #expect(draft.originQuestion == model.currentQuestionID)
+        #expect(draft.originQuestion == origin)
         #expect(draft.firstPrompt("Fallo").contains("Ciao"))
         #expect(draft.firstPrompt("Fallo").contains("a consumo"))
         #expect(draft.firstPrompt("Fallo").hasSuffix("Fallo"))
@@ -95,13 +96,31 @@ struct QuestionModelTests {
     @Test func aDomandaWithNoAnswerBecomesASessioneWithItsPrompt() async {
         let model = Self.model(Keychain(key: nil))
         await Self.ask(model)
+        let origin = model.currentQuestionID
 
         let draft = model.turnIntoSession()
 
         #expect(draft.prompt == "Ciao")
         #expect(draft.turns.isEmpty)
-        #expect(draft.originQuestion == model.currentQuestionID)
+        #expect(draft.originQuestion == origin)
         #expect(draft.firstPrompt("Ciao") == "Ciao")
+    }
+
+    /// Back home after «Trasforma in Sessione»: the Domanda went to the Sessione, the home asks a new one.
+    @Test func aDomandaTurnedIntoASessioneLeavesTheHomeEmpty() async {
+        let model = Self.model(Keychain(key: "sk-ant-test"))
+        await Self.ask(model)
+        await model.useAPIKey()
+        await model.answering?.value
+        model.prompt = "Fallo"
+        let origin = model.currentQuestionID
+
+        _ = model.turnIntoSession()
+
+        #expect(model.prompt.isEmpty)
+        #expect(model.turns.isEmpty)
+        #expect(model.answer.isEmpty)
+        #expect(model.currentQuestionID != origin)
     }
 
     @Test func consentWithoutASavedKeyStaysOnTheSubscription() async {

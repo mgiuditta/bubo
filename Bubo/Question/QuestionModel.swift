@@ -748,15 +748,18 @@ final class QuestionModel {
     }
 
     /// Stops the Domanda and hands it to a new Sessione: what is typed, and every answered turn with what arrived of
-    /// the last answer; with no last answer, what is typed or else the last prompt.
+    /// the last answer; with no last answer, what is typed or else the last prompt. The home is left empty, for a new
+    /// Domanda.
     func turnIntoSession() -> SessionDraft {
         stop()
-        // The Domanda stays among the Conversazioni, linked to the Sessione born from it.
-        archiveCurrentQuestion()
         let typed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         var draft = answer.isEmpty ? SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed, turns: turns)
             : SessionDraft(prompt: typed, turns: turns + [QuestionTurn(prompt: lastPrompt, answer: answer)])
         draft.originQuestion = currentQuestionID
+        // The Domanda stays among the Conversazioni, linked to the Sessione born from it; back home, the Cervello asks
+        // a new one, not the old one again.
+        prompt = ""
+        startNewQuestion()
         return draft
     }
 

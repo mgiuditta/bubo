@@ -7,11 +7,23 @@ struct SessionDetail: View {
     let store: SessionStore
     @State private var text = ""
     @State private var reader: ConversationReader?
+    @Environment(HUDPresenter.self) private var hud
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            // Where the Sessione is, and the way back to its Progetto: the sidebar only marks the Sessione.
+            Button(session.project.lastPathComponent, systemImage: "chevron.backward") {
+                hud.selection = .project(session.project)
+            }
+            .buttonStyle(.plain)
+            .font(.buboBody)
+            .foregroundStyle(Palette.textSecondary)
+            .help("Torna alle Sessioni del Progetto")
+            .accessibilityLabel("Torna a \(session.project.lastPathComponent)")
+            .padding([.horizontal, .top], Spacing.l)
             SessionRow(session: session, store: store)
-                .padding([.horizontal, .top], Spacing.l)
+                .padding(.horizontal, Spacing.l)
+                .padding(.top, Spacing.s)
             Divider().overlay(Palette.line).padding(.top, Spacing.m)
             Group {
                 if let reader {
