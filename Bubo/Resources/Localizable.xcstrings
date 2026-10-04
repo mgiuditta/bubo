@@ -19943,6 +19943,16 @@
           }
         }
       }
+    },
+    "Accetta tutti i blocchi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accept All Blocks"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

@@ -190,6 +190,11 @@ struct ReviewSheet: View {
                 }
                 if session?.workspace?.branch != nil {
                     Menu("Altre azioni", systemImage: "ellipsis.circle") {
+                        // Work already looked at: one action instead of one per file before Fondi.
+                        Button("Accetta tutti i blocchi") {
+                            store.decide(.accepted, on: review.hunkIDs.filter { decisions[$0] == nil }, in: sessionID)
+                        }
+                        .disabled(review.decidedCount(in: decisions) == review.hunkIDs.count)
                         Button("Fondi gli accettati e scarta il resto…") { isConfirmingPartialMerge = true }
                             .disabled(!canMergeAccepted)
                     }
