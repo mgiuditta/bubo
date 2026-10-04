@@ -19,6 +19,8 @@ struct ModelsSettingsView: View {
                     .foregroundStyle(.secondary)
             }
             CopilotSettingsSection()
+            // Next to Copilot's account: the two read together.
+            CopilotConsentSection(settings: settings)
             TypePreferencesSection(preferences: preferences, settings: settings)
             Section {
                 Picker("Modello locale", selection: localModelBinding) {
@@ -34,7 +36,7 @@ struct ModelsSettingsView: View {
                 Stepper(value: $stepDown, in: 0.5...0.95, step: 0.05) {
                     Text("Modello più leggero oltre: \(Self.percent(stepDown))")
                 }
-                Stepper(value: $onMac, in: 0.5...1, step: 0.01) {
+                Stepper(value: $onMac, in: 0.5...1, step: 0.05) {
                     Text("Domande sul Mac oltre: \(Self.percent(onMac))")
                 }
             } header: {
@@ -42,7 +44,6 @@ struct ModelsSettingsView: View {
             } footer: {
                 Text("Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale.")
             }
-            CopilotConsentSection(settings: settings)
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
             }

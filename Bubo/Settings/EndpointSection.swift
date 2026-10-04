@@ -15,7 +15,8 @@ struct EndpointSection: View {
 
     var body: some View {
         Section {
-            TextField("Modello", text: $model)
+            // The id is the provider's: the prompt says so, since an empty model leaves the endpoint out.
+            TextField("Modello", text: $model, prompt: Text("id del modello, come lo scrive il fornitore"))
                 .onSubmit(saveFields)
             if ![.openAI, .gemini, .openRouter].contains(endpoint.kind) {
                 TextField("Indirizzo", text: $address)

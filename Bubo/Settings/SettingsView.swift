@@ -25,34 +25,35 @@ struct SettingsView: View {
             Tab("Budget", systemImage: "gauge.with.dots.needle.67percent", value: SettingsTab.budget) {
                 BudgetSettingsView()
             }
-            Tab("Macchine", systemImage: "server.rack", value: SettingsTab.machines) {
-                ReleaseGated(.machines) {
-                    MachinesSettingsView()
-                }
-            }
             Tab("Voce", systemImage: "waveform", value: SettingsTab.voice) {
                 VoiceSettingsView()
             }
-            Tab("iPhone", systemImage: "iphone", value: SettingsTab.iPhone) {
-                ReleaseGated(.remote) {
-                    RemoteSettingsView()
-                }
+            Tab("Scorciatoie", systemImage: "keyboard", value: SettingsTab.shortcuts) {
+                ShortcutSettingsView()
+            }
+            Tab("Aggiornamenti", systemImage: "arrow.triangle.2.circlepath", value: SettingsTab.updates) {
+                UpdatesSettingsView()
             }
             // A Group: the builder takes at most 10 tabs.
             Group {
+                Tab("Diagnostica", systemImage: "stethoscope", value: SettingsTab.diagnostics) {
+                    DiagnosticsView()
+                }
+                // Last, after the tabs in use: the areas that «Arriverà presto» in a Release build (PRD #514).
+                Tab("Macchine", systemImage: "server.rack", value: SettingsTab.machines) {
+                    ReleaseGated(.machines) {
+                        MachinesSettingsView()
+                    }
+                }
+                Tab("iPhone", systemImage: "iphone", value: SettingsTab.iPhone) {
+                    ReleaseGated(.remote) {
+                        RemoteSettingsView()
+                    }
+                }
                 Tab("Consegne", systemImage: "shippingbox", value: SettingsTab.deliveries) {
                     ReleaseGated(.deliveries) {
                         DeliveriesSettingsView()
                     }
-                }
-                Tab("Scorciatoie", systemImage: "keyboard", value: SettingsTab.shortcuts) {
-                    ShortcutSettingsView()
-                }
-                Tab("Aggiornamenti", systemImage: "arrow.triangle.2.circlepath", value: SettingsTab.updates) {
-                    UpdatesSettingsView()
-                }
-                Tab("Diagnostica", systemImage: "stethoscope", value: SettingsTab.diagnostics) {
-                    DiagnosticsView()
                 }
             }
         }

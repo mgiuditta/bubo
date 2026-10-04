@@ -63,7 +63,7 @@ struct AccountSettingsView: View {
             Label(signedInText(email: email, plan: plan), systemImage: "checkmark.circle")
             Button("Esci…") { isConfirmingSignOut = true }
         case .signedOut:
-            Label("Non sei collegato.", systemImage: "person.crop.circle.badge.questionmark")
+            Label("Non hai fatto l'accesso a Claude Code.", systemImage: "person.crop.circle.badge.questionmark")
             Button("Accedi con Claude") { signInAttempt = UUID() }
                 .buttonStyle(.borderedProminent)
         case .expired:
@@ -74,10 +74,13 @@ struct AccountSettingsView: View {
             Label("Manca la CLI claude.", systemImage: "terminal")
             Text("Installala dal Terminale con `curl -fsSL https://claude.ai/install.sh | bash`, poi torna qui.")
                 .textSelection(.enabled)
+            // As in the first launch: the command typed in the Terminal, the user runs it.
+            Button("Installa nel Terminale") { try? SystemTerminal().open(typing: RemedyCommand.install) }
+                .buttonStyle(.borderedProminent)
             retryButton
         case .offline:
             Label("Sei offline.", systemImage: "wifi.slash")
-            Text("Bubo non passa da solo alla API key: riprova quando torna la rete.")
+            Text("Controlla la connessione, poi premi Riprova.")
             retryButton
         case .unknownError(let exitCode):
             Label("claude ha risposto in modo inatteso (codice \(exitCode)).", systemImage: "questionmark.circle")
@@ -118,7 +121,7 @@ struct AccountSettingsView: View {
         } header: {
             Text("API key")
         } footer: {
-            Text("Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo.")
+            Text("Facoltativa. Quando finisce la Quota dell'abbonamento, Bubo ti chiede se continuare con la chiave, a consumo.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
         }

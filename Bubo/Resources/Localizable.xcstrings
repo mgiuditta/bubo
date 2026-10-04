@@ -5607,16 +5607,6 @@
         }
       }
     },
-    "Orb piccolo in un angolo, con la chat nella bolla. Vale solo per lo schermo in cui si trova ora il Panel." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "A small Orb in a corner, with the chat in the bubble. Applies only to the screen the Panel is on now."
-          }
-        }
-      }
-    },
     "Panel ridotto" : {
       "localizations" : {
         "en" : {
@@ -8786,16 +8776,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Asks Bubo a question, with optional text files. Bubo answers without opening the HUD."
-          }
-        }
-      }
-    },
-    "Facoltativa, per quando l'abbonamento non basta. Bubo non la usa mai da solo." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optional, for when your subscription isn't enough. Bubo never uses it on its own."
           }
         }
       }
@@ -13084,16 +13064,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Don't Save"
-          }
-        }
-      }
-    },
-    "Non sei collegato." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "You're not signed in."
           }
         }
       }
@@ -19860,6 +19830,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Markdown notes you add to the folder show up here on their own."
+          }
+        }
+      }
+    },
+    "Non hai fatto l'accesso a Claude Code." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're not signed in to Claude Code."
+          }
+        }
+      }
+    },
+    "Controlla la connessione, poi premi Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check your connection, then press Try Again."
+          }
+        }
+      }
+    },
+    "Facoltativa. Quando finisce la Quota dell'abbonamento, Bubo ti chiede se continuare con la chiave, a consumo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional. When your subscription's Quota runs out, Bubo asks whether to continue with the key, paying per use."
+          }
+        }
+      }
+    },
+    "Orb piccolo in un angolo, con la conversazione nella Bolla. Vale solo per lo schermo in cui si trova ora il Panel." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A small Orb in a corner, with the conversation in the Bubble. Applies only to the screen the Panel is on now."
+          }
+        }
+      }
+    },
+    "id del modello, come lo scrive il fornitore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "model id, as the provider writes it"
           }
         }
       }

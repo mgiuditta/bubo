@@ -61,7 +61,8 @@ struct BudgetSettingsView: View {
 
     /// Claude, Copilot, the endpoints in a cloud and any provider with a Budget whose endpoint was removed.
     private var providers: [String] {
-        let names = [Budgets.claude, Budgets.copilot] + endpoints.endpoints.filter { !$0.isOnMac }.map(\.name)
+        // Only the endpoints with a model: the others never answer, so their Budget could never trip.
+        let names = [Budgets.claude, Budgets.copilot] + endpoints.ready.filter { !$0.isOnMac }.map(\.name)
         let removed = settings.budgets.providers.keys.filter { !names.contains($0) }.sorted()
         return names + removed
     }

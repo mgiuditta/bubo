@@ -20,7 +20,7 @@ struct GeneralSettingsView: View {
             Toggle("Panel ridotto", isOn: $panel.isReduced)
                 .tint(Palette.switchTrack)
                 .disabled(!panel.isShown)
-            Text("Orb piccolo in un angolo, con la chat nella bolla. Vale solo per lo schermo in cui si trova ora il Panel.")
+            Text("Orb piccolo in un angolo, con la conversazione nella Bolla. Vale solo per lo schermo in cui si trova ora il Panel.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
             ConversationSettingsSection()

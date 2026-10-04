@@ -83,7 +83,7 @@ struct ProjectRulesSection: View {
                             draft = entry.rule
                             editing = entry.rule
                         }
-                        Button("Revoca") { perform { try store.remove(entry.rule) } }
+                        Button("Togli") { perform { try store.remove(entry.rule) } }
                         Button("Condividi con la squadra…") {
                             sharing = entry.rule
                             isConfirmingShare = true
