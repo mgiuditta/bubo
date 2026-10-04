@@ -182,6 +182,8 @@ struct HUDView: View {
                 }
                 QuestionView(model: questions)
                     .frame(maxWidth: 560)
+                    // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
+                    .padding(.top, Spacing.medium)
             }
             Spacer(minLength: Spacing.large)
             if let sessions {
