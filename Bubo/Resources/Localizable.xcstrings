@@ -19763,6 +19763,16 @@
           }
         }
       }
+    },
+    "Sto pensando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thinking…"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

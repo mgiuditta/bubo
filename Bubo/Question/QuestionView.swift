@@ -31,12 +31,14 @@ struct QuestionView: View {
             }
             SessionProposalButton(model: model, hud: hud)
             HStack(spacing: Spacing.xSmall) {
-                TextField(voice?.isListening == true ? "Ti ascolto…" : "Chiedi qualcosa a Claude", text: $model.prompt)
+                // Who the text goes to, as in a Sessione's composer (ADR 0013).
+                RecipientChip(recipient: .brain)
+                TextField(voice?.isListening == true ? "Ti ascolto…" : "Chiedi al tuo cervello", text: $model.prompt)
                     .textFieldStyle(.plain)
                     .font(Typography.body(size: 15))
                     .onSubmit(model.ask)
                     // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
-                    .accessibilityLabel("Chiedi qualcosa a Claude")
+                    .accessibilityLabel("Chiedi al tuo cervello")
                     .accessibilityIdentifier("question.prompt")
                     // Before the chip's keys, so ↑↓, Tab, Invio and Esc go to the menu while it shows.
                     .slashCompletion(text: $model.prompt, folder: secondBrain?.location?.url)
@@ -200,7 +202,7 @@ struct QuestionView: View {
             } else if let failure = model.failure {
                 QuestionNotice(failure: failure, model: model) { isPickingRetry = true }
             } else if model.isAnswering && model.answer.isEmpty {
-                LoadingLabel("Chiedo a Claude…")
+                LoadingLabel("Sto pensando…")
             } else if !model.answer.isEmpty {
                 QuestionAnswer(model: model) { isPickingRetry = true }
             }

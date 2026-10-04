@@ -725,10 +725,12 @@ final class QuestionModel {
     }
 
     /// The Sessione the Allegati propose: those in the prompt, or else those of the last Domanda (spec 09); with no
-    /// Allegati, the one Progetto the last prompt names (ADR 0013).
+    /// Allegati, the one Progetto the prompt being typed names, or else the last prompt (ADR 0013): «entra in bubo e…»
+    /// offers the Sessione before it is sent as a Domanda.
     var sessionProposal: SessionProposal? {
         let projects = knownProjects()
         return SessionProposal(for: attachments.isEmpty ? lastAttachments : attachments, projects: projects)
+            ?? SessionProposal.forText(prompt, among: projects)
             ?? SessionProposal.forText(lastPrompt, among: projects)
     }
 
@@ -852,7 +854,11 @@ final class QuestionModel {
                 await stream(Richiesta(text: text, attachments: attachments), after: turns, route: route,
                              speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
             }
-            if !Task.isCancelled { lastActivity = now() }
+            // In the Conversazioni as soon as it is answered, not only when it ends: saving again replaces it.
+            if !Task.isCancelled {
+                lastActivity = now()
+                archiveCurrentQuestion()
+            }
         }
     }
 

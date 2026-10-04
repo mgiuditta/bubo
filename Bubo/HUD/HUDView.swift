@@ -29,6 +29,10 @@ struct HUDView: View {
         .frame(minWidth: 900, minHeight: 560)
         // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
         .onChange(of: hud.selection) { previous, selection in
+            // Back home from an older Domanda: the home asks a new one, it does not continue the hidden one.
+            if selection == .brain, case let .conversation(id) = previous, id.hasPrefix("q-"), !questions.isAnswering {
+                questions.startNewQuestion()
+            }
             switch selection {
             case .neurons: hud.showNeurons?()
             case .meetings: hud.showMeetings?()
