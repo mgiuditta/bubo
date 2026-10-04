@@ -86,4 +86,20 @@ struct OrbAnimationTests {
         animation.advance(by: 3)
         #expect(animation.time == Float(OrbAnimation.longestStep))
     }
+
+    /// A Float clock that only grows loses its steps within hours of frames: the Orb stutters, then stops.
+    @Test func clockKeepsEvenStepsAcrossItsTurn() {
+        var animation = OrbAnimation()
+        let step = OrbAnimation.longestStep
+        let steps = Int(OrbAnimation.clockSpan * 1.5 / step)
+        var previous = animation.time
+        for _ in 0..<steps {
+            animation.advance(by: step)
+            let moved = abs(animation.time - previous)
+            #expect(moved > Float(step) * 0.98 || abs(Double(animation.time) - OrbAnimation.clockSpan) < step)
+            #expect(moved <= Float(step) * 1.02)
+            previous = animation.time
+        }
+        #expect(abs(Double(animation.time) - OrbAnimation.clockSpan * 0.5) < 0.01)
+    }
 }

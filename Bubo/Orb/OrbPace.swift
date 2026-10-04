@@ -1,8 +1,8 @@
 /// How often the Orb draws (spec 25, #519): what weighs on the battery is the frame rate, not the Orb's size.
 nonisolated enum OrbPace: Equatable {
-    /// 60 fps: the Orb listens, thinks, speaks, works or morphs.
+    /// 60 fps: every Stato, Riposo included, and every Morph. At 30 the Blob's motion visibly stutters.
     case full
-    /// 30 fps: Riposo, or any Stato with Risparmio energia on.
+    /// 30 fps: any Stato with Risparmio energia on.
     case half
     /// No frames: Riposo with Riduci movimento and nothing left to move; the Orb draws again when the Stato, the Tinta
     /// or the Variante changes.
@@ -32,10 +32,8 @@ nonisolated enum OrbPace: Equatable {
             self = .still
         } else if isLowPowerModeEnabled {
             self = .half
-        } else if isMorphing {
-            self = .full
         } else {
-            self = state == .idle ? .half : .full
+            self = .full
         }
     }
 }

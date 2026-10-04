@@ -87,9 +87,10 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         animation.targetTinta = Tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
         animation.voiceLevel = controls.voiceLevel
-        animation.advance(by: now - lastFrameTime)
+        let elapsed = refreshes(in: now - lastFrameTime, of: view)
+        animation.advance(by: elapsed)
         uniforms.apply(animation)
-        followPointer(over: now - lastFrameTime, reducesMotion: reducesMotion)
+        followPointer(over: elapsed, reducesMotion: reducesMotion)
         lastFrameTime = now
         uniforms.resolution = SIMD2(Float(view.drawableSize.width), Float(view.drawableSize.height))
 
@@ -142,6 +143,17 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         }
         commands.present(drawable)
         commands.commit()
+    }
+
+    /// `elapsed` rounded to whole frames of the view's loop.
+    ///
+    /// The main thread calls `draw(in:)` a few milliseconds early or late, but each frame reaches the screen on a
+    /// refresh: advancing by the callback's clock would move the Orb unevenly between evenly spaced frames.
+    private func refreshes(in elapsed: CFTimeInterval, of view: MTKView) -> CFTimeInterval {
+        let framesPerSecond = min(view.preferredFramesPerSecond, view.window?.screen?.maximumFramesPerSecond ?? 60)
+        guard framesPerSecond > 0 else { return elapsed }
+        let frame = 1 / CFTimeInterval(framesPerSecond)
+        return max(1, (elapsed / frame).rounded()) * frame
     }
 
     /// Eases the Orb's lean toward the pointer, or back to rest once it leaves; with Reduce Motion the Orb never leans.

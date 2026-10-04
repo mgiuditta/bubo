@@ -29,7 +29,6 @@ struct FixCard: View {
             Text(message)
                 .font(Typography.body(size: 13))
                 .foregroundStyle(Palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
             if flow.readiness == .missing {
                 command(RemedyCommand.install)
             } else if isOutdated, let updateCommand {

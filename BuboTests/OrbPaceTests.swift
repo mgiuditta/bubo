@@ -17,13 +17,8 @@ struct OrbPaceTests {
         #expect(OrbPace.still.framesPerSecond == 0)
     }
 
-    @Test func riposoIsAtThirtyFramesPerSecond() {
-        #expect(Self.pace(.idle) == .half)
-        #expect(Self.pace(.idle, isSettled: true) == .half)
-    }
-
-    @Test(arguments: acting)
-    func everyOtherStatoIsAtSixty(state: OrbState) {
+    @Test(arguments: OrbState.allCases)
+    func everyStatoIsAtSixty(state: OrbState) {
         #expect(Self.pace(state) == .full)
         #expect(Self.pace(state, reducesMotion: true) == .full)
     }
@@ -46,7 +41,7 @@ struct OrbPaceTests {
     }
 
     @Test func reduceMotionKeepsDrawingUntilTheOrbSettles() {
-        #expect(Self.pace(.idle, reducesMotion: true) == .half)
+        #expect(Self.pace(.idle, reducesMotion: true) == .full)
     }
 
     @Test(arguments: acting)

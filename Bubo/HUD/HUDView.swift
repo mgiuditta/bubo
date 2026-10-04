@@ -22,6 +22,9 @@ struct HUDView: View {
         } detail: {
             detail(for: hud.selection)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Behind the right column only: under the whole split view it shows around the sidebar's glass as a
+                // second edge.
+                .background { HUDBackground() }
         }
         .frame(minWidth: 900, minHeight: 560)
         // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
@@ -34,7 +37,7 @@ struct HUDView: View {
             hud.selection = previous
         }
         .background {
-            HUDBackground()
+            Color.clear
                 // Here, not next to the other sheets: one sheet modifier per view.
                 // Not while the foglio di Consegna is up: that one shows a Biglietto added from it.
                 .sheet(item: hud.deliverySession == nil ? Bindable(deliveries).pendingImport : .constant(nil)) { pending in
@@ -165,9 +168,10 @@ struct HUDView: View {
                 }
             }
             Spacer(minLength: Spacing.large)
+            // Smaller during the first launch: the steps, the Progetti and the input bar must fit under it.
             HUDOrb()
-                .frame(maxWidth: 360, maxHeight: 360)
-                .padding(Spacing.l)
+                .frame(maxWidth: showsOnboarding ? 200 : 360, maxHeight: showsOnboarding ? 200 : 360)
+                .padding(showsOnboarding ? Spacing.small : Spacing.l)
                 .overlay(alignment: .bottom) {
                     if OrbControls.shared.isShowingDedica {
                         Text(Dedica.message)
@@ -179,6 +183,8 @@ struct HUDView: View {
                 }
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
+                    // Laid out before the Orb: on a short window the Orb shrinks, the input bar stays in sight.
+                    .layoutPriority(1)
             } else {
                 // The empty home invites to ask the Secondo cervello (ADR 0013).
                 if questions.turns.isEmpty && questions.answer.isEmpty {
