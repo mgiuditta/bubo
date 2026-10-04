@@ -5437,16 +5437,6 @@
         }
       }
     },
-    "Neuroni · %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neurons · %@"
-          }
-        }
-      }
-    },
     "Niente ramo: il Progetto non è un repo" : {
       "localizations" : {
         "en" : {

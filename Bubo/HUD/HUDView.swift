@@ -13,6 +13,10 @@ struct HUDView: View {
     let onboarding: OnboardingFlow
     /// What starts once the HUD is interactive.
     let launch: LaunchSequence
+    /// The Riunioni, recorded from the right column.
+    let meetings: MeetingRecorder
+    /// The Neuroni of the current Secondo cervello; `nil` without one.
+    let neurons: () -> NeuronModel?
 
     var body: some View {
         @Bindable var hud = hud
@@ -27,18 +31,11 @@ struct HUDView: View {
                 .background { HUDBackground() }
         }
         .frame(minWidth: 900, minHeight: 560)
-        // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
         .onChange(of: hud.selection) { previous, selection in
             // Back home from an older Domanda: the home asks a new one, it does not continue the hidden one.
             if selection == .brain, case let .conversation(id) = previous, id.hasPrefix("q-"), !questions.isAnswering {
                 questions.startNewQuestion()
             }
-            switch selection {
-            case .neurons: hud.showNeurons?()
-            case .meetings: hud.showMeetings?()
-            default: return
-            }
-            hud.selection = previous
         }
         .background {
             Color.clear
@@ -148,8 +145,19 @@ struct HUDView: View {
     @ViewBuilder
     private func detail(for selection: SidebarSelection) -> some View {
         switch selection {
-        case .brain, .neurons, .meetings:
+        case .brain:
             main.padding(.horizontal, Spacing.l)
+        case .neurons:
+            if let model = neurons() {
+                NeuronView(model: model, questions: questions)
+                    // A new Secondo cervello is a new map, not the old one's state.
+                    .id(ObjectIdentifier(model))
+            } else {
+                ContentUnavailableView("Nessun Secondo cervello", systemImage: "point.3.connected.trianglepath.dotted",
+                                       description: Text("Scegli la cartella delle tue note nelle Impostazioni, poi apri i Neuroni."))
+            }
+        case .meetings:
+            MeetingView(recorder: meetings)
         case .conversation(let id):
             ConversationDetail(id: id, questions: questions, sessions: sessions)
         case .project(let project):
@@ -232,7 +240,8 @@ struct HUDView: View {
 #Preview {
     HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in UUID() },
             launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
-                                   subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
+                                   subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}),
+            meetings: MeetingRecorder(secondBrain: SecondBrain(index: nil), engines: [], store: nil), neurons: { nil })
         .environment(HUDPresenter())
         .environment(DeliveriesController.live())
 }

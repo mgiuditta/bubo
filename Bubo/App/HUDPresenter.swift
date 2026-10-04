@@ -45,10 +45,6 @@ final class HUDPresenter {
 
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
-    /// Opens the Neuroni window; set by the app.
-    @ObservationIgnored var showNeurons: (() -> Void)?
-    /// Opens the Riunioni window; set by the app.
-    @ObservationIgnored var showMeetings: (() -> Void)?
 
     /// What the sidebar of the window has chosen, shown on the right; the Cervello when the window opens.
     var selection = SidebarSelection.brain
