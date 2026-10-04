@@ -29,6 +29,8 @@ struct AutomationSheet: View {
     /// The day of Un giorno della settimana, as `Calendar` counts them (1 is Sunday).
     @State private var weekday: Int
     @State private var isChoosingFolder = false
+    /// Modello, Agente and Modalità autonoma: closed while they keep their defaults.
+    @State private var isShowingAdvanced = false
     /// Whether the chosen Progetto is in a git repo; read again when it changes.
     @State private var isGit = true
     /// Whether `claude` trusts the chosen Progetto; read again when it changes.
@@ -67,7 +69,7 @@ struct AutomationSheet: View {
                         Button(project == nil ? "Scegli cartella…" : "Cambia…") { isChoosingFolder = true }
                     }
                 }
-                TextField("Nome", text: $name)
+                TextField("Nome", text: $name, prompt: Text("Facoltativo"))
                 LabeledContent("Richiesta") {
                     TextEditor(text: $request)
                         .font(Typography.body(size: 13))
@@ -90,20 +92,27 @@ struct AutomationSheet: View {
                 }
                 DatePicker(kind == .hourly ? "Minuto" : "Ora", selection: $time,
                            displayedComponents: kind == .once ? [.date, .hourAndMinute] : .hourAndMinute)
-                Picker("Modello", selection: $model) {
-                    Text("Router").tag(Automation.ModelChoice.router)
-                    ForEach(Self.aliases, id: \.self) { alias in
-                        Text(verbatim: alias).tag(Automation.ModelChoice.fixed(alias: alias))
+                // The defaults fit most Automazioni: the four questions above are what one needs.
+                DisclosureGroup("Opzioni avanzate", isExpanded: $isShowingAdvanced) {
+                    Picker("Modello", selection: $model) {
+                        Text("Automatico").tag(Automation.ModelChoice.router)
+                        ForEach(Self.aliases, id: \.self) { alias in
+                            Text(verbatim: alias).tag(Automation.ModelChoice.fixed(alias: alias))
+                        }
                     }
-                }
-                Picker("Agente", selection: $agent) {
-                    Text("Nessuno").tag(String?.none)
-                    ForEach(agentChoices, id: \.self) { name in
-                        Text(verbatim: name).tag(Optional(name))
+                    Picker("Agente", selection: $agent) {
+                        Text("Nessuno").tag(String?.none)
+                        ForEach(agentChoices, id: \.self) { name in
+                            Text(verbatim: name).tag(Optional(name))
+                        }
                     }
+                    Toggle("Modalità autonoma", isOn: isGit ? $isAutonomous : .constant(false))
+                        .disabled(!isGit)
                 }
-                Toggle("Modalità autonoma", isOn: isGit ? $isAutonomous : .constant(false))
-                    .disabled(!isGit)
+            }
+            if kind == .once && time <= .now {
+                Label("Scegli un'ora futura.", systemImage: "clock")
+                    .foregroundStyle(Palette.textSecondary)
             }
             if !isGit {
                 Label("Il Progetto non è un repo git: niente copia isolata, quindi niente Modalità autonoma. Decidono solo le Regole.",
@@ -133,7 +142,10 @@ struct AutomationSheet: View {
         }
         .padding(Spacing.medium)
         .frame(width: 520)
-        .onAppear { project = project ?? projects.first }
+        .onAppear {
+            project = project ?? projects.first
+            isShowingAdvanced = model != .router || agent != nil
+        }
         .task(id: project) {
             isGit = project.map(AutomationStore.isGitRepository) ?? true
             isTrusted = project.map { TrustGate().isTrusted($0) } ?? true
@@ -157,7 +169,7 @@ struct AutomationSheet: View {
     }
 
     private var canCreate: Bool {
-        project != nil && !name.trimmingCharacters(in: .whitespaces).isEmpty
+        project != nil
             && !request.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             && (kind != .once || time > .now) && agent.map(agents.contains) != false
     }
@@ -165,9 +177,12 @@ struct AutomationSheet: View {
     private func confirm() {
         guard let project else { return }
         var automation = editing ?? Automation(id: UUID(), name: "", project: project, request: "")
-        automation.name = name.trimmingCharacters(in: .whitespaces)
+        let text = request.trimmingCharacters(in: .whitespacesAndNewlines)
+        let typed = name.trimmingCharacters(in: .whitespaces)
+        // A name is one more thing to invent: without one, the start of the request.
+        automation.name = typed.isEmpty ? String(text.prefix(40)) : typed
         automation.project = project
-        automation.request = request.trimmingCharacters(in: .whitespacesAndNewlines)
+        automation.request = text
         automation.model = model
         automation.agent = agent
         automation.isAutonomous = isAutonomous && AutomationStore.isGitRepository(project)

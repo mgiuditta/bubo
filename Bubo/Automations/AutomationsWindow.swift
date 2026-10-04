@@ -74,8 +74,13 @@ struct AutomationsWindow: View {
             }
             .scrollContentBackground(.hidden)
         } else {
-            ContentUnavailableView("Automazioni", systemImage: "clock.arrow.circlepath",
-                                   description: Text("Nessuna Automazione. Creane una con Nuova Automazione."))
+            ContentUnavailableView {
+                Label("Nessuna Automazione", systemImage: "clock.arrow.circlepath")
+            } description: {
+                Text("Una richiesta che parte da sola all'ora che scegli, come nuova Sessione su un Progetto.")
+            } actions: {
+                Button("Nuova Automazione") { isCreating = true }
+            }
         }
     }
 

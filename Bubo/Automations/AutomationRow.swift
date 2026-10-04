@@ -106,7 +106,7 @@ struct AutomationRow: View {
 
     private var modelName: String {
         switch automation.model {
-        case .router: String(localized: "Router")
+        case .router: String(localized: "Automatico")
         case let .fixed(alias): alias
         }
     }

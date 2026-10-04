@@ -12538,16 +12538,6 @@
         }
       }
     },
-    "Nessuna Automazione. Creane una con Nuova Automazione." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No automations yet. Create one with New Automation."
-          }
-        }
-      }
-    },
     "Nessuna Regola Edit, Write o WebFetch nelle impostazioni di Claude." : {
       "localizations" : {
         "en" : {
@@ -19890,6 +19880,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Check that the Session started the server, then reload."
+          }
+        }
+      }
+    },
+    "Una richiesta che parte da sola all'ora che scegli, come nuova Sessione su un Progetto." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A request that starts on its own at the time you choose, as a new Session on a Project."
+          }
+        }
+      }
+    },
+    "Nessuna Automazione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Automations"
+          }
+        }
+      }
+    },
+    "Facoltativo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional"
+          }
+        }
+      }
+    },
+    "Opzioni avanzate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Advanced Options"
+          }
+        }
+      }
+    },
+    "Scegli un'ora futura." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a time in the future."
           }
         }
       }
