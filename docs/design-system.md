@@ -86,7 +86,7 @@ ADR 0013. Due colonne (`NavigationSplitView`): barra laterale in vetro di sistem
 
 - **Barra laterale**: Cervello, Neuroni, Riunioni; poi le Conversazioni per giorno (Oggi, Ieri, Questa settimana, Prima); poi i Progetti e Lavoro. Righe alte almeno 36 pt. Una Sessione ha il nome del Progetto in una capsula con filo `line` e, solo in «Attende te», il pallino Lume.
 - **Impostazioni**: `GlassCapsuleButton` in basso a sinistra.
-- **Composer**: il chip del Destinatario (capsula con filo `lineStrong`, testo in `textPrimary`) prima del campo; larghezza massima `Spacing.readingWidth`.
+- **Composer**: larghezza massima `Spacing.readingWidth`. Nel composer di una Sessione il chip del Progetto (capsula con filo `lineStrong`) sta dentro la capsula del campo; nel Cervello nessun chip, perché è il destinatario predefinito.
 - **Casa vuota**: Orb a 360 pt senza anelli, «Chiedi al tuo cervello» in `Font.buboDisplay`, tre suggerimenti in capsule con filo `line` presi dalle note cambiate per ultime.
 
 ## Forma e materiale
