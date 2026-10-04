@@ -6,7 +6,7 @@ import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionR
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
-import type { Progress } from "./activity";
+import { summary, writtenLines, type Edit, type Progress, type Read } from "./activity";
 import { CopilotUsage } from "./copilot-question";
 import { dates, messages, transcriptLimit, type Message } from "./history";
 import type { ConversationStore } from "./store";
@@ -20,6 +20,9 @@ export type CopilotEvent =
   | ({ type: "usage"; id: string } & TurnUsage)
   | { type: "error"; id: string; message: string }
   | (Progress & { id: string })
+  | (Edit & { id: string })
+  | (Read & { id: string })
+  | { type: "ran"; id: string }
   | (PermissionRequest & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string };
 
@@ -87,6 +90,22 @@ export function permissionRequest(request: string, asked: CopilotRequest): Permi
     default: return shown;
   }
 }
+
+// Le letture e le scritture dagli strumenti di `copilot`, come quelle di Claude: `view` legge; `create` ed `edit`
+// scrivono `file_text` e `new_str`; `str_replace_editor` fa l'uno o l'altro secondo `command`.
+export function toolActivity(tool: string, args: unknown): Edit | Read | undefined {
+  const input = (args ?? {}) as { command?: unknown; path?: unknown; file_text?: unknown; new_str?: unknown };
+  if (typeof input.path !== "string") return undefined;
+  const command = tool === "str_replace_editor" ? input.command : tool;
+  if (command === "view") return { type: "read", files: [input.path] };
+  const text = command === "create" ? input.file_text
+    : command === "edit" || command === "str_replace" || command === "insert" ? input.new_str
+    : undefined;
+  return typeof text === "string" ? { type: "edit", file: input.path, lines: writtenLines(text) } : undefined;
+}
+
+// Gli strumenti di `copilot` che lanciano un comando: alla fine Bubo cerca le porte nuove (spec 15).
+const shells = new Set(["bash", "powershell"]);
 
 // Approvato una volta: "Per questa Sessione" lo ricorda Bubo, che risponde da sé alle Richieste uguali.
 export function decision(allowed: boolean, message = deniedByUser): PermissionRequestResult {
@@ -164,11 +183,21 @@ export class CopilotTurns {
         if (keep) void this.copy?.append({ projectKey: copilotProject, sessionId: keep }, [entry]).catch(() => {});
       };
       record(copiedEntry("user", turn.prompt));
+      const commands = new Set<string>();
       session.on((event: SessionEvent) => {
         if (event.type === "assistant.message") {
+          // Solo il filo principale: i subagenti hanno `parentToolCallId`.
           if (!event.data.parentToolCallId && event.data.content.trim()) {
             record(copiedEntry("assistant", event.data.content, event.id, event.timestamp));
+            const line = summary(event.data.content);
+            if (line) this.send({ ...line, id });
           }
+        } else if (event.type === "tool.execution_start") {
+          const activity = toolActivity(event.data.toolName, event.data.arguments);
+          if (activity) this.send({ ...activity, id });
+          if (shells.has(event.data.toolName)) commands.add(event.data.toolCallId);
+        } else if (event.type === "tool.execution_complete") {
+          if (commands.delete(event.data.toolCallId)) this.send({ type: "ran", id });
         } else if (event.type === "assistant.message_delta") {
           if (event.data.deltaContent) this.send({ type: "text", id, text: event.data.deltaContent });
         } else if (event.type === "assistant.usage") {
