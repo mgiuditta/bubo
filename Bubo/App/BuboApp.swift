@@ -7,7 +7,8 @@ struct BuboApp: App {
     var body: some Scene {
         Window("Bubo", id: HUDPresenter.windowID) {
             HUDView(questions: appDelegate.questions, sessions: appDelegate.sessions,
-                    onboarding: appDelegate.onboarding, launch: appDelegate.launch)
+                    onboarding: appDelegate.onboarding, launch: appDelegate.launch, meetings: appDelegate.meetings,
+                    neurons: appDelegate.currentNeuronModel)
                 .environment(appDelegate.hud)
                 .environment(appDelegate.summarizer)
                 .environment(appDelegate.pushToTalk)

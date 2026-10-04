@@ -142,8 +142,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
     /// The notifications of a Budget past its threshold, read at each turn the ledger records.
     private lazy var budgetAlerts = BudgetAlerts(ledger: ledger) { [notifier] status in await notifier.announce(status) }
-    /// The window of the Neuroni, while open.
-    private var neurons: NeuronWindow?
+    /// The Neuroni shown in the window's right column; made again when the Secondo cervello moves.
+    private var neuronModel: NeuronModel?
     /// The Galassia windows, one per Progetto.
     private(set) lazy var galaxies = GalaxyStore { [weak self] in
         self?.sessions?.projects ?? []
@@ -318,8 +318,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud.startSession = { [weak self] draft in self?.startSession(continuing: draft) }
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
-        hud.showNeurons = { [weak self] in self?.showNeurons() }
-        hud.showMeetings = { [weak self] in self?.meetingWindow.show() }
         hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
         panel.importMeetings = hud.importMeetings
         panel.importVideo = { [meetings] link, fallback in
@@ -533,23 +531,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    /// Shows the Neuroni of the Secondo cervello, in their window if open; without a Secondo cervello, says to choose one.
+    /// Shows the Neuroni of the Secondo cervello in the window's right column.
     func showNeurons() {
         guard ReleaseArea.neurons.isAvailable() else { return showComingSoon(.neurons) }
-        guard let location = secondBrain.location else {
-            let alert = NSAlert()
-            alert.messageText = String(localized: "Nessun Secondo cervello")
-            alert.informativeText = String(localized: "Scegli la cartella delle tue note nelle Impostazioni, poi apri i Neuroni.")
-            NSApp.activate()
-            alert.runModal()
-            return
+        hud.selection = .neurons
+        hud.show()
+    }
+
+    /// The Neuroni of the current Secondo cervello, kept across selections; `nil` without a Secondo cervello.
+    func currentNeuronModel() -> NeuronModel? {
+        guard let location = secondBrain.location else { return nil }
+        if neuronModel?.secondBrain.path != location.path {
+            neuronModel = NeuronModel(secondBrain: location)
         }
-        if neurons?.model.secondBrain.path != location.path {
-            neurons = NeuronWindow(model: NeuronModel(secondBrain: location), questions: questions) { [weak self] in
-                self?.neurons = nil
-            }
-        }
-        neurons?.show()
+        return neuronModel
     }
 
     /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.
