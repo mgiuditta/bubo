@@ -239,6 +239,16 @@ targets:
           - $(SRCROOT)/Bubo/Integrations/LinearOpener.c
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-linear
+      - name: Elenco del Catalogo solo in Debug
+        shell: /bin/zsh
+        script: |
+          # La Galleria mostra per blocco anche le Varianti ancora da disegnare (#400); la Release non ne ha nemmeno un byte.
+          [[ "$CONFIGURATION" == Debug ]] || exit 0
+          cp "$SRCROOT/docs/catalogo-elenco.json" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/"
+        inputFiles:
+          - $(SRCROOT)/docs/catalogo-elenco.json
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/catalogo-elenco.json
       - name: Archivio Metal 4 del Blob
         shell: /bin/zsh
         script: |

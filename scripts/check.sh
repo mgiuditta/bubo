@@ -16,6 +16,8 @@ scripts/polish-check.sh "$derived"
 swift test --package-path Packages/DeliveryKit --quiet
 xcodebuild -project Bubo.xcodeproj -scheme Bubo -configuration Release -destination "platform=macOS,arch=arm64" -derivedDataPath "$derived" -skipPackagePluginValidation -allowProvisioningUpdates -quiet build
 # Ponte stretto e veloce: entitlement firmati uguali alla lista, carico di prova firmato entro 2× (spec 27).
+# L'elenco delle Varianti previste entra solo nel bundle Debug, per la Galleria (#400).
+[[ ! -e "$derived/Build/Products/Release/Bubo.app/Contents/Resources/catalogo-elenco.json" ]] || { echo "catalogo-elenco.json nella Release" >&2; exit 1; }
 scripts/release/verify-entitlements.sh --dev "$derived/Build/Products/Release/Bubo.app"
 scripts/release/bridge-speed.sh
 # I test di prestazione (UI test, Release) si compilano qui e si eseguono a parte con lo schema BuboPerf.

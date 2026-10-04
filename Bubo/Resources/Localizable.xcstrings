@@ -645,6 +645,16 @@
         }
       }
     },
+    "%@, da disegnare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, to draw"
+          }
+        }
+      }
+    },
     "%@, nel cloud" : {
       "comment" : "Where a model of «Rifai con…» runs: another provider's cloud.",
       "localizations" : {
@@ -1388,6 +1398,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$lld/%2$lld blocchi"
+          }
+        }
+      }
+    },
+    "%lld/%lld disegnate" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld/%2$lld drawn"
           }
         }
       }
@@ -3214,6 +3234,16 @@
         }
       }
     },
+    "Blocco" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Block"
+          }
+        }
+      }
+    },
     "BUBO" : {
       "localizations" : {
         "en" : {
@@ -4418,6 +4448,16 @@
         }
       }
     },
+    "Da disegnare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To draw"
+          }
+        }
+      }
+    },
     "Decidi i possibili segreti" : {
       "localizations" : {
         "en" : {
@@ -5211,6 +5251,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show all notes (⌘0)"
+          }
+        }
+      }
+    },
+    "Moto: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Motion: %@"
           }
         }
       }
@@ -6178,6 +6228,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You deliver to a Machine, not to a person."
+          }
+        }
+      }
+    },
+    "Silhouette: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Silhouette: %@"
           }
         }
       }
