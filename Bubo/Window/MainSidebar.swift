@@ -10,6 +10,8 @@ struct MainSidebar: View {
     @AppStorage("mostraRigaDiComando") private var includesCLI = false
     @State private var history: [CLIConversation] = []
     @Environment(\.openSettings) private var openSettings
+    @Environment(HUDPresenter.self) private var hud
+    @State private var isChoosingProject = false
 
     var body: some View {
         List(selection: $selection) {
@@ -25,12 +27,18 @@ struct MainSidebar: View {
                     }
                 }
             }
-            if let sessions, !sessions.projects.isEmpty {
+            // Always there, even before the first Sessione: it is where a Progetto is added.
+            if let sessions {
                 Section("Progetti") {
                     ForEach(sessions.projects, id: \.self) { project in
                         Label(project.lastPathComponent, systemImage: "folder").tag(SidebarSelection.project(project))
                     }
-                    Label("Lavoro", systemImage: "rectangle.split.3x1").tag(SidebarSelection.work)
+                    if !sessions.projects.isEmpty {
+                        Label("Lavoro", systemImage: "rectangle.split.3x1").tag(SidebarSelection.work)
+                    }
+                    Button("Aggiungi Progetto…", systemImage: "plus") { isChoosingProject = true }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Palette.textSecondary)
                 }
             }
         }
@@ -41,8 +49,15 @@ struct MainSidebar: View {
                 .padding(Spacing.m)
         }
         .toolbar {
-            Toggle("Mostra anche la riga di comando", systemImage: "terminal", isOn: $includesCLI)
-                .help(Text("Mostra anche le conversazioni avviate dalla riga di comando"))
+            Toggle("Mostra la Cronologia CLI", systemImage: "terminal", isOn: $includesCLI)
+                .help(Text("Mostra anche le conversazioni della Cronologia CLI"))
+        }
+        // A Progetto exists through its Sessioni: the chosen folder opens the new Sessione's sheet on it.
+        .fileImporter(isPresented: $isChoosingProject, allowedContentTypes: [.folder]) { result in
+            guard case let .success(folder) = result else { return }
+            var draft = SessionDraft()
+            draft.project = folder
+            hud.createSession(from: draft)
         }
         .task(id: includesCLI) {
             guard includesCLI, let sessions else { return }

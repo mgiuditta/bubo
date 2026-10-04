@@ -20,6 +20,8 @@ struct NewSessionSheet: View {
     @State private var isProjectDefault = false
     @State private var isChoosingFolder = false
     @State private var isAskingTrust = false
+    /// Why the Sessione did not start: the sheet stays open to say it.
+    @State private var failure: String?
     /// While the `/` menu shows, Invio and Esc go to it, not to the sheet's buttons.
     @State private var isSlashMenuShowing = false
     @FocusState private var isPromptFocused: Bool
@@ -75,7 +77,7 @@ struct NewSessionSheet: View {
                 EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
                                   copilotModels: store.copilotModels)
                 Toggle(isOn: $isOnCheckout) {
-                    Text("Lavora sul checkout")
+                    Text("Lavora direttamente nella cartella")
                     Text(checkoutTaken?.errorDescription
                          ?? String(localized: "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto."))
                         .foregroundStyle(checkoutTaken == nil ? Color.secondary : Palette.danger)
@@ -88,6 +90,11 @@ struct NewSessionSheet: View {
             }
             .formStyle(.grouped)
 
+            if let failure {
+                Text(verbatim: failure)
+                    .foregroundStyle(Palette.danger)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             HStack {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
@@ -140,16 +147,16 @@ struct NewSessionSheet: View {
     private func create() {
         guard let project else { return }
         if gate.isTrusted(project) {
-            start()
-            dismiss()
+            if start() { dismiss() }
         } else {
             isAskingTrust = true
         }
     }
 
-    /// Starts the Sessione; the trust dialog closes the sheet on its own.
-    private func start() {
-        guard let project else { return }
+    /// Starts the Sessione, and tells whether it started; the trust dialog closes the sheet on its own.
+    @discardableResult
+    private func start() -> Bool {
+        guard let project else { return false }
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
         if isProjectDefault { store.engines.setChoice(choice, for: project) }
@@ -159,9 +166,12 @@ struct NewSessionSheet: View {
                             branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
                             forkingFrom: draft.conversation, upTo: draft.upToMessage, choice: choice,
                             fromQuestion: draft.originQuestion)
+            return true
         } catch {
-            // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")
+            failure = (error as? LocalizedError)?.errorDescription
+                ?? String(localized: "La Sessione non è partita. Riprova.")
+            return false
         }
     }
 }

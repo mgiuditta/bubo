@@ -5337,26 +5337,6 @@
         }
       }
     },
-    "Mostra anche la riga di comando" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Command Line Too"
-          }
-        }
-      }
-    },
-    "Mostra anche le conversazioni avviate dalla riga di comando" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Also show conversations started from the command line"
-          }
-        }
-      }
-    },
     "Mostra i Neuroni" : {
       "localizations" : {
         "en" : {
@@ -11338,16 +11318,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Working"
-          }
-        }
-      }
-    },
-    "Lavora sul checkout" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Work on the checkout"
           }
         }
       }
@@ -19790,6 +19760,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose the Project Folder…"
+          }
+        }
+      }
+    },
+    "Lavora direttamente nella cartella" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work Directly in the Folder"
+          }
+        }
+      }
+    },
+    "Mostra la Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show CLI History"
+          }
+        }
+      }
+    },
+    "Mostra anche le conversazioni della Cronologia CLI" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also show the conversations of the CLI History"
+          }
+        }
+      }
+    },
+    "Aggiungi Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Project…"
+          }
+        }
+      }
+    },
+    "La Sessione non è partita. Riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Session didn't start. Try again."
           }
         }
       }
