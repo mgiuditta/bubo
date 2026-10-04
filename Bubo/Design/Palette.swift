@@ -14,6 +14,8 @@ enum Palette {
     static let line = Color(hex: 0xE2E8F0, opacity: 0.09)
     /// Borders of focused or selected elements, and the HUD rings.
     static let lineStrong = Color(hex: 0xE2E8F0, opacity: 0.24)
+    /// The fill of the selected row of a list, under `lineStrong`: lightness, not the system blue.
+    static let rowSelection = Color(hex: 0xE2E8F0, opacity: 0.12)
     /// Primary text, moon colored.
     static let textPrimary = Color(hex: 0xECEEF1)
     /// Secondary text and labels; at least 4.5:1 on `ink`.

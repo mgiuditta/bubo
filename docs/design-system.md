@@ -110,10 +110,11 @@ ADR 0013. Due colonne (`NavigationSplitView`): barra laterale in vetro di sistem
 - **Anteprima**: la pagina web è dell'utente, non di Bubo. Incorporata nell'HUD o staccata, riceve lo schema del sistema (`prefers-color-scheme`), non quello scuro forzato dell'HUD: lo legge da `AppleInterfaceStyle` e da `AppleInterfaceThemeChangedNotification`, non da `NSApp`, che lo schema forzato può cambiare.
 - L'Orb dell'HUD e il radiale del fondo prendono la Tinta del fornitore attivo; il segno accanto a BUBO è color luna (`markLight`, `markDark`).
 - Neuroni: unica vista con un colore per categoria, la cartella in cima della nota. Otto toni smorzati, nessuno vicino a Lume, successo o pericolo, e le note fuori dalle cartelle in `textSecondary` (`NeuronRenderer.folderColors`); il colore non dice mai «selezionato»: la nota scelta e quelle citate hanno un anello color luna, e l'elenco accanto ripete la cartella in testo.
+- Barra laterale della finestra: la riga scelta è disegnata da Bubo (`RowSelectionHighlight`, con `selectableRow`), riempimento `rowSelection` (`#E2E8F0` @ 12%) e bordo `lineStrong`, `textPrimary` con Aumenta contrasto; l'evidenziazione blu del sistema è spenta, così la riga è uguale con o senza il fuoco della tastiera.
 - Visore: parole chiave in grassetto, commenti in corsivo, stringhe e commenti in `textSecondary`; niente `success`, che è delle aggiunte.
 - `reference/bubo.html` è superato nei colori (lo dice in testa): la struttura resta di riferimento.
 
 ## Da fare
 
-- Restano nell'accento di sistema, perché `tint` non li cambia: la selezione delle liste (i file della Galassia), gli anelli di focus, la scheda scelta nella barra delle Impostazioni e i link. Servirebbe una selezione disegnata da Bubo.
+- Restano nell'accento di sistema, perché `tint` non li cambia: la selezione delle altre liste (i file della Galassia), gli anelli di focus, la scheda scelta nella barra delle Impostazioni e i link. Possono passare a `selectableRow` come la barra laterale.
 - Marchio definitivo: l'icona resta la proposta provvisoria (#228); il logotipo c'è.

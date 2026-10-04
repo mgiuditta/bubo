@@ -17,17 +17,20 @@ struct MainSidebar: View {
     var body: some View {
         List(selection: $selection) {
             Section {
-                Label("Cervello", systemImage: "brain").tag(SidebarSelection.brain)
+                Label("Cervello", systemImage: "brain").selectableRow(SidebarSelection.brain, selection: selection)
                 // Not a dead end at the top of the navigation: off where the area is not released (1.1).
                 if ReleaseArea.neurons.isAvailable(hidesUnreleased: hidesUnreleased) {
-                    Label("Neuroni", systemImage: "point.3.connected.trianglepath.dotted").tag(SidebarSelection.neurons)
+                    Label("Neuroni", systemImage: "point.3.connected.trianglepath.dotted")
+                        .selectableRow(SidebarSelection.neurons, selection: selection)
                 }
-                Label("Riunioni", systemImage: "waveform").tag(SidebarSelection.meetings)
+                Label("Riunioni", systemImage: "waveform")
+                    .selectableRow(SidebarSelection.meetings, selection: selection)
             }
             ForEach(groups, id: \.group) { group in
                 Section(String(localized: group.group.title)) {
                     ForEach(group.items) { item in
-                        ConversationRow(item: item).tag(SidebarSelection.conversation(item.id))
+                        ConversationRow(item: item)
+                            .selectableRow(SidebarSelection.conversation(item.id), selection: selection)
                     }
                 }
             }
@@ -35,10 +38,12 @@ struct MainSidebar: View {
             if let sessions {
                 Section("Progetti") {
                     ForEach(sessions.projects, id: \.self) { project in
-                        Label(project.lastPathComponent, systemImage: "folder").tag(SidebarSelection.project(project))
+                        Label(project.lastPathComponent, systemImage: "folder")
+                            .selectableRow(SidebarSelection.project(project), selection: selection)
                     }
                     if !sessions.projects.isEmpty {
-                        Label("Lavoro", systemImage: "rectangle.split.3x1").tag(SidebarSelection.work)
+                        Label("Lavoro", systemImage: "rectangle.split.3x1")
+                            .selectableRow(SidebarSelection.work, selection: selection)
                     }
                     Button("Aggiungi Progetto…", systemImage: "plus") { isChoosingProject = true }
                         .buttonStyle(.plain)

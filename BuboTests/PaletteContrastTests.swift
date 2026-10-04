@@ -4,11 +4,13 @@ import Testing
 
 /// The Notte palette keeps every text color readable: WCAG AA, 4.5:1 for text and 3:1 for non-text marks.
 struct PaletteContrastTests {
-    /// The backgrounds text sits on: the graphite, a glass panel over it, and the system sheet of the dark HUD.
+    /// The backgrounds text sits on: the graphite, a glass panel over it, the system sheet of the dark HUD, and the
+    /// selected row of a list.
     private static let backgrounds: [(String, Color)] = [
         ("ink", Palette.ink),
         ("surface", Palette.surface),
         ("sheet", Color(hex: 0x212527)),
+        ("rowSelection", Palette.rowSelection),
     ]
 
     /// The colors of text to read.
