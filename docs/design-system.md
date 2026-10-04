@@ -45,9 +45,27 @@ Regole: niente gradienti di marca, niente alone colorato dietro i pannelli (l'un
 
 ## Tipografia
 
-- Interfaccia: SF Pro (sistema), dimensioni dinamiche di macOS. Titoli in semibold con tracking leggermente negativo.
-- Dati, etichette in maiuscolo, costi, durate: SF Mono, cifre tabulari.
-- Il logotipo BUBO resta l'unico punto con un carattere display; da definire con il marchio.
+Brand kit (#690): cinque ruoli, tutti con le dimensioni dinamiche di macOS. Le viste nuove usano solo questi token (`Bubo/Design/Typography.swift`).
+
+| Ruolo | Token | Carattere | Misura | Uso |
+|---|---|---|---|---|
+| Display | `Font.buboDisplay` | Newsreader Medium | 34 (`relativeTo: .largeTitle`) | logotipo, casa vuota («Chiedi al tuo cervello»), titoli delle note |
+| Titolo | `Font.buboTitle` | SF Pro semibold | 22 (`.title`) | titolo della conversazione; con `buboTitleStyle()` prende il tracking −0,2 |
+| Corpo | `Font.buboBody` | SF Pro | 15 (`.title3`) | testo della conversazione |
+| Interfaccia | `Font.buboInterface` | SF Pro | 13 (`.body`) | controlli ed etichette |
+| Dati | `Font.buboData` | SF Mono, cifre tabulari | 12 (`.callout`) | costi, durate, etichette in maiuscolo |
+
+- Newsreader è un serif da taccuino: dice «note e memoria», ed è l'unico carattere display. Sta in `Bubo/Resources/Fonts/` (OFL) e lo registra il sistema con `ATSApplicationFontsPath`.
+- La conversazione si legge al massimo a 720 pt di larghezza (`Spacing.readingWidth`).
+- Unbounded, Manrope e JetBrains Mono (le funzioni di `Typography`) restano nelle viste di prima finché la finestra nuova non le sostituisce.
+
+## Spaziatura
+
+Token `Spacing` (`Bubo/Design/Spacing.swift`): `xxs 4 · xs 8 · s 12 · m 16 · l 24 · xl 32 · xxl 48`.
+
+- Le viste nuove non usano numeri a mano.
+- Righe della barra laterale alte almeno 36 pt (`Spacing.sidebarRowMinHeight`); margini dei pannelli `m` dentro, `l` fuori.
+- I token di prima (`xxSmall`…) restano per le viste esistenti.
 
 ## Marchio e logotipo (provvisorio)
 
@@ -58,7 +76,18 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 - **Icona**: griglia macOS, tela 1024 con corpo squircle di 824 (superellisse n = 5) e ombra nel margine. Sorgente `design/brand/app-icon.svg`.
 - **Glifo della barra dei menu**: la stessa sagoma monocroma in 18 pt, occhi e becco forati, immagine modello (`MenuBarGlyph`, 1× e 2×). Sorgente `design/brand/menu-bar-glyph.svg`; a 1× gli occhi sono allineati ai pixel e il becco è solo un accenno.
 - **Rigenerare**: `swift scripts/brand-icons.swift` riscrive le 10 PNG di `AppIcon.appiconset` e le 2 del glifo; `polish-check.sh` controlla misure e modello.
-- **Logotipo**: ancora da fare.
+- **Logotipo**: `bubo` minuscolo in Newsreader Medium, in tracciati, con la sagoma del gufo a sinistra alta quanto la x e poggiata sulla linea di base; color luna (`textPrimary`). Sorgente `design/brand/logotype.svg`, rigenerato da `swift scripts/brand-logotype.swift`.
+- **Pagina del brand kit**: `reference/brand.html` (logotipo, costruzione, colore, tipografia, spaziatura, tono, componenti della finestra).
+- **Pulsante di vetro**: `GlassCapsuleButton`, capsula Liquid Glass alta 32 pt con icona ed etichetta, per azioni quiete come Impostazioni.
+
+## Finestra
+
+ADR 0013. Due colonne (`NavigationSplitView`): barra laterale in vetro di sistema, a destra la conversazione.
+
+- **Barra laterale**: Cervello, Neuroni, Riunioni; poi le Conversazioni per giorno (Oggi, Ieri, Questa settimana, Prima); poi i Progetti e Lavoro. Righe alte almeno 36 pt. Una Sessione ha il nome del Progetto in una capsula con filo `line` e, solo in «Attende te», il pallino Lume.
+- **Impostazioni**: `GlassCapsuleButton` in basso a sinistra.
+- **Composer**: il chip del Destinatario (capsula con filo `lineStrong`, testo in `textPrimary`) prima del campo; larghezza massima `Spacing.readingWidth`.
+- **Casa vuota**: Orb a 360 pt senza anelli, «Chiedi al tuo cervello» in `Font.buboDisplay`, tre suggerimenti in capsule con filo `line` presi dalle note cambiate per ultime.
 
 ## Forma e materiale
 
@@ -87,4 +116,4 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 ## Da fare
 
 - Restano nell'accento di sistema, perché `tint` non li cambia: la selezione delle liste (i file della Galassia), gli anelli di focus, la scheda scelta nella barra delle Impostazioni e i link. Servirebbe una selezione disegnata da Bubo.
-- Marchio definitivo e logotipo (ora c'è la proposta provvisoria sopra).
+- Marchio definitivo: l'icona resta la proposta provvisoria (#228); il logotipo c'è.

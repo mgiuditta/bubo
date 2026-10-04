@@ -335,7 +335,7 @@ final class SessionStore {
     @discardableResult
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
                forkingFrom conversation: CLIConversation? = nil, upTo message: String? = nil,
-               issue: IssueLink? = nil, choice: EngineChoice? = nil) throws -> UUID {
+               issue: IssueLink? = nil, choice: EngineChoice? = nil, fromQuestion: UUID? = nil) throws -> UUID {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.choice = choice ?? engines.choice(for: project)
@@ -344,6 +344,7 @@ final class SessionStore {
         session.forkedUpTo = conversation == nil ? nil : message
         session.continuedConversation = conversation?.id
         session.issue = issue
+        session.originQuestion = fromQuestion
         if onCheckout {
             session.isOnCheckout = true
             session.workspace = Workspace(folder: project)
@@ -447,6 +448,16 @@ final class SessionStore {
     /// Whether Riavvia can start the turn in progress of the Sessione `id` again: not while it resolves conflicts.
     func canRestartTurn(_ id: UUID) -> Bool {
         turnPrompts[id] != nil && sessions.first { $0.id == id }?.resolution == nil
+    }
+
+    /// Asks `prompt` as the next turn of the open Sessione `id`, in its copy and its conversation; `false`, and
+    /// nothing asked, when the Sessione cannot take a turn now (``Session/canTakeTurn``) or `prompt` is empty.
+    @discardableResult
+    func send(_ prompt: String, to id: UUID) -> Bool {
+        let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, sessions.first(where: { $0.id == id })?.canTakeTurn == true else { return false }
+        restart(id, prompt: trimmed)
+        return true
     }
 
     /// Asks `claude` `prompt` in the open Sessione `id`, once the turn in progress, if any, is interrupted.

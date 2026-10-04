@@ -1,7 +1,7 @@
 import Foundation
 
 /// A turn of a Domanda: what the user asked and what arrived of the answer.
-nonisolated struct QuestionTurn: Equatable, Sendable {
+nonisolated struct QuestionTurn: Codable, Equatable, Sendable {
     /// What the user asked.
     var prompt: String
     /// What arrived of the answer.

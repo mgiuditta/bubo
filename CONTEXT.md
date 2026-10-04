@@ -27,8 +27,12 @@ L'area del **Panel** che mostra la **Domanda** in corso: prompt, risposta e segu
 _Avoid_: overlay, popup, chat
 
 **HUD**:
-La finestra di lavoro con l'**Orb** grande al centro e i pannelli di vetro attorno (router, cronologia, sessioni).
+La finestra di lavoro: a sinistra la barra laterale con Cervello, Neuroni, Riunioni, le **Domande** e le **Sessioni** in un solo elenco per giorno, e i **Progetti**; a destra la conversazione aperta, che si continua lì. L'**Orb** grande compare solo nella casa vuota (ADR 0013).
 _Avoid_: dashboard, finestra principale
+
+**Destinatario**:
+A chi va il testo del campo della finestra: il Cervello (una **Domanda**) o un **Progetto** (una **Sessione**). Il chip all'inizio del campo lo dice sempre.
+_Avoid_: target, contesto, modalità
 
 **Palette**:
 L'unica casella, aperta sopra la finestra di Bubo attiva, in cui si cercano insieme comandi, conversazioni e **Secondo cervello**.
@@ -97,7 +101,7 @@ Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e s
 _Avoid_: sessioni importate
 
 **Vista delle Sessioni**:
-Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt), Board (colonne derivate da **Fase** e **Attività**, più le **Bozze** da iniziare). La sceglie l'utente.
+Il modo in cui l'**HUD** dispone le **Sessioni**: l'Elenco della barra laterale, insieme alle **Domande**, e la Board (voce «Lavoro»: colonne derivate da **Fase** e **Attività**, più le **Bozze** da iniziare). Orbita e Striscia non ci sono più (ADR 0013).
 _Avoid_: layout, tema, modalità
 
 **Bozza**:

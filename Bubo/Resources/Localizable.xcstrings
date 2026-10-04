@@ -1724,6 +1724,16 @@
         }
       }
     },
+    "Ancora nessuna risposta" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Answer Yet"
+          }
+        }
+      }
+    },
     "ANTHROPIC_API_KEY è impostata nel tuo ambiente" : {
       "localizations" : {
         "en" : {
@@ -3872,6 +3882,16 @@
         }
       }
     },
+    "Cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Brain"
+          }
+        }
+      }
+    },
     "Che app usi per le Riunioni?" : {
       "localizations" : {
         "en" : {
@@ -3888,6 +3908,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "What should Claude do?"
+          }
+        }
+      }
+    },
+    "Chiedi al tuo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask your brain"
           }
         }
       }
@@ -4126,6 +4156,16 @@
         }
       }
     },
+    "Continua la Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue the Session"
+          }
+        }
+      }
+    },
     "Continua solo questa volta" : {
       "localizations" : {
         "en" : {
@@ -4182,6 +4222,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Checking Copilot…"
+          }
+        }
+      }
+    },
+    "Conversazione non trovata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conversation Not Found"
           }
         }
       }
@@ -4298,6 +4348,16 @@
         }
       }
     },
+    "Cosa c'è di nuovo in %@?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's new in %@?"
+          }
+        }
+      }
+    },
     "Cosa esce" : {
       "localizations" : {
         "en" : {
@@ -4308,12 +4368,32 @@
         }
       }
     },
+    "Cosa ho deciso questa settimana?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What did I decide this week?"
+          }
+        }
+      }
+    },
     "Cosa riceve Copilot" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "What Copilot Receives"
+          }
+        }
+      }
+    },
+    "Cosa ricordi di me?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What do you remember about me?"
           }
         }
       }
@@ -4344,6 +4424,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Decide the possible secrets"
+          }
+        }
+      }
+    },
+    "Destinatario: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recipient: %@"
+          }
+        }
+      }
+    },
+    "Diventata una Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Became a Session"
           }
         }
       }
@@ -4507,6 +4607,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude's commands write only in the Session's folder and reach only the allowed hosts."
+          }
+        }
+      }
+    },
+    "Ieri" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
           }
         }
       }
@@ -4814,6 +4924,16 @@
         }
       }
     },
+    "La conversazione compare qui al primo turno." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The conversation shows up here after the first turn."
+          }
+        }
+      }
+    },
     "La lingua del Mac" : {
       "localizations" : {
         "en" : {
@@ -4911,6 +5031,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Kept"
+          }
+        }
+      }
+    },
+    "Lavoro" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Work"
           }
         }
       }
@@ -5035,6 +5165,26 @@
         }
       }
     },
+    "Mostra anche la riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Command Line Too"
+          }
+        }
+      }
+    },
+    "Mostra anche le conversazioni avviate dalla riga di comando" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also show conversations started from the command line"
+          }
+        }
+      }
+    },
     "Mostra i Neuroni" : {
       "localizations" : {
         "en" : {
@@ -5141,6 +5291,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No notes in the Second Brain"
+          }
+        }
+      }
+    },
+    "Nessuna Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Sessions"
           }
         }
       }
@@ -5281,6 +5441,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "New executable code since the last update: %@"
+          }
+        }
+      }
+    },
+    "Oggi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
           }
         }
       }
@@ -5437,6 +5607,16 @@
         }
       }
     },
+    "Prima" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Earlier"
+          }
+        }
+      }
+    },
     "Prompt di sistema (prompt_snapshot) e %lld righe di metadati fuori dalla conversazione" : {
       "localizations" : {
         "en" : {
@@ -5518,6 +5698,16 @@
         }
       }
     },
+    "Questa settimana" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Week"
+          }
+        }
+      }
+    },
     "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -5588,6 +5778,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reopens the Question in the Panel"
+          }
+        }
+      }
+    },
+    "Riassumi l'ultima Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarize the last Meeting"
           }
         }
       }
@@ -5732,12 +5932,32 @@
         }
       }
     },
+    "Rispondi alla Richiesta qui sopra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer the Request above"
+          }
+        }
+      }
+    },
     "Rispondi alle Sessioni e alle Richieste di permesso dall'iPhone, anche lontano dal Mac." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Answer Sessions and Permission Requests from your iPhone, even away from the Mac."
+          }
+        }
+      }
+    },
+    "Riunioni" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meetings"
           }
         }
       }
@@ -5892,6 +6112,26 @@
         }
       }
     },
+    "Scrivi alla Sessione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write to the Session"
+          }
+        }
+      }
+    },
+    "Scrivi nel Cervello «entra in %@ e…» oppure crea una Sessione." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write to the Brain “go into %@ and…” or create a Session."
+          }
+        }
+      }
+    },
     "Senza il tuo consenso Bubo non manda niente a Copilot: né Domande né file dei Progetti." : {
       "localizations" : {
         "en" : {
@@ -5908,6 +6148,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copilot can't receive this Project's files without your consent. You can give it in Settings › Models."
+          }
+        }
+      }
+    },
+    "Sessione archiviata" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session archived"
           }
         }
       }
@@ -5949,6 +6199,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estimated spend %@"
+          }
+        }
+      }
+    },
+    "Sta lavorando…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working…"
           }
         }
       }
@@ -10412,16 +10672,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Open issues"
-          }
-        }
-      }
-    },
-    "L'HUD si apre con questa vista." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The HUD opens with this view."
           }
         }
       }
@@ -17043,16 +17293,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "View"
-          }
-        }
-      }
-    },
-    "Vista delle Sessioni" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sessions View"
           }
         }
       }

@@ -95,6 +95,8 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         # Il nome della release (1.2.0-beta.3), mostrato in Impostazioni › Aggiornamenti; build.sh lo passa dal tag.
         BuboReleaseName: $(BUBO_RELEASE_NAME)
+        # I font di Resources/Fonts (Newsreader, Unbounded, Manrope, JetBrains Mono) li registra il sistema all'avvio.
+        ATSApplicationFontsPath: Fonts
         # Sparkle (spec 27): feed e chiave pubblica dai build setting sotto, da riempire con #220.
         SUFeedURL: $(SPARKLE_FEED_URL)
         SUPublicEDKey: $(SPARKLE_PUBLIC_ED_KEY)

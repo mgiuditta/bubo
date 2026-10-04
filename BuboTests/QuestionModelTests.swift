@@ -84,7 +84,9 @@ struct QuestionModelTests {
 
         let draft = model.turnIntoSession()
 
-        #expect(draft == SessionDraft(prompt: "Fallo", turns: [QuestionTurn(prompt: "Ciao", answer: "a consumo")]))
+        #expect(draft.prompt == "Fallo")
+        #expect(draft.turns == [QuestionTurn(prompt: "Ciao", answer: "a consumo")])
+        #expect(draft.originQuestion == model.currentQuestionID)
         #expect(draft.firstPrompt("Fallo").contains("Ciao"))
         #expect(draft.firstPrompt("Fallo").contains("a consumo"))
         #expect(draft.firstPrompt("Fallo").hasSuffix("Fallo"))
@@ -96,7 +98,9 @@ struct QuestionModelTests {
 
         let draft = model.turnIntoSession()
 
-        #expect(draft == SessionDraft(prompt: "Ciao"))
+        #expect(draft.prompt == "Ciao")
+        #expect(draft.turns.isEmpty)
+        #expect(draft.originQuestion == model.currentQuestionID)
         #expect(draft.firstPrompt("Ciao") == "Ciao")
     }
 

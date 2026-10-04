@@ -95,12 +95,6 @@ struct ActivityTests {
         #expect(sessions.map(\.title) == ["d", "b", "c", "a"])
     }
 
-    @Test func inOrbitaAttendeTeSitsAtTheTopAndTheOthersOnTheSides() {
-        let angles = SessionOrbit.angles(waiting: 2, others: 3).map { $0.degrees.rounded() }
-
-        #expect(angles == [-103, -77, 12, 168, -12])
-    }
-
     @Test(arguments: [
         ([Session.Activity](), OrbState.idle),
         ([.ferma, .errore], .idle),

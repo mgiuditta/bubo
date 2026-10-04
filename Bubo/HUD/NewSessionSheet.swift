@@ -157,7 +157,8 @@ struct NewSessionSheet: View {
             try store.start(draft.firstPrompt(text),
                             title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
                             branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
-                            forkingFrom: draft.conversation, upTo: draft.upToMessage, choice: choice)
+                            forkingFrom: draft.conversation, upTo: draft.upToMessage, choice: choice,
+                            fromQuestion: draft.originQuestion)
         } catch {
             // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")
