@@ -89,7 +89,9 @@ struct BuboApp: App {
                 Button("Mostra la Galassia") { appDelegate.showGalaxy() }
                     .keyboardShortcut("g", modifiers: [.option, .command])
                 // Also in the Palette and in the Orb's menu; no shortcut.
-                Button("Mostra i Neuroni") { appDelegate.showNeurons() }
+                if ReleaseArea.neurons.isAvailable() {
+                    Button("Mostra i Neuroni") { appDelegate.showNeurons() }
+                }
                 Divider()
             }
         }

@@ -12,12 +12,16 @@ struct MainSidebar: View {
     @Environment(\.openSettings) private var openSettings
     @Environment(HUDPresenter.self) private var hud
     @State private var isChoosingProject = false
+    @AppStorage(ReleaseArea.hidesUnreleasedKey) private var hidesUnreleased = false
 
     var body: some View {
         List(selection: $selection) {
             Section {
                 Label("Cervello", systemImage: "brain").tag(SidebarSelection.brain)
-                Label("Neuroni", systemImage: "point.3.connected.trianglepath.dotted").tag(SidebarSelection.neurons)
+                // Not a dead end at the top of the navigation: off where the area is not released (1.1).
+                if ReleaseArea.neurons.isAvailable(hidesUnreleased: hidesUnreleased) {
+                    Label("Neuroni", systemImage: "point.3.connected.trianglepath.dotted").tag(SidebarSelection.neurons)
+                }
                 Label("Riunioni", systemImage: "waveform").tag(SidebarSelection.meetings)
             }
             ForEach(groups, id: \.group) { group in

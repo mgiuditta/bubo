@@ -58,7 +58,9 @@ struct MenuBarContent: View {
         MeetingMenuItems(recorder: meetings)
         Button("Importa nel Secondo cervello…", action: documents.chooseAndImport)
             .disabled(!documents.canImport)
-        Button("Mostra i Neuroni", action: showNeurons)
+        if ReleaseArea.neurons.isAvailable(hidesUnreleased: hidesUnreleased) {
+            Button("Mostra i Neuroni", action: showNeurons)
+        }
         Button("Mostra Bubo  \(hotKeys.shortcut.displayName)") { hud.show() }
         Toggle("Mostra il Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)
