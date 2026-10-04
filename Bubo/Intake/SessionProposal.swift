@@ -10,6 +10,17 @@ nonisolated enum SessionProposal: Equatable, Sendable {
     /// The Allegato is a git repo that is not a Progetto yet: "Apri come Progetto e crea Sessione".
     case newProject(URL)
 
+    /// The Sessione proposed when `text` names exactly one of `projects` as a whole word, ignoring case: «entra in
+    /// bubo e sistema il login» proposes a Sessione on `bubo` (ADR 0013).
+    static func forText(_ text: String, among projects: [URL]) -> SessionProposal? {
+        let words = Set(text.lowercased()
+            .split { !$0.isLetter && !$0.isNumber && $0 != "-" && $0 != "_" && $0 != "." }
+            .map(String.init))
+        let named = Set(projects.filter { words.contains($0.lastPathComponent.lowercased()) })
+        guard named.count == 1, let project = named.first else { return nil }
+        return .session(on: project)
+    }
+
     /// The Progetto the Sessione would work on.
     var project: URL {
         switch self {

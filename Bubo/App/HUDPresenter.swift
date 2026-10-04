@@ -45,31 +45,18 @@ final class HUDPresenter {
 
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
+    /// Opens the Neuroni window; set by the app.
+    @ObservationIgnored var showNeurons: (() -> Void)?
+    /// Opens the Riunioni window; set by the app.
+    @ObservationIgnored var showMeetings: (() -> Void)?
+
+    /// What the sidebar of the window has chosen, shown on the right; the Cervello when the window opens.
+    var selection = SidebarSelection.brain
     /// Shows the Galassia of a Sessione's Progetto, filtered on it with its comet followed; `nil` in previews.
     @ObservationIgnored var showInGalaxy: ((Session) -> Void)?
 
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
-
-    /// How the HUD lays out the Sessioni: the Vista chosen in Aspetto until the user switches.
-    private(set) var vista = VistaDelleSessioni.chosen()
-
-    /// The `Cambio vista` interval, from the switch until the HUD has laid out the new Vista.
-    @ObservationIgnored private var vistaSwitch: OSSignpostIntervalState?
-
-    /// Shows the Sessioni in `vista`, animated unless Riduci movimento is on.
-    func switchVista(to vista: VistaDelleSessioni) {
-        guard vista != self.vista else { return }
-        vistaSwitch = vistaSwitch ?? Signposts.beginInterval(.vistaSwitch)
-        withAnimation(Motion.isReduced ? nil : Motion.standard) { self.vista = vista }
-    }
-
-    /// Ends the `Cambio vista` interval, once the HUD has laid out the new Vista.
-    func endVistaSwitch() {
-        guard let vistaSwitch else { return }
-        Signposts.endInterval(.vistaSwitch, vistaSwitch)
-        self.vistaSwitch = nil
-    }
 
     /// Brings the HUD to the front with the new Sessione sheet (⌘N), filled in from `draft`.
     func createSession(from draft: SessionDraft = SessionDraft()) {
@@ -86,7 +73,7 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front on the Board, where the Bozze are.
     func showDrafts() {
-        switchVista(to: .board)
+        selection = .work
         show()
     }
 
@@ -125,6 +112,13 @@ final class HUDPresenter {
     /// Brings the HUD to the front on the Sessione `id`.
     func show(session id: Session.ID) {
         revealedSession = id
+        selection = .session(id)
+        show()
+    }
+
+    /// Brings the window to the front on the Domanda `id`, to continue it there («Apri la chat completa»).
+    func show(question id: UUID) {
+        selection = .question(id)
         show()
     }
 

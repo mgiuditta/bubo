@@ -5,8 +5,6 @@ struct HUDView: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(DeliveriesController.self) private var deliveries
     @Environment(\.openWindow) private var openWindow
-    /// The Vista chosen in Aspetto: choosing another there switches the HUD to it.
-    @AppStorage(VistaDelleSessioni.defaultsKey) private var chosenVista = VistaDelleSessioni.colonna
     /// The Domanda under the Orb.
     let questions: QuestionModel
     /// The Sessioni; `nil` when they cannot be kept.
@@ -18,15 +16,23 @@ struct HUDView: View {
 
     var body: some View {
         @Bindable var hud = hud
-        HStack(alignment: .top, spacing: Spacing.large) {
-            if hud.vista == .colonna, let sessions = visibleSessions {
-                SessionColumn(store: sessions)
-                    .padding(.vertical, Spacing.medium)
-            }
-            main
+        NavigationSplitView {
+            MainSidebar(selection: $hud.selection, questions: questions, sessions: sessions)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+        } detail: {
+            detail(for: hud.selection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.horizontal, Spacing.large)
-        .frame(minWidth: 720, minHeight: 560)
+        .frame(minWidth: 900, minHeight: 560)
+        // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
+        .onChange(of: hud.selection) { previous, selection in
+            switch selection {
+            case .neurons: hud.showNeurons?()
+            case .meetings: hud.showMeetings?()
+            default: return
+            }
+            hud.selection = previous
+        }
         .background {
             HUDBackground()
                 // Here, not next to the other sheets: one sheet modifier per view.
@@ -65,9 +71,6 @@ struct HUDView: View {
             if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }
         }
         .onAppear { hud.openWindow = openWindow }
-        .onChange(of: chosenVista) { hud.switchVista(to: chosenVista) }
-        // The new Vista's body has been laid out.
-        .onChange(of: hud.vista) { hud.endVistaSwitch() }
         // Runs after the first appearance, once the main thread is free again: launch is over.
         .task {
             let launching = launch.start()
@@ -116,10 +119,24 @@ struct HUDView: View {
         RecentProjects.load()
     }
 
-    /// The Sessioni to lay out, when there is at least one.
-    private var visibleSessions: SessionStore? {
-        guard let sessions, !sessions.sessions.isEmpty else { return nil }
-        return sessions
+    /// What the right column shows for `selection`.
+    @ViewBuilder
+    private func detail(for selection: SidebarSelection) -> some View {
+        switch selection {
+        case .brain, .neurons, .meetings:
+            main.padding(.horizontal, Spacing.l)
+        case .conversation(let id):
+            ConversationDetail(id: id, questions: questions, sessions: sessions)
+        case .project(let project):
+            if let sessions {
+                ProjectSessions(project: project, store: sessions, selection: Bindable(hud).selection)
+            }
+        case .work:
+            if let sessions {
+                SessionBoard(store: sessions)
+                    .padding(Spacing.l)
+            }
+        }
     }
 
     private var main: some View {
@@ -148,40 +165,37 @@ struct HUDView: View {
                 }
             }
             Spacer(minLength: Spacing.large)
-            if hud.vista == .orbita, let sessions = visibleSessions {
-                SessionOrbit(store: sessions, quota: questions.quota)
-            } else if hud.vista == .board, let sessions, !sessions.sessions.isEmpty || !sessions.drafts.drafts.isEmpty {
-                SessionBoard(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            } else {
-                HUDOrb()
-                    .frame(maxWidth: 520, maxHeight: 520)
-                    .padding(Spacing.large)
-                    .overlay(alignment: .bottom) {
-                        if OrbControls.shared.isShowingDedica {
-                            Text(Dedica.message)
-                                .font(Typography.body(size: 13))
-                                .foregroundStyle(Palette.textSecondary)
-                        } else if let forecast = questions.intake.forecast {
-                            OrbCaption(forecast: forecast)
-                        }
+            HUDOrb()
+                .frame(maxWidth: 360, maxHeight: 360)
+                .padding(Spacing.l)
+                .overlay(alignment: .bottom) {
+                    if OrbControls.shared.isShowingDedica {
+                        Text(Dedica.message)
+                            .font(Typography.body(size: 13))
+                            .foregroundStyle(Palette.textSecondary)
+                    } else if let forecast = questions.intake.forecast {
+                        OrbCaption(forecast: forecast)
                     }
-            }
-            if hud.vista == .striscia, let sessions = visibleSessions {
-                SessionStrip(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            }
+                }
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {
+                // The empty home invites to ask the Secondo cervello (ADR 0013).
+                if questions.turns.isEmpty && questions.answer.isEmpty {
+                    HomeHeader(questions: questions)
+                        .padding(.bottom, Spacing.m)
+                }
                 // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
                 // the first token, or until `claude` is ready.
                 if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
                     FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
                         .padding(.bottom, Spacing.small)
                 }
-                QuestionView(model: questions)
-                    .frame(maxWidth: 560)
+                HStack(alignment: .top, spacing: Spacing.s) {
+                    RecipientChip(recipient: .brain)
+                    QuestionView(model: questions)
+                }
+                    .frame(maxWidth: 640)
                     // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
                     .padding(.top, Spacing.medium)
             }

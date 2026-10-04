@@ -1,19 +1,13 @@
 import MetalKit
 import SwiftUI
 
-/// The live Orb at the centre of the HUD rings: the same Stato, Tinta and Variante as the Panel's.
+/// The live Orb of the window's home: the same Stato, Tinta and Variante as the Panel's.
 struct HUDOrb: View {
     var controls: OrbControls = .shared
-    @Environment(\.accessibilityReduceMotion) private var systemReducesMotion
-    @AppStorage(Motion.reducesMotionKey) private var reducesMotion = false
 
     var body: some View {
-        ZStack {
-            HUDRings(isAnimated: !(systemReducesMotion || reducesMotion))
-            OrbMetalView(controls: controls)
-                .padding(60)
-        }
-        .aspectRatio(1, contentMode: .fit)
+        OrbMetalView(controls: controls)
+            .aspectRatio(1, contentMode: .fit)
         .accessibilityElement()
         .accessibilityLabel(Text("Orb di Bubo", comment: "VoiceOver label of the Orb in the HUD; its value is the Stato."))
         .accessibilityValue(Text(controls.displayedState.title))

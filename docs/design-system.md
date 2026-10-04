@@ -80,6 +80,15 @@ Proposta provvisoria e sostituibile ([#228](https://github.com/mgiuditta/bubo/is
 - **Pagina del brand kit**: `reference/brand.html` (logotipo, costruzione, colore, tipografia, spaziatura, tono, componenti della finestra).
 - **Pulsante di vetro**: `GlassCapsuleButton`, capsula Liquid Glass alta 32 pt con icona ed etichetta, per azioni quiete come Impostazioni.
 
+## Finestra
+
+ADR 0013. Due colonne (`NavigationSplitView`): barra laterale in vetro di sistema, a destra la conversazione.
+
+- **Barra laterale**: Cervello, Neuroni, Riunioni; poi le Conversazioni per giorno (Oggi, Ieri, Questa settimana, Prima); poi i Progetti e Lavoro. Righe alte almeno 36 pt. Una Sessione ha il nome del Progetto in una capsula con filo `line` e, solo in «Attende te», il pallino Lume.
+- **Impostazioni**: `GlassCapsuleButton` in basso a sinistra.
+- **Composer**: il chip del Destinatario (capsula con filo `lineStrong`, testo in `textPrimary`) prima del campo; larghezza massima `Spacing.readingWidth`.
+- **Casa vuota**: Orb a 360 pt senza anelli, «Chiedi al tuo cervello» in `Font.buboDisplay`, tre suggerimenti in capsule con filo `line` presi dalle note cambiate per ultime.
+
 ## Forma e materiale
 
 - Raggi: 8 (controlli), 14 (pannelli), capsula per prompt e chip. Niente raggi enormi ovunque.
