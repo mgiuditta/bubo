@@ -18,6 +18,8 @@ final class EndpointSettings {
     private(set) var localModelID: String?
     /// Whether Bubo already proposed a Modello locale: it does so once, whatever the answer.
     private(set) var hasOfferedLocalModel: Bool
+    /// Whether Bubo already asked the consent for the notes of the Secondo cervello to Copilot: it does so once.
+    private(set) var hasAskedCopilotNotesConsent: Bool
 
     /// Creates the settings saved in `defaults`.
     init(defaults: UserDefaults = .standard) {
@@ -36,6 +38,7 @@ final class EndpointSettings {
         consents = Set(defaults.stringArray(forKey: Self.consentsKey) ?? [])
         localModelID = defaults.string(forKey: Self.localModelKey)
         hasOfferedLocalModel = defaults.bool(forKey: Self.localModelOfferedKey)
+        hasAskedCopilotNotesConsent = defaults.bool(forKey: Self.copilotNotesAskedKey)
     }
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -60,6 +63,12 @@ final class EndpointSettings {
     func markLocalModelOffered() {
         hasOfferedLocalModel = true
         defaults.set(true, forKey: Self.localModelOfferedKey)
+    }
+
+    /// Remembers that the consent for the notes to Copilot was asked, so that it never is again.
+    func markCopilotNotesConsentAsked() {
+        hasAskedCopilotNotesConsent = true
+        defaults.set(true, forKey: Self.copilotNotesAskedKey)
     }
 
     /// Saves `endpoint`, replacing the one with its id or adding it at the end.
@@ -119,4 +128,5 @@ final class EndpointSettings {
     private static let consentsKey = "router.cloudConsents"
     private static let localModelKey = "router.localModel"
     private static let localModelOfferedKey = "router.localModelOffered"
+    private static let copilotNotesAskedKey = "router.copilotNotesAsked"
 }

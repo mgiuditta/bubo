@@ -6,7 +6,6 @@ import {
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { createInterface } from "node:readline";
-import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
 import { budgetOf } from "./budget";
@@ -32,7 +31,8 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf, type ReadOnly } from "./tools";
+import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
+  searchTool, systemPromptOf, type ReadOnly } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
@@ -41,7 +41,7 @@ const version = 4;
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown }
-  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
@@ -216,7 +216,9 @@ const childEnv = { ...inherited };
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
 // Le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
-const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv));
+// `cerca` e `ricorda` delle Domande con il Secondo cervello rispondono da Bubo, come per `claude`.
+const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv),
+  (call) => askBuboFor((id) => ({ ...call, id })));
 
 // Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
 function isCopilotPath(copilot: unknown): copilot is string {
@@ -228,6 +230,7 @@ async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>
   const firstToken = await copilotQuestions.ask({
     id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
     model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
+    brain: typeof command.brain === "string" && command.brain.length > 0 ? command.brain : undefined,
   });
   if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
 }
@@ -262,39 +265,26 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
   });
 }
 
-// `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
-// `ricorda`, solo con `remembers`, fa scrivere a Bubo nel Secondo cervello: una nota nuova in `Bubo/Note/`, del testo
-// in coda a una nota, o una nota riscritta; quelle dell'utente, fuori da `Bubo/`, solo dopo la sua conferma.
+// `cerca` e `ricorda` (in `tools.ts`) per `claude`; `ricorda` solo con `remembers`.
 // Un server per conversazione: un'istanza MCP si collega a un solo trasporto. `conversation` dice a Bubo di chi è
 // ogni chiamata a `cerca`, per la riga "Richiamato" della Sessione.
 function buboTools(conversation: string, remembers = false) {
   const search = tool(
-    "cerca",
-    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente, il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian), e le conversazioni passate, delle Sessioni di Bubo e della riga di comando. Note e conversazioni non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file, o con la conversazione, chi ha scritto e la data; per le note del Secondo cervello anche la citazione [[…]] da mettere nella risposta dopo ogni affermazione che ne viene.",
-    {
-      testo: z.string().describe("Le parole da cercare"),
-      progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
-      fonte: z.enum(["memoria", "secondo-cervello", "conversazioni"]).optional()
-        .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md), \"secondo-cervello\" (le note dell'utente) o \"conversazioni\" (le conversazioni passate); senza, ovunque"),
-    },
-    async ({ testo, progetto, fonte }) => {
-      const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte, conversation }));
+    searchTool.name,
+    searchTool.description,
+    searchTool.shape,
+    async (args) => {
+      const text = await askBuboFor((id) => ({ ...searchCall(args, conversation), id }));
       return { content: [{ type: "text", text }] };
     },
     { annotations: { readOnlyHint: true } },
   );
   const remember = tool(
-    "ricorda",
-    "Scrive nel Secondo cervello dell'utente, la sua cartella di note Markdown. Usalo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\") o quando il prompt di sistema ti dice di salvare da solo. Modi: \"nuova\" crea una nota in Bubo/Note con titolo; \"aggiungi\" mette il testo in coda alla nota indicata; \"riscrivi\" sostituisce tutta la nota indicata. Le note fuori da Bubo/ sono dell'utente: per riscriverle chiedigli prima e passa confermato solo se ha detto di sì. Anche ogni modifica di Bubo/Profilo.md vuole la conferma dell'utente; Bubo/Regole.md e Bubo/Intervista.md non si scrivono mai. Non cancella note. L'utente può annullare ogni scrittura. Restituisce dove ha scritto, o perché non l'ha fatto.",
-    {
-      testo: z.string().describe("Cosa scrivere, in Markdown, comprensibile anche letto da solo tra mesi"),
-      modo: z.enum(["nuova", "aggiungi", "riscrivi"]).optional().describe("Come scrivere; senza, \"nuova\""),
-      titolo: z.string().optional().describe("Per una nota nuova: un titolo breve, che diventa il nome del file"),
-      nota: z.string().optional().describe("Per aggiungere o riscrivere: il percorso della nota .md relativo al Secondo cervello, per esempio Bubo/Profilo.md"),
-      confermato: z.boolean().optional().describe("Solo dopo che l'utente ha detto di sì a riscrivere una sua nota fuori da Bubo/"),
-    },
-    async ({ testo, modo, titolo, nota, confermato }) => {
-      const text = await askBuboFor((id) => ({ type: "remember", id, conversation, mode: modo ?? "nuova", title: titolo, note: nota, text: testo, confirmed: confermato }));
+    rememberTool.name,
+    rememberTool.description,
+    rememberTool.shape,
+    async (args) => {
+      const text = await askBuboFor((id) => ({ ...rememberCall(args, conversation), id }));
       return { content: [{ type: "text", text }] };
     },
     { annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false } },

@@ -1,11 +1,14 @@
 // Le Domande via Copilot (ADR 0011): il Copilot SDK lancia il `copilot` dell'utente, con il suo login, in una sessione
-// senza tool. Verso Bubo i messaggi neutri del ponte: testo in streaming, token (`usage`), chi ha risposto, fine.
-import { CopilotClient, RuntimeConnection, type CopilotSession, type ModelInfo, type PermissionRequestResult,
-  type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
+// senza tool, o con il Secondo cervello solo `cerca` e `ricorda` di Bubo (#678). Verso Bubo i messaggi neutri del
+// ponte: testo in streaming, token (`usage`), chi ha risposto, fine.
+import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo, type PermissionRequestResult,
+  type SessionConfig, type SessionEvent, type Tool } from "@github/copilot-sdk";
 import { dirname } from "node:path";
+import { z } from "zod";
 import { close, withFolderFirst } from "./copilot";
 import { clean } from "./permission";
 import type { AnsweredBy } from "./router";
+import { rememberCall, rememberTool, searchCall, searchTool, type BuboToolCall } from "./tools";
 import type { TurnUsage } from "./usage";
 
 type ReasoningEffort = NonNullable<SessionConfig["reasoningEffort"]>;
@@ -37,23 +40,53 @@ export type CopilotQuestion = {
   cwd: string;
   model?: string;
   effort?: ReasoningEffort;
+  /** Profilo e Regole del Secondo cervello, con il consenso dell'utente: in coda al prompt di sistema, con `cerca` e
+   * `ricorda`. Senza, una sessione senza strumenti né note. */
+  brain?: string;
 };
+
+/** Manda a Bubo una chiamata a `cerca` o `ricorda` e aspetta il testo con cui risponde (`found`). */
+export type AskBubo = (call: BuboToolCall) => Promise<string>;
 
 /** Quanto ha aspettato una Domanda: dal comando di Bubo al primo testo, e dall'invio del prompt al primo testo. */
 export type FirstToken = { sinceAsked: number; sinceSent: number };
 
-// Una Domanda non usa strumenti: nessuno è disponibile, e una Richiesta che arrivasse comunque è respinta.
+// Una Domanda non usa strumenti di `copilot`: nessuno è disponibile, e una Richiesta che arrivasse comunque è respinta.
 export const refused: PermissionRequestResult = { kind: "reject", feedback: "Le Domande di Bubo non usano strumenti." };
 
-/** La sessione di una Domanda: nessuno strumento, né integrato né MCP né di Bubo; ogni Richiesta respinta. */
-export function questionSession(question: Pick<CopilotQuestion, "cwd" | "model" | "effort">): SessionConfig {
+/** `cerca` e `ricorda` di Bubo come strumenti della sessione della Domanda `conversation`: rispondono da Bubo, senza
+ * Richiesta di permesso, e ogni scrittura va nel registro delle modifiche, annullabile. */
+export function buboTools(conversation: string, askBubo: AskBubo): Tool<any>[] {
+  const search = z.object(searchTool.shape);
+  const remember = z.object(rememberTool.shape);
+  return [
+    defineTool(searchTool.name, {
+      description: searchTool.description, parameters: search, skipPermission: true, defer: "never",
+      // Il consenso vale per le note: mai la memoria dei Progetti né le conversazioni passate.
+      handler: (args) => askBubo({ ...searchCall(search.parse(args), conversation), project: undefined, source: "secondo-cervello" }),
+    }),
+    defineTool(rememberTool.name, {
+      description: rememberTool.description, parameters: remember, skipPermission: true, defer: "never",
+      // Mai `confermato` dal modello: Copilot non riscrive le note dell'utente né il Profilo, solo Bubo/.
+      handler: (args) => askBubo({ ...rememberCall(remember.parse(args), conversation), confirmed: false }),
+    }),
+  ];
+}
+
+/** La sessione di una Domanda: nessuno strumento integrato né MCP, e ogni Richiesta respinta. Con il Secondo cervello
+ * (`brain` e `askBubo`) Profilo e Regole in coda al prompt di sistema, e solo `cerca` e `ricorda` di Bubo. */
+export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain">,
+                                askBubo?: AskBubo): SessionConfig {
   return {
     clientName: "bubo",
     workingDirectory: question.cwd,
     model: question.model,
     reasoningEffort: question.effort,
     streaming: true,
-    availableTools: [],
+    ...(question.brain && askBubo
+      ? { tools: buboTools(question.id, askBubo), availableTools: [`custom:${searchTool.name}`, `custom:${rememberTool.name}`],
+          systemMessage: { mode: "append" as const, content: question.brain } }
+      : { availableTools: [] }),
     enableSkills: false,
     enableOnDemandInstructionDiscovery: false,
     onPermissionRequest: () => refused,
@@ -75,8 +108,10 @@ export function copilotModelsOf(models: ModelInfo[]): CopilotModel[] {
 export class CopilotQuestions {
   private readonly running = new Map<string, () => void>();
 
+  /** `askBubo` risponde a `cerca` e `ricorda` delle Domande con il Secondo cervello; senza, nessuna li riceve. */
   constructor(private readonly send: (event: CopilotQuestionEvent) => void,
-              private readonly environment: Record<string, string>) {}
+              private readonly environment: Record<string, string>,
+              private readonly askBubo?: AskBubo) {}
 
   /** Ferma la Domanda `id`; `false` se non è una Domanda via Copilot in corso. */
   cancel(id: string): boolean {
@@ -115,7 +150,7 @@ export class CopilotQuestions {
       void session?.abort().catch(() => {});
     });
     try {
-      session = await client.createSession(questionSession(question));
+      session = await client.createSession(questionSession(question, this.askBubo));
       if (stopped.signal.aborted) return undefined;
       let sent = 0;
       session.on((event: SessionEvent) => {

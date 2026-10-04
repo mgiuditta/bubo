@@ -2,6 +2,7 @@
 // Un `copilot` finto per i test di `copilot-question.ts`: parla il JSON-RPC del Copilot SDK su stdio, senza rete e
 // senza turni pagati. Il prompt sceglie la scena:
 // - "sessione": risponde con gli strumenti chiesti dalla sessione, il modello e i token visti dal processo;
+// - "note": chiama `cerca` e poi `ricorda` e risponde con i loro risultati;
 // - "strumento": chiede il permesso di eseguire un comando e risponde con la decisione ricevuta;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error`;
@@ -11,6 +12,7 @@ import { randomUUID } from "node:crypto";
 let buffer = Buffer.alloc(0);
 const sessions = new Map();
 const permissions = new Map();
+const toolResults = new Map();
 
 function write(message) {
   const body = Buffer.from(JSON.stringify({ jsonrpc: "2.0", ...message }));
@@ -33,6 +35,8 @@ async function play(sessionId, prompt) {
   if (prompt === "sessione") {
     say(JSON.stringify({
       availableTools: session.availableTools ?? null,
+      tools: session.tools,
+      systemMessage: session.systemMessage ?? null,
       model: session.model ?? null,
       effort: session.effort ?? null,
       tokens: ["GH_TOKEN", "GITHUB_TOKEN", "COPILOT_GITHUB_TOKEN"].filter((name) => process.env[name] !== undefined),
@@ -47,6 +51,17 @@ async function play(sessionId, prompt) {
     });
     const result = await answer;
     say(result.kind);
+    idle();
+  } else if (prompt === "note") {
+    const call = (toolName, args) => {
+      const requestId = randomUUID();
+      const result = new Promise((resolve) => toolResults.set(requestId, resolve));
+      emit(sessionId, "external_tool.requested", { requestId, sessionId, toolCallId: randomUUID(), toolName, arguments: args });
+      return result;
+    };
+    say(await call("cerca", { testo: "gatto", fonte: "secondo-cervello" }));
+    say(" | ");
+    say(await call("ricorda", { testo: "Il gatto si chiama Bubo", titolo: "Gatto" }));
     idle();
   } else if (prompt === "lungo") {
     say("Comincio");
@@ -84,7 +99,9 @@ function handle(message) {
     case "models.list": return reply({ models });
     case "session.create": {
       const sessionId = params.sessionId ?? randomUUID();
-      sessions.set(sessionId, { model: params.model, effort: params.reasoningEffort, availableTools: params.availableTools });
+      sessions.set(sessionId, { model: params.model, effort: params.reasoningEffort, availableTools: params.availableTools,
+        tools: (params.tools ?? []).map((tool) => ({ name: tool.name, skipPermission: tool.skipPermission ?? false })),
+        systemMessage: params.systemMessage });
       return reply({ sessionId, workspacePath: params.workingDirectory });
     }
     case "session.send":
@@ -97,6 +114,10 @@ function handle(message) {
     case "session.permissions.handlePendingPermissionRequest":
       permissions.get(params.requestId)?.(params.result);
       permissions.delete(params.requestId);
+      return reply({ success: true });
+    case "session.tools.handlePendingToolCall":
+      toolResults.get(params.requestId)?.(params.result ?? `errore: ${params.error}`);
+      toolResults.delete(params.requestId);
       return reply({ success: true });
     default:
       if (id !== undefined) reply({ success: true });
