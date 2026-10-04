@@ -59,7 +59,7 @@ struct SettingsView: View {
         }
         // Wide enough for every tab in the toolbar, none in the overflow menu (#466). Fits a 13" screen;
         // the longer tabs scroll, and the window can be made taller.
-        .frame(minWidth: 820, minHeight: 360, idealHeight: 560, maxHeight: .infinity)
+        .frame(minWidth: 820, minHeight: 560, maxHeight: .infinity)
         .scenePadding()
         // System controls, but selection is lightness, not the system blue (design system).
         .tint(Palette.accent)
