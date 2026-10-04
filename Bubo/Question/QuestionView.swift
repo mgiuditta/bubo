@@ -128,12 +128,21 @@ struct QuestionView: View {
                 if case let .endpoint(endpoint) = alternative.target { model.endpoints.grantConsent(to: endpoint) }
                 model.retry(with: alternative, alwaysUse: alwaysUse)
             }
+            if model.hasSecondBrain, case let .endpoint(endpoint) = alternative.target {
+                Button("Consenti anche le note e invia") {
+                    model.endpoints.grantConsent(to: endpoint)
+                    model.endpoints.grantNotesConsent(to: endpoint)
+                    model.retry(with: alternative, alwaysUse: alwaysUse)
+                }
+            }
             Button("Non ora", role: .cancel) {
                 if case let .endpoint(endpoint) = alternative.target { model.decline(endpoint) }
             }
         } message: { alternative in
             if case let .endpoint(endpoint) = alternative.target {
-                if model.askedAttachments.isEmpty {
+                if model.hasSecondBrain, model.askedAttachments.isEmpty {
+                    Text("\(endpoint.name) riceve il testo della Domanda e, se consenti anche le note, il tuo Profilo, le Regole e le note del Secondo cervello più pertinenti, mai modifiche o memoria dei Progetti. La risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
+                } else if model.askedAttachments.isEmpty {
                     Text("\(endpoint.name) riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
                 } else {
                     Text("\(endpoint.name) riceve il testo della Domanda e degli allegati che hai confermato, mai modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli.")
