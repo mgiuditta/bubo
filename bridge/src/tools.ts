@@ -50,7 +50,8 @@ export const brainHomeInstruction = "Lavori dentro il Secondo cervello dell'uten
 // Il percorso reale di `path`, symlink risolti; se non esiste ancora, quello della cartella più vicina che esiste.
 function realPath(path: string): string {
   try {
-    return realpathSync(path);
+    // `native` dà le maiuscole del disco: su un volume che non le distingue, «archivio» è «Archivio».
+    return realpathSync.native(path);
   } catch {
     const parent = resolve(path, "..");
     return parent === path ? path : resolve(realPath(parent), path.slice(parent.length + 1));
