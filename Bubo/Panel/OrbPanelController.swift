@@ -62,7 +62,7 @@ final class OrbPanelController {
     /// Builds the window and starts following the HUD, the Panel's occlusion and the Riunioni.
     ///
     /// - Parameters:
-    ///   - openHUD: Called when the Orb is clicked or pressed by VoiceOver.
+    ///   - openHUD: Called by the VoiceOver action "Apri HUD", and when the bubble cannot open.
     ///   - menu: The menu of a right click on the Orb, the same as the menu bar's.
     ///   - questions: The Domanda of the HUD, which the bubble shows too.
     ///   - hud: Where the bubble's "Rifai con…" and Sessione go.
@@ -94,6 +94,7 @@ final class OrbPanelController {
         // The bubble is the default way to ask; the HUD stays a hot key or a menu item away.
         view.onPress = { [weak self] in self?.askInPanel() }
         view.onAsk = { [weak self] in self?.askInPanel() }
+        view.onOpenHUD = { [weak self] in self?.openHUD() }
         view.onToggleSize = { [weak self] in self?.isReduced.toggle() }
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }

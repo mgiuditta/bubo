@@ -8,6 +8,8 @@ import MetalKit
 final class OrbPanelView: MTKView {
     /// Called when the Orb is clicked or pressed by VoiceOver.
     var onPress: () -> Void = {}
+    /// Called by the VoiceOver action "Apri HUD", to open the HUD as ⌥Spazio does.
+    var onOpenHUD: () -> Void = {}
     /// Called by the VoiceOver action "Chiedi nel Panel", to open the bubble.
     var onAsk: () -> Void = {}
     /// Called by the VoiceOver action that switches the Panel to the other size.
@@ -144,7 +146,7 @@ final class OrbPanelView: MTKView {
             : String(localized: "Riduci il Panel")
         return [
             NSAccessibilityCustomAction(name: String(localized: "Apri HUD")) { [weak self] in
-                self?.onPress()
+                self?.onOpenHUD()
                 return true
             },
             NSAccessibilityCustomAction(name: String(localized: "Chiedi nel Panel")) { [weak self] in
