@@ -724,9 +724,12 @@ final class QuestionModel {
         subtitle = nil
     }
 
-    /// The Sessione the Allegati propose: those in the prompt, or else those of the last Domanda (spec 09).
+    /// The Sessione the Allegati propose: those in the prompt, or else those of the last Domanda (spec 09); with no
+    /// Allegati, the one Progetto the last prompt names (ADR 0013).
     var sessionProposal: SessionProposal? {
-        SessionProposal(for: attachments.isEmpty ? lastAttachments : attachments, projects: knownProjects())
+        let projects = knownProjects()
+        return SessionProposal(for: attachments.isEmpty ? lastAttachments : attachments, projects: projects)
+            ?? SessionProposal.forText(lastPrompt, among: projects)
     }
 
     /// Accepts `proposal`: stops the Domanda and hands it to a new Sessione on the proposed Progetto, with the files
@@ -746,9 +749,13 @@ final class QuestionModel {
     /// the last answer; with no last answer, what is typed or else the last prompt.
     func turnIntoSession() -> SessionDraft {
         stop()
+        // The Domanda stays among the Conversazioni, linked to the Sessione born from it.
+        archiveCurrentQuestion()
         let typed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !answer.isEmpty else { return SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed, turns: turns) }
-        return SessionDraft(prompt: typed, turns: turns + [QuestionTurn(prompt: lastPrompt, answer: answer)])
+        var draft = answer.isEmpty ? SessionDraft(prompt: typed.isEmpty ? lastPrompt : typed, turns: turns)
+            : SessionDraft(prompt: typed, turns: turns + [QuestionTurn(prompt: lastPrompt, answer: answer)])
+        draft.originQuestion = currentQuestionID
+        return draft
     }
 
     /// Waits until the limit that stopped the last Domanda resets, then asks it again.

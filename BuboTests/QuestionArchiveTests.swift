@@ -75,4 +75,17 @@ struct QuestionArchiveTests {
         model.startNewQuestion()
         #expect(archive.questions.isEmpty)
     }
+
+    @Test func aQuestionTurnedIntoASessionStaysListedAsItsOrigin() {
+        let archive = QuestionArchive(file: file())
+        let model = QuestionModel()
+        model.archive = archive
+        let id = UUID()
+        model.continueQuestion(ArchivedQuestion(id: id, title: "Login", date: .distantPast,
+                                                turns: [QuestionTurn(prompt: "Login", answer: "Scade il token")],
+                                                sessionID: nil))
+        let draft = model.turnIntoSession()
+        #expect(draft.originQuestion == id)
+        #expect(archive.questions.map(\.id) == [id])
+    }
 }

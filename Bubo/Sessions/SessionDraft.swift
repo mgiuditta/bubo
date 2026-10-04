@@ -14,6 +14,8 @@ nonisolated struct SessionDraft: Equatable, Sendable {
     var project: URL?
     /// The files of the Domanda's Allegati inside `project`, which the first prompt points to.
     var files: [URL] = []
+    /// The Domanda the Sessione is born from, kept among the Conversazioni with a link to it.
+    var originQuestion: UUID?
 
     /// Whether the Sessione continues a Domanda that got an answer.
     var continuesQuestion: Bool { !turns.isEmpty }

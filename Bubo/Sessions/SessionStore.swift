@@ -335,7 +335,7 @@ final class SessionStore {
     @discardableResult
     func start(_ prompt: String, title: String, branch: String, in project: URL, onCheckout: Bool = false,
                forkingFrom conversation: CLIConversation? = nil, upTo message: String? = nil,
-               issue: IssueLink? = nil, choice: EngineChoice? = nil) throws -> UUID {
+               issue: IssueLink? = nil, choice: EngineChoice? = nil, fromQuestion: UUID? = nil) throws -> UUID {
         if onCheckout, let taken = checkoutSession(of: project) { throw SessionError.checkoutTaken(by: taken.title) }
         var session = Session(id: UUID(), title: title, project: project, activitySince: .now)
         session.choice = choice ?? engines.choice(for: project)
@@ -344,6 +344,7 @@ final class SessionStore {
         session.forkedUpTo = conversation == nil ? nil : message
         session.continuedConversation = conversation?.id
         session.issue = issue
+        session.originQuestion = fromQuestion
         if onCheckout {
             session.isOnCheckout = true
             session.workspace = Workspace(folder: project)

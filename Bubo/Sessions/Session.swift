@@ -118,6 +118,8 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var isSummaryPending = false
     /// The pull request Apri PR opened on GitHub; `nil` until then.
     var pullRequest: PullRequestLink?
+    /// The Domanda this Sessione was born from, which stays among the Conversazioni with a link to it (ADR 0013).
+    var originQuestion: UUID?
     /// The Automazione that started the Sessione, with when; `nil` for the others.
     var automation: AutomationMark?
     /// The actions denied in the latest turn of the Esecuzione, oldest first.
@@ -248,6 +250,7 @@ nonisolated extension Session {
         summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
         isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
         pullRequest = try container.decodeIfPresent(PullRequestLink.self, forKey: .pullRequest)
+        originQuestion = try container.decodeIfPresent(UUID.self, forKey: .originQuestion)
         automation = try container.decodeIfPresent(AutomationMark.self, forKey: .automation)
         denials = try container.decodeIfPresent([Denial].self, forKey: .denials) ?? []
         effectiveMode = try container.decodeIfPresent(String.self, forKey: .effectiveMode)
