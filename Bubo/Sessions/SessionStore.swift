@@ -203,8 +203,12 @@ final class SessionStore {
     /// The store in Bubo's Application Support folder.
     static func makeDefault(alerts: WaitingAlerts, index: SearchIndex?, ledger: CostLedger,
                             bridge: @escaping () async throws -> AgentBridge) throws -> SessionStore {
-        let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
+        var support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask,
                                                   appropriateFor: nil, create: true)
+        #if DEBUG
+        // The UI tests' fake Sessioni, never the user's.
+        if SessionFixture.isRequested { support = try SessionFixture.makeSupportFolder() }
+        #endif
         let store = SessionStore(file: support.appending(path: "Bubo/Sessioni.json"), worktrees: try .makeDefault(),
                                  orb: .shared, alerts: alerts, ledger: ledger,
                                  drafts: DraftStore(file: support.appending(path: "Bubo/Bozze.json")),
