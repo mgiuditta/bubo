@@ -52,6 +52,15 @@ private struct PreviewPageView: View {
                 Button("Apri nel browser", action: preview.openUntrustedInBrowser)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if preview.unreachableURL != nil {
+            ContentUnavailableView {
+                Label("Il server non risponde", systemImage: "bolt.horizontal.circle")
+            } description: {
+                Text("Controlla che la Sessione abbia avviato il server, poi ricarica.")
+            } actions: {
+                Button("Ricarica", action: preview.reload)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             WebView(preview.page)
                 // The page is the user's, not Bubo's: it follows the system, not the HUD's forced dark.

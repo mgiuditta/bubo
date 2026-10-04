@@ -70,7 +70,10 @@ struct GalaxyFileList: View {
             .listStyle(.sidebar)
             .scrollContentBackground(.hidden)
             .overlay {
-                if model.filter != nil, model.rows.isEmpty {
+                // A search with no results says so, not that the Sessione changed nothing.
+                if model.rows.isEmpty, !model.query.isEmpty {
+                    ContentUnavailableView.search(text: model.query)
+                } else if model.filter != nil, model.rows.isEmpty {
                     ContentUnavailableView("Nessun file modificato", systemImage: "doc")
                 }
             }

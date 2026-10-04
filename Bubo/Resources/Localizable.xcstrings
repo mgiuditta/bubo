@@ -10065,7 +10065,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "The server isn’t responding"
+            "value" : "The Server Isn't Responding"
           }
         }
       }
@@ -12874,16 +12874,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can’t read %@: Claude skips its rules."
-          }
-        }
-      }
-    },
-    "Non riesco a leggere il file." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Can't read the file."
           }
         }
       }
@@ -19880,6 +19870,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "model id, as the provider writes it"
+          }
+        }
+      }
+    },
+    "Non riesco a leggere il file: forse è stato spostato o cancellato." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read the file: it may have been moved or deleted."
+          }
+        }
+      }
+    },
+    "Controlla che la Sessione abbia avviato il server, poi ricarica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check that the Session started the server, then reload."
           }
         }
       }

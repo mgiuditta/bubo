@@ -64,7 +64,7 @@ final class CodeViewerStore {
             return .lines(lines(of: text, fileExtension: file.pathExtension))
         } catch {
             Logger.editor.error("Visore: file not read: \(String(describing: error), privacy: .private)")
-            return .unreadable(String(localized: "Non riesco a leggere il file."))
+            return .unreadable(String(localized: "Non riesco a leggere il file: forse è stato spostato o cancellato."))
         }
     }
 

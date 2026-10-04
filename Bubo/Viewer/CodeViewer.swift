@@ -35,6 +35,11 @@ struct CodeViewer: View {
                 } icon: {
                     Image(systemName: "doc.questionmark")
                 }
+            } actions: {
+                // A way out even without an editor Bubo knows.
+                if let file = store.location?.file {
+                    Button("Mostra nel Finder") { NSWorkspace.shared.activateFileViewerSelecting([file]) }
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         case let .lines(lines):

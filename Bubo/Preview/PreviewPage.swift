@@ -27,6 +27,8 @@ final class PreviewPage {
     private(set) var console: [ConsoleLine] = []
     /// The address whose certificate is not trusted, offered to the system browser; `nil` when the page loads.
     private(set) var untrustedURL: URL?
+    /// The address whose server did not answer (off, wrong port, refused); `nil` when the page loads.
+    private(set) var unreachableURL: URL?
     /// The process listening on each port, to reload the page when its server comes back.
     @ObservationIgnored var serverPIDs: [Int: pid_t] = [:]
     /// Whether the agent is using the page, for the label "L'agente usa l'anteprima".
@@ -89,13 +91,19 @@ final class PreviewPage {
     @discardableResult
     func load(_ url: URL) -> some AsyncSequence<WebPage.NavigationEvent, any Error> {
         untrustedURL = nil
+        unreachableURL = nil
         return page.load(url)
     }
 
     /// Loads the page again, from the server.
     func reload() {
         untrustedURL = nil
-        page.reload()
+        // A first load that failed left no page to reload: the address that did not answer is loaded again.
+        if let unreachableURL {
+            load(unreachableURL)
+        } else {
+            page.reload()
+        }
     }
 
     /// Opens the address with the untrusted certificate in the system browser.
@@ -186,15 +194,19 @@ final class PreviewPage {
             do {
                 for try await event in page.navigations where event == .committed {
                     untrustedURL = nil
+                    unreachableURL = nil
                 }
                 return
             } catch WebPage.NavigationError.pageClosed {
                 return
             } catch WebPage.NavigationError.failedProvisionalNavigation(let error) {
                 let error = error as NSError
-                guard error.domain == NSURLErrorDomain,
-                      (NSURLErrorClientCertificateRequired...NSURLErrorSecureConnectionFailed).contains(error.code)
-                else { continue }
+                guard error.domain == NSURLErrorDomain, error.code != NSURLErrorCancelled else { continue }
+                // Not a blank page: the server is off or on another port, the most frequent case while developing.
+                guard (NSURLErrorClientCertificateRequired...NSURLErrorSecureConnectionFailed).contains(error.code) else {
+                    unreachableURL = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL ?? page.url
+                    continue
+                }
                 Logger.preview.notice("Untrusted certificate: page not opened (\(error.code, privacy: .public))")
                 untrustedURL = error.userInfo[NSURLErrorFailingURLErrorKey] as? URL ?? page.url
             } catch {
