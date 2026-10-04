@@ -2,3 +2,4 @@
 .build/
 xcuserdata/
 Bubo.xcodeproj/
+.DS_Store
