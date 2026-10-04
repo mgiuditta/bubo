@@ -11,6 +11,8 @@ struct MeetingView: View {
     @Environment(SecondBrain.self) private var secondBrain
     @AppStorage(SecondBrainSetupStep.meetingsShownKey) private var wereMeetingQuestionsShown = false
     @State private var isSettingUp = false
+    /// The speakers of the Riunione just saved that can take a name.
+    @State private var speakers: [String] = []
 
     var body: some View {
         Form {
@@ -64,6 +66,12 @@ struct MeetingView: View {
                         .foregroundStyle(Palette.success)
                 }
                 Button("Apri la nota") { NSWorkspace.shared.open(file) }
+            }
+            .task(id: file) {
+                speakers = MeetingSpeakers.named(in: (try? String(contentsOf: file, encoding: .utf8)) ?? "")
+            }
+            if !speakers.isEmpty {
+                MeetingSpeakersSection(file: file, speakers: $speakers)
             }
         case let .failed(failure):
             Section {

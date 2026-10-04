@@ -3912,6 +3912,16 @@
         }
       }
     },
+    "Chi ha parlato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who Spoke"
+          }
+        }
+      }
+    },
     "Chiedi al tuo cervello" : {
       "localizations" : {
         "en" : {
@@ -4607,6 +4617,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude's commands write only in the Session's folder and reach only the allowed hosts."
+          }
+        }
+      }
+    },
+    "I nomi entrano nella nota come link alle persone, anche fra i partecipanti. La nota non cambia nome." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The names go into the note as links to the people, and among the participants. The note keeps its name."
           }
         }
       }
@@ -5345,6 +5365,26 @@
         }
       }
     },
+    "Nome di %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name of %@"
+          }
+        }
+      }
+    },
+    "Nomi salvati nella nota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Names saved in the note"
+          }
+        }
+      }
+    },
     "Non riesco a riportare la nota com'era. Controlla di poter scrivere nella cartella del Secondo cervello, poi riprova." : {
       "localizations" : {
         "en" : {
@@ -5391,6 +5431,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "I can't find an Obsidian vault on this Mac. Any folder of Markdown notes works."
+          }
+        }
+      }
+    },
+    "Non è stato possibile salvare i nomi nella nota." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save the names in the note."
           }
         }
       }
@@ -6008,6 +6058,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Save automatically"
+          }
+        }
+      }
+    },
+    "Salva i nomi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save Names"
           }
         }
       }
