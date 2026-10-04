@@ -1,4 +1,5 @@
 import { realpathSync } from "node:fs";
+import { homedir } from "node:os";
 import { isAbsolute, resolve, sep } from "node:path";
 
 // Gli strumenti di Bubo che `claude` usa senza chiedere: `cerca` sempre, `ricorda` nelle Domande e nelle Sessioni,
@@ -63,8 +64,15 @@ function realPath(path: string): string {
 // Le regole `Read(...)` restano: questo vale anche con symlink e con nomi che hanno caratteri da glob.
 export function hiddenPathDenial(tool: string, input: unknown, cwd: string, hidden: string[]): string | undefined {
   if (hidden.length === 0 || !["Read", "Grep", "Glob"].includes(tool)) return undefined;
-  const fields = (input ?? {}) as { file_path?: unknown; path?: unknown };
-  const raw = typeof fields.file_path === "string" ? fields.file_path : typeof fields.path === "string" ? fields.path : cwd;
+  const fields = (input ?? {}) as { file_path?: unknown; path?: unknown; pattern?: unknown; glob?: unknown };
+  // Un pattern di Glob, o il filtro `glob` di Grep, assoluto, dalla home o con `..` esce dalla cartella cercata.
+  const pattern = tool === "Glob" ? fields.pattern : fields.glob;
+  if (tool !== "Read" && typeof pattern === "string" && /^[/~]|(^|[/\\])\.\.([/\\]|$)/.test(pattern)) {
+    return "Con cartelle escluse dal Secondo cervello i pattern restano dentro la cartella cercata: niente percorsi assoluti né «..».";
+  }
+  const given = typeof fields.file_path === "string" ? fields.file_path : typeof fields.path === "string" ? fields.path : cwd;
+  // `~` lo espande la CLI: qui pure, perché il percorso confrontato sia quello che verrà letto.
+  const raw = given === "~" || given.startsWith("~/") ? homedir() + given.slice(1) : given;
   const target = realPath(isAbsolute(raw) ? raw : resolve(cwd, raw));
   const inside = (child: string, parent: string) => child === parent || child.startsWith(parent + sep);
   for (const dir of hidden.map(realPath)) {

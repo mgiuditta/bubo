@@ -54,6 +54,10 @@ test("una Domanda non legge le cartelle escluse, nemmeno da un symlink o da una 
   mkdirSync(join(root, "Archivio [vecchio]", "dentro"), { recursive: true });
   expect(hiddenPathDenial("Grep", { path: "archivio [VECCHIO]/dentro" }, root, hidden)).toBeDefined();
   expect(hiddenPathDenial("Grep", { path: "Progetti" }, root, hidden)).toBeUndefined();
+  expect(hiddenPathDenial("Glob", { path: "Progetti", pattern: "../Archivio*/**" }, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Glob", { path: "Progetti", pattern: `${root}/Archivio*/**` }, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Grep", { path: "Progetti", glob: "~/**" }, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Glob", { path: "Progetti", pattern: "**/*.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Progetti/b.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Archivio [vecchio]/a.md" }, root, [])).toBeUndefined();
 });
