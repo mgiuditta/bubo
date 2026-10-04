@@ -43,7 +43,9 @@ struct OnboardingSteps: View {
             // Not color alone: the step to do next also gets a frame and a bolder title.
             if isHighlighted { Capsule().strokeBorder(Palette.accent) }
         }
+        // A merged HStack has no role of its own: without the trait VoiceOver reads it as «Unknown role».
         .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(.isStaticText)
         .accessibilityLabel(Text("Passo \(number) di 2: \(Text(title))"))
         .accessibilityValue(isDone ? Text("Fatto") : isHighlighted ? Text("Prossimo") : Text("Da fare"))
     }
