@@ -8,8 +8,13 @@ nonisolated struct Catalogo: Sendable {
     /// How many names the agent gets for its tag `⟦orb:nome⟧`: the list goes into every prompt, so it stays short.
     static let rosaLimit = 24
 
-    /// Every Variante, in file order.
+    /// Every Variante, in file order, retired ones included: a name never disappears.
     let varianti: [Variante]
+
+    /// The Varianti that may be chosen, in file order: every one but the retired.
+    var attive: [Variante] {
+        varianti.filter { !$0.isRetired }
+    }
 
     /// Creates the Catalogo from the `catalogo.json` in `bundle`.
     ///
@@ -48,23 +53,23 @@ nonisolated struct Catalogo: Sendable {
         varianti = file.varianti
     }
 
-    /// The Variante called `nome`, if the Catalogo has it.
+    /// The Variante called `nome`, if the Catalogo has it, even when retired: its Forma is still there to show.
     func variante(named nome: String) -> Variante? {
         varianti.first { $0.nome == nome }
     }
 
-    /// The Varianti of `categoria`, in file order.
+    /// The Varianti of `categoria` that may be chosen, in file order; the router picks among them.
     func varianti(in categoria: Categoria) -> [Variante] {
-        varianti.filter { $0.categoria == categoria }
+        attive.filter { $0.categoria == categoria }
     }
 
     /// The Varianti the agent may choose from while it works: the first of each Categoria, which the bridge's fallback
-    /// from tools uses, then those of `categoria`, then the others in file order, at most `limit`.
+    /// from tools uses, then those of `categoria`, then the others in file order, at most `limit`; never a retired one.
     func rosa(around categoria: Categoria? = nil, limit: Int = rosaLimit) -> [Variante] {
-        let firsts = Categoria.allCases.compactMap { categoria in varianti.first { $0.categoria == categoria } }
+        let firsts = Categoria.allCases.compactMap { categoria in varianti(in: categoria).first }
         let near = categoria.map(varianti(in:)) ?? []
         var chosen = Set<Variante>()
-        return Array((firsts + near + varianti).filter { chosen.insert($0).inserted }.prefix(limit))
+        return Array((firsts + near + attive).filter { chosen.insert($0).inserted }.prefix(limit))
     }
 
     /// The names of the Forme the Varianti need; each must have its file in `Orb/Forme`.
