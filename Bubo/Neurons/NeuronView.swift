@@ -37,7 +37,8 @@ struct NeuronView: View {
                 LoadingLabel("Leggo le note…")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if model.graph?.notes.isEmpty == true {
-                ContentUnavailableView("Nessuna nota nel Secondo cervello", systemImage: "point.3.connected.trianglepath.dotted")
+                ContentUnavailableView("Nessuna nota nel Secondo cervello", systemImage: "point.3.connected.trianglepath.dotted",
+                                       description: Text("Le note Markdown che aggiungi alla cartella compaiono qui da sole."))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
             Button("Mostra tutto", systemImage: "arrow.up.left.and.arrow.down.right") { model.fit() }

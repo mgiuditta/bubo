@@ -24,14 +24,14 @@ struct SecondBrainProposalCard: View {
             Text(verbatim: proposal.folder.path)
                 .font(.callout)
                 .foregroundStyle(Palette.textSecondary)
-            summary("Escluse", proposal.excludedFolders)
-            summary("Prioritarie", proposal.priorityFolders)
+            summary("Cartelle escluse", proposal.excludedFolders)
+            summary("Cartelle prioritarie", proposal.priorityFolders)
             summary("Persone", proposal.people)
             summary("Progetti", proposal.projects)
             preview("Profilo", proposal.profile)
             preview("Regole", proposal.rules)
             if applyFailed {
-                Text("Non riesco a usare questa cartella. Chiedi un'altra proposta o sceglila a mano.")
+                Text("Non riesco a scrivere in questa cartella: controlla che esista e che tu possa modificarla, poi premi di nuovo Applica.")
                     .font(.callout)
                     .foregroundStyle(Palette.danger)
             }

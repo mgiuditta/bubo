@@ -3580,16 +3580,6 @@
         }
       }
     },
-    "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua delle Riunioni." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bubo can't transcribe this language. The audio is saved on the Mac. Choose another Meeting language."
-          }
-        }
-      }
-    },
     "Bubo non può usare Copilot Free: con quel piano il modello lo sceglie GitHub. Serve un piano a pagamento." : {
       "localizations" : {
         "en" : {
@@ -3616,16 +3606,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo can't use the microphone. Allow it in System Settings › Privacy & Security › Microphone."
-          }
-        }
-      }
-    },
-    "Bubo non riesce a leggere il file o il video non ha audio." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bubo can’t read the file, or the video has no audio."
           }
         }
       }
@@ -3929,7 +3909,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Priority Folders"
+            "value" : "Prioritized folders"
           }
         }
       }
@@ -4050,16 +4030,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude didn't reload, to keep the prompt cache. Reload anyway loses it: the rest of the turn costs more tokens. MCP servers that change: %@."
-          }
-        }
-      }
-    },
-    "Claude salva preferenze, persone, progetti e decisioni seguendo Bubo/Regole.md. Spento, salva solo quando glielo chiedi." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claude saves preferences, people, projects and decisions following Bubo/Regole.md. When off, it saves only when you ask."
           }
         }
       }
@@ -5547,16 +5517,6 @@
         }
       }
     },
-    "Non sono riuscito a scaricare yt-dlp" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Couldn't download yt-dlp"
-          }
-        }
-      }
-    },
     "Non trovo vault di Obsidian su questo Mac. Va bene qualunque cartella di note Markdown." : {
       "localizations" : {
         "en" : {
@@ -6857,7 +6817,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Excluded Folders"
+            "value" : "Excluded folders"
           }
         }
       }
@@ -19367,42 +19327,12 @@
         }
       }
     },
-    "Non riesco a usare questa cartella. Chiedi un'altra proposta o sceglila a mano." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I can't use this folder. Ask for another proposal or choose it yourself."
-          }
-        }
-      }
-    },
     "Applica" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Apply"
-          }
-        }
-      }
-    },
-    "Escluse" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Excluded"
-          }
-        }
-      }
-    },
-    "Prioritarie" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Prioritized"
           }
         }
       }
@@ -19460,16 +19390,6 @@
         }
       }
     },
-    "Come grep: preciso su nomi e frasi esatte, non trova i sinonimi. Niente da scaricare." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Like grep: precise on names and exact phrases, but doesn’t find synonyms. Nothing to download."
-          }
-        }
-      }
-    },
     "Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice; tornare a Per parole lo elimina." : {
       "localizations" : {
         "en" : {
@@ -19486,16 +19406,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "By Words"
-          }
-        }
-      }
-    },
-    "Per significato (RAG)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "By Meaning (RAG)"
           }
         }
       }
@@ -19526,26 +19436,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Set Up in 60 Seconds…"
-          }
-        }
-      }
-    },
-    "In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In 60 seconds, choose the folder. In depth, the model interviews you and drafts your Profile and Rules."
-          }
-        }
-      }
-    },
-    "Vault di Obsidian trovati: %lld. In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Obsidian vaults found: %lld. In 60 seconds, choose the folder. In depth, the model interviews you and drafts your Profile and Rules."
           }
         }
       }
@@ -19820,6 +19710,156 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Drop to make it a Meeting"
+          }
+        }
+      }
+    },
+    "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua in Impostazioni › Generale › Lingua delle Riunioni." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can't transcribe this language. The audio is saved on the Mac. Choose another language in Settings › General › Meeting language."
+          }
+        }
+      }
+    },
+    "Bubo non riesce a leggere il file, o il video non ha audio. Prova con un file m4a, mp3, wav, mp4 o mov." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo can’t read the file, or the video has no audio. Try an m4a, mp3, wav, mp4 or mov file."
+          }
+        }
+      }
+    },
+    "Non sono riuscito a scaricare yt-dlp. Controlla la connessione e riprova." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't download yt-dlp. Check your connection and try again."
+          }
+        }
+      }
+    },
+    "Non usare più…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Using…"
+          }
+        }
+      }
+    },
+    "Non usare più «%@»?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop using “%@”?"
+          }
+        }
+      }
+    },
+    "Le note restano nella cartella. Bubo dimentica le cartelle escluse e prioritarie." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your notes stay in the folder. Bubo forgets the excluded and prioritized folders."
+          }
+        }
+      }
+    },
+    "Scegli la cartella delle note. Profilo e Regole puoi prepararli dopo, con «Personalizza a fondo»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your notes folder. You can prepare Profile and Rules later, with “Personalize in Depth”."
+          }
+        }
+      }
+    },
+    "Vault di Obsidian trovati: %lld. Scegli la cartella delle note. Profilo e Regole puoi prepararli dopo, con «Personalizza a fondo»." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Obsidian vaults found: %lld. Choose your notes folder. You can prepare Profile and Rules later, with “Personalize in Depth”."
+          }
+        }
+      }
+    },
+    "Bubo salva preferenze, persone, progetti e decisioni seguendo Bubo/Regole.md. Spento, salva solo quando glielo chiedi." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo saves preferences, people, projects and decisions following Bubo/Regole.md. When off, it saves only when you ask."
+          }
+        }
+      }
+    },
+    "Non riesco a scrivere in questa cartella: controlla che esista e che tu possa modificarla, poi premi di nuovo Applica." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can't write to this folder: check that it exists and that you can edit it, then press Apply again."
+          }
+        }
+      }
+    },
+    "Trova le parole esatte: preciso su nomi e frasi, non trova i sinonimi. Niente da scaricare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Finds the exact words: precise on names and phrases, but doesn’t find synonyms. Nothing to download."
+          }
+        }
+      }
+    },
+    "Per significato" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "By Meaning"
+          }
+        }
+      }
+    },
+    "Scegli la cartella delle tue note…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Your Notes Folder…"
+          }
+        }
+      }
+    },
+    "Prima scegli dove salvare le note." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First choose where to save the notes."
+          }
+        }
+      }
+    },
+    "Le note Markdown che aggiungi alla cartella compaiono qui da sole." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Markdown notes you add to the folder show up here on their own."
           }
         }
       }

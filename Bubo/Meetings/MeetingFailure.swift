@@ -39,17 +39,17 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
         case let .appSilent(app):
             "\(app) non sta riproducendo audio. Entra nella chiamata e riprova."
         case .languageUnsupported:
-            "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua delle Riunioni."
+            "Bubo non può trascrivere questa lingua. L'audio è salvato sul Mac. Scegli un'altra lingua in Impostazioni › Generale › Lingua delle Riunioni."
         case .transcriptionFailed:
             "Trascrizione non riuscita. L'audio è salvato sul Mac."
         case .noteNotWritten:
             "Cartella del Secondo cervello non trovata: la nota non è stata salvata. L'audio è salvato sul Mac. Controlla la cartella in Impostazioni › Generale."
         case .fileUnreadable:
-            "Bubo non riesce a leggere il file o il video non ha audio."
+            "Bubo non riesce a leggere il file, o il video non ha audio. Prova con un file m4a, mp3, wav, mp4 o mov."
         case .noVideo:
             "Questo link non ha un video che posso scaricare."
         case .downloaderUnavailable:
-            "Non sono riuscito a scaricare yt-dlp"
+            "Non sono riuscito a scaricare yt-dlp. Controlla la connessione e riprova."
         }
     }
 

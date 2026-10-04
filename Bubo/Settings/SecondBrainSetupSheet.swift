@@ -46,7 +46,10 @@ struct SecondBrainSetupSheet: View {
                 Button("Salta tutto") { dismiss() }
                     .keyboardShortcut(.cancelAction)
                 Spacer()
-                Button("Salta") { advance() }
+                // On the folder «Salta» would do what «Salta tutto» does: one way out is enough.
+                if step != .folder {
+                    Button("Salta") { advance() }
+                }
                 Button(isLast ? "Fine" : "Avanti") {
                     applyAnswer()
                     advance()

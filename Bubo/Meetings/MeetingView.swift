@@ -9,7 +9,6 @@ struct MeetingView: View {
     @State private var hasInformed = false
     @Environment(\.openURL) private var openURL
     @Environment(SecondBrain.self) private var secondBrain
-    @AppStorage(SecondBrainSetupStep.meetingsShownKey) private var wereMeetingQuestionsShown = false
     @State private var isSettingUp = false
     /// The speakers of the Riunione just saved that can take a name.
     @State private var speakers: [String] = []
@@ -42,16 +41,11 @@ struct MeetingView: View {
             }
             hasInformed = false
         }
-        // The first Riunione is the first use of the Secondo cervello for many: the conversation that sets it up
-        // without a folder, else only the questions about the Riunioni (#563).
-        .task { isSettingUp = !wereMeetingQuestionsShown }
-        .sheet(isPresented: $isSettingUp) {
-            if secondBrain.location == nil {
-                SecondBrainConversationSheet()
-            } else {
-                SecondBrainSetupSheet(steps: SecondBrainSetupStep.meetings)
-            }
-        }
+        // The first Riunione is the first use of the Secondo cervello for many: without a folder the note has nowhere
+        // to go, so the quick setup asks for it, then the questions about the Riunioni (#563). With a folder the
+        // recording starts at once: each question has a default, and Impostazioni › Generale changes it later.
+        .task { isSettingUp = secondBrain.location == nil }
+        .sheet(isPresented: $isSettingUp) { SecondBrainSetupSheet() }
     }
 
     /// How the last Riunione ended, when it did.
@@ -105,11 +99,17 @@ struct MeetingView: View {
                 }
             }
             Toggle("Ho avvisato i partecipanti della registrazione", isOn: $hasInformed)
+            // The note goes in the Secondo cervello: without its folder the recording could only fail at the end.
+            if secondBrain.location == nil {
+                LabeledContent("Prima scegli dove salvare le note.") {
+                    Button("Scegli la cartella…") { isSettingUp = true }
+                }
+            }
             Button("Registra") {
                 Task { await recorder.start(titled: title, app: app) }
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(!hasInformed)
+            .disabled(!hasInformed || secondBrain.location == nil)
         } header: {
             Text("Registra una Riunione")
         } footer: {

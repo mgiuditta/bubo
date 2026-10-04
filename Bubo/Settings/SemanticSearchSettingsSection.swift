@@ -9,13 +9,13 @@ struct SemanticSearchSettingsSection: View {
             Picker("Ricerca", selection: Binding(get: { isByMeaning }, set: { choose(byMeaning: $0) })) {
                 VStack(alignment: .leading) {
                     Text("Per parole")
-                    Text("Come grep: preciso su nomi e frasi esatte, non trova i sinonimi. Niente da scaricare.")
+                    Text("Trova le parole esatte: preciso su nomi e frasi, non trova i sinonimi. Niente da scaricare.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
                 .tag(false)
                 VStack(alignment: .leading) {
-                    Text("Per significato (RAG)")
+                    Text("Per significato")
                     Text("Capisce il senso anche con altre parole. Scarica un modello locale (\(TextEmbeddingModel.standard.size.formatted(.byteCount(style: .file)))) e usa GPU e batteria.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
