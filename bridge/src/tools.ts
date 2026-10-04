@@ -4,9 +4,42 @@ export function allowedBuboTools(remembers: boolean): string[] {
   return remembers ? ["mcp__bubo__cerca", "mcp__bubo__ricorda"] : ["mcp__bubo__cerca"];
 }
 
-// Il prompt di sistema del turno: l'istruzione dell'Orb e poi il Profilo e le Regole del Secondo cervello, quelli
-// che ci sono; senza nessuno dei due, `undefined`, e resta quello vuoto dell'SDK.
-export function systemPromptOf(orb: string | undefined, brain: string | undefined): string | undefined {
-  const parts = [orb, brain].filter((part): part is string => part !== undefined && part.length > 0);
-  return parts.length > 0 ? parts.join("\n\n") : undefined;
+// Il prompt di sistema del turno: le sue parti in ordine, quelle che ci sono (l'istruzione dell'Orb, quella della
+// Domanda nel Secondo cervello, il Profilo e le Regole); senza nessuna, `undefined`, e resta quello vuoto dell'SDK.
+export function systemPromptOf(...parts: (string | undefined)[]): string | undefined {
+  const found = parts.filter((part): part is string => part !== undefined && part.length > 0);
+  return found.length > 0 ? found.join("\n\n") : undefined;
 }
+
+// Una Domanda legge i file e non li cambia mai: `inBrain` dice che gira nel Secondo cervello, `hidden` sono le sue
+// cartelle escluse, che non legge.
+export type ReadOnly = { inBrain: boolean; hidden: string[] };
+
+export function readOnlyOf(value: unknown): ReadOnly | undefined {
+  if (typeof value !== "object" || value === null) return undefined;
+  const { brain, hidden } = value as { brain?: unknown; hidden?: unknown };
+  return {
+    inBrain: brain === true,
+    hidden: Array.isArray(hidden) ? hidden.filter((dir): dir is string => typeof dir === "string" && dir.startsWith("/")) : [],
+  };
+}
+
+// Gli strumenti integrati di una Domanda: solo quelli che leggono. Quelli che scrivono, eseguono, delegano a un
+// subagent o mandano fuori le note sono anche negati, perché nessuna regola dell'utente li riaccenda: nel Secondo
+// cervello si scrive solo con `ricorda`.
+export const readTools = ["Read", "Grep", "Glob", "WebSearch"];
+export const deniedTools = ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "BashOutput", "KillShell", "Task", "WebFetch"];
+
+// Le opzioni di una Domanda: gli strumenti che leggono; negati, dopo le regole `denied` della squadra, `deniedTools`
+// e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
+export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { tools: string[]; disallowedTools: string[] } {
+  return {
+    tools: readTools,
+    disallowedTools: [...denied, ...deniedTools, ...turn.hidden.map((dir) => `Read(/${dir.replace(/\/+$/, "")}/**)`)],
+  };
+}
+
+// Cosa sa una Domanda che gira nel Secondo cervello: dove si trova e che scrive solo con `ricorda`.
+export const brainHomeInstruction = "Lavori dentro il Secondo cervello dell'utente: la cartella di lavoro è la sua "
+  + "cartella di note. Leggi e cerca i file liberamente con Read, Grep e Glob, oltre che con cerca. Non puoi "
+  + "modificare, creare né cancellare file: per scrivere nel Secondo cervello usa solo ricorda.";

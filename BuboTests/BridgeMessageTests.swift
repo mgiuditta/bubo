@@ -30,6 +30,17 @@ struct BridgeMessageTests {
         #expect(String(decoding: line, as: UTF8.self).contains(#""dirs":["/tmp/allegati"]"#))
     }
 
+    // #678: a Domanda only reads, and never the excluded folders of the Secondo cervello.
+    @Test func readOnlyAskCarriesTheSecondBrainAndItsHiddenFolders() throws {
+        let readOnly = ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [URL(filePath: "/tmp/note/Privato/")])
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/note"),
+                                         settingSources: [], readOnly: readOnly).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""readOnly":{"brain":true,"hidden":["/tmp/note/Privato"]}"#))
+        let ordinary = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                             settingSources: []).line()
+        #expect(!String(decoding: ordinary, as: UTF8.self).contains("readOnly"))
+    }
+
     // #165: the residue of the tightest Budget goes as the turn's cap; at the cap the turn ends apart.
     @Test func askWithABudgetCarriesItsCap() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],

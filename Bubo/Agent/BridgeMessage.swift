@@ -8,6 +8,14 @@ enum BridgeProtocol {
     static let version = 4
 }
 
+/// A turn that reads files and never changes them, a Domanda's: only the tools that read, never Edit, Write or Bash.
+nonisolated struct ReadOnlyTurn: Equatable, Sendable {
+    /// Whether the turn runs in the Secondo cervello: the agent is told so, and that it writes only with `ricorda`.
+    var isInSecondBrain = false
+    /// The folders the agent must not read: the excluded folders of the Secondo cervello.
+    var hiddenDirectories: [URL] = []
+}
+
 /// A command Bubo writes to the bridge, one JSON object per line.
 enum BridgeCommand: Equatable {
     /// Starts a conversation with `claude` in `directory`, answering `prompt`, loading only `settingSources`.
@@ -30,13 +38,14 @@ enum BridgeCommand: Equatable {
     /// of an Esecuzione: no Richiesta di permesso, its rules as session rules, and a `denial` for each action denied.
     /// `readableDirectories` are folders `claude` reads besides `directory`, as `--add-dir`: those of the Allegati.
     /// `maxBudget` is what the tightest Budget has left, in US dollars, with the API key: `claude` stops there
-    /// (`maxBudgetUsd`); without it, no cap.
+    /// (`maxBudgetUsd`); without it, no cap. `readOnly` makes it a turn that only reads files, a Domanda's; without it,
+    /// the tools are those of `claude`.
     case ask(id: String, prompt: String, directory: URL, settingSources: [String], projectConfigRoot: URL? = nil,
              model: String? = nil, environment: [String: String] = [:], resuming: String? = nil, resumingAt: String? = nil,
              keeping: String? = nil, sandbox: SandboxPolicy? = nil, offersPreview: Bool = false, teamRules: TeamRules = TeamRules(),
              remembers: Bool = false, permissionMode: PermissionMode? = nil, effort: Effort? = nil, rosa: [String] = [],
              unattended: UnattendedTurn? = nil, readableDirectories: [URL] = [], maxBudget: Decimal? = nil,
-             secondBrain: String? = nil)
+             secondBrain: String? = nil, readOnly: ReadOnlyTurn? = nil)
     /// Starts a conversation with the user's `copilot` in `directory`, answering `prompt` (ADR 0012).
     ///
     /// `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the reasoning effort;
@@ -105,7 +114,7 @@ enum BridgeCommand: Equatable {
         switch self {
         case let .ask(id, prompt, directory, settingSources, projectConfigRoot, model, environment, resuming, resumingAt,
                       keeping, sandbox, offersPreview, teamRules, remembers, permissionMode, effort, rosa, unattended,
-                      readableDirectories, maxBudget, secondBrain):
+                      readableDirectories, maxBudget, secondBrain, readOnly):
             object = ["type": "ask", "id": id, "prompt": prompt, "cwd": directory.path, "settingSources": settingSources]
             object["projectConfigRoot"] = projectConfigRoot?.path
             object["model"] = model
@@ -130,6 +139,9 @@ enum BridgeCommand: Equatable {
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
             object["maxBudget"] = maxBudget.map { NSDecimalNumber(decimal: $0) }
             object["brain"] = secondBrain
+            if let readOnly {
+                object["readOnly"] = ["brain": readOnly.isInSecondBrain, "hidden": readOnly.hiddenDirectories.map(\.path)]
+            }
         case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes):
             object = ["type": "copilot", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
