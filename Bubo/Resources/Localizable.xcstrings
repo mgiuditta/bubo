@@ -214,6 +214,16 @@
         }
       }
     },
+    "%@ riceve il testo della Domanda e, se consenti anche le note, il tuo Profilo, le Regole e le note del Secondo cervello più pertinenti, mai modifiche o memoria dei Progetti. La risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ receives the text of the Question and, if you also allow notes, your Profile, your Rules and the most relevant Second Brain notes, never changes or Project memory. The answer is paid with your key. You can revoke consent in Settings › Models."
+          }
+        }
+      }
+    },
     "%@ riceve solo il testo della Domanda, mai file, modifiche o memoria dei Progetti, e la risposta si paga sulla tua chiave. Puoi revocare il consenso in Impostazioni › Modelli." : {
       "localizations" : {
         "en" : {
@@ -1160,6 +1170,28 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld risultati"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "%lld skill" : {
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld skill"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld skills"
                 }
               }
             }
@@ -2829,16 +2861,6 @@
         }
       }
     },
-    "Archiviate" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Archived"
-          }
-        }
-      }
-    },
     "Aree 1.1 spente" : {
       "localizations" : {
         "en" : {
@@ -2905,6 +2927,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting on you for %@"
+          }
+        }
+      }
+    },
+    "Attende te" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting on you"
           }
         }
       }
@@ -3414,16 +3446,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Blocco %1$lld di %2$lld, %3$lld decisi"
-          }
-        }
-      }
-    },
-    "Board" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Board"
           }
         }
       }
@@ -4226,6 +4248,16 @@
         }
       }
     },
+    "Consenti anche le note e invia" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow notes too and send"
+          }
+        }
+      }
+    },
     "Consenti…" : {
       "localizations" : {
         "en" : {
@@ -4386,6 +4418,16 @@
         }
       }
     },
+    "Copilot non riceve le note del Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot doesn't get your Second Brain notes"
+          }
+        }
+      }
+    },
     "Copilot non è collegato." : {
       "localizations" : {
         "en" : {
@@ -4402,6 +4444,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copilot can receive Questions and Project files"
+          }
+        }
+      }
+    },
+    "Copilot può usare le note del Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot can use your Second Brain notes"
+          }
+        }
+      }
+    },
+    "Copilot riceve Profilo e Regole del Secondo cervello, le note che cerca, e può scriverne di nuove: ogni scrittura si annulla. Lo cambi in Impostazioni › Modelli." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot gets your Second Brain Profile and Rules and the notes it searches, and can write new ones: every write can be undone. Change this in Settings › Models."
           }
         }
       }
@@ -4747,16 +4809,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Share didn't send it. Try again, or use another way."
-          }
-        }
-      }
-    },
-    "Il modello non risponde. Prova un altro modello o usa la cartella così com'è." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model isn't answering. Try another model or use the folder as it is."
           }
         }
       }
@@ -5888,17 +5940,6 @@
         }
       }
     },
-    "Questa versione di Bubo non apre ancora le Consegne. Aggiorna Bubo, poi riaprila." : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This version of Bubo can’t open Deliveries yet. Update Bubo, then open it again."
-          }
-        }
-      }
-    },
     "Questo link non ha un video che posso scaricare." : {
       "localizations" : {
         "en" : {
@@ -6911,26 +6952,6 @@
         }
       }
     },
-    "Cerca nei messaggi" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search messages"
-          }
-        }
-      }
-    },
-    "Cerca nei messaggi nella Palette (⌘K)" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Search messages in the Palette (⌘K)"
-          }
-        }
-      }
-    },
     "Cerca nelle conversazioni" : {
       "localizations" : {
         "en" : {
@@ -7175,6 +7196,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Close the diff"
+          }
+        }
+      }
+    },
+    "Chiudi la Domanda" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the Question"
           }
         }
       }
@@ -7562,16 +7593,6 @@
         }
       }
     },
-    "Colonna" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Column"
-          }
-        }
-      }
-    },
     "Comandi" : {
       "localizations" : {
         "en" : {
@@ -7688,6 +7709,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Confirm in Settings › Models that the key’s project has billing turned on: without it, Google uses questions to train its models, and it isn’t allowed in Europe."
+          }
+        }
+      }
+    },
+    "Configura il Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up the Second Brain"
           }
         }
       }
@@ -9009,16 +9040,6 @@
         }
       }
     },
-    "Filtra Sessioni e Cronologia CLI" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Filter Sessions and CLI History"
-          }
-        }
-      }
-    },
     "Filtri" : {
       "localizations" : {
         "en" : {
@@ -9701,6 +9722,17 @@
         }
       }
     },
+    "I file della skill sono in %@: puoi leggerli quando le istruzioni li citano." : {
+      "comment" : "Sent to Claude after a skill's instructions: the folder of its files, which Claude may read",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The skill's files are in %@: you can read them when the instructions mention them."
+          }
+        }
+      }
+    },
     "I report restano su questo Mac per 30 giorni: Bubo non li invia a nessuno." : {
       "localizations" : {
         "en" : {
@@ -9803,6 +9835,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "My Ticket"
+          }
+        }
+      }
+    },
+    "Il modello che scegli ti fa qualche giro di domande accanto all'Orb, poi ti mostra la mappa. Non scrivo nulla finché non dici sì." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The model you choose asks a few rounds of questions next to the Orb, then shows you the map. Nothing is written until you say yes."
           }
         }
       }
@@ -10549,6 +10591,16 @@
         }
       }
     },
+    "Invia senza note" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send without notes"
+          }
+        }
+      }
+    },
     "La chiave di %@ è cambiata. Può essere un Mac reinstallato, o qualcuno che si spaccia per %@. Finché non confrontate il codice, non puoi consegnare lì." : {
       "localizations" : {
         "en" : {
@@ -10701,6 +10753,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "You won’t be able to deliver to “%@” or open its Deliveries until you exchange Tickets again."
+          }
+        }
+      }
+    },
+    "Non riceve le note del Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doesn't get your Second Brain notes"
           }
         }
       }
@@ -11434,16 +11496,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your settings"
-          }
-        }
-      }
-    },
-    "Leggi" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Read"
           }
         }
       }
@@ -13628,16 +13680,6 @@
         }
       }
     },
-    "Orbita" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Orbit"
-          }
-        }
-      }
-    },
     "Orbite" : {
       "localizations" : {
         "en" : {
@@ -14697,6 +14739,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Web search"
+          }
+        }
+      }
+    },
+    "Riceve anche le note del Secondo cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also gets your Second Brain notes"
           }
         }
       }
@@ -16445,16 +16497,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "History (%lld)"
-          }
-        }
-      }
-    },
-    "Striscia" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Strip"
           }
         }
       }
@@ -19155,6 +19197,16 @@
         }
       }
     },
+    "Usare le tue note con Copilot?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use your notes with Copilot?"
+          }
+        }
+      }
+    },
     "%@ → %@, quota di 5 ore oltre la soglia (%@)" : {
       "localizations" : {
         "en" : {
@@ -19495,16 +19547,6 @@
         }
       }
     },
-    "Il modello scrive…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model is writing…"
-          }
-        }
-      }
-    },
     "Chiedi nel Panel  %@" : {
       "comment" : "Menu bar item: opens the bubble with its global shortcut.",
       "localizations" : {
@@ -19645,16 +19687,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Obsidian vaults found: %lld. In 60 seconds, choose the folder. In depth, the model interviews you and drafts your Profile and Rules."
-          }
-        }
-      }
-    },
-    "Il modello che scegli ti fa qualche giro di domande, poi ti mostra la mappa. Non scrivo nulla finché non dici sì." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The model you choose asks a few rounds of questions, then shows you the map. Nothing is written until you say yes."
           }
         }
       }
