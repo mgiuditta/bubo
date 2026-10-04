@@ -14,8 +14,10 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
     ///
     /// - Parameters:
     ///   - search: Makes the search over the current Sessioni and Cronologia CLI.
+    ///   - actions: Riprendi (⌥↩) and Continua da qui (⌘↩) on the chosen conversation.
     ///   - open: Opens a conversation, read only, after the Palette closes.
-    init(search: @escaping () -> ConversationSearch, open: @escaping (ConversationResult) -> Void) {
+    init(search: @escaping () -> ConversationSearch, actions: ResumeActions,
+         open: @escaping (ConversationResult) -> Void) {
         var close: () -> Void = {}
         model = PaletteModel(search: search) { result in
             close()
@@ -24,13 +26,14 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
         super.init()
         close = { [weak self] in self?.close() }
         model.close = close
+        model.actions = actions
     }
 
     /// The words searched in the box, without the gettoni.
     var searchedText: String { model.query.search.text }
 
     /// Whether the Palette is on screen.
-    var isShown: Bool { panel.isVisible }
+    private(set) var isShown = false
 
     /// Shows the Palette with an empty box, or closes it if it is shown: ⌘K.
     func toggle() {
@@ -50,7 +53,8 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
         query.absorbFilters()
         model.query = query
         NSApp.activate()
-        panel.makeKeyAndOrderFront(nil)
+        isShown = true
+        panel.makeKeyAndOrderFrontFading()
     }
 
     /// Searches again, as when the Sessioni or the Cronologia CLI changed.
@@ -60,7 +64,9 @@ final class PaletteWindow: NSObject, NSWindowDelegate {
 
     /// Closes the Palette.
     func close() {
-        panel.orderOut(nil)
+        // At once, so ⌘K during the fade opens it again.
+        isShown = false
+        panel.orderOutFading()
     }
 
     func windowDidResignKey(_ notification: Notification) {

@@ -18,7 +18,7 @@ struct LimitNotice: View {
         VStack(alignment: .leading, spacing: Spacing.small) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.small) {
                 Image(systemName: "hourglass")
-                    .foregroundStyle(Palette.attention)
+                    .foregroundStyle(Palette.textSecondary)
                     .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Spacing.xxSmall) {
                     Text(cause)
@@ -42,7 +42,7 @@ struct LimitNotice: View {
         .background(Palette.surface, in: .rect(cornerRadius: CornerRadius.large))
         .overlay {
             RoundedRectangle(cornerRadius: CornerRadius.large)
-                .strokeBorder(Palette.attention.opacity(0.4))
+                .strokeBorder(Palette.lineStrong)
         }
         .accessibilityElement(children: .contain)
         .confirmationDialog("Vuoi passare alla API key?", isPresented: $isConfirmingAPIKey) {

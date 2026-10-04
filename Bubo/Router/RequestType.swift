@@ -29,8 +29,8 @@ nonisolated enum RequestType: String, CaseIterable, Codable, Sendable {
         case .broadChange, .reasoning: 4  // Opus · medio
         case .smallFix, .writing: 3  // Sonnet · medio
         case .explore, .webSearch: 2  // Sonnet · basso
-        case .summary: 1  // Haiku
-        case .shortFact: 0  // Apple FM, otherwise Haiku
+        case .summary: 1  // Apple FM, otherwise Haiku
+        case .shortFact: 0  // Apple FM, otherwise Haiku; below Riassunto, whose Allegato may not fit
         }
     }
 

@@ -1,26 +1,26 @@
-/// A Forma the renderer can draw; the raw value is its SDF's name in `Orb.metal` and its `forma` in the Catalogo.
-nonisolated enum Forma: String, CaseIterable, Sendable {
-    case blob, lente, nuvola, cuore, busta, clessidra, parentesi, nota, pennello, moneta, aereo, fumetto, robot
-    /// The orbital diagram of the Orbite; it has no Variante in the Catalogo.
-    case orbite
+/// A Forma the renderer can draw, named as its `forma` in the Catalogo.
+///
+/// Each Forma is a file of its own, `Orb/Forme/<name>.metal`, whose fragment function `forma_<name>`
+/// builds its pipeline (ADR 0010). A name with no such function draws the Blob.
+nonisolated struct Forma: RawRepresentable, Hashable, Sendable {
+    /// The Forma's name: its file in `Orb/Forme` and its `forma` in the Catalogo.
+    let rawValue: String
 
-    /// The value of the shader's `FORMA` function constant that builds this Forma's pipeline.
-    var functionConstant: Int32 {
-        switch self {
-        case .blob: 0
-        case .lente: 1
-        case .nuvola: 2
-        case .cuore: 3
-        case .busta: 4
-        case .clessidra: 5
-        case .parentesi: 6
-        case .nota: 7
-        case .pennello: 8
-        case .moneta: 9
-        case .aereo: 10
-        case .fumetto: 11
-        case .robot: 12
-        case .orbite: 13
-        }
+    /// Creates the Forma called `rawValue`, whether or not the shader library has it.
+    init(rawValue: String) {
+        self.rawValue = rawValue
     }
+
+    /// The rest shape every Morph starts from and returns to.
+    static let blob = Forma(rawValue: "blob")
+    /// The orbital diagram of the Orbite; it has no Variante in the Catalogo.
+    static let orbite = Forma(rawValue: "orbite")
+    /// The owl of Bubo's Segno, the Orb's greeting; it has no Variante in the Catalogo.
+    static let gufo = Forma(rawValue: "gufo")
+
+    /// The prefix of every Forma's fragment function in the shader library.
+    static let fragmentFunctionPrefix = "forma_"
+
+    /// The name of the fragment function that builds this Forma's pipeline.
+    var fragmentFunctionName: String { Self.fragmentFunctionPrefix + rawValue }
 }

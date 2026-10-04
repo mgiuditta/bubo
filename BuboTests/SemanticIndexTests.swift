@@ -66,7 +66,21 @@ struct SemanticIndexTests {
         await index.rescan()
 
         #expect(try await index.hits(for: "felino").isEmpty)
+        #expect(try await index.hits(for: "micio").map(\.match) == [.words])
         #expect(await index.vectorCount == 0)
+        #expect(await !index.searchesByMeaning)
+    }
+
+    /// The Palette underlines what only the meaning found, and highlights the words of the rest.
+    @Test func eachHitSaysWhichRankingsFoundIt() async throws {
+        let index = try await index(of: ["parola": "Il tagliando del felino? No, della bicicletta.",
+                                         "senso": "Portare la macchina dal meccanico."])
+
+        let hits = try await index.hits(for: "tagliando", limit: 2)
+
+        #expect(hits.map(\.match) == [[.words, .meaning], .meaning])
+        #expect(hits.map(\.isFoundByMeaningOnly) == [false, true])
+        #expect(await index.searchesByMeaning)
     }
 
     @Test func wordsAndMeaningAreFusedWithTheBothFirst() async throws {

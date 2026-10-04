@@ -14,28 +14,28 @@ struct AgentRow: View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: entry.name)
-                    .font(.headline.monospaced())
+                    .font(Typography.mono(size: 13, weight: .semibold))
                     .textSelection(.enabled)
                 Text(source)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Palette.textSecondary)
                 Spacer()
                 if let model = entry.loaded?.model ?? entry.winner?.model {
                     Text(verbatim: model)
-                        .font(.callout.monospaced())
-                        .foregroundStyle(.secondary)
+                        .font(Typography.mono(size: 11))
+                        .foregroundStyle(Palette.textSecondary)
                         .accessibilityLabel(Text("Modello \(model)"))
                 }
             }
             Text(verbatim: entry.loaded?.description ?? entry.winner?.description ?? entry.files.first?.description ?? "")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Palette.textSecondary)
                 .lineLimit(3)
             if let file = entry.winner ?? entry.files.first {
                 if let tools = file.tools {
                     Text("Strumenti: \(tools.formatted(.list(type: .and, width: .narrow)))")
-                        .font(.callout)
+                        .font(Typography.body(size: 12))
                 } else {
                     Text("Tutti gli strumenti")
-                        .font(.callout)
+                        .font(Typography.body(size: 12))
                 }
             }
             status
@@ -60,17 +60,15 @@ struct AgentRow: View {
     private var status: some View {
         if entry.isIgnored {
             Label("Non caricato: il Progetto non è fidato.", systemImage: "lock")
-                .font(.callout)
-                .foregroundStyle(.secondary)
+                .font(Typography.body(size: 12))
+                .foregroundStyle(Palette.textSecondary)
         } else if entry.isUndecided {
-            Label("Stesso nome nella stessa cartella: claude ne carica uno secondo l'ordine di lettura, senza una regola.",
-                  systemImage: "exclamationmark.triangle.fill")
-                .font(.callout)
-                .symbolRenderingMode(.multicolor)
+            AgentNotice("Stesso nome nella stessa cartella: claude ne carica uno secondo l'ordine di lettura, senza una regola.",
+                        kind: .warning)
+                .font(Typography.body(size: 12))
         } else if isLoadedKnown, entry.loaded == nil {
-            Label("Non caricato da claude: controlla il frontmatter del file.", systemImage: "exclamationmark.triangle.fill")
-                .font(.callout)
-                .symbolRenderingMode(.multicolor)
+            AgentNotice("Non caricato da claude: controlla il frontmatter del file.", kind: .error)
+                .font(Typography.body(size: 12))
         }
     }
 
@@ -80,11 +78,11 @@ struct AgentRow: View {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
                 if entry.hasConflict && !entry.isIgnored {
                     Text(role(of: file))
-                        .font(.callout.weight(.semibold))
+                        .font(Typography.body(size: 12, weight: .semibold))
                 }
                 Text(verbatim: file.file.path)
-                    .font(.callout.monospaced())
-                    .foregroundStyle(.secondary)
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
                     .lineLimit(1)
                     .truncationMode(.head)
                     .help(file.file.path)

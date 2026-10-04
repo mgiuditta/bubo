@@ -248,6 +248,50 @@ struct GalaxyActivityTests {
         #expect(model.rows.count == GalaxyTests.files.count)
     }
 
+    @Test func showInGalaxyBeforeTheMapIsReadyFliesToTheCometOnceItIs() throws {
+        let model = GalaxyModel(project: URL(filePath: "/tmp/progetto"))
+        model.reducesMotion = { true }
+        var login = alpha
+        login.lastWrite = "README.md"
+        model.follow(login.id)
+        model.apply(GalaxyLayout(files: GalaxyTests.files))
+        model.update(sessions: [login, beta])
+        #expect(model.filter == login.id)
+        #expect(model.camera.center != model.layout?.stars[try star("README.md", in: model)].position)
+
+        model.resize(to: CGSize(width: 800, height: 600))
+        #expect(model.isFollowing)
+        #expect(model.camera.center == model.layout?.stars[try star("README.md", in: model)].position)
+    }
+
+    @Test func showInGalaxyNeverTurnsTheFilterOff() {
+        let model = makeModel()
+        model.follow(alpha.id)
+        model.follow(alpha.id)
+        #expect(model.filter == alpha.id)
+        model.follow(beta.id)
+        #expect(model.filter == beta.id)
+        #expect(model.isFollowing)
+    }
+
+    @Test func theOrbFollowsTheFilteredSessioneOnlyWhileItsGalassiaIsInFocus() {
+        let project = URL(filePath: "/tmp/progetto").standardizedFileURL
+        let store = GalaxyStore(projects: { [] }, viewer: { nil })
+        var focus: [UUID?] = []
+        store.focusOrb = { focus.append($0) }
+        let model = GalaxyModel(project: project)
+        model.update(sessions: [alpha, beta])
+        model.follow(alpha.id)
+
+        store.filterChanged(in: model)
+        #expect(focus.isEmpty)
+        store.focusChanged(to: true, in: project)
+        store.filterChanged(in: model)
+        store.focusChanged(to: false, in: URL(filePath: "/tmp/altro"))
+        store.focusChanged(to: false, in: project)
+        #expect(focus == [nil, alpha.id, nil])
+    }
+
     @Test func filesOnlyASessioneWroteGetAStar() async throws {
         let folder = URL.temporaryDirectory.appending(path: "galassia-\(UUID().uuidString)", directoryHint: .isDirectory)
         defer { try? FileManager.default.removeItem(at: folder) }

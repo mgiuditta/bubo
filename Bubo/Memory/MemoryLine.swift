@@ -1,8 +1,8 @@
 import Foundation
 import os
 
-/// A line Ricordato or Richiamato in a Sessione's flow: the agent wrote in the Memoria di Progetto, or memories came
-/// into its turn (spec 13).
+/// A line Ricordato, Salvato or Richiamato in a Sessione's flow: the agent wrote in the Memoria di Progetto or in the
+/// Secondo cervello, or memories came into its turn (spec 13).
 nonisolated struct MemoryLine: Codable, Equatable, Sendable, Identifiable {
     /// What happened to the memory.
     enum Event: Codable, Equatable, Sendable {
@@ -12,6 +12,8 @@ nonisolated struct MemoryLine: Codable, Equatable, Sendable, Identifiable {
         case recalled(MemoryRecall)
         /// Richiamato: the agent searched the Indice with `cerca` for `query`, and got `result`.
         case searched(query: String, result: String)
+        /// Salvato: the agent wrote a note of the Secondo cervello with `ricorda`.
+        case saved(BrainChange)
     }
 
     var id = UUID()
@@ -26,10 +28,18 @@ nonisolated struct MemoryLine: Codable, Equatable, Sendable, Identifiable {
         if case .remembered = event { true } else { false }
     }
 
-    /// Whether Annulla can put the file back: a Ricordato whose write Bubo copied, not undone yet.
+    /// Whether the line is Salvato.
+    var isSaved: Bool {
+        if case .saved = event { true } else { false }
+    }
+
+    /// Whether Annulla can put the file back: a Ricordato whose write Bubo copied, or a Salvato, not undone yet.
     var canUndo: Bool {
-        guard case let .remembered(write) = event else { return false }
-        return write.written != nil && !isUndone
+        switch event {
+        case let .remembered(write): write.written != nil && !isUndone
+        case .saved: !isUndone
+        case .recalled, .searched: false
+        }
     }
 
     /// What the line names: the memory written, the memories recalled, or the words searched.
@@ -47,6 +57,8 @@ nonisolated struct MemoryLine: Codable, Equatable, Sendable, Identifiable {
             }
         case let .searched(query, _):
             String(localized: "dall'Indice: «\(query)»")
+        case let .saved(change):
+            change.link
         }
     }
 
@@ -63,6 +75,8 @@ nonisolated struct MemoryLine: Codable, Equatable, Sendable, Identifiable {
             .joined(separator: "\n\n———\n\n")
         case let .searched(_, result):
             return result
+        case let .saved(change):
+            return read(change.file.path) ?? String(localized: "Il file non c'è più.")
         }
     }
 

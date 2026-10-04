@@ -3,7 +3,6 @@ import Testing
 @testable import Bubo
 
 /// The app menu has the standard items, and no two shortcuts collide.
-// ponytail: "Controlla aggiornamenti…" entra qui quando esiste (feature 27).
 @MainActor
 struct MainMenuTests {
     @Test func appMenuHasTheStandardItems() throws {
@@ -12,6 +11,9 @@ struct MainMenuTests {
         let actions = appMenu.items.compactMap(\.action)
         // Informazioni su Bubo opens the standard panel with Bubo's credits, through its own action.
         #expect(appMenu.items.contains { $0.title == String(localized: "Informazioni su Bubo") }, "Manca Informazioni su Bubo.")
+        // Off in a build that does not update itself, so with no action in the tests.
+        #expect(appMenu.items.contains { $0.title == String(localized: "Controlla aggiornamenti…") },
+                "Manca Controlla aggiornamenti….")
         #expect(actions.contains(#selector(NSApplication.hide(_:))), "Manca Nascondi Bubo.")
         #expect(actions.contains(#selector(NSApplication.terminate(_:))), "Manca Esci da Bubo.")
         #expect(appMenu.items.contains { $0.keyEquivalent == "," && $0.keyEquivalentModifierMask == .command },
@@ -63,6 +65,18 @@ struct MainMenuTests {
         #expect(Self.shortcut(of: item) == nil)
     }
 
+    @Test func pluginIsInTheWindowMenuWithoutAShortcut() throws {
+        let windowMenu = try #require(NSApp.windowsMenu)
+        let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Plugin") })
+        #expect(Self.shortcut(of: item) == nil)
+    }
+
+    @Test func automazioniIsInTheWindowMenuWithoutAShortcut() throws {
+        let windowMenu = try #require(NSApp.windowsMenu)
+        let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Automazioni") })
+        #expect(Self.shortcut(of: item) == nil)
+    }
+
     @Test func cronologiaIsInTheWindowMenuWithoutAShortcut() throws {
         let windowMenu = try #require(NSApp.windowsMenu)
         let item = try #require(Self.items(in: windowMenu).first { $0.title == String(localized: "Cronologia") })
@@ -88,6 +102,7 @@ struct MainMenuTests {
         #expect(commands.contains { $0.title == String(localized: "Mostra la Galassia") && $0.shortcut == "⌥⌘G" })
         #expect(commands.contains { $0.title == String(localized: "Sessione da issue GitHub…") && $0.shortcut == "⌘I" })
         #expect(commands.contains { $0.title == String(localized: "Agenti") && $0.shortcut == nil })
+        #expect(commands.contains { $0.title == String(localized: "Plugin") && $0.shortcut == nil })
         let editMenu = try #require(mainMenu.items.compactMap(\.submenu).first {
             $0.items.contains { $0.action == #selector(NSText.copy(_:)) }
         })

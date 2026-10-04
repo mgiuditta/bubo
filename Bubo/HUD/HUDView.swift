@@ -3,9 +3,8 @@ import SwiftUI
 /// The main window: the Orb at the centre of the HUD rings, with the Sessioni laid out in the current Vista.
 struct HUDView: View {
     @Environment(HUDPresenter.self) private var hud
+    @Environment(DeliveriesController.self) private var deliveries
     @Environment(\.openWindow) private var openWindow
-    /// The Vista chosen in Aspetto: choosing another there switches the HUD to it.
-    @AppStorage(VistaDelleSessioni.defaultsKey) private var chosenVista = VistaDelleSessioni.colonna
     /// The Domanda under the Orb.
     let questions: QuestionModel
     /// The Sessioni; `nil` when they cannot be kept.
@@ -17,24 +16,61 @@ struct HUDView: View {
 
     var body: some View {
         @Bindable var hud = hud
-        HStack(alignment: .top, spacing: Spacing.large) {
-            if hud.vista == .colonna, let sessions = visibleSessions {
-                SessionColumn(store: sessions)
-                    .padding(.vertical, Spacing.medium)
-            }
-            main
+        NavigationSplitView {
+            MainSidebar(selection: $hud.selection, questions: questions, sessions: sessions)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+        } detail: {
+            detail(for: hud.selection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.horizontal, Spacing.large)
-        .frame(minWidth: 720, minHeight: 560)
-        .background { HUDBackground() }
+        .frame(minWidth: 900, minHeight: 560)
+        // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
+        .onChange(of: hud.selection) { previous, selection in
+            switch selection {
+            case .neurons: hud.showNeurons?()
+            case .meetings: hud.showMeetings?()
+            default: return
+            }
+            hud.selection = previous
+        }
+        .background {
+            HUDBackground()
+                // Here, not next to the other sheets: one sheet modifier per view.
+                // Not while the foglio di Consegna is up: that one shows a Biglietto added from it.
+                .sheet(item: hud.deliverySession == nil ? Bindable(deliveries).pendingImport : .constant(nil)) { pending in
+                    TicketImportSheet(pending: pending, deliveries: deliveries)
+                }
+            // A Consegna opened: "Consegna ricevuta", or "Non si apre".
+            Color.clear
+                .sheet(item: Bindable(deliveries).receipt) { receipt in
+                    switch receipt.state {
+                    case let .received(opened):
+                        if let sessions {
+                            DeliveryReceivedSheet(opened: opened, deliveries: deliveries, store: sessions)
+                        }
+                    case let .failed(failure):
+                        DeliveryErrorSheet(failure: failure, machine: deliveries.machine) {
+                            deliveries.dismissReceipt()
+                        }
+                    }
+                }
+        }
+        // A drop with no Sessione in front: recordings and trascrizioni become Riunioni, the rest a new Domanda with the
+        // Allegati (regola "Sessione davanti").
+        .dropDestination(for: URL.self) { urls, _ in
+            if MeetingImportFile.isMeetingDrop(urls) {
+                hud.importMeetings(urls)
+                return true
+            }
+            let attachments = HUDDropDestination.attachments(from: urls)
+            questions.attach(attachments)
+            return !attachments.isEmpty
+        }
         .foregroundStyle(Palette.textPrimary)
         .sheet(isPresented: $hud.isCreatingSession) {
             if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }
         }
         .onAppear { hud.openWindow = openWindow }
-        .onChange(of: chosenVista) { hud.switchVista(to: chosenVista) }
-        // The new Vista's body has been laid out.
-        .onChange(of: hud.vista) { hud.endVistaSwitch() }
         // Runs after the first appearance, once the main thread is free again: launch is over.
         .task {
             let launching = launch.start()
@@ -58,6 +94,10 @@ struct HUDView: View {
                 if !onboarding.isAwaitingSignIn { return }
             }
         }
+        // Last, so the sheets above get it too: selection is lightness, not the system blue (design system).
+        .tint(Palette.accent)
+        // Only dark, sheets included, whatever the system's appearance (design system, ADR 0004).
+        .preferredColorScheme(.dark)
     }
 
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
@@ -79,18 +119,40 @@ struct HUDView: View {
         RecentProjects.load()
     }
 
-    /// The Sessioni to lay out, when there is at least one.
-    private var visibleSessions: SessionStore? {
-        guard let sessions, !sessions.sessions.isEmpty else { return nil }
-        return sessions
+    /// What the right column shows for `selection`.
+    @ViewBuilder
+    private func detail(for selection: SidebarSelection) -> some View {
+        switch selection {
+        case .brain, .neurons, .meetings:
+            main.padding(.horizontal, Spacing.l)
+        case .conversation(let id):
+            ConversationDetail(id: id, questions: questions, sessions: sessions)
+        case .project(let project):
+            if let sessions {
+                ProjectSessions(project: project, store: sessions, selection: Bindable(hud).selection)
+            }
+        case .work:
+            if let sessions {
+                SessionBoard(store: sessions)
+                    .padding(Spacing.l)
+            }
+        }
     }
 
     private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
+                    // Here, not next to the other sheets: one sheet modifier per view.
+                    .sheet(item: Bindable(hud).pullRequestSession) { session in
+                        if let sessions { PullRequestSheet(session: session, store: sessions) }
+                    }
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
-                QuotaView(quota: questions.quota)
+                QuotaView(quota: questions.quota) { hud.showCosts?() }
+                    // Here, not next to the other sheets: one sheet modifier per view.
+                    .sheet(item: Bindable(hud).deliverySession) { session in
+                        DeliverySheet(flow: .live(for: session, deliveries: deliveries))
+                    }
             }
             // Here, not next to the other sheets: one sheet modifier per view.
             .sheet(isPresented: Bindable(hud).isPickingIssue) {
@@ -103,34 +165,44 @@ struct HUDView: View {
                 }
             }
             Spacer(minLength: Spacing.large)
-            if hud.vista == .orbita, let sessions = visibleSessions {
-                SessionOrbit(store: sessions, quota: questions.quota)
-            } else if hud.vista == .board, let sessions, !sessions.sessions.isEmpty || !sessions.drafts.drafts.isEmpty {
-                SessionBoard(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            } else {
-                HUDOrb()
-                    .frame(maxWidth: 520, maxHeight: 520)
-                    .padding(Spacing.large)
-                    .overlay(alignment: .bottom) {
-                        if let forecast = questions.intake.forecast { OrbCaption(forecast: forecast) }
+            HUDOrb()
+                .frame(maxWidth: 360, maxHeight: 360)
+                .padding(Spacing.l)
+                .overlay(alignment: .bottom) {
+                    if OrbControls.shared.isShowingDedica {
+                        Text(Dedica.message)
+                            .font(Typography.body(size: 13))
+                            .foregroundStyle(Palette.textSecondary)
+                    } else if let forecast = questions.intake.forecast {
+                        OrbCaption(forecast: forecast)
                     }
-            }
-            if hud.vista == .striscia, let sessions = visibleSessions {
-                SessionStrip(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            }
+                }
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {
+                // The empty home invites to ask the Secondo cervello (ADR 0013).
+                if questions.turns.isEmpty && questions.answer.isEmpty {
+                    HomeHeader(questions: questions)
+                        .padding(.bottom, Spacing.m)
+                }
                 // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
                 // the first token, or until `claude` is ready.
                 if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
                     FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
                         .padding(.bottom, Spacing.small)
                 }
+                // The first Richiesta di permesso of the onboarding is answered here, not only in its Sessione.
+                if let sessions, let id = onboarding.sessionAwaitingFirstPermission,
+                   let session = sessions.sessions.first(where: { $0.id == id }),
+                   let pending = sessions.permissions.queues[id]?.first {
+                    FirstPermissionCard(flow: onboarding, store: sessions, session: session, pending: pending)
+                        .id(pending.id)
+                        .padding(.bottom, Spacing.small)
+                }
                 QuestionView(model: questions)
                     .frame(maxWidth: 560)
+                    // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
+                    .padding(.top, Spacing.medium)
             }
             Spacer(minLength: Spacing.large)
             if let sessions {
@@ -150,4 +222,5 @@ struct HUDView: View {
             launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
                                    subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}))
         .environment(HUDPresenter())
+        .environment(DeliveriesController.live())
 }

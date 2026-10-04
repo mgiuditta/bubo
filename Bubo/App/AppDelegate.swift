@@ -8,6 +8,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let hud = HUDPresenter()
     /// The always-on-top Panel with the Orb.
     let panel = OrbPanelController()
+    /// The pairing of the Telecomando, in Impostazioni › iPhone (spec 21).
+    let remote = PairingController.live()
+    /// The Progetti whose Sessioni never reach the iPhone, in Impostazioni › iPhone.
+    let macOnlyProjects = MacOnlyProjects()
+    /// Lets the Sessioni and the Battito out to the paired iPhones.
+    private(set) lazy var remoteBridge = RemoteBridge.live(remote: remote, macOnly: macOnlyProjects, sessions: sessions)
+    /// Whether the user is at the Mac: then a Richiesta reaches the iPhone without a notification.
+    let presence = PresenceMonitor()
+    /// Sends the Richieste di permesso to the paired iPhones and answers them with their Verdicts.
+    private(set) lazy var remoteRequests = RemoteRequests.live(remote: remote, macOnly: macOnlyProjects, presence: presence)
+    /// Keeps the iPhones up to date while Bubo runs.
+    private var remoteUpdates: Task<Void, Never>?
+    /// This Macchina's key and the Biglietti of the Consegne, in Impostazioni › Consegne (spec 24).
+    let deliveries = DeliveriesController.live()
+    /// Sparkle, in Impostazioni › Aggiornamenti and in "Controlla aggiornamenti…" (spec 27).
+    let updates = UpdateController()
     /// The Indice, kept fresh while Bubo runs; `nil` when its database cannot be opened.
     let searchIndex: SearchIndex? = {
         do {
@@ -21,19 +37,84 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var semanticSearch = SemanticSearch(index: searchIndex, store: try? TextEmbeddingModelStore.makeDefault())
     /// The folder of notes the Indice follows, chosen in the settings.
     private(set) lazy var secondBrain = SecondBrain(index: searchIndex)
+    /// Imports PDF and Word documents in the Secondo cervello. Only Apple's on-device model summarizes them: a
+    /// document never reaches the network.
+    private(set) lazy var documents = DocumentImporter(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()])
+    /// The record of every turn, of the Sessioni and of the Domande; in memory only when Application Support is
+    /// unavailable.
+    let ledger: CostLedger = {
+        do {
+            return try CostLedger.makeDefault()
+        } catch {
+            Logger.costs.error("Costi kept in memory: \(error)")
+            return CostLedger()
+        }
+    }()
     /// The Domanda of the HUD, answered through the agent bridge.
-    private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain)
+    private(set) lazy var questions: QuestionModel = {
+        let questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
+        questions.archive = try? QuestionArchive.live()
+        return questions
+    }()
+    /// Refreshes the PriceTable, at most once a day.
+    private var priceUpdates: Task<Void, Never>?
+    /// Checks the updates of every Marketplace's plugins, once a day, with the Plugin window closed too.
+    private let pluginUpdates = PluginUpdateScheduler(checker: .live())
     /// The Sessioni, sharing the Domanda's bridge to `claude`; `nil` when Application Support is unavailable.
     private(set) lazy var sessions: SessionStore? = {
         do {
-            let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: notifier.announce,
-                                       withdraw: notifier.withdraw)
-            return try SessionStore.makeDefault(alerts: alerts, index: searchIndex) { [questions] in try await questions.readyBridge() }
+            // A Richiesta the iPhone rings for leaves the Mac's notification silent: one sound per Richiesta.
+            let alerts = WaitingAlerts(isSeen: { [hud] in hud.isFrontmost }, announce: { [notifier, remoteRequests] session, pending in
+                await notifier.announce(session, request: pending,
+                                        isSilent: pending != nil && remoteRequests.notifiesPhone(about: session))
+            }, withdraw: notifier.withdraw)
+            let store = try SessionStore.makeDefault(alerts: alerts, index: searchIndex, ledger: ledger) { [questions] in try await questions.readyBridge() }
+            // Passa all'abbonamento at 100% of a Budget moves the Domande too: one bridge, one credential.
+            store.moveToSubscription = { [questions] in questions.moveToSubscription() }
+            store.undoSaved = { [secondBrain] in try secondBrain.undo($0) }
+            return store
         } catch {
             Logger.sessions.error("Sessioni unavailable: \(error)")
             return nil
         }
     }()
+    /// The Riassunti di Sessione, written in the Secondo cervello at Fondi and Archivia; `nil` without Sessioni.
+    private(set) lazy var summarizer: SessionSummarizer? = makeSummarizer()
+    /// The Riunioni: recorded, transcribed and summarized on the Mac, saved in the Secondo cervello. Only Apple's
+    /// on-device model summarizes them: a Riunione never reaches a new recipient.
+    private(set) lazy var meetings = MeetingRecorder(secondBrain: secondBrain, engines: [FoundationModelsSummaryEngine()],
+                                                     store: try? MeetingAudioStore.makeDefault())
+    /// The interview that sets up the Secondo cervello, in the bubble of the Orb.
+    private(set) lazy var brainSetup: SecondBrainConversation = {
+        let conversation = SecondBrainConversation(questions: questions, secondBrain: secondBrain)
+        conversation.showConversation = { [weak self] in self?.panel.askInPanel() }
+        return conversation
+    }()
+    /// The window of the Riunioni.
+    private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings, secondBrain: secondBrain, questions: questions,
+                                                        brainSetup: brainSetup)
+    /// Writes the pending Riassunti di Sessione each time the network returns.
+    private var summaryRetries: Task<Void, Never>?
+    /// What starts the Esecuzioni of the Automazioni; `nil` without the Sessioni.
+    private(set) lazy var executions: ExecutionRunner? = sessions.map { sessions in
+        let runner = ExecutionRunner(automations: sessions.automations, sessions: sessions)
+        runner.onFinish = { [notifier] automation, execution in
+            Task { await notifier.announceResult(of: execution, from: automation) }
+        }
+        return runner
+    }
+    /// Starts the Esecuzioni at the times of their Ripetizioni; `nil` without the Sessioni.
+    private lazy var scheduler: AutomationScheduler? = sessions.flatMap { sessions in
+        executions.map { runner in
+            let scheduler = AutomationScheduler(automations: sessions.automations, runner: runner)
+            scheduler.onRecovery = { [notifier] automation, scheduledAt in
+                Task { await notifier.announceRecovery(of: automation, scheduledAt: scheduledAt) }
+            }
+            return scheduler
+        }
+    }
+    /// Removes the worktrees that a crash left to the Esecuzioni; `nil` without the Sessioni.
+    private lazy var sweeper: WorktreeSweeper? = sessions.map { WorktreeSweeper(automations: $0.automations, sessions: $0) }
     /// The first launch in the HUD: the first Sessione starts from there, and its first token ends it.
     private(set) lazy var onboarding: OnboardingFlow = {
         let flow = OnboardingFlow(hasSessions: sessions?.sessions.isEmpty == false,
@@ -54,9 +135,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         return flow
     }()
     /// The notifications of the Sessioni in Attende te; a click opens the HUD, Solo ora and No answer from there.
-    private lazy var notifier = Notifier { [hud] in hud.show() } answer: { [weak self] request, session, allows in
+    private lazy var notifier = Notifier { [hud] session in
+        if let session { hud.show(session: session) } else { hud.show() }
+    } answer: { [weak self] request, session, allows in
         self?.sessions?.answerFromNotification(request, in: session, allows: allows)
     }
+    /// The notifications of a Budget past its threshold, read at each turn the ledger records.
+    private lazy var budgetAlerts = BudgetAlerts(ledger: ledger) { [notifier] status in await notifier.announce(status) }
+    /// The window of the Neuroni, while open.
+    private var neurons: NeuronWindow?
     /// The Galassia windows, one per Progetto.
     private(set) lazy var galaxies = GalaxyStore { [weak self] in
         self?.sessions?.projects ?? []
@@ -70,22 +157,47 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// What starts once the HUD is interactive: the only place for work after launch.
     private(set) lazy var launch = makeLaunchSequence()
     /// The Palette, opened with ⌘K: the past conversations, searched in the Indice.
-    private(set) lazy var palette: PaletteWindow = PaletteWindow { [weak self] in
+    private(set) lazy var palette: PaletteWindow = PaletteWindow(search: { [weak self] in
         ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
                            history: self?.sessions?.lastHistory ?? [])
-    } open: { [weak self] result in
+    }, actions: resumeActions) { [weak self] result in
         self?.history.show(result, searching: self?.palette.searchedText ?? "")
     }
     /// The Cronologia window: the past conversations, read only on the message found.
-    private(set) lazy var history: HistoryWindow = HistoryWindow { [weak self] in
+    private(set) lazy var history: HistoryWindow = HistoryWindow(search: { [weak self] in
         ConversationSearch(index: self?.searchIndex, sessions: self?.sessions?.sessions ?? [],
                            history: self?.sessions?.lastHistory ?? [])
-    } read: { [sessions] conversation in
+    }, read: { [sessions] conversation in
         guard let sessions else { throw CocoaError(.fileReadUnknown) }
         return try await sessions.transcript(ofConversation: conversation)
+    }, actions: resumeActions)
+    /// The Costi window: the CostLedger's turns by Progetto, Sessione, model, provider and period.
+    private(set) lazy var costs = CostsWindow(ledger: ledger) { [weak self] id in
+        self?.sessions?.sessions.first { $0.id == id }?.title
     }
-    /// The global shortcut; created at launch so it works with no window open.
-    private(set) lazy var hotKeys = HotKeyCenter { [hud] in hud.toggle() }
+    /// Riprendi and Continua da qui, from the Palette and the Cronologia window.
+    private(set) lazy var resumeActions = ResumeActions(sessions: { [weak self] in self?.sessions }, hud: hud)
+    /// The global shortcuts; created at launch so they work with no window open.
+    private(set) lazy var hotKeys = HotKeyCenter { [pushToTalk] in pushToTalk.press(sending: $0) } release: { [pushToTalk] in
+        pushToTalk.release()
+    } ask: { [weak self] in
+        // With the Panel hidden there is no Bolla: the Domanda of the HUD instead.
+        guard let self, panel.isShown else { self?.hud.show(); return }
+        panel.askInPanel()
+    } attachWindow: { [weak self] in
+        self?.panel.attachWindow()
+    }
+    /// The global shortcut held down: dictation into the Domanda, sent at release unless it was the sola dettatura.
+    private(set) lazy var pushToTalk = PushToTalk(listener: SpeechListener()) { [questions] in
+        questions.stopSpeaking()
+    } tap: { [hud] in hud.toggle() } show: { [hud] in
+        hud.show()
+    } dictate: { [questions] text, sends in
+        questions.prompt = text
+        if sends { questions.askByVoice() }
+    } predict: { [questions] text in
+        questions.predict(text)
+    }
 
     /// Shows the standard About panel, with Bubo's one line of credits.
     func showAboutPanel() {
@@ -99,6 +211,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
     }
 
+    private func makeSummarizer() -> SessionSummarizer? {
+        guard let sessions else { return nil }
+        let claude = ClaudeSummaryEngine(bridge: { [questions] in try await questions.readyBridge() },
+                                         usage: { usage, id, turn in
+            guard let project = sessions.sessions.first(where: { $0.id == id })?.project else { return }
+            sessions.ledger.record(usage, turn: turn, session: id, project: project)
+        })
+        let engines: [any SummaryEngine] = [claude, FoundationModelsSummaryEngine()]
+        return SessionSummarizer(sessions: sessions, secondBrain: secondBrain, index: searchIndex, engines: engines,
+                                 transcript: { conversation in try await sessions.transcript(ofConversation: conversation) })
+    }
+
     private func makeLaunchSequence() -> LaunchSequence {
         LaunchSequence { [questions] in
             await questions.startBridge()
@@ -109,7 +233,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } keepIndexFresh: { [searchIndex, secondBrain, semanticSearch] in
             secondBrain.start()
             semanticSearch.start()
-            await searchIndex?.keepFresh()
+            await withDiscardingTaskGroup { group in
+                group.addTask { await searchIndex?.keepFresh() }
+                group.addTask { await semanticSearch.followPauses() }
+            }
         } subscribeToMetrics: {
             MetricsCollector.shared.subscribe()
         } startConfigurationSpare: { [weak self] in
@@ -122,8 +249,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Before the first frame, or MetricKit refuses to extend the launch.
         MetricsCollector.shared.extendLaunch()
-        FontRegistry.registerBundledFonts()
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
+        // Before any App Intent runs: "Chiedi a Bubo" asks the Domanda of the HUD.
+        AskBuboIntent.questions = questions
+        // "Apri Galassia" opens the Galassia windows; with one in focus, the Orb follows its filtered Sessione.
+        OpenGalaxyIntent.galaxies = galaxies
+        // "Cerca nella cronologia" opens the Palette, as ⌘K does.
+        SearchHistoryIntent.palette = self
+        // "Registra una Riunione" opens the window of the Riunioni.
+        meetings.showWindow = { [weak self] in self?.meetingWindow.show() }
+        RecordMeetingIntent.recorder = meetings
+        galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
+        // At once, within the turn that passes a Budget's threshold.
+        ledger.didRecord = { [weak self] entry in self?.budgetAlerts.check(after: entry) }
+        hud.showInGalaxy = { [galaxies] session in galaxies.show(session) }
+        // "Nuova Sessione" starts its Sessioni in the HUD's store; the Domanda proposes them on the same Progetti.
+        if let sessions {
+            NewSessionIntent.starter = IntentSessionStarter(store: sessions, hud: hud, panel: panel)
+            questions.knownProjects = { [weak sessions] in sessions?.projects ?? [] }
+        }
+        hud.attachToQuestion = { [questions] attachments in questions.attach(attachments) }
         notifier.start()
     }
 
@@ -133,36 +278,181 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Before any turn can start, so the first token reaches it.
         _ = onboarding
         sessions?.onFileActivity = { [weak self] id, progress in self?.galaxies.record(progress, by: id) }
+        // The Ripetizioni of the Automazioni; an Esecuzione left in corso at quitting becomes Interrotta.
+        scheduler?.start()
+        sweeper?.start()
+        // Before any Fondi or Archivia, so their summaries start; the pending ones are written once online.
+        summaryRetries = Task { [summarizer] in await summarizer?.keepRetrying() }
+        // A build without the Telecomando reads nothing from CloudKit, also with iPhones paired in another build.
+        if ReleaseArea.remote.isAvailable() {
+            startRemoteUpdates()
+        }
+        // The feature's only network call, away from the launch; `updateIfDue` lets it through once a day.
+        priceUpdates = Task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(30))
+                await PriceTable.shared.updateIfDue()
+                try? await Task.sleep(for: .seconds(6 * 60 * 60))
+            }
+        }
+        pluginUpdates.start()
+        updates.start()
+        Task { [meetings] in await meetings.removeExpiredAudio() }
         // Opening the HUD reads the Quota, never its appearance at launch: that would start a `claude` (spec 25).
         hud.didShow = { [weak self] in
+            // The first opening after launch: the Orb greets as the owl of the Segno, then back to the Blob.
+            OrbControls.shared.greet()
             Task { await self?.questions.readQuotaIfNeeded() }
         }
         // The same SwiftUI menu as the menu bar's, so the two never drift apart.
-        let menu = NSHostingMenu(rootView: MenuBarContent()
+        let menu = NSHostingMenu(rootView: MenuBarContent(sessions: sessions, questions: questions, meetings: meetings) { [weak self] in
+            self?.showNeurons()
+        }
             .environment(hud)
             .environment(hotKeys)
-            .environment(panel))
-        panel.start(openingHUD: { [hud] in hud.show() }, menu: menu)
+            .environment(panel)
+            .environment(documents)
+            .environment(updates))
+        panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
+                    sessions: sessions, meetings: meetings, brainSetup: brainSetup)
+        hud.startSession = { [weak self] draft in self?.startSession(continuing: draft) }
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
+        hud.showCosts = { [weak self] in self?.costs.show() }
+        hud.showNeurons = { [weak self] in self?.showNeurons() }
+        hud.showMeetings = { [weak self] in self?.meetingWindow.show() }
+        hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
+        panel.importMeetings = hud.importMeetings
+        panel.importVideo = { [meetings] link, fallback in
+            meetings.imports.start(importingVideoAt: link, onNoVideo: fallback)
+        }
+    }
+
+    /// Loads the paired iPhones, then publishes the Sessioni and the Richieste to them and follows the presence at the
+    /// Mac, while Bubo runs.
+    private func startRemoteUpdates() {
+        remoteUpdates = Task { [remote, remoteBridge, remoteRequests, presence, sessions] in
+            await remote.loadDevices()
+            guard let sessions else { return await remoteBridge.cleanUp() }
+            async let presenceChanges: Void = presence.run()
+            async let requests: Void = remoteRequests.run(sessions: sessions)
+            await remoteBridge.run(sessions: sessions)
+            _ = await (presenceChanges, requests)
+        }
+    }
+
+    /// Back in front: the pull requests are read at once, then at intervals (spec 16).
+    func applicationDidBecomeActive(_ notification: Notification) {
+        sessions?.followPullRequests(isForeground: true)
+    }
+
+    /// In the background: no reading of the pull requests, so no `gh` runs.
+    func applicationDidResignActive(_ notification: Notification) {
+        sessions?.followPullRequests(isForeground: false)
     }
 
     /// `bubo://draft` links, and `bubo://linear` from Linear's custom script, also with Bubo closed: each valid one
-    /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. A link never starts a
-    /// Sessione: anyone can write one.
+    /// becomes a Bozza, or leads to the one its issue already has; then the HUD shows the Board. `bubo://sessione`
+    /// shows its Sessione. A link never starts a Sessione: anyone can write one. A folder from «Apri con» or dropped
+    /// on the Dock icon opens its Progetto, or the new Sessione sheet that creates it.
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard let sessions else { return }
-        for url in urls {
-            if let link = LinearLink(url) {
-                receive(link, in: sessions)
-                continue
-            }
-            guard let link = DraftLink(url) else {
-                Logger.sessions.error("Link not valid: \(url.absoluteString, privacy: .private)")
-                continue
-            }
-            sessions.receive(link)
+        let files = OpenedFiles(urls, projects: sessions?.projects ?? [])
+        for file in files.buboFiles {
+            Task { await open(bubo: file) }
         }
-        hud.showDrafts()
+        if let folder = files.folder { open(folder) }
+        guard let sessions else { return }
+        var madeDrafts = false
+        for url in urls where !url.isFileURL {
+            if let link = SessionLink(url) {
+                show(link, among: sessions.sessions)
+            } else if let link = LinearLink(url) {
+                receive(link, in: sessions)
+                madeDrafts = true
+            } else if let link = DraftLink(url) {
+                sessions.receive(link)
+                madeDrafts = true
+            } else {
+                Logger.sessions.error("Link not valid: \(url.absoluteString, privacy: .private)")
+            }
+        }
+        if madeDrafts { hud.showDrafts() }
+    }
+
+    /// A folder from the Finder: the HUD on the latest Sessione of its Progetto, else the new Sessione sheet on it,
+    /// which asks for trust before creating the Progetto.
+    private func open(_ folder: OpenedFiles.Folder) {
+        switch folder {
+        case .project(let project):
+            if let latest = sessions?.sessions.last(where: { $0.project == project }) {
+                hud.show(session: latest.id)
+            } else {
+                hud.show()
+            }
+        case .newProject(let folder):
+            var draft = SessionDraft()
+            draft.project = folder
+            hud.createSession(from: draft)
+        }
+    }
+
+    /// A `.bubo` file opened from the Finder: a Biglietto shows its code in the HUD, a Consegna its foglio there (or
+    /// its Bozza, opened again); a Biglietto or a file that does
+    /// not open, an alert.
+    private func open(bubo file: URL) async {
+        // A build without the Consegne reads no file: it says so, as Impostazioni › Consegne does.
+        guard ReleaseArea.deliveries.isAvailable() else { return showComingSoon(.deliveries) }
+        let message: String
+        switch await deliveries.open(file) {
+        case .ticket:
+            hud.show()
+            return
+        case .consegna:
+            // The same Consegna opened again: its Bozza, already there.
+            if let id = deliveries.receipt?.deliveryID, sessions?.drafts.drafts.contains(where: { $0.delivery?.id == id }) == true {
+                deliveries.dismissReceipt(keepingContent: true)
+                hud.showDrafts()
+            } else {
+                hud.show()
+            }
+            return
+        case .failed(.unsupportedVersion):
+            message = String(localized: "Il file è di una versione più nuova di Bubo. Aggiorna Bubo, poi riaprilo.")
+        case .failed(.notBubo), .failed(.unreadable):
+            message = String(localized: "Il file non è un file Bubo, oppure non si legge.")
+        case .failed:
+            message = String(localized: "Il Biglietto è stato modificato o è danneggiato. Chiedi di rimandarlo.")
+        }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Non si apre")
+        alert.informativeText = message
+        NSApp.activate()
+        alert.runModal()
+    }
+
+    /// Tells in an alert that `area` is not in this build yet: its name, «Arriverà presto» and what it will do.
+    private func showComingSoon(_ area: ReleaseArea) {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "\(String(localized: area.title)): arriverà presto")
+        alert.informativeText = String(localized: area.summary)
+        NSApp.activate()
+        alert.runModal()
+    }
+
+    /// A Sessione's link: the HUD on it while it lives, else the Cronologia window on its latest conversation.
+    private func show(_ link: SessionLink, among sessions: [Session]) {
+        switch link.destination(among: sessions) {
+        case .hud(let id):
+            hud.show(session: id)
+        case .history(let result):
+            history.show(result, searching: "")
+        case .unavailable:
+            Logger.sessions.error("Link to a Sessione Bubo does not have: \(link.id, privacy: .private)")
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Sessione non più disponibile")
+            alert.informativeText = String(localized: "La Sessione di questo link è stata cancellata o non si trova su questo Mac.")
+            NSApp.activate()
+            alert.runModal()
+        }
     }
 
     /// A Linear issue: a Bozza on the Progetto of the folder chosen in Linear, else on the one chosen before for its
@@ -187,6 +477,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     /// ⌘K: shows the Palette, or closes it. The first time, the Cronologia CLI is read for its titles.
     func togglePalette() {
         palette.toggle()
+        readCLIHistoryIfNeeded()
+    }
+
+    /// Reads the Cronologia CLI for its titles when the Palette is shown and it was never read.
+    private func readCLIHistoryIfNeeded() {
         if let sessions, sessions.lastHistory.isEmpty, palette.isShown {
             Task { [palette] in
                 _ = try? await sessions.history(isComplete: true)
@@ -220,6 +515,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    /// Starts a Sessione that continues the Domanda in `draft` on the first trusted Progetto, as the sheet would
+    /// propose it, and leaves the Domanda behind; `nil` without a trusted Progetto or when the start fails.
+    private func startSession(continuing draft: SessionDraft) -> Session.ID? {
+        guard let sessions, let project = draft.project ?? sessions.projects.first, TrustGate().isTrusted(project)
+        else { return nil }
+        let title = Session.proposedTitle(for: draft.question)
+        do {
+            let id = try sessions.start(draft.firstPrompt(draft.prompt), title: title,
+                                        branch: Session.proposedBranch(for: title), in: project,
+                                        fromQuestion: draft.originQuestion)
+            questions.startNewQuestion()
+            return id
+        } catch {
+            Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")
+            return nil
+        }
+    }
+
+    /// Shows the Neuroni of the Secondo cervello, in their window if open; without a Secondo cervello, says to choose one.
+    func showNeurons() {
+        guard ReleaseArea.neurons.isAvailable() else { return showComingSoon(.neurons) }
+        guard let location = secondBrain.location else {
+            let alert = NSAlert()
+            alert.messageText = String(localized: "Nessun Secondo cervello")
+            alert.informativeText = String(localized: "Scegli la cartella delle tue note nelle Impostazioni, poi apri i Neuroni.")
+            NSApp.activate()
+            alert.runModal()
+            return
+        }
+        if neurons?.model.secondBrain.path != location.path {
+            neurons = NeuronWindow(model: NeuronModel(secondBrain: location), questions: questions) { [weak self] in
+                self?.neurons = nil
+            }
+        }
+        neurons?.show()
+    }
+
     /// Quitting closes the terminals: when something runs in them, only after a confirmation that lists it.
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
         let running = sessions?.terminals.runningCommands ?? []
@@ -239,5 +571,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { hud.show() }
         return true
+    }
+}
+
+extension AppDelegate: HistorySearching {
+    /// Shows the Palette on the recent conversations, for "Cerca nella cronologia".
+    func searchHistory() {
+        palette.show()
+        readCLIHistoryIfNeeded()
     }
 }

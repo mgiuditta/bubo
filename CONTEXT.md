@@ -22,9 +22,17 @@ _Avoid_: modalità, fase
 Il contenitore flottante, sempre in primo piano, che mostra l'**Orb** compatto ovunque nel sistema.
 _Avoid_: overlay, widget
 
+**Bolla**:
+L'area del **Panel** che mostra la **Domanda** in corso: prompt, risposta e seguiti.
+_Avoid_: overlay, popup, chat
+
 **HUD**:
-La finestra di lavoro con l'**Orb** grande al centro e i pannelli di vetro attorno (router, cronologia, sessioni).
+La finestra di lavoro: a sinistra la barra laterale con Cervello, Neuroni, Riunioni, le **Domande** e le **Sessioni** in un solo elenco per giorno, e i **Progetti**; a destra la conversazione aperta, che si continua lì. L'**Orb** grande compare solo nella casa vuota (ADR 0013).
 _Avoid_: dashboard, finestra principale
+
+**Destinatario**:
+A chi va il testo del campo della finestra: il Cervello (una **Domanda**) o un **Progetto** (una **Sessione**). Il chip all'inizio del campo lo dice sempre.
+_Avoid_: target, contesto, modalità
 
 **Palette**:
 L'unica casella, aperta sopra la finestra di Bubo attiva, in cui si cercano insieme comandi, conversazioni e **Secondo cervello**.
@@ -73,7 +81,7 @@ Una singola sessione del motore agentico; una **Sessione** ne contiene una caten
 _Avoid_: sessione (per questo significato)
 
 **Domanda**:
-Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Si può trasformare in **Sessione**.
+Una richiesta leggera senza **Progetto** né copia isolata (meteo, riassunto di un file). Può avere dei **seguiti**, che restano nella stessa Domanda finché non se ne chiede una nuova o resta ferma a lungo. Si può trasformare in **Sessione**.
 _Avoid_: chat, sessione rapida
 
 **Allegato**:
@@ -93,7 +101,7 @@ Le conversazioni avviate fuori da Bubo con la riga di comando; si consultano e s
 _Avoid_: sessioni importate
 
 **Vista delle Sessioni**:
-Il modo in cui l'**HUD** dispone le **Sessioni**: Colonna (lista, predefinita), Orbita (satelliti attorno all'**Orb**), Striscia (carte sopra il prompt), Board (colonne derivate da **Fase** e **Attività**, più le **Bozze** da iniziare). La sceglie l'utente.
+Il modo in cui l'**HUD** dispone le **Sessioni**: l'Elenco della barra laterale, insieme alle **Domande**, e la Board (voce «Lavoro»: colonne derivate da **Fase** e **Attività**, più le **Bozze** da iniziare). Orbita e Striscia non ci sono più (ADR 0013).
 _Avoid_: layout, tema, modalità
 
 **Bozza**:
@@ -216,9 +224,25 @@ _Avoid_: contesto, knowledge base
 Una cartella di note Markdown dell'utente (un vault Obsidian o qualunque altra) che Bubo consulta e in cui scrive; non appartiene a nessun **Progetto**.
 _Avoid_: vault (quando non è Obsidian), wiki, archivio
 
+**Profilo**:
+La nota `Bubo/Profilo.md` del **Secondo cervello**: chi è l'utente, le sue preferenze, le persone e i progetti ricorrenti. Entra nel prompt di ogni turno di **Domanda** e **Sessione**; la scrivono l'utente e l'agente con `ricorda`.
+_Avoid_: persona, memoria utente, about me
+
+**Regole**:
+La nota `Bubo/Regole.md` del **Secondo cervello**: cosa l'agente salva da solo, dove e come. Entra nel prompt di ogni turno insieme al **Profilo**; con «Salva da solo» spento l'agente salva solo su richiesta. Non è una **Regola di permesso**.
+_Avoid_: istruzioni, prompt di sistema, policy
+
+**Neuroni**:
+La vista delle note del **Secondo cervello** come rete: ogni nota è un nodo colorato per cartella e grande quanto i suoi collegamenti (wikilink e link Markdown fra note); accende le note citate nell'ultima risposta e accanto tiene sempre l'elenco delle note.
+_Avoid_: grafo, graph view, mappa delle note
+
 **Riassunto di Sessione**:
 La nota Markdown che Bubo scrive nel **Secondo cervello** quando una **Sessione** diventa Fusa o Archiviata; una per Sessione.
 _Avoid_: recap, log, diario
+
+**Riunione**:
+Una conversazione registrata da Bubo (microfono e audio di un'app) o importata (audio, video, trascrizione), che diventa una nota nel **Secondo cervello** con trascrizione, riassunto, decisioni e azioni; l'**Indice** la cerca come le altre note.
+_Avoid_: meeting, call, verbale
 
 **Indice**:
 La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.

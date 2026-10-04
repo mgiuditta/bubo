@@ -38,9 +38,13 @@ nonisolated extension WorktreeManager {
     ///   `WorktreeError` when git fails.
     @concurrent func conclude(_ resolution: ConflictResolution, in workspace: Workspace) async throws {
         let folder = workspace.folder
-        let marked = resolution.conflicts.filter { path in
-            guard let text = try? String(contentsOf: folder.appending(path: path), encoding: .utf8) else { return false }
-            return text.split(whereSeparator: \.isNewline).contains { $0.hasPrefix("<<<<<<<") || $0.hasPrefix(">>>>>>>") }
+        var marked: [String] = []
+        for path in resolution.conflicts {
+            guard let data = await shell.contents(ofFile: folder.appending(path: path).path) else { continue }
+            let text = String(decoding: data, as: UTF8.self)
+            if text.split(whereSeparator: \.isNewline).contains(where: { $0.hasPrefix("<<<<<<<") || $0.hasPrefix(">>>>>>>") }) {
+                marked.append(path)
+            }
         }
         guard marked.isEmpty else { throw MergeError.unresolved(marked) }
         try await git(["add", "--all"], in: folder)

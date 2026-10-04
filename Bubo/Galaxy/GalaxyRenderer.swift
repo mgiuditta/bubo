@@ -38,6 +38,7 @@ nonisolated struct GalaxyUniforms {
     var pixelsPerPoint: Float
     var starsAppear: Float
     var starsShown: Float
+    var coreRadius: Float
     var isSearching: UInt32
     var writeLift: Float
 }
@@ -73,7 +74,7 @@ final class GalaxyRenderer: NSObject, MTKViewDelegate {
         view.colorPixelFormat = Self.pixelFormat
         view.colorspace = CGColorSpace(name: CGColorSpace.sRGB)
         // Palette.ink.
-        view.clearColor = MTLClearColor(red: 0.047, green: 0.039, blue: 0.035, alpha: 1)
+        view.clearColor = MTLClearColor(red: 0.039, green: 0.043, blue: 0.051, alpha: 1)
         view.delegate = self
     }
 
@@ -124,6 +125,7 @@ final class GalaxyRenderer: NSObject, MTKViewDelegate {
                                       pixelsPerPoint: Float(view.window?.backingScaleFactor ?? 2),
                                       starsAppear: GalaxyModel.starsAppearRadius,
                                       starsShown: GalaxyModel.starsShownRadius,
+                                      coreRadius: GalaxyLayout.coreRadius,
                                       isSearching: model.matches.isEmpty ? 0 : 1, writeLift: GalaxyModel.writeLift)
         encoder.setVertexBytes(&uniforms, length: MemoryLayout<GalaxyUniforms>.stride, index: 1)
         encoder.setFragmentBytes(&uniforms, length: MemoryLayout<GalaxyUniforms>.stride, index: 1)
@@ -166,7 +168,7 @@ final class GalaxyRenderer: NSObject, MTKViewDelegate {
                            depth: UInt32(cluster.depth))
         }
         var files = layout.stars.map { star in
-            GalaxyInstance(position: star.position, radius: star.spacing, value: layout.clusters[star.cluster].radius)
+            GalaxyInstance(position: star.position, radius: star.spacing, value: 0)
         }
         for index in model.matches { files[index].flags |= 1 }
         if let selection = model.selection { files[selection].flags |= 2 }

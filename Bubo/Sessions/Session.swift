@@ -19,15 +19,24 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
 
     /// Where a Sessione is in its life.
     ///
-    /// Fusa lasts as long as the merge can be undone; then the Sessione is Archiviata.
-    // ponytail: In revisione comes when the revisione has a Fase of its own.
+    /// In revisione once Apri PR opened its pull request; Fusa lasts as long as the merge can be undone, then the
+    /// Sessione is Archiviata.
+    /// The agent a Sessione runs on (ADR 0012).
+    enum Engine: String, Codable, Sendable {
+        /// Claude Code, through the Agent SDK: the default.
+        case claude
+        /// GitHub Copilot CLI, through the Copilot SDK.
+        case copilot
+    }
+
     enum Phase: String, Codable, Sendable {
-        case aperta, fusa, archiviata
+        case aperta, inRevisione, fusa, archiviata
 
         /// The Fase's name in the HUD.
         var title: LocalizedStringResource {
             switch self {
             case .aperta: LocalizedStringResource("fase.aperta", defaultValue: "Aperta")
+            case .inRevisione: LocalizedStringResource("fase.inRevisione", defaultValue: "In revisione")
             case .fusa: LocalizedStringResource("fase.fusa", defaultValue: "Fusa")
             case .archiviata: LocalizedStringResource("fase.archiviata", defaultValue: "Archiviata")
             }
@@ -57,14 +66,24 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var mergedAt: Date?
     /// The prompt the Sessione started with; `nil` in Sessioni saved before it was kept.
     var prompt: String?
+    /// What was dropped on the Sessione in the HUD, for its next turn; empty once that turn starts.
+    var attachments: [Allegato] = []
     /// Whether Bubo quit while the Sessione was in Lavora: it waits for Riprendi.
     var isInterrupted = false
+    /// The prompt of the latest turn that started, which Riprendi asks again after Bubo's quitting interrupted it:
+    /// the first prompt, a rimando from the revisione or the request of a later turn. `nil` before the first turn.
+    var turnPrompt: String?
     /// Whether the Sessione works on the Progetto's checkout instead of its own copy: at most one per Progetto.
     var isOnCheckout = false
     /// The Cronologia CLI conversation the Sessione continues as a fork: `claude` resumes it, never in place.
     var forkedFrom: String?
+    /// The message of ``forkedFrom`` the fork stops at, included: Continua da qui. `nil` for the whole conversation.
+    var forkedUpTo: String?
     /// The ids of the agent's conversations, one per turn, oldest first: Bubo keeps a copy of each (ADR 0006).
     var conversations: [String] = []
+    /// The conversation the next turn resumes as a fork, so that the agent sees the turns before: the latest turn's
+    /// that ran, else the Cronologia CLI one; `nil` for a new Conversazione.
+    var continuedConversation: String?
     /// The writes the agent asked for, with why, the latest last: the perché of the blocchi in the revisione.
     var edits: [EditNote] = []
     /// What the user decided in the revisione, by blocco id.
@@ -73,18 +92,62 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var resolution: ConflictResolution?
     /// The issue the Sessione was started from with ⌘I; `nil` for the others.
     var issue: IssueLink?
-    /// The prompt of the turn that did not start because its Sandbox could not, for Riprova; `nil` otherwise.
+    /// The prompt of the turn that did not start because its Sandbox could not, for Riprova, or that a spent Budget
+    /// stopped; `nil` otherwise.
     var unstartedPrompt: String?
+    /// The Budget spent that stopped the Sessione's turn, which waits for the user's choice (spec 18); `nil` otherwise.
+    var budgetStop: BudgetGuard.Scope?
     /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
     var isAutonomous = false
+    /// The model · sforzo the user chose for the Sessione's turns, from the next one, without restarting it (spec 10,
+    /// Nella Sessione); `nil` for the model and effort the user set in `claude`.
+    var model: Scala.Step?
+    /// The agent that runs the Sessione's turns: `claude` unless the user chose `copilot` (ADR 0012).
+    var engine: Engine = .claude
+    /// The Copilot model · sforzo of the turns when `engine` is `copilot`; `nil` for the model chosen in `copilot`.
+    var copilotModel: CopilotStep?
+    /// The conversation of the Sessione's turns on Copilot: the session `copilot` resumes and Bubo keeps a copy of
+    /// (ADR 0006, 0012); `nil` until the first one.
+    var copilotConversation: String?
     /// The latest lines Ricordato and Richiamato, the latest last, at most ``memoryLineLimit``.
     var memoryLines: [MemoryLine] = []
+    /// The Riassunto di Sessione note Bubo last wrote; `nil` until the first one.
+    var summaryNote: SummaryNote?
+    /// Whether the Riassunto di Sessione waits to be written: no model could write it, or the Secondo cervello could
+    /// not be reached.
+    var isSummaryPending = false
+    /// The pull request Apri PR opened on GitHub; `nil` until then.
+    var pullRequest: PullRequestLink?
+    /// The Domanda this Sessione was born from, which stays among the Conversazioni with a link to it (ADR 0013).
+    var originQuestion: UUID?
+    /// The Automazione that started the Sessione, with when; `nil` for the others.
+    var automation: AutomationMark?
+    /// The actions denied in the latest turn of the Esecuzione, oldest first.
+    var denials: [Denial] = []
+    /// The mode `claude` chose for the latest turn of the Esecuzione, such as `auto`; `nil` until it says.
+    var effectiveMode: String?
+
+    /// The engine and model of the Sessione's turns, from the next one.
+    var choice: EngineChoice {
+        get { EngineChoice(engine: engine, claudeModel: model, copilotModel: copilotModel) }
+        set {
+            engine = newValue.engine
+            model = newValue.claudeModel
+            copilotModel = newValue.copilotModel
+        }
+    }
 
     /// The lines Ricordato and Richiamato a Sessione keeps.
     static let memoryLineLimit = 3
 
     /// Whether `claude` is still on the Sessione's turn: in Lavora, or in Attende te.
     var isRunning: Bool { activity == .lavora || activity == .attende }
+
+    /// Whether the Sessione still has its copy and can work: Aperta, or In revisione with its pull request open.
+    var isLive: Bool { phase == .aperta || phase == .inRevisione }
+
+    /// Whether the Sessione can take a new turn from its composer: open, and neither working nor waiting for the user.
+    var canTakeTurn: Bool { isLive && activity != .lavora && activity != .attende }
 
     /// Whether the Modalità autonoma is possible: only in the Sessione's own worktree, never on the checkout nor
     /// outside git.
@@ -96,7 +159,7 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     /// Where the Sessione's terminal starts: its worktree, or the Progetto's folder outside git. `nil` on the
     /// checkout, once the Sessione is no longer Aperta, and while its copy is being prepared.
     var terminalFolder: URL? {
-        guard phase == .aperta, !isOnCheckout else { return nil }
+        guard isLive, !isOnCheckout else { return nil }
         return workspace?.folder
     }
 
@@ -136,10 +199,19 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     }
 }
 
+/// Why a Sessione or a Domanda on Copilot did not start (ADR 0011, ADR 0012).
+nonisolated enum CopilotFailure: Error, Equatable {
+    /// No `copilot` was found.
+    case missing
+    /// The user did not allow Copilot to receive the contenuti del Progetto: nothing was sent (spec 10).
+    case consentMissing
+}
+
 nonisolated extension Session {
     /// Decodes a Sessione, also one saved before its Fase, its merge, its prompt, its checkout, its fork, its summary, its
-    /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma and its lines Ricordato and
-    /// Richiamato were kept.
+    /// revisione, its conversations, its issue, its unstarted prompt, its Modalità autonoma, its lines Ricordato and
+    /// Richiamato, its Riassunto, its pull request, its chain of conversations, its cut, its turn's prompt, its
+    /// Automazione and its Allegati were kept.
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -158,13 +230,30 @@ nonisolated extension Session {
         isInterrupted = try container.decodeIfPresent(Bool.self, forKey: .isInterrupted) ?? false
         isOnCheckout = try container.decodeIfPresent(Bool.self, forKey: .isOnCheckout) ?? false
         forkedFrom = try container.decodeIfPresent(String.self, forKey: .forkedFrom)
+        forkedUpTo = try container.decodeIfPresent(String.self, forKey: .forkedUpTo)
+        turnPrompt = try container.decodeIfPresent(String.self, forKey: .turnPrompt)
         conversations = try container.decodeIfPresent([String].self, forKey: .conversations) ?? []
+        // Before the chain each turn started alone: the next one resumes what the Sessione forked, if anything.
+        continuedConversation = try container.decodeIfPresent(String.self, forKey: .continuedConversation) ?? forkedFrom
         edits = try container.decodeIfPresent([EditNote].self, forKey: .edits) ?? []
         decisions = try container.decodeIfPresent([String: HunkDecision].self, forKey: .decisions) ?? [:]
         resolution = try container.decodeIfPresent(ConflictResolution.self, forKey: .resolution)
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
+        budgetStop = try container.decodeIfPresent(BudgetGuard.Scope.self, forKey: .budgetStop)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
+        model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
+        engine = try container.decodeIfPresent(Engine.self, forKey: .engine) ?? .claude
+        copilotModel = try container.decodeIfPresent(CopilotStep.self, forKey: .copilotModel)
+        copilotConversation = try container.decodeIfPresent(String.self, forKey: .copilotConversation)
         memoryLines = try container.decodeIfPresent([MemoryLine].self, forKey: .memoryLines) ?? []
+        summaryNote = try container.decodeIfPresent(SummaryNote.self, forKey: .summaryNote)
+        isSummaryPending = try container.decodeIfPresent(Bool.self, forKey: .isSummaryPending) ?? false
+        pullRequest = try container.decodeIfPresent(PullRequestLink.self, forKey: .pullRequest)
+        originQuestion = try container.decodeIfPresent(UUID.self, forKey: .originQuestion)
+        automation = try container.decodeIfPresent(AutomationMark.self, forKey: .automation)
+        denials = try container.decodeIfPresent([Denial].self, forKey: .denials) ?? []
+        effectiveMode = try container.decodeIfPresent(String.self, forKey: .effectiveMode)
+        attachments = try container.decodeIfPresent([Allegato].self, forKey: .attachments) ?? []
     }
 }

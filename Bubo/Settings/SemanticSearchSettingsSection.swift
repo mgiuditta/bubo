@@ -1,17 +1,32 @@
 import SwiftUI
 
-/// The search by meaning of the Indice: until the model is downloaded, with the user's consent, it searches only by words.
+/// How the Indice searches: by words, the default, or also by meaning once the user chooses to download a model.
 struct SemanticSearchSettingsSection: View {
     @Environment(SemanticSearch.self) private var search
 
     var body: some View {
         Section {
+            Picker("Ricerca", selection: Binding(get: { isByMeaning }, set: { choose(byMeaning: $0) })) {
+                VStack(alignment: .leading) {
+                    Text("Per parole")
+                    Text("Come grep: preciso su nomi e frasi esatte, non trova i sinonimi. Niente da scaricare.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .tag(false)
+                VStack(alignment: .leading) {
+                    Text("Per significato (RAG)")
+                    Text("Capisce il senso anche con altre parole. Scarica un modello locale (\(TextEmbeddingModel.standard.size.formatted(.byteCount(style: .file)))) e usa GPU e batteria.")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                .tag(true)
+            }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
             switch search.phase {
             case .wordsOnly:
-                Text("Ora l'Indice cerca solo per parole.")
-                Button("Scarica il modello (\(TextEmbeddingModel.standard.size.formatted(.byteCount(style: .file))))") {
-                    search.download(.standard)
-                }
+                EmptyView()
             case let .downloading(model, received):
                 // A bar that always says how far it got, not a spinner (spec 27).
                 Gauge(value: Double(received), in: 0...Double(model.size)) {
@@ -26,6 +41,12 @@ struct SemanticSearchSettingsSection: View {
                     Text(verbatim: model.name)
                 }
                 Text("L'Indice cerca per parole e per significato.")
+                if let pause = search.pause {
+                    // A state, not an error: no warning color.
+                    Label(pauseText(pause), systemImage: "pause.circle")
+                        .foregroundStyle(Palette.textSecondary)
+                        .font(.callout)
+                }
                 HStack {
                     if model == .standard {
                         Button("Passa alla qualità alta (\(TextEmbeddingModel.highQuality.size.formatted(.byteCount(style: .file))))") {
@@ -36,7 +57,6 @@ struct SemanticSearchSettingsSection: View {
                             search.download(.standard)
                         }
                     }
-                    Button("Elimina il modello", role: .destructive) { search.removeModel() }
                 }
             case let .failed(model, reason):
                 Label("Non riesco a scaricare il modello: \(reason)", systemImage: "exclamationmark.triangle.fill")
@@ -45,9 +65,36 @@ struct SemanticSearchSettingsSection: View {
                 Button("Riprova") { search.download(model) }
             }
         } header: {
-            Text("Ricerca per significato")
+            Text("Ricerca")
         } footer: {
-            Text("Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice.")
+            Text("Il modello si scarica una volta da Hugging Face e poi lavora solo su questo Mac: le note non escono. Cambiare modello ricalcola l'Indice; tornare a Per parole lo elimina.")
+        }
+    }
+
+    /// Whether the Indice searches, or is getting ready to search, by meaning.
+    private var isByMeaning: Bool {
+        switch search.phase {
+        case .wordsOnly, .failed: false
+        case .downloading, .ready: true
+        }
+    }
+
+    /// Downloads the standard model to search by meaning, or stops searching by meaning and deletes the model.
+    private func choose(byMeaning: Bool) {
+        switch (byMeaning, search.phase) {
+        case (true, .wordsOnly), (true, .failed): search.download(.standard)
+        case (false, .downloading): search.cancelDownload()
+        case (false, .ready): search.removeModel()
+        default: break
+        }
+    }
+
+    private func pauseText(_ pause: IndexPause) -> String {
+        switch pause {
+        case .lowPowerMode:
+            String(localized: "In pausa con il Risparmio energetico: riprende da sola.")
+        case .lowBattery:
+            String(localized: "In pausa con la batteria sotto il \(EnergyState.minimumBatteryLevel.formatted(.percent)): riprende da sola.")
         }
     }
 }

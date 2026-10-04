@@ -53,8 +53,6 @@ enum Signpost {
     case claudeDetection
     /// Interval: listing the Cronologia CLI through the bridge.
     case cliHistory
-    /// Interval: from choosing another Vista delle Sessioni to the HUD laid out with it.
-    case vistaSwitch
     /// Interval: reading a Sessione's changes from git for the revisione.
     case reviewDiff
     /// Interval: working out with `git merge-tree` what Fondi would do, before the click.
@@ -65,6 +63,20 @@ enum Signpost {
     case onboardingFirstToken
     /// Interval: from sending a Richiesta to the classifier's decision, when the Morph towards its Variante starts.
     case intakeDecision
+    /// Interval: from letting go of push-to-talk to the final text of what was said.
+    case voiceFinalText
+    /// Interval: from the first text of an answer asked by voice to the first audio of its Sintesi parlata.
+    case voiceFirstAudio
+    /// Interval: from the interruption of the Sintesi parlata, by the shortcut or Esc, to the audio stopped.
+    case voiceInterruption
+    /// Interval: compiling the pipeline of a Forma on its first request (ADR 0010).
+    case formaCompilation
+    /// Interval: from opening the Plugin window to its first snapshot, read from the files.
+    case pluginsFirstDraw
+    /// The final text of push-to-talk confirmed the prediction on the partial: the Morph starts without the classifier.
+    case voicePredictionHeld
+    /// Interval: from a drop on the Orb to its Allegati in the prompt, with the Orb in Ascolto.
+    case dropToListening
 
     /// The name shown in Instruments.
     var name: StaticString {
@@ -73,12 +85,18 @@ enum Signpost {
         case .deferredLaunch: "Avvio differito"
         case .claudeDetection: "Rilevamento claude"
         case .cliHistory: "Cronologia CLI"
-        case .vistaSwitch: "Cambio vista"
         case .reviewDiff: "Diff della revisione"
         case .mergePreview: "Conflitti previsti"
         case .galaxyFirstImage: "Prima immagine della Galassia"
         case .onboardingFirstToken: "Primo token onboarding"
         case .intakeDecision: "Decisione della Richiesta"
+        case .voiceFinalText: "Testo finale della voce"
+        case .voiceFirstAudio: "Primo audio della Sintesi parlata"
+        case .voiceInterruption: "Interruzione della voce"
+        case .formaCompilation: "Compilazione Forma"
+        case .pluginsFirstDraw: "Primo disegno dei Plugin"
+        case .voicePredictionHeld: "Previsione della voce confermata"
+        case .dropToListening: "Rilascio sull'Orb"
         }
     }
 }

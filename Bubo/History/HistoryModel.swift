@@ -14,6 +14,8 @@ final class HistoryModel {
     private(set) var hasFailed = false
     /// The conversation read on the right, also when the search no longer lists it.
     private(set) var reader: ConversationReader?
+    /// Riprendi and Continua da qui on the conversation read; `nil` offers neither.
+    @ObservationIgnored let actions: ResumeActions?
 
     /// Makes the search over the current Sessioni and Cronologia CLI.
     @ObservationIgnored private let makeSearch: () -> ConversationSearch
@@ -21,9 +23,10 @@ final class HistoryModel {
     @ObservationIgnored private let readMessages: (String) async throws -> [CLIConversation.Message]
 
     init(search: @escaping () -> ConversationSearch,
-         read: @escaping (String) async throws -> [CLIConversation.Message]) {
+         read: @escaping (String) async throws -> [CLIConversation.Message], actions: ResumeActions? = nil) {
         makeSearch = search
         readMessages = read
+        self.actions = actions
     }
 
     /// Every result before the filters, in the order shown.

@@ -32,6 +32,13 @@ struct OrbSnapshotterTests {
         #expect(image.width == Self.size && image.height == Self.size)
     }
 
+    @Test func aVarianteWithoutAFormaIsDrawnAsTheBlob() async throws {
+        let assente = Variante(nome: "fenice-di-prova", forma: "fenice_di_prova", categoria: .creativo, descrizione: "", parole: [])
+        let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: assente, pixelSize: Self.size)))
+        #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
+        #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
+    }
+
     @Test func theLenteIsSolidAtItsGlassAndClearAtTheCorner() async throws {
         let bytes = try pixels(of: try #require(await snapshotter.snapshot(of: lente, pixelSize: Self.size)))
         #expect(pixel(bytes, x: Self.size / 2, y: Self.size / 2)[3] == 255)
@@ -55,6 +62,18 @@ struct OrbSnapshotterTests {
         let ground = pixel(bytes, x: Self.size / 2 + 5, y: Self.size / 2 - 30)
         #expect(ground[3] > 200 && ground[2] < 60)
         #expect(pixel(bytes, x: 0, y: 0)[3] < 8)
+    }
+
+    /// #400: once its Forma's pipeline is built, a cell's still is drawn on the main actor; it stays well under a hang
+    /// (100 ms, spec 25), so the Galleria scrolls through 480 Varianti.
+    @Test func aStillOnTheMainActorStaysUnderAHang() async throws {
+        let varianti = try Catalogo(bundle: .main).varianti.prefix(24)
+        let clock = ContinuousClock()
+        for variante in varianti {
+            _ = await snapshotter.snapshot(of: variante, pixelSize: 64) // builds the pipeline, waited for asynchronously
+            let elapsed = await clock.measure { _ = await snapshotter.snapshot(of: variante, pixelSize: Self.size) }
+            #expect(elapsed < .milliseconds(100), "\(variante.nome): \(elapsed)")
+        }
     }
 
     @Test func aSecondRequestReturnsTheCachedStill() async throws {

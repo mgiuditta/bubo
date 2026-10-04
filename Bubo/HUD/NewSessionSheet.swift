@@ -2,7 +2,7 @@ import os
 import SwiftUI
 
 /// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda or the
-/// Cronologia CLI conversation it continues.
+/// conversation it continues: whole from the Cronologia CLI, or up to a message with Continua da qui.
 ///
 /// In a folder that is not trusted, the trust dialog comes first (#266).
 struct NewSessionSheet: View {
@@ -16,8 +16,12 @@ struct NewSessionSheet: View {
     @State private var title = ""
     @State private var branch = Session.proposedBranch(for: "")
     @State private var isOnCheckout = false
+    @State private var choice = EngineChoice.claude
+    @State private var isProjectDefault = false
     @State private var isChoosingFolder = false
     @State private var isAskingTrust = false
+    /// While the `/` menu shows, Invio and Esc go to it, not to the sheet's buttons.
+    @State private var isSlashMenuShowing = false
     @FocusState private var isPromptFocused: Bool
 
     var body: some View {
@@ -40,8 +44,20 @@ struct NewSessionSheet: View {
                     }
                 }
                 if let conversation = draft.conversation {
-                    LabeledContent("Riprende dalla Cronologia CLI") {
+                    LabeledContent {
                         Text(verbatim: conversation.title)
+                            .lineLimit(2)
+                    } label: {
+                        if draft.upToMessage == nil {
+                            Text("Riprende dalla Cronologia CLI")
+                        } else {
+                            Text("Continua da qui")
+                        }
+                    }
+                }
+                if !draft.files.isEmpty {
+                    LabeledContent("File da guardare") {
+                        Text(verbatim: draft.files.map(\.lastPathComponent).formatted(.list(type: .and)))
                             .lineLimit(2)
                     }
                 }
@@ -54,13 +70,17 @@ struct NewSessionSheet: View {
                 TextField("Cosa deve fare Claude?", text: $prompt, axis: .vertical)
                     .lineLimit(3...6)
                     .focused($isPromptFocused)
+                    .slashCompletion(text: $prompt, folder: project, isShowing: $isSlashMenuShowing)
                 TextField("Titolo", text: $title)
+                EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
+                                  copilotModels: store.copilotModels)
                 Toggle(isOn: $isOnCheckout) {
                     Text("Lavora sul checkout")
                     Text(checkoutTaken?.errorDescription
                          ?? String(localized: "Senza copia isolata: le modifiche vanno direttamente nella cartella del Progetto."))
                         .foregroundStyle(checkoutTaken == nil ? Color.secondary : Palette.danger)
                 }
+                .tint(Palette.switchTrack)
                 if !isOnCheckout {
                     TextField("Branch", text: $branch)
                         .font(.body.monospaced())
@@ -71,16 +91,16 @@ struct NewSessionSheet: View {
             HStack {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
-                    .keyboardShortcut(.cancelAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .cancelAction)
                 Button("Crea", action: create)
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .defaultAction)
                     .disabled(!canCreate)
             }
         }
         .padding(Spacing.medium)
         .frame(width: 520)
         .onAppear {
-            project = project ?? draft.conversation?.folder ?? store.projects.first
+            project = project ?? draft.project ?? draft.conversation?.folder ?? store.projects.first
             if draft.continuesQuestion { title = Session.proposedTitle(for: draft.question) }
             if let conversation = draft.conversation { title = Session.proposedTitle(for: conversation.title) }
             prompt = draft.prompt
@@ -90,6 +110,13 @@ struct NewSessionSheet: View {
         .onChange(of: prompt) { old, new in
             if title == Session.proposedTitle(for: old) { title = Session.proposedTitle(for: new) }
         }
+        // Each Progetto starts on its own engine and model.
+        .onChange(of: project, initial: true) {
+            guard let project else { return }
+            choice = store.engines.choice(for: project)
+            isProjectDefault = false
+        }
+        .task { await store.loadCopilotModels() }
         .onChange(of: title) { old, new in
             if branch == Session.proposedBranch(for: old) { branch = Session.proposedBranch(for: new) }
         }
@@ -125,11 +152,13 @@ struct NewSessionSheet: View {
         guard let project else { return }
         let text = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         let name = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if isProjectDefault { store.engines.setChoice(choice, for: project) }
         do {
             try store.start(draft.firstPrompt(text),
                             title: name.isEmpty ? Session.proposedTitle(for: text.isEmpty ? draft.question : text) : name,
                             branch: branch.trimmingCharacters(in: .whitespaces), in: project, onCheckout: isOnCheckout,
-                            forkingFrom: draft.conversation)
+                            forkingFrom: draft.conversation, upTo: draft.upToMessage, choice: choice,
+                            fromQuestion: draft.originQuestion)
         } catch {
             // The sheet does not offer Crea while the checkout is taken: only a race gets here.
             Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")

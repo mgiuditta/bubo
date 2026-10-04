@@ -144,9 +144,9 @@ struct WorktreeManagerTests {
         try git("-c", "protocol.file.allow=always", "submodule", "add", "-q", library.path, "libreria", in: repo)
         try git("commit", "-q", "-m", "Libreria", in: repo)
         var manager = manager
-        manager.runner = ProcessRunner { git, arguments in
-            try await ProcessRunner.live.run(git, ["-c", "protocol.file.allow=always"] + arguments)
-        }
+        manager.shell = LocalShell(environment: ProcessInfo.processInfo.environment.merging(
+            ["GIT_CONFIG_COUNT": "1", "GIT_CONFIG_KEY_0": "protocol.file.allow", "GIT_CONFIG_VALUE_0": "always"]
+        ) { $1 })
 
         let workspace = try await manager.prepare(repo, branch: "bubo/prova")
 

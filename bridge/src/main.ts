@@ -6,14 +6,17 @@ import {
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { createInterface } from "node:readline";
-import { z } from "zod";
 import { edits, progress, reads, searched, type Edit, type Progress, type Read } from "./activity";
 import { isLocal, isOutsideSandbox, sandboxGate, type RiskQuestion } from "./gate";
+import { budgetOf } from "./budget";
 import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
+import { CopilotTurns, copiedMessages, copilotEnvironment, copilotProject, reasoningEffortOf } from "./copilot";
+import { CopilotQuestions, type CopilotQuestionEvent } from "./copilot-question";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
-import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, type PermissionRequest } from "./permission";
+import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
+import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
 import { allowedPreviewTools, offerPreview, PreviewCalls, previewTools, turnServers, type PreviewCall } from "./preview";
 import { orbInstruction, rosaOf, TurnVariante } from "./orb";
 import { MemoryWrites, recalled, withAutoMemory, type Recalled, type Remembered } from "./memory";
@@ -23,32 +26,43 @@ import { sandboxSettings, sandboxUnavailableReason } from "./sandbox";
 import { sandboxRules, type SandboxRule } from "./sandboxRules";
 import { blockedLine, blocksOf, type SandboxBlock } from "./violations";
 import { settingSources } from "./settingSources";
+import { summarize, summaryOptions } from "./summary";
 import { SpareSlot, type SpareKey } from "./spare";
-import { ConversationStore } from "./store";
+import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
-import { allowedBuboTools } from "./tools";
+import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
+import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
+  searchTool, systemPromptOf, type ReadOnly } from "./tools";
+import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
+  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown }
+  | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
   | { v: number; type: "quota" }
   | { v: number; type: "config"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "warm"; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "cool" }
+  | { v: number; type: "reconnect"; server?: unknown }
+  | { v: number; type: "reloadPlugins"; id: string; turn?: unknown; force?: unknown }
   | { v: number; type: "history"; id: string; all?: unknown }
   | { v: number; type: "transcript"; id: string; conversation: string; all?: unknown }
   | { v: number; type: "keep"; id: string }
   | { v: number; type: "forget"; conversations?: unknown }
   | { v: number; type: "forgetHistory"; id: string }
   | { v: number; type: "permission"; request: string; behavior?: unknown; scope?: unknown }
+  | { v: number; type: "question"; request: string; answers?: unknown }
   | { v: number; type: "sandboxRules"; id: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown }
   | { v: number; type: "previewServer"; id: string; available?: unknown }
   | { v: number; type: "previewResult"; call?: unknown; text?: unknown; image?: unknown; error?: unknown }
-  | { v: number; type: "risk"; request: string; dangerous?: unknown };
+  | { v: number; type: "risk"; request: string; dangerous?: unknown }
+  | { v: number; type: "summarize"; id: string; prompt: string; cwd: string; model?: unknown };
 
 type Event =
   | { type: "ready" }
@@ -64,12 +78,13 @@ type Event =
   | ({ type: "error"; id?: string; message: string } & TurnFailure)
   | ({ type: "limit"; id: string } & Limit)
   | { type: "signInRequired"; id: string }
+  | { type: "budgetExhausted"; id: string }
   | { type: "sandboxUnavailable"; id: string; reason: string }
   | ({ type: "claude"; id: string } & ClaudeInfo)
   | { type: "outdated"; id: string; version?: string }
   | { type: "search"; id: string; query: string; project?: string; source?: string; conversation: string }
   | (PreviewCall & { id: string })
-  | { type: "remember"; id: string; title: string; text: string }
+  | { type: "remember"; id: string; conversation: string; mode: "nuova" | "aggiungi" | "riscrivi"; title?: string; note?: string; text: string; confirmed?: boolean }
   | ({ type: "quota" } & Quota)
   | ({ type: "config"; id: string } & Configuration)
   | { type: "history"; id: string; conversations: Conversation[] }
@@ -77,13 +92,19 @@ type Event =
   | { type: "kept"; id: string; count: number }
   | { type: "forgot"; id: string }
   | (PermissionRequest & { id: string })
+  | (AgentQuestion & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
   | (SandboxBlock & { type: "sandboxBlock"; id: string })
   | { type: "sandboxRules"; id: string; rules: SandboxRule[] }
   | (RiskQuestion & { type: "risk"; id: string; request: string })
   | ({ type: "usage"; id: string } & TurnUsage)
+  | ({ type: "estimate"; id: string } & TurnUsage)
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
-  | { type: "models"; models: CatalogEntry[] };
+  | { type: "models"; models: CatalogEntry[] }
+  | (Denial & { type: "denial"; id: string })
+  | { type: "mode"; id: string; permissionMode: PermissionMode }
+  | ({ type: "pluginsReloaded"; id: string } & PluginReload)
+  | CopilotQuestionEvent;
 
 function send(event: Event) {
   process.stdout.write(JSON.stringify({ v: version, ...event }) + "\n");
@@ -93,6 +114,11 @@ function send(event: Event) {
 type Answer = { allowed: boolean; lasting: boolean };
 const denied: Answer = { allowed: false, lasting: false };
 
+// Le cartelle degli Allegati come arrivano da Bubo: solo percorsi assoluti.
+function directoriesOf(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((dir): dir is string => typeof dir === "string" && dir.startsWith("/")) : [];
+}
+
 // Le Richieste di permesso in attesa della risposta di Bubo: si risolvono una volta sola, approvate solo con "allow".
 const permissions = new Map<string, (answer: Answer) => void>();
 
@@ -100,12 +126,13 @@ const permissions = new Map<string, (answer: Answer) => void>();
 // Richiesta, se la risposta non è "allow". Se Bubo esce, stdin si chiude e il ponte esce senza approvare nulla.
 // Con la Sandbox accesa, un Bash che chiede di uscirne arriva a Bubo segnato "fuori dalla sandbox".
 // Un host fuori dai domini della Sandbox approvato per la Sessione porta con sé `WebFetch(domain:host)` di sessione.
-function askBubo(id: string, isSandboxed: boolean): CanUseTool {
+function askBubo(id: string, isSandboxed: boolean, subagents: Subagents): CanUseTool {
   return async (toolName, input, options) => {
+    if (toolName === "AskUserQuestion") return askQuestion(id, input, options.signal);
     if (needsItsOwnCard(toolName, options)) return permissionResult(false, input, deniedOwnCard);
     if (options.signal.aborted) return permissionResult(false, input, deniedWithoutBubo);
     const request = randomUUID();
-    const shown = permissionRequest(request, toolName, input, options);
+    const shown = permissionRequest(request, toolName, input, options, subagents);
     if (isSandboxed && isOutsideSandbox(toolName, input)) shown.outsideSandbox = true;
     if (isTooLong(shown)) return permissionResult(false, input, deniedWithoutBubo);
     let reached = true;
@@ -126,6 +153,34 @@ function askBubo(id: string, isSandboxed: boolean): CanUseTool {
     const rule = answer.lasting && toolName === networkTool ? networkRule(input.host) : undefined;
     return permissionResult(answer.allowed, input, reached ? undefined : deniedWithoutBubo, rule && [rule]);
   };
+}
+
+// Le domande dell'agente in attesa delle risposte di Bubo: un elenco per posizione, oppure nulla se l'utente non risponde.
+const questions = new Map<string, (replies: unknown) => void>();
+
+// `AskUserQuestion` della conversazione `id`: Bubo mostra le domande nella Sessione e risponde con le scelte. Senza
+// risposte valide, se Bubo non si raggiunge o se la CLI ritira la domanda (turno fermato, scadenza), è negata.
+async function askQuestion(id: string, input: Record<string, unknown>, signal: AbortSignal) {
+  if (signal.aborted) return questionResult(input, undefined, notShown);
+  const request = randomUUID();
+  const shown = agentQuestion(request, input);
+  if (!shown) return questionResult(input, undefined, notShown);
+  let reached = true;
+  const replies = await new Promise<unknown>((resolve) => {
+    questions.set(request, resolve);
+    signal.addEventListener("abort", () => {
+      resolve(undefined);
+      if (questions.delete(request)) send({ type: "permissionWithdrawn", id, request });
+    }, { once: true });
+    try {
+      send({ ...shown, id });
+    } catch {
+      reached = false;
+      resolve(undefined);
+    }
+  });
+  questions.delete(request);
+  return questionResult(input, answersOf(input, replies), reached ? undefined : notShown);
 }
 
 // Le domande sul Livello di rischio del cancello in attesa di Bubo: `true` per i livelli 4–5.
@@ -160,6 +215,26 @@ const childEnv = { ...inherited };
 // Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
+// Le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+// `cerca` e `ricorda` delle Domande con il Secondo cervello rispondono da Bubo, come per `claude`.
+const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv),
+  (call) => askBuboFor((id) => ({ ...call, id })));
+
+// Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
+function isCopilotPath(copilot: unknown): copilot is string {
+  return typeof copilot === "string" && copilot.startsWith("/");
+}
+
+// La latenza al primo token di una Domanda via Copilot (ADR 0011, punto 6), per la decisione sulla partnership.
+async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>) {
+  const firstToken = await copilotQuestions.ask({
+    id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
+    model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
+    brain: typeof command.brain === "string" && command.brain.length > 0 ? command.brain : undefined,
+  });
+  if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
+}
+
 // La copia a specchio delle conversazioni (ADR 0006); senza, le Sessioni lavorano come prima, senza copia.
 const store = (() => {
   if (!conversationsPath) return undefined;
@@ -171,7 +246,13 @@ const store = (() => {
   }
 })();
 
+// Le Sessioni su `copilot` (ADR 0012), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+// Bubo ne conserva le conversazioni nello stesso store di quelle di Claude.
+const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv), store);
+
 const running = new Map<string, Query>();
+// Le conversazioni in corso che hanno `ricorda`: lo tengono anche quando cambia l'Anteprima.
+const remembering = new Set<string>();
 // Le chiamate a `cerca` e `ricorda` in attesa del risultato di Bubo, che arriva con `found`.
 const toolCalls = new Map<string, (text: string) => void>();
 
@@ -184,38 +265,29 @@ function askBuboFor(event: (id: string) => Event): Promise<string> {
   });
 }
 
-// `cerca` chiede l'Indice a Bubo: i frammenti restano tra Bubo e Claude.
-// `ricorda`, solo con `remembers`, fa scrivere a Bubo una nota in `Bubo/Note/` del Secondo cervello.
+// `cerca` e `ricorda` (in `tools.ts`) per `claude`; `ricorda` solo con `remembers`.
 // Un server per conversazione: un'istanza MCP si collega a un solo trasporto. `conversation` dice a Bubo di chi è
 // ogni chiamata a `cerca`, per la riga "Richiamato" della Sessione.
 function buboTools(conversation: string, remembers = false) {
   const search = tool(
-    "cerca",
-    "Cerca per parole nell'Indice di Bubo: la memoria di Claude Code di tutti i Progetti, il CLAUDE.md dell'utente, il suo Secondo cervello, la cartella di note Markdown che ha scelto (per esempio un vault Obsidian), e le conversazioni passate, delle Sessioni di Bubo e della riga di comando. Note e conversazioni non arrivano in nessun altro modo: cercale qui quando servono. Restituisce i frammenti con il percorso del file, o con la conversazione, chi ha scritto e la data.",
-    {
-      testo: z.string().describe("Le parole da cercare"),
-      progetto: z.string().optional().describe("Percorso della cartella di un Progetto, per cercare solo nella sua memoria"),
-      fonte: z.enum(["memoria", "secondo-cervello", "conversazioni"]).optional()
-        .describe("Dove cercare: \"memoria\" (memoria dei Progetti e CLAUDE.md), \"secondo-cervello\" (le note dell'utente) o \"conversazioni\" (le conversazioni passate); senza, ovunque"),
-    },
-    async ({ testo, progetto, fonte }) => {
-      const text = await askBuboFor((id) => ({ type: "search", id, query: testo, project: progetto, source: fonte, conversation }));
+    searchTool.name,
+    searchTool.description,
+    searchTool.shape,
+    async (args) => {
+      const text = await askBuboFor((id) => ({ ...searchCall(args, conversation), id }));
       return { content: [{ type: "text", text }] };
     },
     { annotations: { readOnlyHint: true } },
   );
   const remember = tool(
-    "ricorda",
-    "Salva una nota nuova nel Secondo cervello dell'utente, la sua cartella di note Markdown, in Bubo/Note. Usalo solo quando l'utente chiede di ricordare qualcosa (\"ricordati questo\", \"segnati che…\"). Non modifica né sostituisce note esistenti. Restituisce il percorso della nota, o perché non è stata salvata.",
-    {
-      titolo: z.string().describe("Un titolo breve, che diventa il nome del file"),
-      testo: z.string().describe("Cosa ricordare, in Markdown, comprensibile anche letto da solo tra mesi"),
-    },
-    async ({ titolo, testo }) => {
-      const text = await askBuboFor((id) => ({ type: "remember", id, title: titolo, text: testo }));
+    rememberTool.name,
+    rememberTool.description,
+    rememberTool.shape,
+    async (args) => {
+      const text = await askBuboFor((id) => ({ ...rememberCall(args, conversation), id }));
       return { content: [{ type: "text", text }] };
     },
-    { annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false } },
+    { annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false } },
   );
   return createSdkMcpServer({ name: "bubo", tools: remembers ? [search, remember] : [search] });
 }
@@ -257,6 +329,18 @@ function memoryHooks(id: string): Record<"PreToolUse" | "PostToolUse" | "PostToo
   };
 }
 
+// L'hook che tiene una Domanda nel Secondo cervello fuori dalle sue cartelle escluse `hidden`, sul percorso reale.
+function hiddenFolders(cwd: string, hidden: string[]): HookCallbackMatcher {
+  return {
+    matcher: "Read|Grep|Glob",
+    hooks: [async (input) => {
+      if (input.hook_event_name !== "PreToolUse") return {};
+      const reason = hiddenPathDenial(input.tool_name, input.tool_input, cwd, hidden);
+      return reason ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } } : {};
+    }],
+  };
+}
+
 // I file trovati da Grep e Glob, letture tenui della Galassia: l'SDK li dà solo nella risposta dello strumento.
 function searchedFiles(id: string): HookCallbackMatcher {
   return {
@@ -274,27 +358,47 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `effort` è lo sforzo scelto dal router; senza, vale il default del modello. Prima di `done` il ponte dice chi ha
 // risposto (`answeredBy`): il modello e lo sforzo effettivo, che l'SDK può aver declassato in silenzio.
 // `env` si aggiunge all'ambiente del figlio: le porte della Sessione.
-// `resume` è una conversazione della Cronologia CLI: si riprende sempre come fork, con un id nuovo.
+// `resume` è una conversazione della Cronologia CLI, o il turno prima di una Sessione (#412): si riprende sempre come
+// fork, con un id nuovo. `claude` la riprende dal transcript in ~/.claude: lo store resta solo la copia, perché un
+// `resume` letto dallo store gira con una cartella di configurazione temporanea, senza memoria automatica, skill né
+// CLAUDE.md dell'utente. Dallo store solo se ~/.claude non l'ha più.
+// `upTo` è il messaggio di `resume` a cui il fork si ferma, incluso (Continua da qui, #159): `resumeSessionAt`.
 // `keep` è l'id che Bubo dà alla conversazione di un turno di una Sessione, da conservare: `claude` scrive il suo
 // transcript in ~/.claude/projects come dalla riga di comando (`sessionStore` non funziona senza la scrittura locale)
-// e l'SDK lo copia nello store. Senza `keep`, come per le Domande, `claude` non scrive nulla.
+// e l'SDK lo copia nello store, se c'è. Senza `keep`, come per le Domande, `claude` non scrive nulla.
 // `keep` dice anche che il turno è di una Sessione: solo lì la memoria automatica è accesa.
 // `sandbox` è la Sandbox della Sessione, se accesa: se non parte, `claude` esce prima di ogni comando.
 // `preview` dice che la Sessione ha già un server: il turno parte con gli strumenti dell'Anteprima.
 // `rules` sono le Risorse di squadra in vigore nel Progetto, come regole di sessione.
-// `remembers` dà lo strumento `ricorda`: solo alle Domande.
+// `remembers` dà lo strumento `ricorda`: alle Domande e alle Sessioni.
+// `brain` sono il Profilo e le Regole del Secondo cervello, in coda al prompt di sistema; senza, nulla.
 // `permissionMode` è `auto` nella Modalità autonoma, `default` nelle altre Sessioni; senza, decide `claude`.
 // `rosa` sono i nomi delle Varianti che l'agente può dare all'Orb con `⟦orb:nome⟧` (ADR 0002): vanno in coda al prompt
 // di sistema, che senza resta quello vuoto dell'SDK. Il tag non arriva mai a Bubo come testo, diventa `variante`.
 // Il cancello (`gate.ts`) passa prima di ogni strumento: con la Sandbox accesa o in Modalità autonoma.
+// `unattended` è il turno di un'Esecuzione, senza nessuno davanti: nessuna Richiesta di permesso, le Regole
+// dell'Automazione come regole di sessione, e prima di `done` un evento `denial` per ogni azione negata. Con `init`
+// arriva `mode`, la modalità che `claude` ha scelto davvero: `auto` può non essere disponibile.
+// `dirs` sono le cartelle che `claude` legge oltre a `cwd`, come `--add-dir`: quelle degli Allegati di una Domanda.
+// `maxBudget` è il residuo in dollari del Budget più stretto, con l'API key (spec 18): diventa `maxBudgetUsd`, e al
+// tetto il turno finisce con `budgetExhausted`. Senza, nessun tetto.
+// `readOnly` è il turno di una Domanda: solo gli strumenti che leggono, mai le cartelle escluse del Secondo cervello;
+// nel Secondo cervello l'agente sa di esserci e che scrive solo con `ricorda`.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
-                   model?: string, env: Record<string, string> = {}, resume?: string, keep?: string,
+                   model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
-                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = []) {
-  const mirrored = keep !== undefined && store !== undefined;
-  const restored = resume === undefined ? undefined : await restoredOf(resume);
+                   permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended,
+                   dirs: string[] = [], maxBudget?: number, brain?: string, readOnly?: ReadOnly) {
+  const resumed = resume === undefined ? undefined : await transcriptOf(resume);
+  const restored = resumed?.restored;
+  const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
   const stopped = new AbortController();
   let servers: Promise<McpServerStatus[]> | undefined;
+  const denials = unattended ? new Denials() : undefined;
+  // I nomi dei subagent, per le Richieste e i dinieghi; la verifica dell'agente che guida un'Esecuzione.
+  const subagents = new Subagents();
+  const mainAgent = unattended?.agent ? new MainAgent(unattended.agent) : undefined;
+  const checkAgent = mainAgent ? [{ hooks: [mainAgent.hook] }] : [];
   const gate = sandboxGate({
     cwd,
     sandbox,
@@ -303,13 +407,26 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       servers ??= conversation.mcpServerStatus();
       return isLocal((await servers).find((server) => server.name === name));
     },
-  });
+    isUnattended: unattended !== undefined,
+  }, (input) => denials?.gate(input));
+  const ruleOptions = teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]);
+  // Una volta sola, prima della fine del turno: dopo `done` Bubo non ascolta più.
+  let reported = false;
+  const report = (found: Parameters<Denials["result"]>[0] = []) => {
+    if (!denials || reported) return;
+    reported = true;
+    for (const denial of denials.result(found)) send({ type: "denial", id, ...denial });
+  };
   const memory = keep === undefined ? undefined : memoryHooks(id);
   const witness = new AnswerWitness();
+  const systemPrompt = systemPromptOf(rosa.length > 0 ? orbInstruction(rosa) : undefined,
+    readOnly?.inBrain ? brainHomeInstruction : undefined, brain);
   const conversation = query({
     prompt,
     options: {
       cwd,
+      ...(dirs.length > 0 ? { additionalDirectories: dirs } : {}),
+      ...(maxBudget !== undefined ? { maxBudgetUsd: maxBudget } : {}),
       projectConfigRoot,
       model,
       effort,
@@ -317,28 +434,40 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       pathToClaudeCodeExecutable: claudePath,
       settingSources: sources,
       mcpServers: turnServers(buboTools(id, remembers), preview ? previewTools(id, previewCalls) : undefined),
-      ...teamRuleOptions(rules, [...allowedBuboTools(remembers), ...allowedPreviewTools]),
+      ...ruleOptions,
+      ...(readOnly ? readOnlyOptions(readOnly, ruleOptions.disallowedTools) : {}),
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
+      ...(resume !== undefined && upTo !== undefined ? { resumeSessionAt: upTo } : {}),
       sandbox,
       permissionMode,
-      ...(rosa.length > 0 ? { systemPrompt: orbInstruction(rosa) } : {}),
-      ...(mirrored ? { sessionId: keep, persistSession: true, sessionStore: store } : { persistSession: false }),
-      canUseTool: askBubo(id, sandbox !== undefined),
+      ...(systemPrompt !== undefined ? { systemPrompt } : {}),
+      ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
+      ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined, subagents) }),
       // La fine di un Bash dell'agente, riuscito o no, può avere avviato o fermato un server: Bubo cerca le porte
       // (spec 15). Un Bash fallito o interrotto passa da `PostToolUseFailure`, non da `PostToolUse`.
       // Le scritture in memoria, solo nelle Sessioni: nelle Domande la memoria automatica è spenta.
       // Grep e Glob riusciti danno i file letti alla Galassia (spec 11).
       hooks: {
-        PreToolUse: [{ hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
+        // Il primo hook del filo principale dice se l'Esecuzione gira come il suo agente (`MainAgent`).
+        UserPromptSubmit: checkAgent,
+        PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? []),
+          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : [])],
+        SubagentStart: [{ hooks: [subagents.hook] }],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
         Stop: [witness.stopHook],
+        // Con `'none'` la Richiesta non arriva a nessuno, ma l'hook scatta ancora con le regole che `claude` propone.
+        ...(denials ? { PermissionRequest: [{ hooks: [async (input: HookInput) => {
+          if (input.hook_event_name === "PermissionRequest") denials.requested(input);
+          return {};
+        }] }] } : {}),
       },
     },
   });
   running.set(id, conversation);
+  if (remembers) remembering.add(id);
   // Perché il turno si è fermato: un limite rifiutato o un accesso non valido diventano eventi a sé.
   let limit: Limit | undefined;
   let failure: SDKAssistantMessageError | undefined;
@@ -356,7 +485,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     for await (const message of conversation) {
       if (message.type === "system" && message.subtype === "init") {
         usage ??= new UsageReader(message.apiKeySource === "none" ? "subscription" : "apiKey", restored);
+        if (unattended) send({ type: "mode", id, permissionMode: message.permissionMode });
       }
+      if (message.type === "system" && message.subtype === "permission_denied") denials?.denied(message, subagents.name(message.agent_id));
       // A ogni `init` il `claude` di questa Conversazione: si aggiorna anche con Bubo aperto. Sotto la minima di
       // Bubo, o rifiutato da Anthropic, la Conversazione si chiude prima del turno del modello.
       const claude = claudeInfo(message);
@@ -372,6 +503,9 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       witness.read(message);
       const turn = usage?.read(message);
       if (turn) send({ type: "usage", id, ...turn });
+      // A ogni risposta i token finora, che Bubo prezza: lo stop tra Sessioni non aspetta il `result` (#492).
+      const estimate = message.type === "assistant" && !message.error ? usage?.estimate() : undefined;
+      if (estimate) send({ type: "estimate", id, ...estimate });
       if (message.type === "system" && message.subtype === "api_retry") retry = message;
       if (message.type === "system" && message.subtype === "mirror_error") {
         console.error("Copia della conversazione incompleta:", message.error);
@@ -399,7 +533,11 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         const variante = orb.tools(message.message.content.flatMap((block) => (block.type === "tool_use" ? [block] : [])));
         if (variante) send({ type: "variante", id, nome: variante });
       } else if (message.type === "result") {
+        report(message.permission_denials);
+        // Fermato da `MainAgent`: l'errore va dopo l'ultimo messaggio, uno solo.
+        if (mainAgent?.isWrong) continue;
         if (message.subtype === "success" && !message.is_error) succeeded = true;
+        else if (message.subtype === "error_max_budget_usd") send({ type: "budgetExhausted", id });
         else if (limit) send({ type: "limit", id, ...limit });
         else if (failure === "authentication_failed") send({ type: "signInRequired", id });
         else send({ type: "error", id, message: message.subtype === "success" ? message.result : message.subtype,
@@ -407,13 +545,16 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       }
     }
     sendText(orb.flush());
+    report();
     const answeredBy = witness.answeredBy();
     if (answeredBy) send({ type: "answeredBy", id, ...answeredBy });
     if (outdated !== undefined) send({ type: "outdated", id, ...(outdated && { version: outdated }) });
+    else if (mainAgent?.isWrong) send({ type: "error", id, message: wrongAgent });
     // `done` dopo l'ultimo messaggio, non al `result`: mai "finita" con subagent ancora attivi.
     else if (succeeded) send({ type: "done", id });
   } catch (error) {
     // Interrotto senza un `result` valido: i token visti finora, con la cifra segnata incompleta.
+    report();
     const turn = usage?.turn();
     if (turn && !turn.complete) send({ type: "usage", id, ...turn });
     const reason = sandbox ? sandboxUnavailableReason(error) : undefined;
@@ -423,13 +564,15 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
     if (outdated !== undefined) conversation.close();
     stopped.abort();
     running.delete(id);
+    remembering.delete(id);
     for (const session of torn) await repair(session);
   }
 }
 
-// Il totale che `resume` ripristina dal transcript di `session` (`cost-state`), da togliere al turno: quei turni sono
-// della Cronologia CLI. Dalla copia se la CLI l'ha già cancellato; senza `cost-state` `resume` non ripristina nulla.
-async function restoredOf(session: string): Promise<Restored | undefined> {
+// Se il transcript di `session` è ancora in ~/.claude, e il totale che `resume` ne ripristina (`cost-state`), da togliere
+// al turno: quei turni sono già contati, della Cronologia CLI o dei turni prima della Sessione. Dalla copia se la CLI
+// l'ha già cancellato; senza `cost-state` `resume` non ripristina nulla.
+async function transcriptOf(session: string): Promise<{ isLocal: boolean; restored?: Restored }> {
   const entries: SessionStoreEntry[] = [];
   try {
     await importSessionToStore(session, {
@@ -439,8 +582,9 @@ async function restoredOf(session: string): Promise<Restored | undefined> {
   } catch (error) {
     console.error("Transcript da riprendere non letto:", error instanceof Error ? error.message : error);
   }
-  if (!entries.length && store) entries.push(...store.entries(session));
-  return restoredFrom(entries);
+  const isLocal = entries.length > 0;
+  if (!isLocal && store) entries.push(...store.entries(session));
+  return { isLocal, restored: restoredFrom(entries) };
 }
 
 async function repair(session: string) {
@@ -619,6 +763,12 @@ async function history(id: string, all: boolean) {
 // Gli ultimi messaggi di `session`, o tutti con `all`, per l'Indice: sempre con le funzioni dell'SDK.
 async function transcript(id: string, session: string, all: boolean) {
   try {
+    // Una conversazione Copilot c'è solo nella copia di Bubo, già nel formato di quelle di Claude.
+    const copilot = await store?.load({ projectKey: copilotProject, sessionId: session });
+    if (copilot) {
+      send({ type: "transcript", id, messages: copiedMessages(copilot, all ? Infinity : transcriptLimit) });
+      return;
+    }
     // Dopo la pulizia della CLI il transcript locale non c'è più: resta la copia.
     let read = await getSessionMessages(session);
     if (!read.length && store) read = await getSessionMessages(session, { sessionStore: store });
@@ -654,11 +804,14 @@ lines.on("line", (line) => {
       const env = Object.fromEntries(Object.entries(typeof command.env === "object" && command.env ? command.env : {})
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[0] !== "CLAUDE_CODE_SANDBOXED"));
       const resume = typeof command.resume === "string" ? command.resume : undefined;
+      const upTo = typeof command.upTo === "string" ? command.upTo : undefined;
       const keep = typeof command.keep === "string" ? command.keep : undefined;
       const mode = command.permissionMode === "auto" || command.permissionMode === "default" ? command.permissionMode : undefined;
-      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, keep,
+      void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
-               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb));
+               command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended),
+               directoriesOf(command.dirs), budgetOf(command.maxBudget), typeof command.brain === "string" ? command.brain : undefined,
+               readOnlyOf(command.readOnly));
       break;
     }
     case "config": {
@@ -674,6 +827,24 @@ lines.on("line", (line) => {
       break;
     }
     case "cool": spares.cool(); break;
+    case "reconnect":
+      // Dopo un `claude mcp login`: i turni in corso si ricollegano, i successivi lo fanno da soli.
+      if (typeof command.server === "string") {
+        for (const conversation of running.values()) void conversation.reconnectMcpServer(command.server).catch(() => {});
+      }
+      break;
+    case "reloadPlugins": {
+      // Ricarica plugin del turno in corso `turn`: un turno finito non ha niente da ricaricare, il prossimo li legge da sé.
+      const conversation = typeof command.turn === "string" ? running.get(command.turn) : undefined;
+      if (!conversation) {
+        send({ type: "error", id: command.id, message: "turno finito" });
+        break;
+      }
+      conversation.reloadPlugins(reloadOptions(command.force))
+        .then((response) => send({ type: "pluginsReloaded", id: command.id, ...pluginReload(response) }))
+        .catch((error) => send({ type: "error", id: command.id, message: error instanceof Error ? error.message : String(error) }));
+      break;
+    }
     case "history": void history(command.id, command.all === true); break;
     case "transcript": void transcript(command.id, command.conversation, command.all === true); break;
     case "keep": void keepHistory(command.id); break;
@@ -687,22 +858,50 @@ lines.on("line", (line) => {
       store?.forgetImported();
       send({ type: "forgot", id: command.id });
       break;
-    case "cancel": void running.get(command.id)?.interrupt(); break;
+    case "copilot":
+      if (!isCopilotPath(command.copilot)) {
+        send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+        break;
+      }
+      void copilotTurns.run({ id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
+                              model: typeof command.model === "string" ? command.model : undefined,
+                              effort: reasoningEffortOf(command.effort),
+                              keep: typeof command.keep === "string" ? command.keep : undefined, resume: command.resume === true });
+      break;
+    case "copilotQuestion":
+      if (isCopilotPath(command.copilot)) void askCopilot(command);
+      else send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+      break;
+    case "copilotModels":
+      if (isCopilotPath(command.copilot)) void copilotQuestions.models(command.id, command.copilot);
+      else send({ type: "error", id: command.id, message: "percorso di copilot mancante" });
+      break;
+    case "cancel":
+      if (!copilotTurns.cancel(command.id) && !copilotQuestions.cancel(command.id)) void running.get(command.id)?.interrupt();
+      break;
     case "found": toolCalls.get(command.id)?.(command.text); toolCalls.delete(command.id); break;
     case "quota": void quota(); break;
+    case "summarize":
+      void summarize(command.id, command.prompt, summaryOptions(command.cwd, typeof command.model === "string" ? command.model : undefined, childEnv, claudePath), query, send);
+      break;
     case "previewServer": {
       // Il server della Sessione è comparso o sparito a turno in corso.
       const conversation = running.get(command.id);
       if (conversation) {
-        void offerPreview(conversation, buboTools(command.id), command.available === true ? previewTools(command.id, previewCalls) : undefined);
+        void offerPreview(conversation, buboTools(command.id, remembering.has(command.id)), command.available === true ? previewTools(command.id, previewCalls) : undefined);
       }
       break;
     }
     case "previewResult": previewCalls.answer(command.call, command); break;
     case "risk": risks.get(command.request)?.(command.dangerous !== false); risks.delete(command.request); break;
     case "permission":
+      if (copilotTurns.answer(command.request, isAllowed(command.behavior))) break;
       permissions.get(command.request)?.({ allowed: isAllowed(command.behavior), lasting: isLasting(command.scope) });
       permissions.delete(command.request);
+      break;
+    case "question":
+      questions.get(command.request)?.(command.answers);
+      questions.delete(command.request);
       break;
     case "sandboxRules": {
       const root = typeof command.projectConfigRoot === "string" && command.projectConfigRoot.startsWith("/")

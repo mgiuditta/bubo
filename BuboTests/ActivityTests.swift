@@ -95,12 +95,6 @@ struct ActivityTests {
         #expect(sessions.map(\.title) == ["d", "b", "c", "a"])
     }
 
-    @Test func inOrbitaAttendeTeSitsAtTheTopAndTheOthersOnTheSides() {
-        let angles = SessionOrbit.angles(waiting: 2, others: 3).map { $0.degrees.rounded() }
-
-        #expect(angles == [-103, -77, 12, 168, -12])
-    }
-
     @Test(arguments: [
         ([Session.Activity](), OrbState.idle),
         ([.ferma, .errore], .idle),
@@ -110,6 +104,13 @@ struct ActivityTests {
     func theOrbFollowsTheOpenSessioni(activities: [Session.Activity], state: OrbState) {
         let sessions = activities.map { Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: $0) }
         #expect(OrbState(following: sessions) == state)
+    }
+
+    @Test func withAFocusTheOrbFollowsThatSessioneAlone() {
+        let waiting = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .attende)
+        let working = Session(id: UUID(), title: "Prova", project: URL(filePath: "/tmp"), activity: .lavora)
+        #expect(OrbState(following: [waiting, working], focus: working.id) == .working)
+        #expect(OrbState(following: [waiting, working], focus: UUID()) == .listening)
     }
 
     @Test func anArchivedSessioneDoesNotMoveTheOrb() {

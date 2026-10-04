@@ -1,0 +1,10 @@
+Test Suite 'All tests' started at 2026-09-30 10:12:00
+Compiling /Users/ada/dev/telaio/.claude/worktrees/stampa/Sources/Stampa.swift
+Loaded signing key from /Users/ada/.ssh/telaio:
+-----BEGIN EC PRIV§ATE KEY-----
+D3jr92PvlsKfGqSTyyh1ASfrNPXTb8ckIoeUQEluV6gKxhtkjYYGEz4argeQt9Hh
+2YWSlNYoE4LRIyzcbxEKTo2S9qlQGIig71ogVR9AdR+OIUiEFkTVFfrHcAQLq8ZT
+cOX/H2VPd4kOe20D8JfhLYTtph3KzIEJLl4pN1KKnLc2gw5kO5zTpp1riBGvZIf0
+-----END EC PRIVATE KEY-----
+Test Case 'StampaTests.testDoppia' failed (0.012 seconds).
+Executed 41 tests, with 1 failure

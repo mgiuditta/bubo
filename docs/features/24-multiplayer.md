@@ -206,15 +206,15 @@ Scelti scrivendo la spec, non nelle issue. Si possono cambiare senza toccare le 
 
 **Pulizia** (`Deliveries/TranscriptCleaner`, codice puro)
 
-- Riga per riga, con una tabella dei tipi conosciuti: ogni tipo di riga ha una regola (tieni, togli, riscrivi). **Una riga di tipo sconosciuto blocca la Consegna** con "Questa Sessione ha righe che Bubo non sa ancora ripulire", invece di passare.
-- Tolte: `session_context`, `credential_org`, `prompt_snapshot`, `pr-link`, `file-history-*`, `ai-title`, `last-prompt`, `cost-state`, `queue-operation`, blocchi `thinking` e `redacted_thinking`. Catena `parentUuid` ricucita.
-- **Percorsi**: il worktree del mittente, la sua forma codificata e la home diventano un segnaposto `‹progetto›` in `cwd`, `environment`, `persistedOutputPath`, `message.content` e `toolUseResult`. All'Avvia il segnaposto diventa il worktree del destinatario.
+- Riga per riga, con una tabella dei tipi conosciuti a due livelli: il `type` della riga e, per `attachment`, l'`attachment.type`. Ogni valore ha una regola (tieni e riscrivi, togli). **Un valore sconosciuto a uno dei due livelli blocca la Consegna** con "Questa Sessione ha righe che Bubo non sa ancora ripulire", invece di passare.
+- Tolte: le righe `pr-link`, `file-history-*`, `ai-title`, `custom-title`, `last-prompt`, `cost-state`, `queue-operation`, `atis-latch`, `progress`; gli `attachment` `session_context`, `credential_org`, `environment`, `model`, `remote_session_change`, `prompt_snapshot`, `prompt_render_point`, `deferred_tools_record`; i blocchi `thinking` e `redacted_thinking` (un messaggio fatto solo di ragionamento sparisce). Catena `parentUuid` ricucita (anche `logicalParentUuid` e `leafUuid`).
+- **Percorsi**: il worktree del mittente, la home e le loro forme codificate diventano un segnaposto `‹progetto›` in ogni stringa di ogni riga (`cwd`, `persistedOutputPath`, `message.content`, `toolUseResult`, `wireIngestContext`, righe `system`, `instructions`…), nei `agent-<id>.meta.json` dei subagent e nei `tool-results/`. Email e organizzazione dell'account diventano `‹tolto›` ovunque compaiano. All'Avvia il segnaposto diventa il worktree del destinatario.
 - **Segreti decisi "Togli"**: il valore diventa `‹tolto›` in `message.content`, `toolUseResult` e nei file `tool-results/`, ovunque compaia (anche nei subagent).
 - **`sessionId`** nuovo per il destinatario, riscritto in tutte le righe e nei subagent.
 
 **Scanner** (`Deliveries/SecretScanner`, codice puro)
 
-- Tre fonti: regole con prefisso noto (portate dalle regole di gitleaks, licenza MIT, con la versione annotata); valori ad alta entropia accanto a parole chiave (`token`, `secret`, `password`, `key`, `Authorization`); righe `NOME=valore` di file `.env` letti durante la Sessione.
+- Tre fonti: regole con prefisso noto (portate dalle regole di gitleaks con parole chiave, entropia e allowlist, licenza MIT, versione annotata in `Resources/RegoleGitleaks.json` e rifatte con `scripts/update-gitleaks-rules.sh`); valori ad alta entropia accanto a parole chiave (`token`, `secret`, `password`, `key`, `Authorization`); righe `NOME=valore` di file `.env` letti durante la Sessione.
 - Gira su conversazione, subagent, `tool-results` e sul diff delle modifiche non salvate. Ogni risultato ha estratto mascherato (primi 4 caratteri e lunghezza) e posizione.
 - Un risultato che compare in più punti è **una** riga "Da decidere".
 

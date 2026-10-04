@@ -1,15 +1,18 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
 /// The choice of the Secondo cervello: any folder of notes, with the Obsidian vaults on this Mac suggested (spec 12).
 struct SecondBrainSettingsSection: View {
     @Environment(SecondBrain.self) private var secondBrain
     @State private var isReachable = true
     @State private var isObsidianVault = false
-    @State private var vaults: [URL] = []
-    @State private var isChoosingFolder = false
+    @State private var vaultCount = 0
+    @State private var isSettingUp = false
+    @State private var isSettingUpQuickly = false
+    @AppStorage(SessionSummarizer.defaultsKey) private var writesSummaries = true
+    @AppStorage(MeetingAudioRetention.defaultsKey) private var meetingAudio = MeetingAudioRetention.thirtyDays
 
     var body: some View {
+        @Bindable var secondBrain = secondBrain
         Section {
             if let location = secondBrain.location {
                 LabeledContent {
@@ -28,31 +31,47 @@ struct SecondBrainSettingsSection: View {
                         .font(.callout)
                 }
                 HStack {
-                    Button("Cambia cartella…") { isChoosingFolder = true }
+                    Button("Personalizza a fondo…") { isSettingUp = true }
                     Button("Non usare più") { secondBrain.stopUsing() }
                 }
             } else {
-                ForEach(vaults, id: \.self) { vault in
-                    LabeledContent {
-                        Button("Usa") { secondBrain.choose(vault) }
-                            .accessibilityLabel("Usa \(vault.lastPathComponent)")
-                    } label: {
-                        Text(verbatim: vault.lastPathComponent)
-                        Text("Vault di Obsidian")
+                LabeledContent {
+                    HStack {
+                        Button("Configura in 60 secondi…") { isSettingUpQuickly = true }
+                        Button("Personalizza a fondo…") { isSettingUp = true }
                     }
-                    .help(vault.path)
+                } label: {
+                    Text("Nessuna cartella scelta")
+                    if vaultCount == 0 {
+                        Text("In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole.")
+                    } else {
+                        Text("Vault di Obsidian trovati: \(vaultCount). In 60 secondi scegli la cartella. A fondo, il modello ti intervista e prepara Profilo e Regole.")
+                    }
                 }
-                Button("Scegli una cartella…") { isChoosingFolder = true }
+            }
+            Toggle(isOn: $secondBrain.savesOnItsOwn) {
+                Text("Salva da solo")
+                Text("Claude salva preferenze, persone, progetti e decisioni seguendo Bubo/Regole.md. Spento, salva solo quando glielo chiedi.")
+            }
+            if secondBrain.location != nil, !secondBrain.recentChanges.isEmpty {
+                DisclosureGroup("Ultime modifiche") {
+                    ForEach(secondBrain.recentChanges.prefix(10)) { change in
+                        BrainChangeRow(change: change)
+                    }
+                }
+            }
+            Toggle("Scrivi un riassunto quando una Sessione è Fusa o Archiviata", isOn: $writesSummaries)
+            Picker("Audio delle Riunioni", selection: $meetingAudio) {
+                Text("Conserva per 30 giorni").tag(MeetingAudioRetention.thirtyDays)
+                Text("Elimina dopo la trascrizione").tag(MeetingAudioRetention.afterTranscription)
             }
         } header: {
             Text("Secondo cervello")
         } footer: {
-            Text("Claude legge le note solo quando le cerca: nulla entra da solo nella conversazione. Obsidian può restare chiuso.")
+            Text("Ogni conversazione riceve Bubo/Profilo.md e Bubo/Regole.md; le altre note Claude le legge quando le cerca. Obsidian può restare chiuso.")
         }
-        .fileImporter(isPresented: $isChoosingFolder, allowedContentTypes: [.folder]) { result in
-            guard case let .success(folder) = result else { return }
-            secondBrain.choose(folder)
-        }
+        .sheet(isPresented: $isSettingUp) { SecondBrainConversationSheet() }
+        .sheet(isPresented: $isSettingUpQuickly) { SecondBrainSetupSheet() }
         .task(id: secondBrain.location) { refresh() }
     }
 
@@ -60,6 +79,6 @@ struct SecondBrainSettingsSection: View {
     private func refresh() {
         isReachable = secondBrain.location?.isReachable ?? true
         isObsidianVault = secondBrain.location?.isObsidianVault ?? false
-        vaults = secondBrain.location == nil ? SecondBrainLocation.suggestedVaults() : []
+        vaultCount = secondBrain.location == nil ? SecondBrainLocation.suggestedVaults().count : 0
     }
 }

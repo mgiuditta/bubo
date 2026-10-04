@@ -8,7 +8,7 @@ struct AgentBridgeTests {
     static func bridge(_ script: String) -> AgentBridge {
         AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script],
                     environment: ["PATH": "/usr/bin:/bin"],
-                    remember: { text, title in "salvata \(title): \(text)" }) { query, project, source in
+                    remember: { request in ("salvata \(request.title ?? ""): \(request.text)", nil) }) { query, project, source in
             "\(query) in \(project ?? "tutto")\(source.map { " (\($0.rawValue))" } ?? "")"
         }
     }
@@ -32,6 +32,53 @@ struct AgentBridgeTests {
             """#))
         let answer = try await Self.collect(bridge.ask("Rispondi: ciao", in: URL(filePath: "/tmp")))
         #expect(answer == "ciao")
+    }
+
+    @Test func aCopilotQuestionStreamsWithItsTokensAndModel() async throws {
+        // The command comes back as the answer's first text, so the test can read it.
+        let bridge = Self.bridge(Self.answering(#"""
+            type=$(echo "$line" | sed 's/.*"type":"\([^"]*\)".*/\1/')
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$type \"}"
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"ciao\"}"
+            echo "{\"v\":4,\"type\":\"usage\",\"id\":\"$id\",\"mode\":\"apiKey\",\"basis\":\"unknown\",\"complete\":true,\"models\":[{\"model\":\"gpt-6\",\"inputTokens\":10,\"outputTokens\":2,\"cacheReadTokens\":0,\"cacheWriteTokens\":0,\"thinkingTokens\":0}]}"
+            echo "{\"v\":4,\"type\":\"answeredBy\",\"id\":\"$id\",\"model\":\"gpt-6\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var usage: TurnUsage?
+        var model: AnsweringModel?
+        let answer = try await Self.collect(bridge.askCopilotQuestion(
+            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"), consents: [EndpointSettings.copilotConsentID],
+            usage: { usage = $0 }, answeredBy: { model = $0 }))
+        #expect(answer == "copilotQuestion ciao")
+        #expect(usage?.models.map(\.inputTokens) == [10])
+        #expect(model == AnsweringModel(model: "gpt-6", effort: nil))
+    }
+
+    // Spec 10: without the user's consent, neither a Domanda nor a turn of a Sessione reaches Copilot.
+    @Test(arguments: [false, true])
+    func withoutConsentNothingGoesToCopilot(isSessione: Bool) async throws {
+        let log = URL.temporaryDirectory.appending(path: "copilot-\(UUID().uuidString).log")
+        defer { try? FileManager.default.removeItem(at: log) }
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"),
+                                 arguments: ["-c", #"while read line; do echo "$line" >> "$1"; done"#, "sh", log.path],
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+        let copilot = URL(filePath: "/opt/homebrew/bin/copilot")
+        // Another cloud's consent is not Copilot's.
+        let answer = isSessione
+            ? bridge.askCopilot("Leggi main.swift", in: URL(filePath: "/tmp/w"), copilot: copilot, consents: ["openai"])
+            : bridge.askCopilotQuestion("Ciao", copilot: copilot, consents: ["openai"])
+        await #expect(throws: CopilotFailure.consentMissing) { try await Self.collect(answer) }
+        #expect(!FileManager.default.fileExists(atPath: log.path))
+    }
+
+    @Test func theCopilotModelsAnswerTheirRequest() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            echo "{\"v\":4,\"type\":\"copilotModels\",\"id\":\"$id\",\"models\":[{\"id\":\"gpt-6\",\"name\":\"GPT-6\"}]}"
+            read _
+            """#))
+        let models = try await bridge.copilotModels(of: URL(filePath: "/opt/homebrew/bin/copilot"))
+        #expect(models == [CopilotModel(id: "gpt-6", name: "GPT-6")])
     }
 
     @Test func aSearchIsAnsweredOnTheBridgesInput() async throws {
@@ -80,6 +127,22 @@ struct AgentBridgeTests {
             """#)
         let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), remembers: true))
         #expect(answer == "salvata Ombrello: portarlo")
+    }
+
+    @Test func aWriteOfRicordaReachesTheConversationThatAskedAsSalvato() async throws {
+        let change = BrainChange(file: URL(filePath: "/tmp/Bubo/Profilo.md"), previous: nil, hash: "h")
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", Self.answering(#"""
+            echo "{\"v\":4,\"type\":\"remember\",\"id\":\"r1\",\"conversation\":\"$id\",\"mode\":\"riscrivi\",\"note\":\"Bubo/Profilo.md\",\"text\":\"x\"}"
+            read found
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#)], environment: ["PATH": "/usr/bin:/bin"],
+                                 remember: { _ in ("Salvato", change) }) { _, _, _ in "" }
+        var received: [AgentProgress] = []
+
+        _ = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), remembers: true) { received.append($0) })
+
+        #expect(received == [.memory(.saved(change))])
     }
 
     @Test func theProgressArrivesBeforeTheAnswerEndsAndNotAfter() async throws {
@@ -264,6 +327,29 @@ struct AgentBridgeTests {
         read _
         """#)
 
+    // ADR 0012: a Copilot turn streams and asks as a Claude one, on the same bridge.
+    @Test func aCopilotAnswerStreamsAndItsPermissionIsAnswered() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            case "$line" in *'"type":"copilot"'*'"v":4'*) ;; *) exit 1 ;; esac
+            echo "{\"v\":4,\"type\":\"permission\",\"id\":\"$id\",\"request\":\"p1\",\"tool\":\"Edit\",\"path\":\"/tmp/w/a\"}"
+            read answer
+            case "$answer" in *'"behavior":"allow"'*) said=scritto ;; *) said=no ;; esac
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$said\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var asked: [PermissionEvent] = []
+        let answer = try await Self.collect(bridge.askCopilot("x", in: URL(filePath: "/tmp/w"),
+                                                              copilot: URL(filePath: "/c"),
+                                                              consents: [EndpointSettings.copilotConsentID]) { _ in
+        } permissions: { event in
+            asked.append(event)
+            if case let .asked(request) = event { bridge.answerPermission(request.id, allows: true) }
+        })
+        #expect(answer == "scritto")
+        #expect(asked == [.asked(PermissionRequest(id: "p1", tool: "Edit", path: "/tmp/w/a"))])
+    }
+
     @Test func aPermissionIsAnsweredOnTheBridgesInput() async throws {
         let bridge = Self.bridge(Self.askingPermission)
         var asked: [PermissionEvent] = []
@@ -273,6 +359,39 @@ struct AgentBridgeTests {
         }))
         #expect(answer == "allow")
         #expect(asked == [.asked(PermissionRequest(id: "p1", tool: "Bash", command: "npm test"))])
+    }
+
+    /// A bridge that asks the agent's questions, then writes Bubo's answer back as the conversation's text.
+    static let askingQuestion = answering(#"""
+        echo "{\"v\":4,\"type\":\"question\",\"id\":\"$id\",\"request\":\"q1\",\"questions\":[{\"question\":\"Quale?\",\"header\":\"Scelta\",\"multiSelect\":false,\"options\":[{\"label\":\"A\"},{\"label\":\"B\"}]}]}"
+        read answer
+        case "$answer" in
+            *'"answers":[{"options":[1]}]'*) said=B ;;
+            *'"answers"'*) said=other ;;
+            *) said=none ;;
+        esac
+        echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$said\"}"
+        echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+        read _
+        """#)
+
+    @Test func theAgentsQuestionsAreAnsweredOnTheBridgesInput() async throws {
+        let bridge = Self.bridge(Self.askingQuestion)
+        var asked: [PermissionEvent] = []
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp"), permissions: { event in
+            asked.append(event)
+            if case let .question(question) = event { bridge.answerQuestion(question.id, with: [.init(options: [1])]) }
+        }))
+        #expect(answer == "B")
+        #expect(asked == [.question(AgentQuestion(id: "q1", items: [
+            .init(question: "Quale?", header: "Scelta", options: [.init(label: "A"), .init(label: "B")], allowsMultiple: false),
+        ]))])
+    }
+
+    @Test func aConversationThatTakesNoPermissionsLeavesTheQuestionsUnanswered() async throws {
+        let bridge = Self.bridge(Self.askingQuestion)
+        let answer = try await Self.collect(bridge.ask("x", in: URL(filePath: "/tmp")))
+        #expect(answer == "none")
     }
 
     @Test func aConversationThatTakesNoPermissionsIsDenied() async throws {

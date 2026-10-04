@@ -10,6 +10,47 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":["user"],"type":"ask","v":4}"# + "\n")
     }
 
+    // ADR 0012: a Sessione on Copilot names the user's `copilot`, and its model and effort only when chosen.
+    @Test func askCopilotCarriesTheBinaryAndTheFolder() throws {
+        let line = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                copilot: URL(filePath: "/opt/homebrew/bin/copilot")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"copilot":"/opt/homebrew/bin/copilot","cwd":"/tmp/w","id":"a1","prompt":"Ciao","type":"copilot","v":4}"# + "\n")
+        let chosen = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                  copilot: URL(filePath: "/c"), model: "gpt-6", effort: .high).line()
+        #expect(String(decoding: chosen, as: UTF8.self).contains(#""effort":"high","id":"a1","model":"gpt-6""#))
+        let resumed = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                   copilot: URL(filePath: "/c"), keeping: "k-1", resumes: true).line()
+        #expect(String(decoding: resumed, as: UTF8.self).contains(#""keep":"k-1","prompt":"Ciao","resume":true"#))
+    }
+
+    @Test func askWithAllegatiCarriesTheirFolders() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                         settingSources: [], readableDirectories: [URL(filePath: "/tmp/allegati/")]).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""dirs":["/tmp/allegati"]"#))
+    }
+
+    // #678: a Domanda only reads, and never the excluded folders of the Secondo cervello.
+    @Test func readOnlyAskCarriesTheSecondBrainAndItsHiddenFolders() throws {
+        let readOnly = ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [URL(filePath: "/tmp/note/Privato/")])
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/note"),
+                                         settingSources: [], readOnly: readOnly).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""readOnly":{"brain":true,"hidden":["/tmp/note/Privato"]}"#))
+        let ordinary = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"),
+                                             settingSources: []).line()
+        #expect(!String(decoding: ordinary, as: UTF8.self).contains("readOnly"))
+    }
+
+    // #165: the residue of the tightest Budget goes as the turn's cap; at the cap the turn ends apart.
+    @Test func askWithABudgetCarriesItsCap() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         maxBudget: Decimal(string: "2.5")).line()
+        #expect(String(decoding: line, as: UTF8.self).contains(#""maxBudget":2.5"#))
+        let event = try JSONDecoder().decode(BridgeEvent.self,
+                                             from: Data(#"{"v":4,"type":"budgetExhausted","id":"a1"}"#.utf8))
+        #expect(event == .budgetExhausted(id: "a1"))
+    }
+
     @Test func askInAWorktreeCarriesTheMainCheckout() throws {
         let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                          settingSources: ["user"], projectConfigRoot: URL(filePath: "/tmp/repo/")).line()
@@ -48,6 +89,23 @@ struct BridgeMessageTests {
             ModelCatalog.Entry(value: "haiku", resolvedModel: "claude-haiku-4-5-20251001", displayName: "Haiku"),
             ModelCatalog.Entry(value: "opus", displayName: "Opus", supportedEffortLevels: [.low, .medium]),
         ])))
+    }
+
+    @Test func aCopilotQuestionCarriesItsCopilotModelAndEffort() throws {
+        let line = try BridgeCommand.askCopilotQuestion(id: "c1", prompt: "Ciao", directory: URL(filePath: "/tmp/vuota"),
+                                                        copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+                                                        model: "gpt-6", effort: .high).line()
+        #expect(String(decoding: line, as: UTF8.self) == #"{"copilot":"/opt/homebrew/bin/copilot","cwd":"/tmp/vuota","#
+            + #""effort":"high","id":"c1","model":"gpt-6","prompt":"Ciao","type":"copilotQuestion","v":4}"# + "\n")
+    }
+
+    @Test func copilotModelsSkipAnEffortBuboDoesNotKnow() throws {
+        let line = #"{"v":4,"type":"copilotModels","id":"m1","models":[{"id":"gpt-6","name":"GPT-6","multiplier":1,"#
+            + #""supportedEfforts":["low","ultra"],"defaultEffort":"ultra"},{"id":"grok-5","name":"Grok 5"}]}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .copilotModels(id: "m1", [
+            CopilotModel(id: "gpt-6", name: "GPT-6", multiplier: 1, supportedEfforts: [.low]),
+            CopilotModel(id: "grok-5", name: "Grok 5"),
+        ]))
     }
 
     @Test func askWithAnEnvironmentCarriesIt() throws {
@@ -147,6 +205,13 @@ struct BridgeMessageTests {
             == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","resume":"c-1","settingSources":[],"type":"ask","v":4}"# + "\n")
     }
 
+    @Test func askContinuingFromAMessageCarriesTheCut() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         resuming: "c-1", resumingAt: "m-2").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","resume":"c-1","settingSources":[],"type":"ask","upTo":"m-2","v":4}"# + "\n")
+    }
+
     @Test func readHistoryAsksForTheFirstPageOrAll() throws {
         #expect(String(decoding: try BridgeCommand.readHistory(id: "h1", isComplete: false).line(), as: UTF8.self)
             == #"{"all":false,"id":"h1","type":"history","v":4}"# + "\n")
@@ -162,6 +227,14 @@ struct BridgeMessageTests {
                                          keeping: "k-1").line()
         #expect(String(decoding: line, as: UTF8.self)
             == #"{"cwd":"/tmp/x","id":"a1","keep":"k-1","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"# + "\n")
+    }
+
+    @Test func theProfiloAndTheRegoleGoWithTheAskAsBrain() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         secondBrain: "## Bubo/Profilo.md").line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == ###"{"brain":"## Bubo/Profilo.md","cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","v":4}"###
+            + "\n")
     }
 
     @Test func onlyAnAskThatRemembersCarriesRemember() throws {
@@ -219,7 +292,7 @@ struct BridgeMessageTests {
     @Test func theConfigurationDecodes() throws {
         let line = #"""
             {"v":4,"type":"config","id":"c1","skills":["prova"],"plugins":[{"name":"figma","version":"1.2.0","path":"/p/figma"},{"name":"locale"}],
-             "pluginErrors":[{"plugin":"rotto@mercato","message":"manca base"}],
+             "pluginErrors":[{"plugin":"rotto@mercato","type":"dependency-unsatisfied","message":"manca base"}],
              "mcpServers":[{"name":"db","status":"failed","source":"project","error":"Connection closed"},{"name":"linear","status":"needs-auth"}],
              "instructions":[{"path":"/r/CLAUDE.md","type":"Project"}],
              "agents":[{"name":"Explore","description":"Cerca","model":"haiku"},{"name":"revisore","description":"Rivede"}]}
@@ -227,7 +300,7 @@ struct BridgeMessageTests {
         let expected = ClaudeConfiguration(
             skills: ["prova"],
             plugins: [.init(name: "figma", version: "1.2.0", path: "/p/figma"), .init(name: "locale", version: nil)],
-            pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base")],
+            pluginErrors: [.init(plugin: "rotto@mercato", message: "manca base", type: "dependency-unsatisfied")],
             mcpServers: [.init(name: "db", status: "failed", source: "project", error: "Connection closed"),
                          .init(name: "linear", status: "needs-auth", source: nil, error: nil)],
             instructions: [.init(path: "/r/CLAUDE.md", type: "Project")],
@@ -261,7 +334,10 @@ struct BridgeMessageTests {
          .search(id: "s1", query: "ci", project: nil, source: .secondBrain)),
         (#"{"v":4,"type":"search","id":"s1","query":"ci","source":"altrove"}"#, .search(id: "s1", query: "ci", project: nil)),
         (#"{"v":4,"type":"remember","id":"r1","title":"Ombrello","text":"portarlo"}"#,
-         .remember(id: "r1", title: "Ombrello", text: "portarlo")),
+         .remember(id: "r1", NoteRequest(title: "Ombrello", text: "portarlo"))),
+        (#"{"v":4,"type":"remember","id":"r2","conversation":"a1","mode":"riscrivi","note":"Diario/oggi.md","text":"x","confirmed":true}"#,
+         .remember(id: "r2", NoteRequest(mode: .replace, note: "Diario/oggi.md", text: "x", isConfirmed: true),
+                   conversation: "a1")),
         (#"{"v":4,"type":"quota","fiveHour":{"used":0.19,"resetsAt":1790852400.5},"sevenDay":{"used":0.02,"resetsAt":1791428400}}"#,
          .quota(Quota(fiveHour: Quota.Window(used: 0.19, resetsAt: Date(timeIntervalSince1970: 1_790_852_400.5)),
                       sevenDay: Quota.Window(used: 0.02, resetsAt: Date(timeIntervalSince1970: 1_791_428_400))))),
@@ -300,5 +376,41 @@ struct BridgeMessageTests {
         request.isFromSubagent = true
         request.suppressesRule = true
         #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .permission(id: "a1", request))
+    }
+}
+
+extension BridgeMessageTests {
+    // Criterio 1: il turno di un'Esecuzione porta le sue Regole e dice al ponte che nessuno risponde.
+    @Test func anUnattendedAskCarriesItsRulesAndNoPrompts() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         unattended: UnattendedTurn(rules: ["Bash(npm test)"])).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","unattended":{"rules":["Bash(npm test)"]},"v":4}"# + "\n")
+    }
+
+    // #174: l'Esecuzione con un agente lo passa al ponte, che lo dà a `claude` come `Options.agent`.
+    @Test func anUnattendedAskCarriesItsAgent() throws {
+        let line = try BridgeCommand.ask(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/x"), settingSources: [],
+                                         unattended: UnattendedTurn(agent: "revisore")).line()
+        #expect(String(decoding: line, as: UTF8.self)
+            == #"{"cwd":"/tmp/x","id":"a1","prompt":"Ciao","settingSources":[],"type":"ask","unattended":{"agent":"revisore","rules":[]},"v":4}"# + "\n")
+    }
+
+    // #174: la Richiesta di un subagent porta il suo nome.
+    @Test func aSubagentsPermissionRequestCarriesItsName() throws {
+        let line = #"{"v":4,"type":"permission","id":"a1","request":"p1","tool":"Bash","command":"ls","fromSubagent":true,"agent":"revisore"}"#
+        var request = PermissionRequest(id: "p1", tool: "Bash", command: "ls")
+        request.isFromSubagent = true
+        request.agent = "revisore"
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) == .permission(id: "a1", request))
+    }
+
+    @Test func aDenialAndTheChosenModeArriveAsProgress() throws {
+        let denial = #"{"v":4,"type":"denial","id":"a1","toolUseID":"t1","tool":"Bash","command":"npm test","suggestions":["Bash(npm test)"],"source":"sdk"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(denial.utf8))
+            == .progress(id: "a1", .denial(BridgeDenial(id: "t1", tool: "Bash", command: "npm test",
+                                                        suggestions: ["Bash(npm test)"], source: .sdk))))
+        let mode = #"{"v":4,"type":"mode","id":"a1","permissionMode":"default"}"#
+        #expect(try JSONDecoder().decode(BridgeEvent.self, from: Data(mode.utf8)) == .progress(id: "a1", .permissionMode("default")))
     }
 }

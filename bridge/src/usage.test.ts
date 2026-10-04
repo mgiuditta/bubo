@@ -133,3 +133,15 @@ test("somma dello storico = somma dei total_cost_usd finali", () => {
   const history = [...ledger.values()].reduce((sum, cost) => sum + cost, 0);
   expect(history.toFixed(10)).toBe((0.35 + 0.2 + 0.07 + 0.5 + 0.12).toFixed(10));
 });
+
+test("a ogni risposta la stima dei token finora, finché non arriva il result", () => {
+  const reader = new UsageReader("apiKey");
+  expect(reader.estimate()).toBeUndefined();
+  reader.read(assistant("m1", "claude-sonnet-4-5", 100, 1));
+  reader.read(assistant("m1", "claude-sonnet-4-5", 100, 40));
+  expect(reader.estimate()).toEqual({ mode: "apiKey", basis: "list", complete: false, models: [
+    { model: "claude-sonnet-4-5", inputTokens: 100, outputTokens: 40, cacheReadTokens: 2, cacheWriteTokens: 0, thinkingTokens: 0 },
+  ] });
+  reader.read(result("s", 0.3, { "claude-sonnet-4-5": sonnet(0.3) }));
+  expect(reader.estimate()).toBeUndefined();
+});

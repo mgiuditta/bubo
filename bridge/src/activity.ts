@@ -30,11 +30,22 @@ export function progress(message: SDKMessage): Progress | undefined {
   }
   // Solo il filo principale: i subagent hanno `parent_tool_use_id`; un errore dell'API non è un riassunto.
   if (message.type === "assistant" && !message.error && message.parent_tool_use_id === null) {
-    const text = withoutOrbTags(message.message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n"));
-    const line = text.split("\n").map((line) => line.replace(/^[#>*\-\s]+/, "").trim()).find((line) => line.length > 0);
-    if (line) return { type: "summary", text: line.length > summaryLength ? line.slice(0, summaryLength - 1) + "…" : line };
+    return summary(message.message.content.flatMap((block) => (block.type === "text" ? [block.text] : [])).join("\n"));
   }
   return undefined;
+}
+
+// Il riassunto di una riga di un messaggio dell'agente: la prima riga non vuota, senza i segni del Markdown.
+export function summary(message: string): Progress | undefined {
+  const line = withoutOrbTags(message).split("\n").map((line) => line.replace(/^[#>*\-\s]+/, "").trim())
+    .find((line) => line.length > 0);
+  return line ? { type: "summary", text: line.length > summaryLength ? line.slice(0, summaryLength - 1) + "…" : line } : undefined;
+}
+
+// Le righe di una scrittura per la revisione: senza spazi ai lati, uniche, al più 100.
+export function writtenLines(text: string): string[] {
+  return [...new Set(text.split("\n").map((line) => line.trim()).filter((line) => line.length > 0))]
+    .slice(0, editLines).map((line) => line.slice(0, editLineLength));
 }
 
 // `NotebookEdit` è una scrittura come `Edit` e `Write` (`NotebookEditInput`); nella 0.3.286 non c'è `MultiEdit`.
@@ -48,9 +59,7 @@ export function edits(message: SDKMessage): Edit[] {
       : block.name === "NotebookEdit" ? [input.notebook_path, input.new_source]
       : [undefined, undefined];
     if (typeof file !== "string" || typeof text !== "string") return [];
-    const lines = [...new Set(text.split("\n").map((line) => line.trim()).filter((line) => line.length > 0))]
-      .slice(0, editLines).map((line) => line.slice(0, editLineLength));
-    return [{ type: "edit" as const, file, lines }];
+    return [{ type: "edit" as const, file, lines: writtenLines(text) }];
   });
 }
 

@@ -32,6 +32,8 @@ nonisolated struct OrbAnimation {
     var targetTinta: Tinta
     /// Whether the Orb's own motion is slowed down.
     var reducesMotion = false
+    /// The voice level, from 0 to 1, that the ripple follows: heard in Ascolto, said in Parla; `nil` for a made-up one.
+    var voiceLevel: Float?
 
     /// The shader clock, in seconds.
     private(set) var time: Float = 0
@@ -41,6 +43,15 @@ nonisolated struct OrbAnimation {
     private(set) var audio: Float = 0
     /// The Tinta at the current instant.
     private(set) var tinta: Tinta
+
+    /// Whether the motion has reached its Stato, the Tinta its target and the voice ripple zero: from here on only
+    /// the shader clock moves.
+    var isSettled: Bool {
+        let tolerance: Float = 0.001
+        let target = state.motion
+        return targetTinta == tintaDestination && tintaProgress == 1 && audio < tolerance
+            && OrbMotion.components.allSatisfy { abs(motion[keyPath: $0] - target[keyPath: $0]) < tolerance }
+    }
 
     private var tintaOrigin: Tinta
     private var tintaDestination: Tinta
@@ -68,9 +79,10 @@ nonisolated struct OrbAnimation {
         tinta = tintaOrigin.mixed(with: tintaDestination, by: eased)
     }
 
-    /// A made-up voice level, until the real one arrives with voice input.
+    /// The voice level the ripple follows: the one heard in Ascolto or said in Parla, otherwise a made-up one.
     private var voice: Float {
         guard state == .listening || state == .speaking else { return 0 }
+        if let voiceLevel { return min(1, max(0, voiceLevel)) }
         let wave = (sin(time * 11) * 0.5 + 0.5) * (sin(time * 2.7 + 1) * 0.5 + 0.5)
         return max(0, wave * (state == .speaking ? 1 : 0.7) + sin(time * 23) * 0.08)
     }

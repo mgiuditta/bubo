@@ -1,0 +1,106 @@
+{
+  "sourceLanguage" : "it",
+  "strings" : {
+    "Apri la Galassia di ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the Galaxy in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Avvia una Sessione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start a Session in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Cerca nella cronologia di ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the history in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Cerca nelle conversazioni di ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search conversations in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Chiedi a ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask ${applicationName}"
+          }
+        }
+      }
+    },
+    "Fai una domanda a ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask ${applicationName} a question"
+          }
+        }
+      }
+    },
+    "Mostra la Galassia in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the Galaxy in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Nuova Sessione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Session in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Registra la Riunione in ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record the Meeting in ${applicationName}"
+          }
+        }
+      }
+    },
+    "Registra una Riunione con ${applicationName}" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record a Meeting with ${applicationName}"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

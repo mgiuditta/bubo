@@ -15,6 +15,8 @@ final class OrbControls {
     var variante: Variante?
     /// The provider whose Tinta the Orb takes; `nil` for one outside the list.
     var provider: Provider? = .anthropic
+    /// The microphone's level in Ascolto or the voice's in Parla, from 0 to 1; `nil` for a made-up one.
+    var voiceLevel: Float?
     /// The Panel's latest frame measurements; updated only in Debug builds.
     var frameReading: FrameMeter.Reading?
 
@@ -29,7 +31,61 @@ final class OrbControls {
         variante = chosen
     }
 
-    /// The wait before the Orb goes back from the Orbite to the Blob.
+    /// Whether the Orb has already greeted as the owl since launch.
+    @ObservationIgnored private var hasGreeted = false
+
+    /// Whether the Orb shows the heart of the Dedica, with its line under the Orb.
+    private(set) var isShowingDedica = false
+
+    /// Greets once per launch: the Orb turns into the owl of the Segno, then goes back to the Blob on its own.
+    ///
+    /// On the Mac of the person the Dedica is meant for, the Orb turns into the heart instead, with its line.
+    /// Later calls change nothing, and so does a call while the Orb already shows a Variante.
+    /// - Parameters:
+    ///   - fullName: The full name of the macOS account.
+    ///   - catalogo: Where the heart comes from.
+    ///   - reducesMotion: Whether the greeting fades in instead of morphing.
+    func greet(fullName: String = NSFullUserName(), in catalogo: Catalogo? = .bundled,
+               reducesMotion: Bool = Motion.isReduced) {
+        guard !hasGreeted, variante == nil else { return }
+        hasGreeted = true
+        let greeting: Variante
+        let delay: Double
+        if Dedica.isMeant(forFullName: fullName), let cuore = catalogo?.variante(named: "cuore") {
+            greeting = cuore
+            delay = Dedica.returnDelay(reducesMotion: reducesMotion)
+            isShowingDedica = true
+            AccessibilityNotification.Announcement(String(localized: Dedica.message)).post()
+        } else {
+            greeting = Gufo.variante
+            delay = Gufo.returnDelay(reducesMotion: reducesMotion)
+        }
+        variante = greeting
+        orbiteReturn?.cancel()
+        orbiteReturn = Task {
+            try? await Task.sleep(for: .seconds(delay))
+            isShowingDedica = false
+            guard !Task.isCancelled, variante == greeting else { return }
+            variante = nil
+        }
+    }
+
+    /// Turns the Blob into the owl while the pointer is on the Orb, and back to the Blob when it leaves.
+    ///
+    /// A Variante at work and the Orbite stay as they are; the Regia del Morph keeps the owl at least 1.5 s.
+    /// - Parameter isPointerInside: Whether the pointer has just entered the Orb, or just left it.
+    func hover(isPointerInside: Bool) {
+        if isPointerInside {
+            guard variante == nil || variante == Gufo.variante else { return }
+            orbiteReturn?.cancel()
+            variante = Gufo.variante
+        } else if variante == Gufo.variante {
+            orbiteReturn?.cancel()
+            variante = nil
+        }
+    }
+
+    /// The wait before the Orb goes back from the Orbite, or the owl, to the Blob.
     @ObservationIgnored private var orbiteReturn: Task<Void, Never>?
 
     /// Plays the Orbite: the Orb turns into the orbital diagram, then goes back to the Blob on its own.

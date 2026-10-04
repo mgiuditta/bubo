@@ -9,7 +9,7 @@ struct GalaxyInstance {
     float2 position;
     /// Folders: their radius on the plane. Stars: the room each star has. Selection: its radius in points.
     float radius;
-    /// Folders: their number of files. Stars: their folder's radius on the plane.
+    /// Folders: their number of files. Stars: unused.
     float value;
     /// Stars: 1 for a search result, 2 for the selected file, 4 for a file read lately, 8 for a written file.
     uint flags;
@@ -44,8 +44,11 @@ struct GalaxyUniforms {
     float scale;
     float tilt;
     float pixelsPerPoint;
+    /// How large a folder's core disc must be on screen, in points, for its stars to start showing and to be fully lit.
     float starsAppear;
     float starsShown;
+    /// The radius of every folder's core disc on the plane.
+    float coreRadius;
     uint isSearching;
     /// How high a written file rises, in points.
     float writeLift;
@@ -62,7 +65,7 @@ struct GalaxyFragment {
 
 constant float2 corners[4] = { float2(-1, -1), float2(1, -1), float2(-1, 1), float2(1, 1) };
 /// Palette.textPrimary.
-constant float3 starlight = float3(0.957, 0.922, 0.894);
+constant float3 starlight = float3(0.925, 0.933, 0.945);
 constant uint searchResult = 1;
 constant uint selected = 2;
 constant uint read = 4;
@@ -103,7 +106,7 @@ vertex GalaxyFragment galaxy_ring_vertex(uint vertexID [[vertex_id]], uint insta
     return billboard(screenPoint(folder.position, u), float2(radius, radius * u.tilt), alpha, vertexID, u);
 }
 
-/// A folder seen from far away: one point, larger with more files, gone once its stars show.
+/// A folder seen from far away: one point, larger with more files, gone once the stars show.
 vertex GalaxyFragment galaxy_point_vertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
                                           constant GalaxyInstance *instances [[buffer(0)]],
                                           constant GalaxyUniforms &u [[buffer(1)]]) {
@@ -111,17 +114,18 @@ vertex GalaxyFragment galaxy_point_vertex(uint vertexID [[vertex_id]], uint inst
     float radius = folder.radius * u.scale;
     float size = clamp(1 + 0.55 * log2(1 + folder.value), 1.0, 4.5);
     float alpha = folder.depth == 0 || folder.value == 0 ? 0
-        : 0.55 * smoothstep(1.5, 4.0, radius) * (1 - smoothstep(u.starsAppear, u.starsShown, radius));
+        : 0.55 * smoothstep(1.5, 4.0, radius)
+            * (1 - smoothstep(u.starsAppear, u.starsShown, u.coreRadius * u.scale));
     return billboard(screenPoint(folder.position, u), float2(size), alpha, vertexID, u);
 }
 
-/// A file: shown once its folder is large enough, always when it is a search result or selected.
+/// A file: shown once its folder's core disc is large enough, always when it is a search result or selected.
 vertex GalaxyFragment galaxy_star_vertex(uint vertexID [[vertex_id]], uint instanceID [[instance_id]],
                                          constant GalaxyInstance *instances [[buffer(0)]],
                                          constant GalaxyUniforms &u [[buffer(1)]]) {
     GalaxyInstance star = instances[instanceID];
     float size = clamp(star.radius * u.scale * 0.22, 0.6, 1.6);
-    float alpha = 0.42 * smoothstep(u.starsAppear, u.starsShown, star.value * u.scale);
+    float alpha = 0.42 * smoothstep(u.starsAppear, u.starsShown, u.coreRadius * u.scale);
     if (u.isSearching != 0) { alpha *= 0.4; }
     if ((star.flags & searchResult) != 0) {
         alpha = 0.95;

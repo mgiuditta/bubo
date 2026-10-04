@@ -1,9 +1,11 @@
 import os
 import SwiftUI
 
-/// A line Ricordato or Richiamato in a Sessione's flow, with Apri and, for a Ricordato, Annulla (spec 13).
+/// A line Ricordato, Salvato or Richiamato in a Sessione's flow, with Apri and, for a Ricordato or a Salvato, Annulla
+/// (spec 13).
 ///
-/// Annulla is disabled while a Sessione of the Progetto is in a turn: Bubo never writes in the memory while an agent may.
+/// Annulla of a Ricordato is disabled while a Sessione of the Progetto is in a turn: Bubo never writes in the memory
+/// while an agent may.
 struct MemoryLineRow: View {
     let line: MemoryLine
     /// Whether a Sessione of the Progetto is in a turn.
@@ -17,7 +19,7 @@ struct MemoryLineRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xxSmall) {
-                Text(line.isRemembered ? "Ricordato" : "Richiamato")
+                Text(line.isRemembered ? "Ricordato" : line.isSaved ? "Salvato in" : "Richiamato")
                     .font(Typography.body(size: 11, weight: .semibold))
                 Text(verbatim: line.subject)
                     .font(Typography.body(size: 11))
@@ -32,6 +34,10 @@ struct MemoryLineRow: View {
                 Text("Annullato")
                     .font(Typography.body(size: 11))
                     .foregroundStyle(Palette.textSecondary)
+            } else if line.isSaved {
+                Button("Annulla", action: runUndo)
+                    .help("Riporta la nota com'era prima di questo salvataggio")
+                    .accessibilityHint(Text("Riporta \(line.subject) com'era prima di questo salvataggio"))
             } else if line.canUndo {
                 Button("Annulla", action: runUndo)
                     .disabled(isInTurn)
@@ -56,6 +62,8 @@ struct MemoryLineRow: View {
         do {
             try undo()
             return
+        } catch BrainChange.UndoFailure.changedOnDisk {
+            failure = String(localized: "La nota è cambiata dopo questo salvataggio: annullando perderesti le modifiche successive.")
         } catch ProjectMemoryError.changedOnDisk {
             failure = String(localized: "Il file è cambiato dopo questa scrittura: annullando perderesti le modifiche successive. Puoi modificarlo da Memoria del Progetto.")
         } catch ProjectMemoryError.inTurn {

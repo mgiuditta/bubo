@@ -29,6 +29,24 @@ nonisolated enum ChildEnvironment {
         return environment
     }
 
+    /// The environment of the user's `copilot`: the user's basics and a `PATH` with its own folder first, where an npm
+    /// installation finds `node`.
+    ///
+    /// Built from scratch like the bridge's, so `COPILOT_GITHUB_TOKEN`, `GH_TOKEN` and `GITHUB_TOKEN` never reach
+    /// it: `copilot` would prefer them to the login the user made with `copilot login` (ADR 0011).
+    ///
+    /// - Parameters:
+    ///   - copilot: The user's `copilot`.
+    ///   - base: The environment to copy from; Bubo's own by default.
+    static func makeForCopilot(copilot: URL,
+                               base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
+        var environment = base.filter { copied.contains($0.key) }
+        environment["PATH"] = [copilot.deletingLastPathComponent().path,
+                               "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
+            .joined(separator: ":")
+        return environment
+    }
+
     /// The environment of an editor's CLI: the user's basics and the system's `PATH`, where the scripts of VS Code
     /// and Cursor find `bash`.
     ///

@@ -21,9 +21,7 @@ struct ModelRouterTests {
     }
 
     @Test(arguments: [
-        (RequestType.shortFact, ModelFamily.haiku, Effort?.none),
-        (.summary, .haiku, nil),
-        (.writing, .sonnet, .medium),
+        (RequestType.writing, ModelFamily.sonnet, Effort?.some(.medium)),
         (.reasoning, .opus, .medium),
         (.webSearch, .sonnet, .low),
     ])
@@ -36,10 +34,68 @@ struct ModelRouterTests {
     @Test(arguments: RequestType.allCases)
     func everyTipoHasARoute(type: RequestType) {
         for catalog in [Self.catalog, nil] {
-            let route = router.route(for: Self.classification(type), in: catalog)
-            #expect(route.family != nil)
-            #expect(route.reason == .type(type, runnerUp: nil))
+            for fit in [OnDeviceFit.fits(tokens: 10), .unavailable] {
+                let route = router.route(for: Self.classification(type), fit: fit, in: catalog)
+                #expect(route.family != nil || route.destination == .onDevice)
+                #expect(route.reason == .type(type, runnerUp: nil))
+            }
         }
+    }
+
+    @Test func aShortFactGoesToAppleFM() {
+        let route = router.route(for: Self.classification(.shortFact), fit: .fits(tokens: 12), in: Self.catalog)
+        #expect(route == .onDevice(.shortFact, runnerUp: nil))
+        #expect(route.family == nil && route.model == nil && route.effort == nil)
+    }
+
+    @Test func aSummaryWhoseAttachmentFitsGoesToAppleFM() {
+        let route = router.route(for: Self.classification(.summary), fit: .fits(tokens: 2_000), hasAttachments: true,
+                                 in: Self.catalog)
+        #expect(route == .onDevice(.summary, runnerUp: nil))
+    }
+
+    @Test(arguments: [true, false])
+    func anAttachmentTooLongGoesToHaikuAndSaysSo(hasAttachments: Bool) {
+        let route = router.route(for: Self.classification(.summary), fit: .tooLong(tokens: 2_001),
+                                 hasAttachments: hasAttachments, in: Self.catalog)
+        #expect(route == Route(family: .haiku, model: "haiku", effort: nil, reason: .type(.summary, runnerUp: nil),
+                               onDeviceFallback: hasAttachments ? .attachmentTooLong : .questionTooLong))
+    }
+
+    @Test(arguments: [RequestType.shortFact, .summary])
+    func anAttachmentTheMacDoesNotReadGoesToHaiku(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .fits(tokens: 10), hasAttachments: true,
+                                 readsOnDevice: false, in: Self.catalog)
+        #expect(route.family == .haiku)
+        #expect(route.onDeviceFallback == .attachmentNotText)
+    }
+
+    @Test func beforeMacOS264AnAttachmentGoesToHaiku() {
+        for type in [RequestType.shortFact, .summary] {
+            let route = router.route(for: Self.classification(type), fit: .notMeasurable, hasAttachments: true,
+                                     in: Self.catalog)
+            #expect(route.family == .haiku)
+            #expect(route.onDeviceFallback == .attachmentNotMeasurable)
+        }
+        // Without an Allegato a Fatto breve is short enough: it stays on the Mac, while a pasted text does not.
+        let fact = router.route(for: Self.classification(.shortFact), fit: .notMeasurable, in: Self.catalog)
+        #expect(fact.destination == .onDevice)
+        let summary = router.route(for: Self.classification(.summary), fit: .notMeasurable, in: Self.catalog)
+        #expect(summary.onDeviceFallback == .attachmentNotMeasurable)
+    }
+
+    @Test(arguments: [RequestType.shortFact, .summary])
+    func withAppleIntelligenceOffGoesToHaiku(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .unavailable, in: Self.catalog)
+        #expect(route == Route(family: .haiku, model: "haiku", effort: nil, reason: .type(type, runnerUp: nil),
+                               onDeviceFallback: .unavailable))
+    }
+
+    @Test(arguments: RequestType.allCases.filter { ![.shortFact, .summary].contains($0) })
+    func otherTipiNeverGoToAppleFM(type: RequestType) {
+        let route = router.route(for: Self.classification(type), fit: .fits(tokens: 10), in: Self.catalog)
+        #expect(route.destination == .claude)
+        #expect(route.onDeviceFallback == nil)
     }
 
     @Test func withoutTheCatalogTheAliasGoesAsItIs() {
@@ -116,6 +172,13 @@ struct RoutedAnswerTests {
         #expect(answer.cost == .spesa(0.05))
     }
 
+    @Test func anAnswerFromTheMacCostsNothing() {
+        var answer = RoutedAnswer(route: .onDevice(.shortFact, runnerUp: nil), provider: nil)
+        answer.usage = Self.usage(.subscription, cost: 0.05)
+        answer.fiveHourShare = 0.02
+        #expect(answer.cost == .free)
+    }
+
     @Test func aTurnWithoutAFigureShowsNoCost() {
         var answer = Self.answer
         answer.usage = Self.usage(.subscription, cost: nil)
@@ -130,5 +193,69 @@ struct RoutedAnswerTests {
         #expect(RoutedAnswer.fiveHourShare(from: before, to: Quota.Window(used: 0.01, resetsAt: Self.resetsAt + 18_000)) == nil)
         #expect(RoutedAnswer.fiveHourShare(from: before, to: before) == nil)
         #expect(RoutedAnswer.fiveHourShare(from: nil, to: before) == nil)
+    }
+}
+
+/// #409: the preferences of "Usa sempre per «Tipo»".
+extension ModelRouterTests {
+    // #409: "Usa sempre per «Tipo»" replaces the default, even of a Tipo answered on the Mac.
+    @Test func aClaudePreferenceReplacesTheDefault() {
+        let preferences = ModelRouter.Preferences(choices: [.shortFact: .claude(Scala.Step(family: .opus, effort: .high))])
+
+        let route = router.route(for: Self.classification(.shortFact), fit: .fits(tokens: 12), preferences: preferences,
+                                 in: Self.catalog)
+
+        #expect(route == Route(family: .opus, model: "opus", effort: .high, reason: .preferred(.shortFact)))
+    }
+
+    @Test func aPreferenceOutsideTheCatalogLeavesTheDefault() {
+        let preferences = ModelRouter.Preferences(choices: [.writing: .claude(Scala.Step(family: .fable, effort: nil))])
+
+        let route = router.route(for: Self.classification(.writing), preferences: preferences, in: Self.catalog)
+
+        #expect(route.reason == .type(.writing, runnerUp: nil))
+        #expect(route.family == .sonnet)
+        #expect(route.pausedPreference == .notInCatalog(.fable))
+    }
+
+    @Test func aPreferredEndpointAnswersWhenItMay() {
+        var endpoint = OpenAICompatibleEndpoint.known[0]
+        endpoint.model = "gpt-prova"
+        let choices: [RequestType: TypePreference] = [.writing: .endpoint(id: endpoint.id)]
+
+        let allowed = router.route(for: Self.classification(.writing),
+                                   preferences: ModelRouter.Preferences(choices: choices, endpoints: [endpoint]),
+                                   in: Self.catalog)
+        let withoutConsent = router.route(for: Self.classification(.writing),
+                                          preferences: ModelRouter.Preferences(choices: choices), in: Self.catalog)
+        let withAllegati = router.route(for: Self.classification(.writing), hasAttachments: true,
+                                        preferences: ModelRouter.Preferences(choices: choices, endpoints: [endpoint]),
+                                        in: Self.catalog)
+
+        #expect(allowed.endpoint == endpoint)
+        #expect(allowed.reason == .preferred(.writing))
+        #expect(withoutConsent.endpoint == nil)
+        #expect(withoutConsent.reason == .type(.writing, runnerUp: nil))
+        #expect(withoutConsent.pausedPreference == .endpointUnavailable)
+        #expect(withAllegati.endpoint == nil)
+        #expect(withAllegati.pausedPreference == .attachments)
+        #expect(allowed.pausedPreference == nil)
+    }
+
+    // #93: a preference that no longer answers leaves the default, and the reason line says why.
+    @Test func aPausedPreferenceIsInTheReason() {
+        let preferences = ModelRouter.Preferences(choices: [.writing: .claude(Scala.Step(family: .fable, effort: nil))])
+        let route = router.route(for: Self.classification(.writing), preferences: preferences, in: Self.catalog)
+
+        let reason = String(localized: RouterLine.reason(for: route))
+
+        #expect(route.pausedPreference != nil)
+        #expect(reason.contains(ModelFamily.fable.name))
+    }
+
+    @Test func aTipoWithoutPreferenceHasNoPause() {
+        let route = router.route(for: Self.classification(.writing), in: Self.catalog)
+
+        #expect(route.pausedPreference == nil)
     }
 }

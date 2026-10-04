@@ -1,4 +1,4 @@
-/// The per-frame parameters of the Orb shader; the layout matches `Uniforms` in `Orb.metal`.
+/// The per-frame parameters of the Orb shader; the layout matches `Uniforms` in `OrbShading.h`.
 struct OrbUniforms {
     var resolution: SIMD2<Float> = .zero
     var time: Float = 0
@@ -23,6 +23,9 @@ struct OrbUniforms {
     var opacity: Float = 1
     /// The clock of the Orbite's diagram, in seconds; still at zero with Reduce Motion on.
     var diagramTime: Float = 0
+    /// Where the pointer is over the Orb, eased: -1…1 on each axis from the centre, y up; zero at rest and with
+    /// Reduce Motion on. The Orb leans a little toward it.
+    var pointer: SIMD2<Float> = .zero
     /// The Tinta's base and highlight colors.
     var base = Tinta.neutral.base
     var highlight = Tinta.neutral.highlight

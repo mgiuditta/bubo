@@ -17,8 +17,9 @@ nonisolated final class FramePerfTests: XCTestCase {
         let logsMetalHUD = ProcessInfo.processInfo.environment["BUBO_METAL_HUD"] == "1"
         let (app, log) = launchShowingPanel(environment: logsMetalHUD ? Self.metalHUDLogging : [:])
         defer { app.terminate() }
-        // The Orb morphs at 60 fps from the launch: wait for the frames, and a margin.
-        Thread.sleep(forTimeInterval: Double(PerfBudgets.orbFrames) / 60 + 2)
+        // The Orb morphs from the launch, at 60 fps, and holds each Variante at 30 in Riposo: wait for the frames as if
+        // all were at 30, and a margin.
+        Thread.sleep(forTimeInterval: Double(PerfBudgets.orbFrames) / Double(PerfBudgets.orbRestFrameRate) + 2)
 
         let gpuTimes = try FrameLog(contentsOf: log).gpuTimes.suffix(PerfBudgets.orbFrames)
         XCTAssertEqual(gpuTimes.count, PerfBudgets.orbFrames, "Fotogrammi dell'Orb nel log")

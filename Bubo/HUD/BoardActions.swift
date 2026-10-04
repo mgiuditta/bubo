@@ -1,9 +1,10 @@
 import os
 import SwiftUI
 
-/// The next step of a Sessione's card on the Board. In Da guardare and PR aperta: Fondi…, which opens the revisione
-/// while a blocco is not accepted, else a confirmation that says what it merges into what, ↩ to merge and esc to
-/// cancel; and Archivia, which removes the worktree and keeps the branch. In Fusa, Annulla merge while the merge
+/// The next step of a Sessione's card on the Board. In Da guardare: Fondi…, which opens the revisione while a blocco
+/// is not accepted, else a confirmation that says what it merges into what, ↩ to merge and esc to cancel; Apri PR…,
+/// disabled with its reason without `gh`; and Archivia, which removes the worktree and keeps the branch. In PR
+/// aperta: the pull request with its checks, Correggi and Aggiorna PR, and Archivia. In Fusa, Annulla merge while the merge
 /// can be undone. Fondi goes through `SessionStore.merge`, like the revisione: the same checks, the same Annulla.
 struct BoardActions: View {
     let session: Session
@@ -18,6 +19,11 @@ struct BoardActions: View {
     /// What stops in the terminal at Archivia, while its confirmation is shown.
     @State private var archiveNotice = ""
     @State private var isConfirmingArchive = false
+    @State private var isOpeningPullRequest = false
+    /// Why Apri PR… is disabled: `gh` is not where Bubo looks. A look at the folders, never a process.
+    private var pullRequestObstacle: String? {
+        GitHubCLI().executable == nil ? GitHubCLIError.missing.localizedDescription : nil
+    }
 
     private var hasContent: Bool {
         column.hasNextStep || store.undoDeadlines[session.id] != nil || failure != nil
@@ -34,11 +40,17 @@ struct BoardActions: View {
                     Button("Annulla merge", action: undo)
                 }
             } else if column.hasNextStep {
+                if column == .prAperta {
+                    PullRequestBadge(session: session, store: store)
+                }
                 HStack(spacing: Spacing.xSmall) {
-                    if session.workspace?.branch != nil {
+                    if column != .prAperta, session.workspace?.branch != nil {
                         Button("Fondi…", action: prepareMerge)
                             .disabled(isPreparing || session.isRunning)
                             .help("Mostra cosa unisce e dove, poi chiede conferma")
+                        Button("Apri PR…") { isOpeningPullRequest = true }
+                            .disabled(session.isRunning || pullRequestObstacle != nil)
+                            .help(pullRequestObstacle ?? String(localized: "Propone titolo e descrizione, poi fa il push e apre la PR su GitHub"))
                     }
                     Button("Archivia", action: archive)
                         .disabled(session.isRunning)
@@ -63,6 +75,9 @@ struct BoardActions: View {
         .padding([.horizontal, .bottom], hasContent ? Spacing.xSmall : 0)
         .sheet(isPresented: $isReviewing) {
             ReviewSheet(sessionID: session.id, store: store)
+        }
+        .sheet(isPresented: $isOpeningPullRequest) {
+            PullRequestSheet(session: session, store: store)
         }
         .sheet(item: $proposal) { proposal in
             MergeConfirmation(session: session, preview: proposal.preview, message: proposal.message, store: store)

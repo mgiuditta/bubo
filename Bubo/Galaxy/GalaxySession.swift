@@ -24,7 +24,7 @@ nonisolated struct GalaxySession: Equatable, Identifiable, Sendable {
     /// The Aperta Sessioni of `project` among `sessions`, oldest first, each with its sign.
     static func sessions(of project: URL, in sessions: [Session]) -> [GalaxySession] {
         let project = project.standardizedFileURL
-        let open = sessions.filter { $0.phase == .aperta && $0.project.standardizedFileURL == project }
+        let open = sessions.filter { $0.isLive && $0.project.standardizedFileURL == project }
         return open.enumerated().map { index, session in
             let roots = roots(of: session)
             let writes = session.edits.compactMap { GalaxyActivity.relativePath(of: $0.file, in: roots) }

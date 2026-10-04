@@ -14,7 +14,7 @@ struct OrbAtWorkTests {
     @Test func aNameOutsideTheCatalogoChangesNothing() {
         let orb = OrbControls()
         orb.showWork("parentesi")
-        orb.showWork("drago")
+        orb.showWork("fenice-di-prova")
         #expect(orb.variante?.nome == "parentesi")
     }
 
@@ -31,7 +31,7 @@ struct OrbAtWorkTests {
           id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
           case "$line" in *'"orb":["'*'"lente"'*) ;; *) echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"rosa\"}"; continue;; esac
           echo "{\"v\":4,\"type\":\"variante\",\"id\":\"$id\",\"nome\":\"parentesi\"}"
-          echo "{\"v\":4,\"type\":\"variante\",\"id\":\"$id\",\"nome\":\"drago\"}"
+          echo "{\"v\":4,\"type\":\"variante\",\"id\":\"$id\",\"nome\":\"fenice-di-prova\"}"
           echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"fatto\"}"
           echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
         done

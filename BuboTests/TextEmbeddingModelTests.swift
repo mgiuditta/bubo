@@ -158,6 +158,65 @@ struct RealModelTests {
         #expect(p95 < .milliseconds(50))
     }
 
+    /// The same criterion as the Palette sees it: each note a past conversation, one row per conversation.
+    @Test(arguments: TextEmbeddingModel.all)
+    func theItalianSetIsRecalledByThePalette(model: TextEmbeddingModel) async throws {
+        let directory = store.directory(of: model)
+        try #require(FileManager.default.fileExists(atPath: directory.appending(path: "model.safetensors").path),
+                     "\(model.id) is not in the folder")
+        let claude = try ClaudeFolder()
+        let index = try claude.open()
+        let now = Date.now
+        for (number, note) in ItalianRecallSet.notes.enumerated() {
+            try await index.store([CLIConversation.Message(id: "m", isFromUser: true, text: note, date: now)],
+                                  ofConversation: "c\(number)", in: nil, modified: now)
+        }
+        await index.use(Embedder(model: model, directory: directory))
+        await index.vectorsComputed()
+        let search = ConversationSearch(index: index, sessions: [], history: [])
+        var found = 0
+        for (number, question) in ItalianRecallSet.questions.enumerated() {
+            var query = PaletteQuery()
+            query.text = question
+            let first = try await search.groups(for: query, at: now).first?.results.first
+            if first?.id == "c\(number)" { found += 1 }
+        }
+        let recall = Double(found) / Double(ItalianRecallSet.questions.count)
+        print("\(model.id) Palette: Recall@1 \(recall)")
+        #expect(recall >= 0.8)
+    }
+
+    /// The spec's first indexing: 10.000 notes in 3 minutes at most, on a base M-series Mac with the standard model.
+    @Test func tenThousandNotesAreIndexedWithinThreeMinutes() async throws {
+        let model = TextEmbeddingModel.standard
+        let directory = store.directory(of: model)
+        try #require(FileManager.default.fileExists(atPath: directory.appending(path: "model.safetensors").path),
+                     "\(model.id) is not in the folder")
+        let folder = try NotesFolder()
+        let notes = ItalianRecallSet.notes
+        for number in 0..<10_000 {
+            let sections = (0..<3).map { "## Parte \($0 + 1)\n\n\(notes[(number + $0 * 7) % notes.count])" }
+            try folder.write("# Nota \(number)\n\n" + sections.joined(separator: "\n\n"),
+                             to: "Cartella \(number % 20)/Nota \(number).md")
+        }
+        let index = try folder.claude.open()
+        await index.use(Embedder(model: model, directory: directory))
+
+        let started = ContinuousClock.now
+        let following = folder.follow(folder.notes, with: index)
+        defer { following.cancel() }
+        while try await index.fragmentLoad().fragmentCount == 0 {
+            try await Task.sleep(for: .milliseconds(50))
+        }
+        await index.vectorsComputed()
+        let elapsed = ContinuousClock.now - started
+
+        let load = try await index.fragmentLoad()
+        print("10.000 notes, \(load.fragmentCount) fragments: indexed in \(elapsed)")
+        #expect(await index.vectorCount == load.fragmentCount)
+        #expect(elapsed <= .seconds(180))
+    }
+
     @Test func theModelIsLetGoWhenIdle() async throws {
         let model = TextEmbeddingModel.standard
         let embedder = Embedder(model: model, directory: store.directory(of: model), idleTime: .milliseconds(200))

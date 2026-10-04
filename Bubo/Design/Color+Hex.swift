@@ -16,3 +16,15 @@ extension Color {
         )
     }
 }
+
+extension Color {
+    /// Creates an sRGB color from red, green, and blue components from 0 to 1, such as a Tinta's.
+    ///
+    /// - Parameters:
+    ///   - components: The red, green, and blue components.
+    ///   - opacity: The alpha component, from 0 to 1.
+    init(_ components: SIMD3<Float>, opacity: Double = 1) {
+        self.init(.sRGB, red: Double(components.x), green: Double(components.y), blue: Double(components.z),
+                  opacity: opacity)
+    }
+}

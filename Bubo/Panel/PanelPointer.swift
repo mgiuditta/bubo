@@ -4,14 +4,13 @@ import CoreGraphics
 ///
 /// It is a circle and not the Orb's silhouette, which changes during a Morph.
 nonisolated enum PanelClickCircle {
-    /// The circle's radius, in points: the Blob with its noise and some margin, well inside the halo.
-    static let radius: CGFloat = 80
-
-    /// Returns whether `point` falls in the circle of a Panel with frame `panelFrame`, border included.
-    static func contains(_ point: CGPoint, inPanel panelFrame: CGRect) -> Bool {
+    /// Returns whether `point` falls in the circle of a Panel of `size` with frame `panelFrame`, border included.
+    ///
+    /// The circle's radius is ``PanelSize/clickRadius``: the Blob with its noise and some margin, well inside the halo.
+    static func contains(_ point: CGPoint, inPanel panelFrame: CGRect, of size: PanelSize) -> Bool {
         let dx = point.x - panelFrame.midX
         let dy = point.y - panelFrame.midY
-        return dx * dx + dy * dy <= radius * radius
+        return dx * dx + dy * dy <= size.clickRadius * size.clickRadius
     }
 }
 

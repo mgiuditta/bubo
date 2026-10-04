@@ -13,7 +13,8 @@ struct PaletteResultRow: View {
             if let best = result.best {
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.xSmall) {
                     author(of: best)
-                    HighlightedText(text: MatchHighlight.excerpt(of: best.text, matching: words), words: words)
+                    HighlightedText(text: MatchHighlight.excerpt(of: best.text, matching: words), words: words,
+                                    isFoundByMeaning: best.isFoundByMeaningOnly)
                         .font(Typography.body(size: 13))
                         .lineLimit(2)
                 }
@@ -59,6 +60,7 @@ struct PaletteResultRow: View {
             let excerpt = MatchHighlight.excerpt(of: best.text, matching: words)
             parts.append(best.message?.isFromUser == true ? String(localized: "Hai scritto: \(excerpt)")
                                                            : String(localized: "Claude ha scritto: \(excerpt)"))
+            if best.isFoundByMeaningOnly { parts.append(String(localized: "Trovato per significato")) }
         }
         parts.append(result.date.formatted(.relative(presentation: .named)))
         if result.otherMatches > 0 { parts.append(String(localized: "Altri \(result.otherMatches) messaggi trovati")) }

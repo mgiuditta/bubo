@@ -29,4 +29,9 @@ nonisolated enum AgentProgress: Equatable, Sendable {
     case sandboxBlock(SandboxBlock)
     /// The agent wrote in the Memoria di Progetto, or memories came into its turn: a line Ricordato or Richiamato.
     case memory(MemoryLine.Event)
+    /// An action denied in a turn with nobody in front of it, for the report of the Esecuzione.
+    case denial(BridgeDenial)
+    /// The mode `claude` chose for a turn with nobody in front of it, from its `init`, such as `auto` or `default`:
+    /// the Modalità autonoma may be unavailable for the model or the account.
+    case permissionMode(String)
 }

@@ -6,12 +6,18 @@ struct SessionCostTotal: View {
     let total: [CostUnit: CostLedger.Amount]
     /// The latest turn of the Sessione.
     let lastTurn: TurnUsage?
+    /// The day of the Copilot list prices, for a Sessione on Copilot: its Spesa is an estimate from its tokens;
+    /// `nil` for a Sessione on Claude.
+    var copilotPricesOf: Date?
 
     var body: some View {
         if !total.isEmpty {
             VStack(alignment: .leading, spacing: Spacing.xxSmall) {
                 if let spesa = total[.spesa] {
-                    if let lastTurn, lastTurn.unit == .spesa, let cost = lastTurn.cost {
+                    if copilotPricesOf != nil {
+                        Text("Spesa stimata \(Self.phrase(spesa))")
+                            .foregroundStyle(Palette.textPrimary)
+                    } else if let lastTurn, lastTurn.unit == .spesa, let cost = lastTurn.cost {
                         Text("Spesa \(Self.phrase(spesa)) · ultimo turno \(Self.formatted(cost))")
                             .foregroundStyle(Palette.textPrimary)
                     } else {
@@ -26,13 +32,20 @@ struct SessionCostTotal: View {
             }
             .font(Typography.mono(size: 11))
             .lineLimit(1)
+            .contentTransition(.numericText())
+            .animation(Motion.isReduced ? nil : Motion.standard, value: total[.spesa]?.value)
+            .animation(Motion.isReduced ? nil : Motion.standard, value: total[.valoreListino]?.value)
             .help(origin)
         }
     }
 
     /// Where the figures come from, and why one may be uncertain or incomplete.
     private var origin: String {
-        var lines = [String(localized: "Stima a listino di Claude Code, calcolata sul Mac: non è una fattura.")]
+        var lines = if let copilotPricesOf {
+            [String(localized: "Stima dai token sul listino GitHub Copilot del \(copilotPricesOf.formatted(date: .long, time: .omitted)), 1 credito = $0,01. Bubo non vede i crediti scalati dal tuo account.")]
+        } else {
+            [String(localized: "Stima a listino di Claude Code, calcolata sul Mac: non è una fattura.")]
+        }
         if total.values.contains(where: \.isUncertain) {
             lines.append(String(localized: "«circa»: un modello senza prezzo noto è contato al prezzo del modello predefinito."))
         }
@@ -65,6 +78,7 @@ struct SessionCostTotal: View {
         SessionCostTotal(total: [.valoreListino: .init(value: 1.2, isUncertain: true)], lastTurn: nil)
         SessionCostTotal(total: [.spesa: .init(value: 0.004, isIncomplete: true), .valoreListino: .init(value: 3.5)],
                          lastTurn: nil)
+        SessionCostTotal(total: [.spesa: .init(value: 0.37)], lastTurn: nil, copilotPricesOf: .now)
     }
     .padding()
     .background(Palette.ink)

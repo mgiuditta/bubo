@@ -197,6 +197,199 @@ struct SessionTests {
         #expect(try String(contentsOf: log, encoding: .utf8).contains(forget))
     }
 
+    /// The `resume` and `keep` of each `ask` in `log`, in order.
+    static func asks(in log: URL) throws -> [(resume: String?, keep: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["resume"] as? String, command?["keep"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func eachTurnResumesTheConversationOfTheLastTurnThatRan() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        // Ends every turn at once; the turn asked "Sbaglia" fails before answering.
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"prompt":"Sbaglia"'*) echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"no\"}" ;;
+                    *'"type":"ask"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#
+        let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                                 environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        for (prompt, ending) in [("Ancora", Session.Activity.ferma), ("Sbaglia", .errore), ("Infine", .ferma)] {
+            store.sendBack(prompt, to: id, keepingAcceptedAmong: [])
+            try await Self.wait { store.sessions.first?.activity == ending }
+        }
+
+        let session = try #require(store.sessions.first)
+        #expect(session.conversations.count == 4)
+        let asks = try Self.asks(in: log)
+        #expect(asks.map(\.keep) == session.conversations)
+        // The failed turn never ran: the next one resumes the turn before it.
+        #expect(asks.map(\.resume) == ["c-1", session.conversations[0], session.conversations[1],
+                                        session.conversations[1]])
+        #expect(session.continuedConversation == session.conversations[3])
+        #expect(session.forkedFrom == "c-1")
+    }
+
+    /// The `keep` and `resume` of each `copilot` command in `log`, in order.
+    static func copilotTurns(in log: URL) throws -> [(keep: String?, resumes: Bool)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "copilot" else { return nil }
+            return (command?["keep"] as? String, command?["resume"] as? Bool == true)
+        }
+    }
+
+    // #553: a Sessione on Copilot keeps one conversation, which each turn resumes, also after Bubo restarts.
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func aCopilotSessionResumesItsConversationAfterARestart() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let script = #"""
+            while read line; do
+                echo "$line" >> "$1"
+                id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                case "$line" in
+                    *'"type":"ask"'*|*'"type":"copilot"'*) echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                esac
+            done
+            """#
+        // Each store is Bubo after a restart: a new bridge, the Sessioni read from `file`.
+        func restarted() -> SessionStore {
+            let bridge = AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
+                                     environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+            let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+                bridge
+            }
+            store.locateCopilot = { URL(filePath: "/c") }
+            store.copilotConsents = { [EndpointSettings.copilotConsentID] }
+            return store
+        }
+        let first = restarted()
+        let id = try first.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { first.sessions.first?.activity == .ferma }
+        let claude = try #require(first.sessions.first?.continuedConversation)
+        // The engine as #551 will set it.
+        var saved = try JSONDecoder().decode([Session].self, from: Data(contentsOf: file))
+        saved[0].engine = .copilot
+        try JSONEncoder().encode(saved).write(to: file)
+
+        for (count, prompt) in ["Uno", "Due"].enumerated() {
+            let store = restarted()
+            store.sendBack(prompt, to: id, keepingAcceptedAmong: [])
+            try await Self.wait { (try? Self.copilotTurns(in: log).count) == count + 1 }
+            try await Self.wait { store.sessions.first?.activity == .ferma }
+        }
+
+        let session = try #require(try JSONDecoder().decode([Session].self, from: Data(contentsOf: file)).first)
+        let copilot = try #require(session.copilotConversation)
+        #expect(session.conversations == [claude, copilot])
+        #expect(session.continuedConversation == claude)
+        let turns = try Self.copilotTurns(in: log)
+        #expect(turns.map(\.keep) == [copilot, copilot])
+        #expect(turns.map(\.resumes) == [false, true])
+    }
+
+    @Test func aSessionSavedBeforeTheChainResumesWhatItForked() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma","forkedFrom":"c-1","conversations":["t-1"]}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.continuedConversation) == ["c-1"])
+    }
+
+    /// The `prompt` and `upTo` of each `ask` in `log`, in order.
+    static func prompts(in log: URL) throws -> [(prompt: String?, upTo: String?)] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n").compactMap { line in
+            let command = try JSONSerialization.jsonObject(with: Data(line.utf8)) as? [String: Any]
+            guard command?["type"] as? String == "ask" else { return nil }
+            return (command?["prompt"] as? String, command?["upTo"] as? String)
+        }
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func riprendiAfterQuittingAsksThePromptOfTheInterruptedTurn() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let id = try store.start("Primo", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true)
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Rimando", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+        #expect(store.sessions.first?.turnPrompt == "Rimando")
+
+        // Bubo quits during the rimando: the saved Sessione was still in Lavora.
+        var saved = try #require(store.sessions.first)
+        saved.activity = .lavora
+        try JSONEncoder().encode([saved]).write(to: file)
+        let relaunched = SessionStore(file: file,
+                                      worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) { bridge }
+        relaunched.resume(id)
+        try await Self.wait { relaunched.sessions.first?.conversations.count == 3 }
+        try await Self.wait { relaunched.sessions.first?.activity == .ferma }
+
+        #expect(try Self.prompts(in: log).map(\.prompt) == ["Primo", "Rimando", "Rimando"])
+    }
+
+    @MainActor
+    @Test(.timeLimit(.minutes(1)))
+    func continuaDaQuiCutsOnlyTheConversationItForks() async throws {
+        let log = FileManager.default.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = FileManager.default.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let bridge = Self.keepingBridge(log: log)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: FileManager.default.temporaryDirectory)) {
+            bridge
+        }
+        let conversation = CLIConversation(id: "c-1", title: "CLI", folder: nil, branch: nil, lastModified: .now)
+
+        let id = try store.start("Ciao", title: "Prova", branch: "", in: URL(filePath: "/tmp"), onCheckout: true,
+                                 forkingFrom: conversation, upTo: "m-2")
+        try await Self.wait { store.sessions.first?.activity == .ferma }
+        store.sendBack("Ancora", to: id, keepingAcceptedAmong: [])
+        try await Self.wait { store.sessions.first?.conversations.count == 2 && store.sessions.first?.activity == .ferma }
+
+        let session = try #require(store.sessions.first)
+        #expect(try Self.prompts(in: log).map(\.upTo) == ["m-2", nil])
+        #expect(try Self.asks(in: log).map(\.resume) == ["c-1", session.conversations[0]])
+        #expect(session.forkedUpTo == "m-2")
+    }
+
     @Test func aDraftFromTheCLIHistoryStartsEvenEmpty() {
         let draft = SessionDraft(conversation: CLIConversation(id: "c-1", title: "Prova", folder: nil, branch: nil,
                                                                lastModified: .now))
@@ -213,5 +406,32 @@ struct SessionTests {
         #expect(sessions.map(\.isInterrupted) == [false])
         #expect(sessions.map(\.forkedFrom) == [nil])
         #expect(sessions.map(\.conversations) == [[]])
+    }
+
+    @Test func aSessionSavedBeforeSummariesDecodes() throws {
+        let json = #"[{"id":"\#(UUID().uuidString)","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let sessions = try JSONDecoder().decode([Session].self, from: Data(json.utf8))
+        #expect(sessions.map(\.summaryNote) == [nil])
+        #expect(sessions.map(\.isSummaryPending) == [false])
+    }
+}
+
+extension SessionTests {
+    @Test func aSessionSavedBeforeAutomationsDecodesWithoutAMark() throws {
+        let saved = #"[{"id":"6A1F3C2E-0000-4000-8000-000000000001","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        let session = try #require(try JSONDecoder().decode([Session].self, from: Data(saved.utf8)).first)
+        #expect(session.automation == nil)
+        #expect(session.denials.isEmpty)
+        #expect(session.effectiveMode == nil)
+    }
+
+    // ADR 0012: the Sessioni saved before Copilot run on Claude, and a Copilot one stays on Copilot.
+    @Test func aSessionKeepsItsEngine() throws {
+        let saved = #"[{"id":"6A1F3C2E-0000-4000-8000-000000000001","title":"Prova","project":"file:///tmp/","activity":"ferma"}]"#
+        var session = try #require(try JSONDecoder().decode([Session].self, from: Data(saved.utf8)).first)
+        #expect(session.engine == .claude)
+        session.engine = .copilot
+        let again = try JSONDecoder().decode(Session.self, from: JSONEncoder().encode(session))
+        #expect(again.engine == .copilot)
     }
 }

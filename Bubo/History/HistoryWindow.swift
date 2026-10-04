@@ -12,9 +12,10 @@ final class HistoryWindow {
     /// - Parameters:
     ///   - search: Makes the search over the current Sessioni and Cronologia CLI.
     ///   - read: Reads every message of a conversation, from `~/.claude` or from Bubo's copy.
+    ///   - actions: Riprendi and Continua da qui on the conversation read.
     init(search: @escaping () -> ConversationSearch,
-         read: @escaping (String) async throws -> [CLIConversation.Message]) {
-        model = HistoryModel(search: search, read: read)
+         read: @escaping (String) async throws -> [CLIConversation.Message], actions: ResumeActions) {
+        model = HistoryModel(search: search, read: read, actions: actions)
     }
 
     /// Shows the window as it was left: the Finestra menu.

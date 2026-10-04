@@ -117,6 +117,44 @@ struct CostLedgerTests {
         #expect(ledger.entries.first?.project == URL(filePath: "/tmp"))
     }
 
+    // #143: the Domande count per provider in "Domande", never in a Progetto; units stay apart.
+    @Test func theDomandeCountPerProviderOutsideTheProgetti() {
+        let ledger = CostLedger()
+        let question = UUID()
+        ledger.record(Self.usage(.subscription, 0.02), turn: "q1", question: question, provider: "Anthropic")
+        ledger.record(UsageReader.onDevice(input: 30, output: 8), turn: "q2", question: question, provider: "Apple FM")
+        var priced = Self.usage(.apiKey, 0.004)
+        priced.origin = .priceTable
+        ledger.record(priced, turn: "q3", question: UUID(), provider: "OpenAI")
+
+        #expect(ledger.questionTotals() == [
+            "Anthropic": [.valoreListino: .init(value: 0.02)],
+            "Apple FM": [.gratis: .init(value: 0)],
+            "OpenAI": [.spesa: .init(value: 0.004)],
+        ])
+        #expect(ledger.entries.allSatisfy { $0.project == nil })
+    }
+
+    // #143: a Domanda turned into a Sessione leaves its turns in "Domande"; the Sessione's count in the Progetto.
+    @Test func aDomandaTurnedIntoASessioneKeepsItsEarlierTurns() {
+        let ledger = CostLedger()
+        ledger.record(Self.usage(.apiKey, 0.1), turn: "q1", question: UUID(), provider: "Anthropic")
+        let session = UUID()
+        ledger.record(Self.usage(.apiKey, 0.3), turn: "s1", session: session, project: Self.project)
+
+        #expect(ledger.questionTotals() == ["Anthropic": [.spesa: .init(value: 0.1)]])
+        #expect(ledger.total(of: session) == [.spesa: .init(value: 0.3)])
+    }
+
+    @Test func anEntrySavedBeforeOriginsIsAClaudeEstimate() throws {
+        let line = #"[{"id":"t1","session":"7F1C4B0A-0000-4000-8000-000000000001","project":"file:///tmp/","date":0,"usage":{"mode":"apiKey","cost":0.1,"basis":"list","complete":true,"models":[]}}]"#
+        let entry = try #require(try JSONDecoder().decode([CostLedger.Entry].self, from: Data(line.utf8)).first)
+
+        #expect(entry.usage.origin == .listEstimate)
+        #expect(entry.provider == nil)
+        #expect(entry.project != nil)
+    }
+
     @Test func aFigureUnderACentIsNotShownAsZero() {
         #expect(SessionCostTotal.formatted(0) == Decimal(0).formatted(.currency(code: "USD")))
         #expect(SessionCostTotal.formatted(Decimal(string: "0.004")!) != Decimal(0).formatted(.currency(code: "USD")))

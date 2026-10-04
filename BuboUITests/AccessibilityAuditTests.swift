@@ -25,6 +25,29 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
         try audit(app)
     }
 
+    @MainActor func testUpdatesSettingsHaveNoAccessibilityIssues() throws {
+        // The tab is preselected: at 480 pt Aggiornamenti sits in the toolbar's overflow menu.
+        let app = launchBubo(showingPanel: false, settingsTab: "updates")
+        defer { app.terminate() }
+        XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
+        app.typeKey(",", modifierFlags: .command)
+        let settings = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 10), "Le Impostazioni non si sono aperte.")
+        XCTAssertTrue(settings.descendants(matching: .any)["Ricevi le beta"].waitForExistence(timeout: 10), "Manca la scheda Aggiornamenti.")
+        try audit(app)
+    }
+
+    /// "Controlla aggiornamenti…" is in the app menu, where VoiceOver reads it.
+    @MainActor func testCheckForUpdatesIsInTheAppMenu() throws {
+        let app = launchBubo(showingPanel: false)
+        defer { app.terminate() }
+        XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")
+        // A submenu's items reach the accessibility tree only while it is open.
+        app.menuBars.menuBarItems["Bubo"].click()
+        XCTAssertTrue(app.menuBars.menuItems["Controlla aggiornamenti…"].waitForExistence(timeout: 5),
+                      "Manca Controlla aggiornamenti….")
+    }
+
     @MainActor func testPanelHasNoAccessibilityIssues() throws {
         let app = launchBubo(showingPanel: true)
         defer { app.terminate() }
@@ -39,9 +62,11 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     private static let hudWindow = "hud"
 
     /// Launches Bubo with the Panel preference forced, so the user's settings do not matter.
-    @MainActor private func launchBubo(showingPanel: Bool) -> XCUIApplication {
+    @MainActor private func launchBubo(showingPanel: Bool, settingsTab: String? = nil) -> XCUIApplication {
         let app = XCUIApplication()
-        app.launchArguments = ["-showsPanel", showingPanel ? "YES" : "NO"]
+        // Italian whatever the Mac's language: the tests look elements up by their Italian titles.
+        app.launchArguments = ["-showsPanel", showingPanel ? "YES" : "NO", "-AppleLanguages", "(it)", "-AppleLocale", "it_IT"]
+        if let settingsTab { app.launchArguments += ["-settings.tab", settingsTab] }
         app.launch()
         return app
     }
@@ -49,20 +74,42 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     /// Audits everything on screen, ignoring only elements AppKit and SwiftUI own and give no way to fix.
     @MainActor private func audit(_ app: XCUIApplication) throws {
         let windowFrames = app.windows.allElementsBoundByIndex.map(\.frame)
+        // The NSHostingView of each NavigationSplitView column, as the HUD's sidebar: SwiftUI owns it, and a label on
+        // the column's view lands inside it, never on it.
+        let paneFrames = app.splitGroups.allElementsBoundByIndex
+            .flatMap { $0.children(matching: .group).allElementsBoundByIndex.map(\.frame) }
+        // The NSHostingView of a sidebar Section header, as «Oggi»: SwiftUI owns it too, and the heading inside reads it.
+        let sidebarCellFrames = app.outlines.cells.allElementsBoundByIndex
+            .flatMap { $0.children(matching: .group).allElementsBoundByIndex.map(\.frame) }
         // Close, minimize and zoom: XCUITest names them `_XCUI:CloseWindow` and so on.
         let titleBarButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH '_XCUI:'"))
         let titleBarFrames = titleBarButtons.allElementsBoundByIndex.map(\.frame)
-        try app.performAccessibilityAudit { issue in
-            guard let element = issue.element else { return false }
+        // The menu bar and what macOS puts in it, as Emoji e simboli while a text field has the keyboard.
+        let menuBarFrame = app.menuBars.firstMatch.frame
+        // ponytail: contrast is left out. On the HUD's and Settings' translucent windows the audit samples the desktop
+        // behind them and fails white-on-dark text; token contrast is checked by PaletteContrastTests instead.
+        try app.performAccessibilityAudit(for: XCUIAccessibilityAuditType.all.subtracting(.contrast)) { issue in
+            // ponytail: the title bar's zoom and full screen buttons hold two empty groups that macOS 26 reports
+            // as not their children and XCUITest cannot resolve; a mismatch with no element is taken as theirs.
+            guard let element = issue.element else { return issue.auditType == .parentChild }
             if titleBarFrames.contains(where: { $0.contains(element.frame) }) { return true }
+            if element.elementType == .menuBar || menuBarFrame.intersects(element.frame) { return true }
+            // A SwiftUI Menu (the chip «Modello: …») opens with AXShowMenu, the menu button's own action; the audit
+            // asks for AXPress, which neither .plain nor .borderless gives it on macOS 26.
+            if issue.auditType == .action, element.elementType == .menuButton { return true }
             guard issue.auditType == .sufficientElementDescription else { return false }
             switch element.elementType {
+            case .popUpButton:
+                // AppKit's toolbar overflow chevron in Settings («ulteriori elementi della barra strumenti»).
+                return element.label == "ulteriori elementi della barra strumenti"
             case .touchBar:
                 // The Touch Bar AppKit gives every app, even on Macs without one.
                 return true
             case .group:
-                // The NSHostingView filling a window: SwiftUI gives it no label and no way to set one.
-                return windowFrames.contains(element.frame)
+                // The NSHostingView filling a window, a split view column or a sidebar header: SwiftUI gives it no
+                // label and no way to set one.
+                return windowFrames.contains(element.frame) || paneFrames.contains(element.frame)
+                    || sidebarCellFrames.contains(element.frame)
             default:
                 return false
             }

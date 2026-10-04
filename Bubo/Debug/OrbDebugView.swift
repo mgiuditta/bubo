@@ -8,6 +8,8 @@ struct OrbDebugView: View {
 
     /// The bundled Catalogo, loaded once.
     private static let catalogo = Result { try Catalogo(bundle: .main) }
+    /// The planned Varianti, which only Debug builds carry; `nil` leaves the Galleria without its blocchi.
+    private static let elenco = try? CatalogoElenco(bundle: .main)
 
     @Bindable var controls: OrbControls
 
@@ -19,7 +21,7 @@ struct OrbDebugView: View {
             Tab("Galleria", systemImage: "square.grid.3x3") {
                 switch Self.catalogo {
                 case .success(let catalogo):
-                    GalleriaView(catalogo: catalogo)
+                    GalleriaView(catalogo: catalogo, elenco: Self.elenco)
                 case .failure(let error):
                     Text("Catalogo non valido: \(String(describing: error))")
                         .foregroundStyle(.red)

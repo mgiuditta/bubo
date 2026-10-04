@@ -39,6 +39,7 @@ struct ReviewSheet: View {
     /// What stops in the terminal at Fondi, while its confirmation is shown.
     @State private var terminalNotice = ""
     @State private var isConfirmingTerminalClose = false
+    @State private var isOpeningPullRequest = false
     @FocusState private var isFocused: Bool
     @FocusState private var isEditingMessage: Bool
 
@@ -177,6 +178,16 @@ struct ReviewSheet: View {
                             Text(verbatim: terminalNotice)
                         }
                 }
+                if session?.workspace?.branch != nil && session?.phase == .aperta {
+                    let ghMissing = GitHubCLI().executable == nil
+                    Button("Apri PR…") { isOpeningPullRequest = true }
+                        .disabled(session?.isRunning != false || isMerging || ghMissing)
+                        .help(ghMissing ? GitHubCLIError.missing.localizedDescription
+                              : String(localized: "Propone titolo e descrizione, poi fa il push e apre la PR su GitHub"))
+                        .sheet(isPresented: $isOpeningPullRequest) {
+                            if let session { PullRequestSheet(session: session, store: store) }
+                        }
+                }
                 if session?.workspace?.branch != nil {
                     Menu("Altre azioni", systemImage: "ellipsis.circle") {
                         Button("Fondi gli accettati e scarta il resto…") { isConfirmingPartialMerge = true }
@@ -198,7 +209,7 @@ struct ReviewSheet: View {
             }
             Text("j k blocco · a accetta · x rifiuta · c nota all'agente · ⇧A accetta il file · f focus · s affiancato · ⌘↩ fondi o rimanda all'agente")
                 .font(Typography.mono(size: 10.5))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
         }
     }
 
@@ -334,7 +345,7 @@ struct ReviewSheet: View {
     }
 
     private func handle(_ press: KeyPress) -> KeyPress.Result {
-        guard noting == nil, !isEditingMessage, session?.phase == .aperta, let current = cursor ?? review.hunkIDs.first
+        guard noting == nil, !isEditingMessage, session?.isLive == true, let current = cursor ?? review.hunkIDs.first
         else { return .ignored }
         switch press.characters {
         case "j": cursor = review.hunk(movingBy: 1, from: current)

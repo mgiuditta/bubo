@@ -18,6 +18,7 @@ struct ProjectSandboxSection: View {
         let allowances = store.allowances(in: project)
         Section("Sandbox") {
             Toggle("Esegui i comandi di Claude in Sandbox", isOn: $isOn)
+                .tint(Palette.switchTrack)
             Text("I comandi di Claude scrivono solo nella cartella della Sessione, nelle cartelle temporanee e nelle cache dei pacchetti, raggiungono solo i registri dei pacchetti e non leggono ~/.ssh, ~/.aws, ~/.gnupg e ~/.netrc. Un host nuovo diventa una Richiesta. Se la Sandbox non parte, la Sessione non parte. Il terminale e i server non sono in Sandbox. Vale dal prossimo turno.")
                 .font(.callout)
                 .foregroundStyle(.secondary)

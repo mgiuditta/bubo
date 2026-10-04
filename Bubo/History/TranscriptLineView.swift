@@ -1,10 +1,14 @@
 import SwiftUI
 
 /// One message of the Cronologia window: who wrote it, then its text; the point found is highlighted and marked.
+/// Continua da qui appears over the message under the pointer, and is always among its VoiceOver actions.
 struct TranscriptLineView: View {
     let line: TranscriptLine
     let words: [String]
     let isCurrent: Bool
+    /// Continua da qui from this message; `nil` when it cannot.
+    var continueFromHere: (() -> Void)?
+    @State private var isHovered = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xxSmall) {
@@ -14,7 +18,14 @@ struct TranscriptLineView: View {
                 if isCurrent {
                     // Not only the colour: the point found says so.
                     Text("Trovato")
-                        .foregroundStyle(Palette.accentStrong)
+                        .foregroundStyle(Palette.textPrimary)
+                }
+                Spacer(minLength: Spacing.small)
+                if let continueFromHere, isHovered {
+                    Button("Continua da qui", systemImage: "arrow.branch", action: continueFromHere)
+                        .buttonStyle(.borderless)
+                        .textCase(nil)
+                        .help(Text("Nuova Sessione con la conversazione fino a questo messaggio"))
                 }
             }
             .font(Typography.mono(size: 10, weight: .medium))
@@ -29,6 +40,10 @@ struct TranscriptLineView: View {
         .overlay {
             if isCurrent { RoundedRectangle(cornerRadius: CornerRadius.small).strokeBorder(Palette.lineStrong) }
         }
+        .onHover { isHovered = $0 }
         .accessibilityElement(children: .combine)
+        .accessibilityActions {
+            if let continueFromHere { Button("Continua da qui", action: continueFromHere) }
+        }
     }
 }

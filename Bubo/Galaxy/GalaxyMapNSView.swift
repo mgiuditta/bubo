@@ -41,8 +41,13 @@ final class GalaxyMapNSView: MTKView {
     /// Whether the map is drawing every frame, during a flight or a comet's move.
     var isDrawingContinuously: Bool { !isPaused }
 
+    /// Whether the window was reported covered or minimized. Only a change reported by AppKit counts: right after
+    /// the window shows, `occlusionState` can still miss `.visible` with no change notified later, and a map that
+    /// waited for it never drew what changed (#658).
+    private var isOccluded = false
+
     private var isVisible: Bool {
-        window?.occlusionState.contains(.visible) ?? false
+        window != nil && !isOccluded
     }
 
     /// Draws once, now if the window shows, else when it shows again.
@@ -76,7 +81,12 @@ final class GalaxyMapNSView: MTKView {
         super.viewDidMoveToWindow()
         if let occlusion { NotificationCenter.default.removeObserver(occlusion) }
         occlusion = nil
+        isOccluded = false
         guard let window else { return }
+        if needsDrawWhenVisible {
+            needsDrawWhenVisible = false
+            needsDisplay = true
+        }
         occlusion = NotificationCenter.default.addObserver(forName: NSWindow.didChangeOcclusionStateNotification,
                                                            object: window, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.occlusionChanged() }
@@ -84,6 +94,7 @@ final class GalaxyMapNSView: MTKView {
     }
 
     private func occlusionChanged() {
+        isOccluded = window.map { !$0.occlusionState.contains(.visible) } ?? false
         if isVisible {
             if model.isAnimating {
                 startContinuousDrawing()

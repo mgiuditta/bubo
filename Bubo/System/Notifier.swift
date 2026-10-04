@@ -7,15 +7,16 @@ import UserNotifications
 /// only where `PermissionNotice` offers it. Each answer carries the ids of its Sessione and Richiesta, so it reaches
 /// that Richiesta only, and nothing if it no longer waits.
 final class Notifier: NSObject, UNUserNotificationCenterDelegate {
-    /// Creates a notifier that calls `openHUD` when the user clicks a notification, and `answer` with the Richiesta,
-    /// its Sessione and whether the call may run when the user picks Solo ora or No.
-    init(openHUD: @escaping @MainActor () -> Void,
+    /// Creates a notifier that calls `openHUD` when the user clicks a notification, with the Sessione it is about if
+    /// any, and `answer` with the Richiesta, its Sessione and whether the call may run when the user picks Solo ora or
+    /// No.
+    init(openHUD: @escaping @MainActor (UUID?) -> Void,
          answer: @escaping @MainActor (PermissionRequest.ID, UUID, Bool) -> Void) {
         self.openHUD = openHUD
         self.answer = answer
     }
 
-    private let openHUD: @MainActor () -> Void
+    private let openHUD: @MainActor (UUID?) -> Void
     private let answer: @MainActor (PermissionRequest.ID, UUID, Bool) -> Void
     private let center = UNUserNotificationCenter.current()
 
@@ -51,8 +52,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
     /// The permission is provisional: no system alert, the notifications go quietly to the Notification Center until
     /// the user chooses to keep them (spec 26).
     ///
+    /// - Parameter isSilent: Whether it posts without sound, because the iPhone rings for the same Richiesta.
     /// - Returns: Whether the notification was posted; `false` when the user turned notifications off.
-    func announce(_ session: Session, request pending: RequestCenter.Pending?) async -> Bool {
+    func announce(_ session: Session, request pending: RequestCenter.Pending?, isSilent: Bool = false) async -> Bool {
         do {
             guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return false }
             let content = UNMutableNotificationContent()
@@ -68,12 +70,72 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
                 content.body = session.summary ?? ""
             }
             content.threadIdentifier = session.id.uuidString
-            content.sound = .default
+            // Silent, it still goes to the Notification Center: back at the Mac, the user finds it there.
+            content.sound = isSilent ? nil : .default
             try await center.add(UNNotificationRequest(identifier: session.id.uuidString, content: content, trigger: nil))
             return true
         } catch {
             Logger.sessions.error("Notification not posted: \(error)")
             return false
+        }
+    }
+
+    /// Announces that the Budget of `status` passed its threshold, or is spent (spec 18); a click opens the HUD.
+    func announce(_ status: BudgetGuard.Status) async {
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            let budget = status.scope.budgetTitle
+            let spent = SessionCostTotal.formatted(status.spent.value)
+            let limit = status.limit.formatted(.currency(code: "USD"))
+            if status.level == .exhausted {
+                content.title = String(localized: "\(budget) esaurito",
+                                       comment: "Notification title: a monthly Budget is spent, such as «Budget di OpenAI esaurito».")
+            } else {
+                content.title = String(localized: "\(budget) oltre la soglia",
+                                       comment: "Notification title: a monthly Budget passed its threshold, such as «Budget di OpenAI oltre la soglia».")
+            }
+            let share = status.share.formatted(.percent.precision(.fractionLength(0)))
+            content.body = String(localized: "Spesi \(spent) su \(limit) questo mese (\(share)). Nelle scelte automatiche Bubo usa un altro modello, se c'è.",
+                                  comment: "Notification body of a Budget past its threshold: the Spesa of the month, the limit, the share spent, and what the router does.")
+            content.threadIdentifier = "budget"
+            try await center.add(UNNotificationRequest(identifier: "budget-\(UUID().uuidString)", content: content,
+                                                       trigger: nil))
+        } catch {
+            Logger.costs.error("Budget notification not posted: \(error)")
+        }
+    }
+
+    /// Announces that the recovery started an Esecuzione of `automation` for the time it missed, `scheduledAt`.
+    func announceRecovery(of automation: Automation, scheduledAt: Date) async {
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            content.title = automation.name
+            content.body = String(localized: "Recupero dell'Esecuzione prevista \(scheduledAt.formatted(date: .abbreviated, time: .shortened)): era persa mentre il Mac dormiva o Bubo era chiuso.")
+            content.threadIdentifier = automation.id.uuidString
+            try await center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        } catch {
+            Logger.automations.error("Recovery notification not posted: \(error)")
+        }
+    }
+
+    /// Announces how `execution` of `automation` ended, with its outcome and how many actions were denied: nothing
+    /// for one with nothing to look at. A click opens the HUD on its Sessione.
+    func announceResult(of execution: Execution, from automation: Automation) async {
+        guard let notice = execution.resultNotice, let session = execution.session else { return }
+        do {
+            guard try await center.requestAuthorization(options: [.alert, .sound, .provisional]) else { return }
+            let content = UNMutableNotificationContent()
+            content.title = automation.name
+            content.subtitle = String(localized: "Automazione · \(execution.startedAt.formatted(date: .omitted, time: .shortened))")
+            content.body = notice
+            content.threadIdentifier = automation.id.uuidString
+            content.userInfo = [Identifier.session: session.uuidString]
+            content.sound = .default
+            try await center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil))
+        } catch {
+            Logger.automations.error("Result notification not posted: \(error)")
         }
     }
 
@@ -89,7 +151,8 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         [.banner, .list, .sound]
     }
 
-    /// Answers the Richiesta of the notification with Solo ora or No, in the background; any other click opens the HUD.
+    /// Answers the Richiesta of the notification with Solo ora or No, in the background; any other click opens the HUD,
+    /// on the Sessione of the notification if it has one.
     nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter,
                                             didReceive response: UNNotificationResponse) async {
         let ids = response.notification.request.content.userInfo
@@ -98,10 +161,9 @@ final class Notifier: NSObject, UNUserNotificationCenterDelegate {
         case Identifier.deny: false
         default: nil
         }
-        guard let allows, let request = ids[Identifier.request] as? String,
-              let session = (ids[Identifier.session] as? String).flatMap(UUID.init(uuidString:))
-        else {
-            await openHUD()
+        let session = (ids[Identifier.session] as? String).flatMap(UUID.init(uuidString:))
+        guard let allows, let request = ids[Identifier.request] as? String, let session else {
+            await openHUD(session)
             return
         }
         await answer(request, session, allows)

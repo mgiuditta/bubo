@@ -3,10 +3,17 @@ options:
   bundleIdPrefix: com.mgiuditta
   deploymentTarget:
     macOS: "26.0"
+    iOS: "26.0"
   developmentLanguage: it
   createIntermediateGroups: true
 
 packages:
+  # Tipi, cifratura e firma del Telecomando, condivisi da Mac e iPhone (spec 21).
+  RemoteKit:
+    path: Packages/RemoteKit
+  # Formato .bubo, cifratura HPKE a pezzi e codice di verifica della Consegna (spec 24).
+  DeliveryKit:
+    path: Packages/DeliveryKit
   # Solo la vista del terminale, versione fissata: dopo la 1.20 arrivano cambi di API (spec 15).
   SwiftTerm:
     url: https://github.com/migueldeicaza/SwiftTerm
@@ -23,6 +30,14 @@ packages:
   SwiftTransformers:
     url: https://github.com/huggingface/swift-transformers
     exactVersion: 1.3.4
+  # Aggiornamenti dell'app (spec 27): firma EdDSA, feed firmato, Canale beta. Servizi XPC tolti dopo la build.
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
+  # Diarizzazione delle Riunioni (#549), Apache 2.0: i modelli (CC-BY-4.0) li scarica al primo uso, mai nel bundle.
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio
+    exactVersion: 0.17.5
 
 settings:
   base:
@@ -58,6 +73,9 @@ targets:
       - path: bridge/compat.json
         buildPhase: resources
     dependencies:
+      - package: RemoteKit
+      - package: DeliveryKit
+      - target: BuboQuickLook
       - package: SwiftTerm
       - package: MLXSwiftLM
         product: MLXEmbedders
@@ -65,6 +83,9 @@ targets:
         product: MLX
       - package: SwiftTransformers
         product: Tokenizers
+      - package: Sparkle
+      - package: FluidAudio
+        product: FluidAudio
     # Lo schema bubo:// non ha una chiave INFOPLIST_KEY_*: va in un Info.plist, unito a quello generato (spec 16).
     info:
       path: Bubo/Info.plist
@@ -72,26 +93,81 @@ targets:
         # XcodeGen scriverebbe 1.0 e 1: si tengono le versioni dei build setting.
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        # Il nome della release (1.2.0-beta.3), mostrato in Impostazioni › Aggiornamenti; build.sh lo passa dal tag.
+        BuboReleaseName: $(BUBO_RELEASE_NAME)
+        # I font di Resources/Fonts (Newsreader, Unbounded, Manrope, JetBrains Mono) li registra il sistema all'avvio.
+        ATSApplicationFontsPath: Fonts
+        # Sparkle (spec 27): feed e chiave pubblica dai build setting sotto, da riempire con #220.
+        SUFeedURL: $(SPARKLE_FEED_URL)
+        SUPublicEDKey: $(SPARKLE_PUBLIC_ED_KEY)
+        SUEnableAutomaticChecks: true
+        SUAutomaticallyUpdate: true
+        SUScheduledCheckInterval: 86400
+        # Un token rubato non basta a riscrivere l'appcast; senza la verifica prima dell'estrazione Sparkle non parte.
+        SURequireSignedFeed: true
+        SUVerifyUpdateBeforeExtraction: true
+        # Il controllo non invia niente del Mac.
+        SUEnableSystemProfiling: false
+        # Il process tap di Core Audio, per l'audio dell'app di una Riunione (#545): senza, macOS non lo chiede.
+        NSAudioCaptureUsageDescription: "Bubo registra l'audio dell'app che scegli per una Riunione e lo trascrive sul Mac."
+        # La pagina aperta nel browser davanti, come Allegato della Domanda chiesta dal Panel.
+        NSAppleEventsUsageDescription: "Bubo legge titolo e indirizzo della pagina che stai guardando, per allegarli alla domanda che fai dal Panel."
         CFBundleURLTypes:
           - CFBundleURLName: com.mgiuditta.bubo
             CFBundleTypeRole: Viewer
             CFBundleURLSchemes:
               - bubo
+        # Il file .bubo, Consegna o Biglietto (spec 24): Bubo lo apre al doppio clic.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: File Bubo
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Owner
+            LSItemContentTypes:
+              - com.mgiuditta.bubo.consegna
+          # Una cartella da «Apri con» o trascinata sull'icona del Dock apre il suo Progetto, o lo crea (#502).
+          - CFBundleTypeName: Cartella
+            CFBundleTypeRole: Viewer
+            LSHandlerRank: Alternate
+            LSItemContentTypes:
+              - public.folder
+        UTExportedTypeDeclarations:
+          - UTTypeIdentifier: com.mgiuditta.bubo.consegna
+            UTTypeDescription: File Bubo
+            UTTypeConformsTo:
+              - public.data
+              - public.content
+            UTTypeTagSpecification:
+              public.filename-extension:
+                - bubo
     entitlements:
       path: Bubo/Bubo.entitlements
       properties:
         keychain-access-groups:
           - $(AppIdentifierPrefix)com.mgiuditta.bubo
+        # La cartella dei Biglietti e della chiave di questa Macchina, condivisa con BuboQuickLook (spec 24).
+        com.apple.security.application-groups:
+          - $(TeamIdentifierPrefix)com.mgiuditta.bubo
+        # Il runtime rinforzato nega il microfono senza questa eccezione (push-to-talk, spec 08).
+        com.apple.security.device.audio-input: true
+        # La pagina aperta nel browser in primo piano, chiesta con gli Apple Events quando si apre la Bolla.
+        com.apple.security.automation.apple-events: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo
         MARKETING_VERSION: "0.1.0"
         CURRENT_PROJECT_VERSION: "1"
+        BUBO_RELEASE_NAME: $(MARKETING_VERSION)
+        # Da riempire con #220: l'URL dell'appcast su Pages di mgiuditta/bubo-releases e la chiave pubblica EdDSA
+        # (generate_keys -p). Vuoti, gli aggiornamenti restano spenti e build.sh si ferma.
+        SPARKLE_FEED_URL: ""
+        SPARKLE_PUBLIC_ED_KEY: ""
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: Bubo
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: "© 2026 Matteo Giuditta"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "Bubo ascolta mentre tieni premuta la scorciatoia o registri una Riunione, e trascrive sul Mac."
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "Bubo trascrive sul Mac quello che dici mentre tieni premuta la scorciatoia."
     postBuildScripts:
       - name: Ponte agente
         shell: /bin/zsh
@@ -114,6 +190,25 @@ targets:
           - $(SRCROOT)/bridge/entitlements.plist
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-agent
+      - name: Sparkle senza servizi XPC
+        shell: /bin/zsh
+        script: |
+          set -euo pipefail
+          # Bubo non è in sandbox: i servizi XPC di Sparkle non servono (spec 27); il framework si rifirma senza.
+          framework="$TARGET_BUILD_DIR/$FRAMEWORKS_FOLDER_PATH/Sparkle.framework"
+          [[ -d $framework ]] || exit 0
+          rm -rf "$framework/Versions/B/XPCServices" "$framework/XPCServices"
+          # Dall'interno verso l'esterno: Autoupdate e Updater arrivano firmati da Sparkle, senza runtime rafforzato.
+          for helper in "$framework/Versions/B/Autoupdate" "$framework/Versions/B/Updater.app"; do
+            codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$helper"
+          done
+          codesign --force --options runtime --sign "${EXPANDED_CODE_SIGN_IDENTITY:--}" "$framework"
+        # Dopo la copia del framework e dopo la sua firma da parte di Xcode (che produce _CodeSignature): senza la
+        # seconda dipendenza lo script toglie Installer.xpc mentre codesign lo legge, "cannot find code object" (#593).
+        inputFiles:
+          - $(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Sparkle.framework
+          - $(TARGET_BUILD_DIR)/$(FRAMEWORKS_FOLDER_PATH)/Sparkle.framework/Versions/B/_CodeSignature
+        basedOnDependencyAnalysis: false
       - name: Lanciatore del terminale
         shell: /bin/zsh
         script: |
@@ -144,23 +239,133 @@ targets:
           - $(SRCROOT)/Bubo/Integrations/LinearOpener.c
         outputFiles:
           - $(TARGET_BUILD_DIR)/$(CONTENTS_FOLDER_PATH)/Helpers/bubo-linear
-      - name: Archivio Metal 4 delle Forme
+      - name: Elenco del Catalogo solo in Debug
+        shell: /bin/zsh
+        script: |
+          # La Galleria mostra per blocco anche le Varianti ancora da disegnare (#400); la Release non ne ha nemmeno un byte.
+          [[ "$CONFIGURATION" == Debug ]] || exit 0
+          cp "$SRCROOT/docs/catalogo-elenco.json" "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH/"
+        inputFiles:
+          - $(SRCROOT)/docs/catalogo-elenco.json
+        outputFiles:
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/catalogo-elenco.json
+      - name: Archivio Metal 4 del Blob
         shell: /bin/zsh
         script: |
           [[ "$CONFIGURATION" == Release ]] || exit 0
           resources="$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH"
-          "$SRCROOT/scripts/metal-archive.sh" "$resources/default.metallib" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources/Forme.mtl4archive"
+          "$SRCROOT/scripts/metal-archive.sh" "$SRCROOT/Bubo/Orb/Orb.metal" "$resources"
         inputFiles:
           - $(SRCROOT)/scripts/metal-archive.sh
           - $(SRCROOT)/Bubo/Orb/Orb.metal
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/default.metallib
+          - $(SRCROOT)/Bubo/Orb/OrbShading.h
         outputFiles:
-          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Forme.mtl4archive
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.metallib
+          - $(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/Orb.mtl4archive
+  # Quick Look del .bubo: solo l'intestazione in chiaro e i Biglietti ricevuti, mai il contenuto cifrato (spec 24).
+  BuboQuickLook:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: BuboQuickLook
+        excludes:
+          - "*.entitlements"
+      - path: Bubo/Deliveries/TicketStore.swift
+      - path: Bubo/Deliveries/BuboFileSummary.swift
+    dependencies:
+      - package: DeliveryKit
+    # Un'estensione Quick Look gira solo in sandbox; legge i Biglietti dall'App Group che l'app scrive.
+    entitlements:
+      path: BuboQuickLook/BuboQuickLook.entitlements
+      properties:
+        com.apple.security.app-sandbox: true
+        com.apple.security.application-groups:
+          - $(TeamIdentifierPrefix)com.mgiuditta.bubo
+    info:
+      path: BuboQuickLook/Info.plist
+      properties:
+        CFBundleDisplayName: Bubo
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.quicklook.preview
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).PreviewProvider
+          NSExtensionAttributes:
+            QLIsDataBasedPreview: true
+            QLSupportedContentTypes:
+              - com.mgiuditta.bubo.consegna
+            QLSupportsSearchableItems: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.quicklook
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+  # Il Telecomando: l'app iPhone di Bubo (spec 21, ADR 0007).
+  BuboRemote:
+    type: application
+    platform: iOS
+    sources:
+      - path: BuboRemote
+    dependencies:
+      - package: RemoteKit
+      - target: RemoteNotificationService
+    # Il portachiavi dei Mac accoppiati è condiviso con l'estensione delle notifiche, che decifra le Richieste.
+    entitlements:
+      path: BuboRemote/BuboRemote.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.mgiuditta.bubo.remote
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote
+        PRODUCT_NAME: Bubo
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_CFBundleDisplayName: Bubo
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_NSCameraUsageDescription: "Bubo usa la fotocamera solo per leggere il QR di accoppiamento del Mac."
+        INFOPLIST_KEY_NSFaceIDUsageDescription: "Face ID protegge la chiave con cui il Telecomando firma le tue decisioni."
+  # Scrive il testo delle notifiche delle Richieste dal record cifrato (spec 21).
+  RemoteNotificationService:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: RemoteNotificationService
+        excludes:
+          - "*.entitlements"
+      - path: BuboRemote/Shared
+    dependencies:
+      - package: RemoteKit
+    entitlements:
+      path: RemoteNotificationService/RemoteNotificationService.entitlements
+      properties:
+        keychain-access-groups:
+          - $(AppIdentifierPrefix)com.mgiuditta.bubo.remote
+    info:
+      path: RemoteNotificationService/Info.plist
+      properties:
+        CFBundleDisplayName: Bubo
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).NotificationService
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.remote.notifications
+        MARKETING_VERSION: "0.1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
   BuboTests:
     type: bundle.unit-test
     platform: macOS
     sources:
       - path: BuboTests
+      # Every Forma again, with its GPU probe kernel (FORMA_PROBE): FormaTests reads the SDFs through it.
+      - path: Bubo/Orb/Forme
       # The frame log reader of the performance tests, checked against what the app writes.
       - path: BuboPerfTests/FrameLog.swift
       # The budgets and the report of scripts/perf.sh.
@@ -174,6 +379,7 @@ targets:
       base:
         GENERATE_INFOPLIST_FILE: YES
         PRODUCT_BUNDLE_IDENTIFIER: com.mgiuditta.bubo.tests
+        MTL_PREPROCESSOR_DEFINITIONS: FORMA_PROBE=1
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Bubo.app/Contents/MacOS/Bubo"
         BUNDLE_LOADER: "$(TEST_HOST)"
   BuboPerfTests:
@@ -181,6 +387,15 @@ targets:
     platform: macOS
     sources:
       - path: BuboPerfTests
+        excludes:
+          - "*.entitlements"
+    # The runner is sandboxed: the homes of OnboardingPerfTests go in /tmp, where the `claude` Bubo starts can read
+    # them, not in the runner's container, which macOS hides from other apps.
+    entitlements:
+      path: BuboPerfTests/BuboPerfTests.entitlements
+      properties:
+        com.apple.security.temporary-exception.files.absolute-path.read-write:
+          - /private/tmp/
     dependencies:
       - target: Bubo
     settings:
@@ -212,6 +427,10 @@ schemes:
       targets:
         - BuboTests
         - BuboUITests
+  BuboRemote:
+    build:
+      targets:
+        BuboRemote: all
   BuboPerf:
     build:
       targets:

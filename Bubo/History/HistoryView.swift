@@ -13,7 +13,7 @@ struct HistoryView: View {
                 .frame(width: 360)
             Divider().overlay(Palette.line)
             if let reader = model.reader {
-                ConversationReaderView(reader: reader)
+                ConversationReaderView(reader: reader, actions: model.actions)
             } else {
                 Text("Scegli una conversazione per leggerla.")
                     .font(Typography.body(size: 13))

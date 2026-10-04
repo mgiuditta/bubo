@@ -1,4 +1,5 @@
 import Foundation
+import Metal
 import Testing
 @testable import Bubo
 
@@ -11,9 +12,10 @@ struct CatalogoTests {
 
     private static func entry(nome: String = "lente", forma: String = "lente", categoria: String = "ricerca",
                               descrizione: String = "Quando Bubo cerca.",
-                              parole: [String] = ["cerca", "trova", "lente"]) -> String {
+                              parole: [String] = ["cerca", "trova", "lente"], ritirata: String? = nil) -> String {
         let words = parole.map { #""\#($0)""# }.joined(separator: ", ")
-        return #"{"nome": "\#(nome)", "forma": "\#(forma)", "categoria": "\#(categoria)", "descrizione": "\#(descrizione)", "parole": [\#(words)]}"#
+        let retired = ritirata.map { #", "ritirata": "\#($0)""# } ?? ""
+        return #"{"nome": "\#(nome)", "forma": "\#(forma)", "categoria": "\#(categoria)", "descrizione": "\#(descrizione)", "parole": [\#(words)]\#(retired)}"#
     }
 
     // MARK: - The real catalogo.json
@@ -33,9 +35,10 @@ struct CatalogoTests {
 
     // MARK: - The rosa for the tag ⟦orb:nome⟧
 
-    @Test func theRosaOfTheBundledCatalogoNamesEveryVarianteToday() throws {
+    @Test func theRosaOfTheBundledCatalogoNamesTheVarianti() throws {
         let catalogo = try Self.bundled.get()
-        #expect(Set(catalogo.rosa()) == Set(catalogo.varianti))
+        #expect(Set(catalogo.rosa()).isSubset(of: Set(catalogo.varianti)))
+        #expect(catalogo.rosa().count == min(catalogo.varianti.count, Catalogo.rosaLimit))
     }
 
     @Test func theRosaKeepsTheFirstOfEachCategoriaThenTheCategoriaAskedFor() throws {
@@ -52,10 +55,10 @@ struct CatalogoTests {
         #expect(catalogo.rosa(around: .ricerca).count == 5)
     }
 
-    @Test func theFirstBlockHasOneVariantePerCategoria() throws {
+    @Test func everyCategoriaHasAVariante() throws {
         let catalogo = try Self.bundled.get()
         for categoria in Categoria.allCases {
-            #expect(catalogo.varianti(in: categoria).count == 1, "\(categoria)")
+            #expect(!catalogo.varianti(in: categoria).isEmpty, "\(categoria)")
         }
     }
 
@@ -73,26 +76,35 @@ struct CatalogoTests {
         }
     }
 
+    /// The Forme the app's shader library draws, read from its `forma_<name>` fragment functions.
+    private static func drawnForme() throws -> Set<String> {
+        let library = try #require(MTLCreateSystemDefaultDevice()?.makeDefaultLibrary())
+        return Set(library.functionNames.filter { $0.hasPrefix(Forma.fragmentFunctionPrefix) }
+            .map { String($0.dropFirst(Forma.fragmentFunctionPrefix.count)) })
+    }
+
     @Test func everyBundledFormaHasItsSDFAndEverySDFIsUsed() throws {
         let required = try Self.bundled.get().formaNames
-        // The Orbite's Forma is drawn for the Orbite alone, never through the Catalogo.
-        let drawn = Set(Forma.allCases.filter { $0 != .blob && $0 != .orbite }.map(\.rawValue))
+        // The Blob is no Variante, and the Orbite's and the owl's Forme are drawn for the Orbite and the greeting
+        // alone, never through the Catalogo.
+        let drawn = try Self.drawnForme().subtracting([Forma.blob.rawValue, Forma.orbite.rawValue, Forma.gufo.rawValue])
         #expect(required == drawn)
     }
 
-    @Test func theShaderDrawsExactlyTheFormeTheRendererKnows() throws {
-        let shader = URL(filePath: #filePath).deletingLastPathComponent()
-            .appending(path: "../Bubo/Orb/Orb.metal").standardized
-        let source = try String(contentsOf: shader, encoding: .utf8)
-        var cases: [Int32: String] = [:]
-        for match in source.matches(of: /case (\d+): return (\w+)\(/) {
-            cases[try #require(Int32(match.1))] = String(match.2)
+    /// One Forma per file: `Orb/Forme/<name>.metal` makes `forma_<name>` and nothing else does.
+    @Test func eachFormaIsTheFileNamedAfterIt() throws {
+        let folder = URL(filePath: #filePath).deletingLastPathComponent()
+            .appending(path: "../Bubo/Orb/Forme").standardized
+        let files = try FileManager.default.contentsOfDirectory(at: folder, includingPropertiesForKeys: nil)
+            .filter { $0.pathExtension == "metal" }
+        for file in files {
+            let name = file.deletingPathExtension().lastPathComponent
+            let source = try String(contentsOf: file, encoding: .utf8)
+            #expect(source.contains("ORB_FORMA(\(name))") || source.contains("ORB_FORMA_SDF(\(name),"), "\(name)")
         }
-        let forme = Forma.allCases.filter { $0 != .blob }
-        #expect(cases == Dictionary(uniqueKeysWithValues: forme.map { ($0.functionConstant, $0.rawValue) }))
-        for forma in forme {
-            #expect(source.contains("static float \(forma.rawValue)(float3 p"), "\(forma)")
-        }
+        let names = Set(files.map { $0.deletingPathExtension().lastPathComponent })
+        let drawn = try Self.drawnForme()
+        #expect(drawn == names.union([Forma.blob.rawValue]))
     }
 
     @Test(arguments: ["it", "en"])
@@ -173,6 +185,62 @@ struct CatalogoTests {
             try Catalogo(bundle: Bundle(for: BundleMarker.self))
         }
     }
+
+    // MARK: - Retired Varianti and stable names (#401)
+
+    /// A Catalogo with `binocolo` retired, first of its Categoria.
+    private static func catalogoWithRetiredBinocolo() throws -> Catalogo {
+        try Catalogo(json: json([
+            entry(nome: "binocolo", forma: "binocolo", parole: ["binocolo", "osserva", "scruta"], ritirata: "#401"),
+            entry(nome: "lente", forma: "lente"),
+            entry(nome: "radar", forma: "radar", parole: ["radar", "scansiona", "rileva"]),
+        ].joined(separator: ",")))
+    }
+
+    @Test func aRetiredVarianteKeepsItsNameAndForma() throws {
+        let binocolo = try #require(try Self.catalogoWithRetiredBinocolo().variante(named: "binocolo"))
+        #expect(binocolo.isRetired)
+        #expect(binocolo.ritirata == "#401")
+        #expect(binocolo.forma == "binocolo")
+    }
+
+    @Test func aRetiredVarianteIsNeverChosen() throws {
+        let catalogo = try Self.catalogoWithRetiredBinocolo()
+        #expect(catalogo.attive.map(\.nome) == ["lente", "radar"])
+        #expect(catalogo.varianti(in: .ricerca).map(\.nome) == ["lente", "radar"])
+        #expect(catalogo.rosa(around: .ricerca).map(\.nome) == ["lente", "radar"])
+        #expect(!FoundationModelsClassifier.instructions(choosingAmong: catalogo.varianti(in: .ricerca)).contains("binocolo"))
+    }
+
+    @Test func theRulesNeverChooseARetiredVariante() throws {
+        let rules = RuleClassifier(catalogo: try Self.catalogoWithRetiredBinocolo())
+        let result = rules.classification(of: ClassifierInput(text: "Cerca con il binocolo, osserva e scruta"))
+        #expect(result.variante?.nome != "binocolo")
+    }
+
+    /// A retired name that still arrives, from an old tag or conversation, turns the Orb: its Forma is still there.
+    @Test func theOrbShowsARetiredNameThatStillArrives() throws {
+        let orb = OrbControls()
+        orb.showWork("binocolo", in: try Self.catalogoWithRetiredBinocolo())
+        #expect(orb.variante?.nome == "binocolo")
+    }
+
+    /// Every name ever in `catalogo.json` stays there, active or retired: renaming or removing one fails here.
+    @Test func noNameOfTheHistoryDisappears() throws {
+        let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let url = root.appending(path: "BuboTests/Fixtures/catalogo-nomi.json")
+        let history = try JSONDecoder().decode(NameHistory.self, from: Data(contentsOf: url))
+        let names = Set(try Self.bundled.get().varianti.map(\.nome))
+        let missing = history.nomi.filter { !names.contains($0) }
+        #expect(missing.isEmpty, "A name never leaves catalogo.json: retire it instead. Missing: \(missing)")
+        let unrecorded = names.subtracting(history.nomi)
+        #expect(unrecorded.isEmpty, "Append the new names to catalogo-nomi.json: \(unrecorded.sorted())")
+    }
+}
+
+/// The shape of `catalogo-nomi.json`: every name ever in the Catalogo, only ever appended to.
+private struct NameHistory: Decodable {
+    let nomi: [String]
 }
 
 /// A class in the test bundle, which has no catalogo.json.

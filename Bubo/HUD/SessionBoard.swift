@@ -23,6 +23,8 @@ struct SessionBoard: View {
     @State private var isFusaUnfolded = false
     /// The Bozza waiting for the trust dialog of its Progetto before it starts.
     @State private var trusting: Draft?
+    /// Whether the user is asked to consent to Copilot, from the menu of a Bozza.
+    @State private var isAskingCopilotConsent = false
     /// The column a Bozza is being dragged over.
     @State private var dropTarget: BoardColumn?
     /// Why the Sessione of a Bozza dropped on a column is not there, for a few seconds.
@@ -68,25 +70,33 @@ struct SessionBoard: View {
                     .font(Typography.body(size: 12))
                     .foregroundStyle(Palette.textSecondary)
             }
-            ScrollView(.horizontal) {
-                GlassEffectContainer(spacing: Spacing.xSmall) {
-                    HStack(alignment: .top, spacing: Spacing.xSmall) {
-                        draftColumn
-                        ForEach(columns, id: \.column) { column, sessions in
-                            columnView(column, sessions: sessions)
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal) {
+                    GlassEffectContainer(spacing: Spacing.xSmall) {
+                        HStack(alignment: .top, spacing: Spacing.xSmall) {
+                            draftColumn
+                            ForEach(columns, id: \.column) { column, sessions in
+                                columnView(column, sessions: sessions)
+                            }
                         }
                     }
                 }
+                .scrollIndicators(.automatic)
+                .revealingSession(with: proxy)
             }
-            .scrollIndicators(.automatic)
         }
         // Reduce Motion: the cards jump to their new column.
         .animation(Motion.isReduced ? nil : Motion.emphasized, value: columns.map { $0.sessions.map(\.id) })
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Sessioni")
+        .copilotConsentDialog(isPresented: $isAskingCopilotConsent, settings: .shared)
         .sheet(item: $trusting) { draft in
             TrustSheet(folder: draft.project, activations: RepoActivations(folder: draft.project),
                        start: { _ in launch(draft) }, gate: gate)
+        }
+        // For the Copilot models in the menu of the Bozze.
+        .task(id: store.drafts.drafts.isEmpty) {
+            if !store.drafts.drafts.isEmpty { await store.loadCopilotModels() }
         }
         .task(id: notice == nil) {
             guard notice != nil else { return }
@@ -113,6 +123,7 @@ struct SessionBoard: View {
 
     /// Starts `draft`; one from a GitHub issue reads it first with `gh`, and stays with the reason when it cannot.
     private func launch(_ draft: Draft) {
+        if let delivery = draft.delivery { return launch(draft, delivery) }
         guard draft.issue?.source == .github else { return store.start(draft) }
         guard starting.insert(draft.id).inserted else { return }
         failures[draft.id] = nil
@@ -123,6 +134,21 @@ struct SessionBoard: View {
             } catch {
                 Logger.sessions.error("Issue of a Bozza not read: \(String(describing: error), privacy: .private)")
                 failures[draft.id] = error.localizedDescription
+            }
+        }
+    }
+
+    /// Starts the Bozza of a Consegna: its worktree, its conversation restored, then the turn that resumes it.
+    private func launch(_ draft: Draft, _ delivery: DraftDelivery) {
+        guard starting.insert(draft.id).inserted else { return }
+        failures[draft.id] = nil
+        Task {
+            defer { starting.remove(draft.id) }
+            do {
+                try await store.startDelivered(draft, delivery)
+            } catch {
+                Logger.sessions.error("Consegna not started: \(String(describing: error), privacy: .private)")
+                failures[draft.id] = String(localized: "La Consegna non parte: il ramo o la conversazione non si preparano. Riprova.")
             }
         }
     }
@@ -173,7 +199,7 @@ struct SessionBoard: View {
             Spacer()
             Text(count, format: .number)
                 .font(Typography.mono(size: 11))
-                .foregroundStyle(Palette.textFaint)
+                .foregroundStyle(Palette.textSecondary)
         }
         .padding(.horizontal, Spacing.xxSmall)
         .accessibilityElement(children: .combine)
@@ -207,14 +233,29 @@ struct SessionBoard: View {
         .accessibilityElement(children: .contain)
     }
 
+    /// The engine and model the Sessione of `draft` starts on: its own, else its Progetto's.
+    private func choice(of draft: Draft) -> EngineChoice {
+        draft.choice ?? store.engines.choice(for: draft.project)
+    }
+
     /// A Bozza, with its source: ↩ with the card focused, Avvia, or a drag onto the Sessioni starts it.
     private func draftCard(_ draft: Draft) -> some View {
         let reason = draft.unreachableReason ?? failures[draft.id]
         let isStarting = starting.contains(draft.id)
         return VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            (draft.issue.map { Text(verbatim: "\($0.source.title) \($0.label)") } ?? Text("Bozza"))
-                .font(Typography.mono(size: 10))
-                .foregroundStyle(Palette.textFaint)
+            if let delivery = draft.delivery {
+                Label("consegna", systemImage: "shippingbox")
+                    .labelStyle(.titleAndIcon)
+                    .font(Typography.mono(size: 10))
+                    .foregroundStyle(Palette.textSecondary)
+                    .padding(.horizontal, Spacing.xxSmall)
+                    .overlay { Capsule().strokeBorder(Palette.line) }
+                    .help("Da \(delivery.person) · \(delivery.machine)")
+            } else {
+                (draft.issue.map { Text(verbatim: "\($0.source.title) \($0.label)") } ?? Text("Bozza"))
+                    .font(Typography.mono(size: 10))
+                    .foregroundStyle(Palette.textSecondary)
+            }
             Text(verbatim: draft.title)
                 .font(Typography.body(size: 13, weight: .semibold))
                 .lineLimit(2)
@@ -222,13 +263,26 @@ struct SessionBoard: View {
                 .font(Typography.mono(size: 11))
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
+            // A Consegna resumes a conversation of `claude`: always on Claude.
+            if draft.delivery == nil {
+                Text(verbatim: choice(of: draft).name)
+                    .font(Typography.mono(size: 11))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+            }
             if let reason {
                 Text(verbatim: reason)
                     .font(Typography.body(size: 12))
                     .foregroundStyle(Palette.textSecondary)
                     .lineLimit(3)
             }
-            if isStarting { LoadingLabel("Leggo l'issue…") }
+            if draft.delivery?.needsClaudeUpdate == true {
+                Text("Aggiorna claude prima di avviarla: chi l'ha mandata ne ha una versione più nuova.")
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.attention)
+                    .lineLimit(3)
+            }
+            if isStarting { LoadingLabel(draft.delivery == nil ? "Leggo l'issue…" : "Preparo la Consegna…") }
             Button("Avvia ↩") { start(draft) }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.small)
@@ -250,7 +304,18 @@ struct SessionBoard: View {
         }
         .draggable(draft.id.uuidString)
         .contextMenu {
-            Button("Elimina Bozza", role: .destructive) { store.drafts.remove(draft.id) }
+            if draft.delivery != nil {
+                Button("Scarta Consegna", role: .destructive) { Task { await store.discardDelivered(draft) } }
+            } else {
+                Menu("Motore e modello") {
+                    EngineChoiceItems(choice: choice(of: draft), copilotModels: store.copilotModels,
+                                      askCopilotConsent: EndpointSettings.shared.allowsCopilot
+                                          ? nil : { isAskingCopilotConsent = true }) {
+                        store.drafts.setChoice($0, of: draft.id)
+                    }
+                }
+                Button("Elimina Bozza", role: .destructive) { store.drafts.remove(draft.id) }
+            }
         }
         .accessibilityElement(children: .contain)
     }
@@ -300,8 +365,8 @@ struct SessionBoard: View {
     /// A Sessione with the next step of its column under it.
     private func card(_ session: Session, in column: BoardColumn) -> some View {
         let border = switch session.activity {
-        case .attende where session.phase == .aperta: Palette.attention.opacity(0.45)
-        case .errore where session.phase == .aperta: Palette.danger.opacity(0.45)
+        case .attende where session.isLive: Palette.attention.opacity(0.45)
+        case .errore where session.isLive: Palette.danger.opacity(0.45)
         default: Palette.line
         }
         return VStack(alignment: .leading, spacing: 0) {

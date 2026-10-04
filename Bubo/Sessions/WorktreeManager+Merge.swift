@@ -101,14 +101,11 @@ nonisolated extension WorktreeManager {
         let head = try await git(["rev-parse", "--verify", "HEAD"], in: checkout).trimmingCharacters(in: .newlines)
 
         let folder = workspace.folder
-        let index = try await git(["rev-parse", "--path-format=absolute", "--git-path", "index"], in: folder)
-            .trimmingCharacters(in: .newlines)
-        let copy = FileManager.default.temporaryDirectory.appending(path: "bubo-merge-\(UUID().uuidString).index")
-        defer { try? FileManager.default.removeItem(at: copy) }
-        if FileManager.default.fileExists(atPath: index) { try FileManager.default.copyItem(atPath: index, toPath: copy.path) }
-        try await git(["add", "--all"], in: folder, index: copy)
-        if let accepted { try await discard(blocchiOutside: accepted, of: workspace, in: copy) }
-        let workTree = try await git(["write-tree"], in: folder, index: copy).trimmingCharacters(in: .newlines)
+        let workTree = try await withIndexCopy(of: folder) { copy in
+            try await git(["add", "--all"], in: folder, index: copy)
+            if let accepted { try await discard(blocchiOutside: accepted, of: workspace, in: copy) }
+            return try await git(["write-tree"], in: folder, index: copy).trimmingCharacters(in: .newlines)
+        }
         let tip = try await run(["rev-parse", "--verify", "-q", "HEAD"], in: folder)
         let tipCommit = tip.exitCode == 0 ? tip.standardOutput.trimmingCharacters(in: .newlines) : nil
         let parent = tipCommit.map { ["-p", $0] } ?? []
@@ -161,10 +158,8 @@ nonisolated extension WorktreeManager {
             }
         }
         guard !patch.isEmpty else { return }
-        let file = FileManager.default.temporaryDirectory.appending(path: "bubo-discard-\(UUID().uuidString).patch")
-        defer { try? FileManager.default.removeItem(at: file) }
-        try Data(patch.utf8).write(to: file)
-        try await git(["apply", "--cached", "--reverse", "--recount", file.path], in: folder, index: index)
+        try await git(["apply", "--cached", "--reverse", "--recount", "-"], in: folder, index: index,
+                      input: Data(patch.utf8))
     }
 
     /// The paths of `git status --porcelain -z`, split at NUL: both sides of a rename or a copy.

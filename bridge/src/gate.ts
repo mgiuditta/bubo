@@ -1,4 +1,4 @@
-import type { HookCallback, HookInput, McpServerStatus, SandboxSettings } from "@anthropic-ai/claude-agent-sdk";
+import type { HookCallback, HookInput, McpServerStatus, PreToolUseHookInput, SandboxSettings } from "@anthropic-ai/claude-agent-sdk";
 import { lstatSync, readlinkSync, realpathSync } from "node:fs";
 import { dirname, isAbsolute, join, resolve, sep } from "node:path";
 
@@ -23,6 +23,11 @@ export type Gate = {
   isDangerous: (question: RiskQuestion) => Promise<boolean>;
   /** Se il Server MCP `name` gira sul Mac (stdio). Se non si sa, sì. */
   isLocalServer: (name: string) => Promise<boolean>;
+  /**
+   * Nessuno davanti (un'Esecuzione di un'Automazione): il cancello nega dove chiederebbe, perché nessuno risponde, e
+   * chiede il livello a Bubo in ogni modalità, anche dove una `allow` scritta a mano lascerebbe passare la chiamata.
+   */
+  isUnattended?: boolean;
 };
 
 export type Verdict = { decision: "deny" | "ask"; reason: string };
@@ -106,8 +111,19 @@ function serverName(input: { tool_name: string; mcp_server?: { name: string } })
   return input.mcp_server?.name ?? /^mcp__(.+?)__/.exec(input.tool_name)?.[1];
 }
 
+/** Il motivo di un diniego senza nessuno davanti, dove con qualcuno il cancello avrebbe chiesto. */
+export function unattendedReason(reason: string): string {
+  return `Nessuno può approvare in un'Esecuzione dell'Automazione: azione negata. ${reason}`;
+}
+
 /** Cosa fa il cancello con una chiamata: negarla, chiedere, o `undefined` per lasciarla al flusso normale. */
 export async function verdict(input: HookInput, gate: Gate): Promise<Verdict | undefined> {
+  const found = await attendedVerdict(input, gate);
+  if (!found || !gate.isUnattended || found.decision === "deny") return found;
+  return { decision: "deny", reason: unattendedReason(found.reason) };
+}
+
+async function attendedVerdict(input: HookInput, gate: Gate): Promise<Verdict | undefined> {
   if (input.hook_event_name !== "PreToolUse") return undefined;
   const tool = input.tool_name;
   const toolInput = (typeof input.tool_input === "object" && input.tool_input !== null ? input.tool_input : {}) as Record<string, unknown>;
@@ -130,7 +146,7 @@ export async function verdict(input: HookInput, gate: Gate): Promise<Verdict | u
       return { decision: "ask", reason: "Con la Sandbox accesa, gli strumenti dei Server MCP locali chiedono sempre." };
     }
   }
-  if (sandbox || isAutonomous) {
+  if (sandbox || isAutonomous || gate.isUnattended) {
     const question: RiskQuestion = {
       tool,
       command: typeof toolInput.command === "string" ? toolInput.command : undefined,
@@ -143,8 +159,11 @@ export async function verdict(input: HookInput, gate: Gate): Promise<Verdict | u
   return undefined;
 }
 
-/** Il cancello come hook `PreToolUse`. Un errore nel cancello nega: mai una chiamata che passa perché si è rotto. */
-export function sandboxGate(gate: Gate): HookCallback {
+/**
+ * Il cancello come hook `PreToolUse`. Un errore nel cancello nega: mai una chiamata che passa perché si è rotto.
+ * `denied` sa di ogni chiamata negata, per il resoconto di un'Esecuzione.
+ */
+export function sandboxGate(gate: Gate, denied: (input: PreToolUseHookInput, reason: string) => void = () => {}): HookCallback {
   return async (input) => {
     let found: Verdict | undefined;
     try {
@@ -153,6 +172,7 @@ export function sandboxGate(gate: Gate): HookCallback {
       found = { decision: "deny", reason: `Il cancello di Bubo non ha potuto controllare la chiamata: ${error instanceof Error ? error.message : error}` };
     }
     if (!found) return {};
+    if (found.decision === "deny" && input.hook_event_name === "PreToolUse") denied(input, found.reason);
     return { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: found.decision, permissionDecisionReason: found.reason } };
   };
 }

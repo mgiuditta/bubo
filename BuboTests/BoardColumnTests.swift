@@ -87,7 +87,7 @@ struct BoardColumnTests {
 
         for step in 0..<4 {
             let sessions = replays.map { $0[min(step, $0.count - 1)] }
-            let groups = SessionColumn.groups(of: sessions, at: Self.now)
+            let groups = BoardColumn.columns(of: sessions, at: Self.now)
             for session in sessions {
                 let group = groups.first { $0.sessions.contains { $0.id == session.id } }
                 #expect(group?.column == BoardColumn(session, at: Self.now))
