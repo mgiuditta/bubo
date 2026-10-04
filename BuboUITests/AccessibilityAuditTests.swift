@@ -74,6 +74,13 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     /// Audits everything on screen, ignoring only elements AppKit and SwiftUI own and give no way to fix.
     @MainActor private func audit(_ app: XCUIApplication) throws {
         let windowFrames = app.windows.allElementsBoundByIndex.map(\.frame)
+        // The NSHostingView of each NavigationSplitView column, as the HUD's sidebar: SwiftUI owns it, and a label on
+        // the column's view lands inside it, never on it.
+        let paneFrames = app.splitGroups.allElementsBoundByIndex
+            .flatMap { $0.children(matching: .group).allElementsBoundByIndex.map(\.frame) }
+        // The NSHostingView of a sidebar Section header, as «Oggi»: SwiftUI owns it too, and the heading inside reads it.
+        let sidebarCellFrames = app.outlines.cells.allElementsBoundByIndex
+            .flatMap { $0.children(matching: .group).allElementsBoundByIndex.map(\.frame) }
         // Close, minimize and zoom: XCUITest names them `_XCUI:CloseWindow` and so on.
         let titleBarButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH '_XCUI:'"))
         let titleBarFrames = titleBarButtons.allElementsBoundByIndex.map(\.frame)
@@ -99,8 +106,10 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
                 // The Touch Bar AppKit gives every app, even on Macs without one.
                 return true
             case .group:
-                // The NSHostingView filling a window: SwiftUI gives it no label and no way to set one.
-                return windowFrames.contains(element.frame)
+                // The NSHostingView filling a window, a split view column or a sidebar header: SwiftUI gives it no
+                // label and no way to set one.
+                return windowFrames.contains(element.frame) || paneFrames.contains(element.frame)
+                    || sidebarCellFrames.contains(element.frame)
             default:
                 return false
             }

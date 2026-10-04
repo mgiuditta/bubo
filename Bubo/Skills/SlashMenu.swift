@@ -18,7 +18,7 @@ struct SlashMenu: View {
                 .buttonStyle(.plain)
                 // The prompt keeps the keyboard: ↑↓, Tab and Invio choose from there.
                 .focusable(false)
-                .accessibilityLabel(skill.summary.isEmpty ? "/\(skill.name)" : "/\(skill.name), \(skill.summary)")
+                .accessibilityLabel(Text(verbatim: skill.summary.isEmpty ? "/\(skill.name)" : "/\(skill.name), \(skill.summary)"))
                 .accessibilityAddTraits(skill.id == selection ? .isSelected : [])
             }
         }
