@@ -317,6 +317,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud.showCosts = { [weak self] in self?.costs.show() }
         hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
         panel.importMeetings = hud.importMeetings
+        panel.importVideo = { [meetings] link, fallback in
+            meetings.imports.start(importingVideoAt: link, onNoVideo: fallback)
+        }
     }
 
     /// Loads the paired iPhones, then publishes the Sessioni and the Richieste to them and follows the presence at the

@@ -32,7 +32,7 @@ final class OrbPanelView: MTKView {
     /// Called when the pointer moves over the Panel or leaves it, to update the click circle.
     var onPointerMove: () -> Void = {}
     /// Called when a drag enters the Orb, before anything is dropped.
-    var onDropEnter: () -> Void = {}
+    var onDropEnter: (NSPasteboard) -> Void = { _ in }
     /// Called when a drag leaves the Orb without dropping.
     var onDropExit: () -> Void = {}
     /// Called with what is dropped on the Orb; returns whether it became Allegati.
@@ -111,7 +111,7 @@ final class OrbPanelView: MTKView {
 
     // A drop never activates Bubo: the Panel is non-activating, and the app the drag comes from stays in front.
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        onDropEnter()
+        onDropEnter(sender.draggingPasteboard)
         return .copy
     }
 

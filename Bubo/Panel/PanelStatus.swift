@@ -12,6 +12,8 @@ nonisolated enum PanelStatus: Equatable, Sendable {
     case answerReady
     /// The Domanda failed while the bubble was closed.
     case questionFailed
+    /// Media files or a web link are dragged over the Orb: a drop transcribes them into the Secondo cervello.
+    case dropHint
 
     /// Returns what the pill says for `sessions` and the Domanda, or `nil` when there is nothing to say.
     ///
@@ -36,6 +38,7 @@ nonisolated enum PanelStatus: Equatable, Sendable {
         case .failing(let count, _): String(localized: "\(count) in Errore")
         case .answerReady: String(localized: "Risposta pronta")
         case .questionFailed: String(localized: "Domanda non riuscita")
+        case .dropHint: String(localized: "Rilascia: trascrivo e salvo nel cervello")
         }
     }
 
@@ -44,7 +47,7 @@ nonisolated enum PanelStatus: Equatable, Sendable {
         switch self {
         case .waiting(let count, _): Self.waitingDescription(count: count)
         case .failing(let count, _): Self.failingDescription(count: count)
-        case .answerReady, .questionFailed: text
+        case .answerReady, .questionFailed, .dropHint: text
         }
     }
 
@@ -53,6 +56,7 @@ nonisolated enum PanelStatus: Equatable, Sendable {
         switch self {
         case .waiting, .failing: String(localized: "Apre la Sessione nell'HUD")
         case .answerReady, .questionFailed: String(localized: "Riapre la Domanda nel Panel")
+        case .dropHint: String(localized: "Bubo trascrive l'audio e salva la Riunione nel Secondo cervello")
         }
     }
 
