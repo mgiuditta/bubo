@@ -1105,6 +1105,35 @@ final class SessionStore {
         return nil
     }
 
+    /// Whether `prompt` may call a skill with `/name`: at its start, or at the start of the request after the turns of a
+    /// Domanda; only then is the catalog read.
+    nonisolated static func mayCallSkill(_ prompt: String) -> Bool {
+        prompt.hasPrefix("/") || prompt.contains(QuestionTurn.asking("/"))
+    }
+
+    /// `prompt` with the skill it calls by `/name` written into it, and that skill; `prompt` whole and `nil` when it
+    /// calls none of `skills`, or when Claude runs the skill on its own: `/name` at the start of a Claude turn.
+    ///
+    /// The `/name` may also start the request after the quoted turns of a Domanda (``SessionDraft/firstPrompt(_:)``):
+    /// then the instructions go before the turns, and the request loses its `/name`.
+    ///
+    /// - Parameter forClaude: Whether Claude answers, and may read the skill's folder.
+    nonisolated static func expandingSkill(in prompt: String, among skills: [Skill],
+                                           forClaude: Bool) -> (prompt: String, skill: Skill?) {
+        if forClaude, prompt.hasPrefix("/") { return (prompt, nil) }
+        if let invocation = SkillInvocation(parsing: prompt, among: skills) {
+            return (invocation.expanded(showingFolder: forClaude), invocation.skill)
+        }
+        guard let asking = prompt.range(of: QuestionTurn.asking(""), options: .backwards),
+              let invocation = SkillInvocation(parsing: String(prompt[asking.upperBound...]), among: skills)
+        else { return (prompt, nil) }
+        // The `/name` and the spaces after it leave the request.
+        let call = prompt[asking.upperBound...].dropFirst(invocation.skill.name.count + 1)
+        let rest = prompt[..<asking.upperBound] + call.drop { $0 == " " }
+        let expanded = SkillInvocation(skill: invocation.skill, request: String(rest))
+        return (expanded.expanded(showingFolder: forClaude), invocation.skill)
+    }
+
     /// Prepares the Sessione's copy on `branch` if it has none yet, then asks `claude` `prompt` there.
     ///
     /// Each turn is a new Conversazione that resumes ``Session/continuedConversation`` as a fork, and takes its place
@@ -1121,7 +1150,15 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         // The Allegati dropped on the Sessione go with this turn, and only with it.
         let attachments = session.attachments
-        let prompt = QuestionModel.prompt(prompt, attachments: attachments)
+        let isCopilot = session.engine == .copilot && unattended == nil
+        // A `/name` Claude runs on its own stays as it is; otherwise Bubo writes the skill into the prompt (#689).
+        var skill: Skill?
+        var asked = prompt
+        if Self.mayCallSkill(prompt) {
+            (asked, skill) = Self.expandingSkill(in: prompt, among: await SkillCatalog.skills(in: session.project),
+                                                 forClaude: !isCopilot)
+        }
+        let prompt = QuestionModel.prompt(asked, attachments: attachments)
         // Kept from the start, also before the copy is ready: Riprendi asks this turn again if Bubo quits.
         update(id) { session in
             session.turnPrompt = prompt
@@ -1131,7 +1168,6 @@ final class SessionStore {
         let environment = session.portEnvironment
         // A Copilot turn never calls `claude`, nor has its Sandbox and plugins (ADR 0012); it is always Spesa, in
         // Copilot's Budget (#542).
-        let isCopilot = session.engine == .copilot && unattended == nil
         let provider = isCopilot ? Budgets.copilot : Budgets.claude
         var conversation: String?
         var hasAnswered = false
@@ -1248,7 +1284,7 @@ final class SessionStore {
                           isSandboxed: isSandboxed, sandboxAllowances: sandbox.allowances(in: session.project),
                           permissionMode: permissionMode, id: answerID,
                           offersPreview: hasServer, remembers: unattended == nil, unattended: unattended,
-                          readableDirectories: QuestionModel.readableDirectories(for: attachments),
+                          readableDirectories: QuestionModel.readableDirectories(for: attachments, skill: skill),
                           maxBudget: maxBudget, progress: onProgress, permissions: onPermission) { [weak self, ledger] usage in
                 ledger.record(usage, turn: kept, session: id, project: session.project)
                 if usage.isComplete { self?.estimates[kept] = nil }

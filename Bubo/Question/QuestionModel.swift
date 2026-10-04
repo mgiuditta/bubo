@@ -23,6 +23,9 @@ final class QuestionModel {
     private(set) var turns: [QuestionTurn] = []
     /// The last prompt asked, the one ``answer`` answers; empty before the first and in a new Domanda.
     private(set) var lastPrompt = ""
+    /// The skill the Domanda called with `/name`, whose instructions go before each of its turns until a new Domanda
+    /// (#689); `nil` when it called none.
+    private(set) var activeSkill: Skill?
     /// Whether an answer is on its way.
     private(set) var isAnswering = false
     /// Why the last Domanda got no answer, if it failed.
@@ -88,6 +91,7 @@ final class QuestionModel {
     ///   - copilot: Finds the user's `copilot` when its plan is a paid one, and `nil` otherwise (ADR 0011); called only
     ///     when the user opens "Rifai con…" or sends a Domanda to Copilot, never on its own.
     ///   - now: The clock that tells when the Domanda has been still too long; tests pass one they move.
+    ///   - skills: The skills a prompt in a folder can call with `/name`; ``SkillCatalog`` when `nil`.
     init(cli: ClaudeCLI = ClaudeCLI(), index: SearchIndex? = nil, secondBrain: SecondBrain? = nil,
          orb: OrbControls = .shared, intake: IntakePipeline? = nil,
          bridgeExecutable: URL = Bundle.main.bundleURL.appending(path: "Contents/Helpers/bubo-agent"),
@@ -101,7 +105,9 @@ final class QuestionModel {
          speaker: (any VoiceSpeaker)? = nil,
          onDevice: OnDeviceModel = OnDeviceModel(), onDeviceAnswerer: (any OnDeviceAnswering)? = nil,
          ledger: CostLedger? = nil, prices: PriceTable = .shared, budgets: BudgetSettings = .shared,
-         copilot: (() async -> URL?)? = nil, now: @escaping () -> Date = { .now }) {
+         copilot: (() async -> URL?)? = nil, now: @escaping () -> Date = { .now },
+         skills: (@Sendable (URL?) async -> [Skill])? = nil) {
+        self.skills = skills ?? { await SkillCatalog.skills(in: $0) }
         quota = Quota.saved(in: defaults)
         self.now = now
         self.defaults = defaults
@@ -179,6 +185,7 @@ final class QuestionModel {
     /// The reading of `copilotModels` under way, or done: one at a time.
     @ObservationIgnored private var readingCopilotModels: Task<Void, Never>?
     @ObservationIgnored private let now: () -> Date
+    @ObservationIgnored private let skills: @Sendable (URL?) async -> [Skill]
     /// When the Domanda was last asked or answered; `nil` in a new Domanda.
     @ObservationIgnored private var lastActivity: Date?
     /// How long a Domanda stays still before the next prompt starts a new one.
@@ -257,6 +264,7 @@ final class QuestionModel {
         forecasting = Task {
             try? await Task.sleep(for: Self.forecastDelay)
             guard !Task.isCancelled else { return }
+            let text = await invocation(in: text)?.request ?? text
             let route = await intake.forecastRoute(for: Richiesta(text: text, attachments: attachments),
                                                    catalog: catalog, preferences: await routerPreferences())
             guard !Task.isCancelled else { return }
@@ -612,6 +620,7 @@ final class QuestionModel {
         stop()
         turns = []
         lastPrompt = ""
+        activeSkill = nil
         answer = ""
         failure = nil
         routedAnswer = nil
@@ -801,6 +810,8 @@ final class QuestionModel {
         let attachments = lastAttachments
         let turns = turns
         answering = Task {
+            let text = await request(in: text)
+            guard !Task.isCancelled else { return }
             if let endpoint {
                 await stream(text, after: turns, attachments: attachments, from: endpoint, ignoringBudget: ignoringBudget)
             } else {
@@ -834,7 +845,8 @@ final class QuestionModel {
         guard !Task.isCancelled else { return }
         // The turns answered on the Mac stay there when the endpoint is in a cloud.
         let readable = endpoint.isOnMac ? turns : QuestionTurn.leavingTheMac(turns)
-        await answer(AttachmentPolicy.prompt(QuestionTurn.transcript(readable, then: text), attachments: attachments),
+        await answer(AttachmentPolicy.prompt(withSkill(QuestionTurn.transcript(readable, then: text)),
+                                             attachments: attachments),
                      about: text, from: endpoint, route: .retriedElsewhere,
                      submission: submission, speaksAnswer: false)
     }
@@ -920,8 +932,10 @@ final class QuestionModel {
         // Anthropic's Tinta while the router decides; a Domanda it keeps on the Mac takes the neutral one.
         // The router classifies the prompt alone; the model reads it after the earlier turns, but a model outside
         // the Mac only after those that did not stay on it.
-        func text(onMac: Bool) -> String {
-            QuestionTurn.transcript(onMac ? turns : QuestionTurn.leavingTheMac(turns), then: richiesta.text)
+        // The skill of the Domanda goes before each turn, its folder only to Claude, which can read it (#689).
+        func text(onMac: Bool, forClaude: Bool = false) -> String {
+            withSkill(QuestionTurn.transcript(onMac ? turns : QuestionTurn.leavingTheMac(turns), then: richiesta.text),
+                      showingFolder: forClaude)
         }
         // The user's choice for this turn goes before any preference.
         let submission = await intake.submit(richiesta, to: .anthropic, catalog: catalog,
@@ -950,8 +964,9 @@ final class QuestionModel {
             return
         }
         // Asked by voice, the model writes the Sintesi parlata first, so that the voice starts with the answer.
-        func asked(onMac: Bool) -> String {
-            speaksAnswer ? text(onMac: onMac) + SpokenSummary.instruction : text(onMac: onMac)
+        func asked(onMac: Bool, forClaude: Bool = false) -> String {
+            let text = text(onMac: onMac, forClaude: forClaude)
+            return speaksAnswer ? text + SpokenSummary.instruction : text
         }
         if route.destination == .onDevice {
             guard !Task.isCancelled else { return }
@@ -1027,11 +1042,12 @@ final class QuestionModel {
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
             // Claude is in a cloud, also when it answers for Apple FM.
-            let prompt = Self.prompt(asked(onMac: false), attachments: richiesta.attachments)
+            let prompt = Self.prompt(asked(onMac: false, forClaude: true), attachments: richiesta.attachments)
             let workplace = try Self.workplace(in: secondBrain?.location)
             let stream = bridge.ask(prompt, in: workplace.directory, model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
-                                    readableDirectories: Self.readableDirectories(for: richiesta.attachments),
+                                    readableDirectories: Self.readableDirectories(for: richiesta.attachments,
+                                                                                  skill: activeSkill),
                                     maxBudget: maxBudget, readOnly: workplace.readOnly,
                                     progress: { [orb, weak self] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
@@ -1187,14 +1203,15 @@ final class QuestionModel {
         return ([question] + inline + onDisk).joined(separator: "\n\n")
     }
 
-    /// The folders `claude` may read besides its own for `attachments`: each folder, and the folder of each file.
-    static func readableDirectories(for attachments: [Allegato]) -> [URL] {
+    /// The folders `claude` may read besides its own for `attachments`: each folder, and the folder of each file; then
+    /// the folder of `skill`, with the files its instructions cite.
+    static func readableDirectories(for attachments: [Allegato], skill: Skill? = nil) -> [URL] {
         let directories = attachments.compactMap { allegato in
             allegato.path.map { path in
                 let directory = allegato.kind == .folder ? path : path.deletingLastPathComponent()
                 return URL(filePath: directory.path(percentEncoded: false), directoryHint: .isDirectory)
             }
-        }
+        } + [skill?.directory].compactMap(\.self)
         return directories.reduce(into: []) { unique, directory in
             if !unique.contains(directory) { unique.append(directory) }
         }
@@ -1298,6 +1315,30 @@ final class QuestionModel {
         guard let savedChange, !savedChange.isUndone else { return }
         try secondBrain?.undo(savedChange)
         self.savedChange?.isUndone = true
+    }
+
+    /// The skill `text` calls with `/name` at its start, among those of the Domanda's folder: the Secondo cervello when
+    /// it can be reached; `nil` when it calls none, without reading the catalog unless `text` starts with `/`.
+    private func invocation(in text: String) async -> SkillInvocation? {
+        guard text.hasPrefix("/") else { return nil }
+        let folder = secondBrain?.location.flatMap { $0.isReachable ? $0.url : nil }
+        return SkillInvocation(parsing: text, among: await skills(folder))
+    }
+
+    /// `text` without the `/name` it starts with, which makes that skill the Domanda's ``activeSkill``; `text` whole
+    /// when it calls no known skill, and the skill of an earlier turn stays.
+    private func request(in text: String) async -> String {
+        guard let invocation = await invocation(in: text), !Task.isCancelled else { return text }
+        activeSkill = invocation.skill
+        return invocation.request.isEmpty ? text : invocation.request
+    }
+
+    /// `text` after the instructions of the Domanda's ``activeSkill``, if any.
+    ///
+    /// - Parameter showingFolder: Whether to say where the skill's folder is, for Claude, which can read it.
+    private func withSkill(_ text: String, showingFolder: Bool = false) -> String {
+        guard let activeSkill else { return text }
+        return SkillInvocation(skill: activeSkill, request: text).expanded(showingFolder: showingFolder)
     }
 
     /// Where a Claude Domanda runs, and what it reads: the Secondo cervello at `location` when it can be reached,
