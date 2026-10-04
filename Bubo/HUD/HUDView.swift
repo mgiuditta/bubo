@@ -202,14 +202,22 @@ struct HUDView: View {
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {
+                // The empty home invites to ask the Secondo cervello (ADR 0013).
+                if questions.turns.isEmpty && questions.answer.isEmpty {
+                    HomeHeader(questions: questions)
+                        .padding(.bottom, Spacing.m)
+                }
                 // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
                 // the first token, or until `claude` is ready.
                 if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
                     FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
                         .padding(.bottom, Spacing.small)
                 }
-                QuestionView(model: questions)
-                    .frame(maxWidth: 560)
+                HStack(alignment: .top, spacing: Spacing.s) {
+                    RecipientChip(recipient: .brain)
+                    QuestionView(model: questions)
+                }
+                    .frame(maxWidth: 640)
                     // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
                     .padding(.top, Spacing.medium)
             }
