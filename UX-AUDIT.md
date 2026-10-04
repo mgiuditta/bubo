@@ -4,7 +4,7 @@ Data: 2026-10-04. Obiettivo: semplificare l'esperienza (meno passaggi, meno scel
 
 Metodo: euristiche di Nielsen (severità 1-4) e principi di Krug, skill `ux-heuristics`; carico cognitivo (memoria di lavoro, legge di Hick, golfi di esecuzione e di valutazione), skill `cognitive-foundations`. Ogni file:riga è stato verificato sul codice di `main` (commit `793d932`). I termini del glossario (`CONTEXT.md`) non sono segnalati come gergo. Le righe si riferiscono al codice prima delle correzioni.
 
-Colonna **Stato**: ✅ corretto in questo giro, ⏳ aperto, — non applicato (motivo nella riga).
+Colonna **Stato**: ✅ corretto in questo giro, ⏳ aperto.
 
 ## Punteggi (Quick Diagnostic, su 10)
 
@@ -82,7 +82,7 @@ Fogli: `HUD/NewSessionSheet.swift`, `Review/ReviewSheet.swift`, `HUD/PullRequest
 | A16 | Secondo cervello | 3 | 5 Prevenzione, 3 Controllo | `Bubo/Settings/SecondBrainSettingsSection.swift:35` | «Non usare più» agisce senza conferma e fa dimenticare cartelle escluse e prioritarie | Conferma con messaggio su cosa si perde | ✅ |
 | A17 | Riunioni | 3 | 3 Controllo, 9 Errori | `Bubo/Meetings/MeetingFailure.swift:42`, `Bubo/Settings/SecondBrainSettingsSection.swift:64-67` | L'errore dice di cambiare la lingua delle Riunioni, ma dopo il primo uso la lingua non si trova più | Picker «Lingua delle Riunioni» nelle Impostazioni; errore che dice dove | ✅ |
 | A18 | Riunioni | 3 | 5 Prevenzione | `Bubo/Meetings/MeetingView.swift:112` | Senza cartella «Registra» è attivo e fallisce solo dopo | Disattivarlo senza cartella | ✅ |
-| A19 | Neuroni | 3 | 8 Minimalismo, 4 Coerenza | `Bubo/Window/MainSidebar.swift:18`, `Bubo/MenuBar/MenuBarContent.swift:61`, `Bubo/App/BuboApp.swift:92` | In Release la voce di primo livello «Neuroni» apre solo un alert «arriverà presto» | Non applicata: il cancello «Arriverà presto» per le aree 1.1 è una decisione di prodotto (PRD #514, #515, #516) | — |
+| A19 | Neuroni | 3 | 8 Minimalismo, 4 Coerenza | `Bubo/Window/MainSidebar.swift:18`, `Bubo/MenuBar/MenuBarContent.swift:61`, `Bubo/App/BuboApp.swift:92` | In Release la voce di primo livello «Neuroni» apre solo un alert «arriverà presto» | Mostrare la voce solo se l'area è rilasciata | ✅ |
 | A20 | Account | 3 | 1 Visibilità, modello mentale | `Bubo/Settings/AccountSettingsView.swift:121` | Il footer della API key non dice quando viene usata (solo a Quota finita, su conferma) | «Facoltativa. Quando finisce la Quota dell'abbonamento, Bubo ti chiede se continuare con la chiave, a consumo.» | ✅ |
 | A21 | Account | 3 | 9 Recupero | `Bubo/Settings/AccountSettingsView.swift:73-77` | CLI mancante: solo un comando da copiare a mano, mentre il primo avvio ha un pulsante | «Installa nel Terminale» | ✅ |
 | A22 | Modelli | 3 | 6 Riconoscimento | `Bubo/Settings/EndpointSection.swift:18` | Campo «Modello» vuoto senza esempio: va scritto a memoria, e senza modello l'endpoint non conta | Segnaposto «id del modello, come lo scrive il fornitore» | ✅ |
@@ -224,6 +224,7 @@ Un commit per flusso, in ordine:
 | `8dadf65` | Plugin e Server MCP | A31, M52, M53 |
 | `b04c2aa` | Revisione del diff | A23 |
 | `80ef7fe` | Comandi rapidi | A14, B27 |
+| `902198c` | Neuroni | A19 |
 
 Stima dopo le correzioni: finestra principale da 4 a 7, primo avvio e Impostazioni da 6 a 8, Secondo cervello da 6 a 8, Panel e Bolla da 7 a 8. Per arrivare a 10 restano le voci ⏳ ad alto impatto: A24 (azioni della Sessione fuori dal clic destro) e A25 («Riprendi» per le conversazioni CLI), poi M7 (tab «Secondo cervello»), M31 (Domande nella Palette) e M37 (pillola di stato col Panel normale).
 
