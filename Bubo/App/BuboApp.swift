@@ -148,6 +148,8 @@ struct BuboApp: App {
                 // (design system, ADR 0004).
                 .preferredColorScheme(.dark)
         }
+        // Resizable down to the content's minimum, so the long tabs can get more room.
+        .windowResizability(.contentMinSize)
 
         MenuBarExtra {
             MenuBarContent(sessions: appDelegate.sessions, questions: appDelegate.questions, meetings: appDelegate.meetings,

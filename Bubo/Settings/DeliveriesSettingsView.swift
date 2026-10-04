@@ -3,6 +3,7 @@ import SwiftUI
 /// Impostazioni › Consegne: this Mac's Biglietto to share, and the Biglietti received with their code (spec 24).
 struct DeliveriesSettingsView: View {
     @Environment(DeliveriesController.self) private var deliveries
+    @FocusState private var isNameFocused: Bool
 
     var body: some View {
         @Bindable var deliveries = deliveries
@@ -10,6 +11,7 @@ struct DeliveriesSettingsView: View {
             Section("Il mio Biglietto") {
                 LabeledContent("Macchina", value: deliveries.machine)
                 TextField("Nome", text: $deliveries.person)
+                    .focused($isNameFocused)
                 Text("Chiave nel Secure Enclave di questo Mac, non si esporta. Manda il Biglietto a chi deve consegnarti Sessioni, poi confrontate il codice a voce.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
@@ -34,7 +36,11 @@ struct DeliveriesSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .task { await deliveries.load() }
+        .task {
+            // AppKit gives the window's first text field the keyboard as it opens, its text all selected.
+            isNameFocused = false
+            await deliveries.load()
+        }
     }
 }
 

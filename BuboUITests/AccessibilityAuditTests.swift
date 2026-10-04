@@ -26,7 +26,7 @@ nonisolated final class AccessibilityAuditTests: XCTestCase {
     }
 
     @MainActor func testUpdatesSettingsHaveNoAccessibilityIssues() throws {
-        // The tab is preselected: at 480 pt Aggiornamenti sits in the toolbar's overflow menu.
+        // The tab is preselected, without clicking through the toolbar.
         let app = launchBubo(showingPanel: false, settingsTab: "updates")
         defer { app.terminate() }
         XCTAssertTrue(app.windows[Self.hudWindow].waitForExistence(timeout: 10), "L'HUD non è comparso.")

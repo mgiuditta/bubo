@@ -82,7 +82,7 @@ nonisolated final class ScreenshotTourTests: XCTestCase {
             let window = settings(app)
             let name = String(format: "05-impostazioni-%02d-%@", index + 1, tab)
             snap(name, window, after: 2)
-            // The long tabs go on below the 450 pt of the window.
+            // The long tabs may go on below the window.
             if Self.longSettingsTabs.contains(tab) {
                 window.scroll(byDeltaX: 0, deltaY: -2000)
                 snap("\(name)-fondo", window, after: 1)

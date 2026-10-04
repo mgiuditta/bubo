@@ -46,6 +46,16 @@ struct DeliveriesControllerTests {
         #expect(ticket.publicKey.x963Representation == controller.ownKey?.x963Representation)
     }
 
+    @Test func unchangedPersonIsNotSaved() {
+        let controller = makeController()
+        // As the text field writes back the name it shows.
+        let shown = controller.person
+        controller.person = shown
+        #expect(defaults.string(forKey: DeliveriesController.personKey) == nil)
+        controller.person = "Matteo"
+        #expect(defaults.string(forKey: DeliveriesController.personKey) == "Matteo")
+    }
+
     @Test func openedTicketWaitsForTheCode() async throws {
         defer { try? FileManager.default.removeItem(at: folder) }
         let controller = makeController()

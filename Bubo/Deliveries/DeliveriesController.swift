@@ -69,6 +69,8 @@ final class DeliveriesController {
     /// The person on this Mac's Biglietto: the macOS account's name unless changed.
     var person: String {
         didSet {
+            // Only a real change is kept: a text field writing back the same name leaves the default computed.
+            guard person != oldValue else { return }
             defaults.set(person, forKey: Self.personKey)
             writeOwnTicket()
         }
