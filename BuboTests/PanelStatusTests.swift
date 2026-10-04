@@ -118,7 +118,7 @@ struct PanelStatusTests {
     }
 
     @Test func theDropHintSaysWhatADropDoes() {
-        #expect(PanelStatus.dropHint.text == String(localized: "Rilascia: trascrivo e salvo nel cervello"))
+        #expect(PanelStatus.dropHint.text == String(localized: "Rilascia per farne una Riunione"))
         #expect(!PanelStatus.dropHint.showsLume)
     }
 }
