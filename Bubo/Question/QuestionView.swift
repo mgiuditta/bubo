@@ -83,6 +83,11 @@ struct QuestionView: View {
                                      dismiss: model.dismissLocalModelOffer)
             }
 
+            if model.copilotNotesQuestion != nil {
+                CopilotNotesQuestion(allow: { model.answerCopilotNotesQuestion(allowing: true) },
+                                     decline: { model.answerCopilotNotesQuestion(allowing: false) })
+            }
+
             if model.invitesBetterVoice {
                 BetterVoiceInvitation(dismiss: model.dismissBetterVoice)
             }

@@ -71,6 +71,10 @@ struct PanelBubbleView: View {
                     if !model.lastPrompt.isEmpty {
                         turnPrompt(model.lastPrompt)
                     }
+                    if model.copilotNotesQuestion != nil {
+                        CopilotNotesQuestion(allow: { model.answerCopilotNotesQuestion(allowing: true) },
+                                             decline: { model.answerCopilotNotesQuestion(allowing: false) })
+                    }
                     if let notice = bubble.notice {
                         ErrorNotice("Sessione non creata", remedy: "\(notice)", actionTitle: "Chiudi", action: bubble.close)
                             .transition(.opacity)

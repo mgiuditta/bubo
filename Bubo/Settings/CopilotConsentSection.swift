@@ -12,6 +12,16 @@ struct CopilotConsentSection: View {
                 LabeledContent("Copilot può ricevere Domande e file dei Progetti") {
                     Button("Revoca", action: settings.revokeCopilotConsent)
                 }
+                // Asked once in a Domanda, the first time the notes would go (#678).
+                if settings.allowsCopilotNotes {
+                    LabeledContent("Copilot può usare le note del Secondo cervello") {
+                        Button("Revoca", action: settings.revokeCopilotNotesConsent)
+                    }
+                } else if settings.hasAskedCopilotNotesConsent {
+                    LabeledContent("Copilot non riceve le note del Secondo cervello") {
+                        Button("Consenti") { settings.answerCopilotNotesConsent(allowing: true) }
+                    }
+                }
             } else {
                 Text("Senza il tuo consenso Bubo non manda niente a Copilot: né Domande né file dei Progetti.")
                     .font(.callout)

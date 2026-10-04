@@ -24,4 +24,30 @@ extension EndpointSettings {
     func revokeCopilotConsent() {
         revokeConsent(ofProvider: Self.copilotConsentID)
     }
+
+    /// The id among ``consents`` of the consent for the notes of the Secondo cervello to Copilot (#678); no endpoint
+    /// has it.
+    nonisolated static let copilotNotesConsentID = "github-copilot-notes"
+
+    /// Whether the user allowed Copilot to receive the Profilo, the Regole and the notes `cerca` finds, and to write
+    /// with `ricorda`, in a Domanda.
+    var allowsCopilotNotes: Bool { consents.contains(Self.copilotNotesConsentID) }
+
+    /// Whether a Domanda for Copilot must first ask the consent for the notes: there is a Secondo cervello, Copilot
+    /// may receive Domande, and the user was never asked.
+    func needsCopilotNotesConsent(hasSecondBrain: Bool) -> Bool {
+        hasSecondBrain && allowsCopilot && !allowsCopilotNotes && !hasAskedCopilotNotesConsent
+    }
+
+    /// Answers the question asked once: allowed, the notes go to Copilot from now on; otherwise they never do, and
+    /// Bubo does not ask again. Either way it can be changed in Impostazioni › Modelli.
+    func answerCopilotNotesConsent(allowing isAllowed: Bool) {
+        markCopilotNotesConsentAsked()
+        if isAllowed { grantConsent(toProvider: Self.copilotNotesConsentID) }
+    }
+
+    /// Takes back the consent for the notes: the Domande for Copilot go as before, without them.
+    func revokeCopilotNotesConsent() {
+        revokeConsent(ofProvider: Self.copilotNotesConsentID)
+    }
 }

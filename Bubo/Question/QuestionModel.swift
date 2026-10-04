@@ -48,6 +48,9 @@ final class QuestionModel {
     private(set) var localModelOffer: LocalModelDetector.Offer?
     /// The endpoints the user left out of "Rifai con…" for this Domanda, by not giving their consent.
     private(set) var declinedEndpoints: Set<String> = []
+    /// The Copilot route of the Domanda held while Bubo asks, once, whether the notes of the Secondo cervello may go to
+    /// Copilot (#678); `nil` when there is nothing to ask.
+    private(set) var copilotNotesQuestion: Route?
     /// The road every Domanda takes to `claude`, moving the Orb on the way.
     let intake: IntakePipeline
     /// The OpenAI-compatible endpoints "Rifai con…" offers, and the clouds allowed to receive Domande.
@@ -504,6 +507,13 @@ final class QuestionModel {
         start(lastPrompt, route: .retried(Scala.Step(family: .sonnet, effort: .medium)))
     }
 
+    /// Answers the question on the notes for Copilot, once and for all, and sends the Domanda held for it: with the
+    /// notes when `isAllowed`, otherwise as before, without them.
+    func answerCopilotNotesQuestion(allowing isAllowed: Bool) {
+        guard let route = copilotNotesQuestion else { return }
+        endpoints.answerCopilotNotesConsent(allowing: isAllowed)
+        start(lastPrompt, route: route)
+    }
     /// Remembers that the user did not allow `endpoint`: it leaves "Rifai con…" until the next Domanda.
     func decline(_ endpoint: OpenAICompatibleEndpoint) {
         declinedEndpoints.insert(endpoint.id)
@@ -781,6 +791,7 @@ final class QuestionModel {
         failure = nil
         resumesAt = nil
         savedChange = nil
+        copilotNotesQuestion = nil
         routedAnswer = nil
         isAnswering = true
         lastActivity = now()
@@ -1078,6 +1089,11 @@ final class QuestionModel {
             return
         }
         guard !Task.isCancelled else { return }
+        // The first time the notes would go to Copilot, nothing is sent before the user's answer.
+        if endpoints.needsCopilotNotesConsent(hasSecondBrain: secondBrain?.location != nil) {
+            copilotNotesQuestion = route
+            return
+        }
         routedAnswer = RoutedAnswer(route: route, provider: model.provider)
         let started = ContinuousClock.now
         var waitingForFirstToken = true
@@ -1088,6 +1104,10 @@ final class QuestionModel {
         do {
             let stream = try await readyBridge().askCopilotQuestion(
                 asked, copilot: copilot, consents: endpoints.consents, model: model.id, effort: route.effort,
+                sharesNotes: endpoints.allowsCopilotNotes,
+                progress: { [weak self] progress in
+                    if case let .memory(.saved(change)) = progress { self?.savedChange = change }
+                },
                 usage: { [weak self] usage in
                     guard let self else { return }
                     // The Spesa estimated on GitHub's list prices, the same in the line and in the ledger.

@@ -282,7 +282,7 @@ final class AgentBridge {
 
     /// Asks the user's `copilot` to answer the Domanda `prompt`, streaming the answer as it arrives (ADR 0011).
     ///
-    /// The session has no tools, and runs in an empty folder of Bubo: no Progetto's instructions reach it. `copilot`
+    /// The session has no tools of `copilot`, and runs in an empty folder of Bubo: no Progetto's instructions reach it. `copilot`
     /// answers with the user's own login: the bridge removes the tokens that would override it. Cancelling the
     /// iteration stops the answer. Without the user's consent for Copilot nothing is sent, and the answer fails with
     /// `CopilotFailure.consentMissing`.
@@ -292,10 +292,14 @@ final class AgentBridge {
     ///   - consents: The clouds the user allowed, from ``EndpointSettings/consents``.
     ///   - model: A Copilot model id, from ``copilotModels(of:)``; `nil` for the user's own choice in `copilot`.
     ///   - effort: The reasoning effort; `nil` for the model's default.
+    ///   - sharesNotes: Whether `copilot` gets the Profilo and the Regole of the Secondo cervello and Bubo's `cerca`
+    ///     and `ricorda`, its only tools (#678); only with the user's consent for the notes. Each write reaches
+    ///     `progress` as a line Salvato. Without a Secondo cervello, nothing changes.
     ///   - usage: Receives the tokens of the answer, once, before it ends; without a figure (Spesa, #542).
     ///   - answeredBy: Learns the model that answered and its effort, once, just before the answer ends.
     func askCopilotQuestion(_ prompt: String, copilot: URL, consents: Set<String>, model: String? = nil,
-                            effort: Effort? = nil,
+                            effort: Effort? = nil, sharesNotes: Bool = false,
+                            progress: @escaping (AgentProgress) -> Void = { _ in },
                             usage: @escaping (TurnUsage) -> Void = { _ in },
                             answeredBy: @escaping (AnsweringModel) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
@@ -315,8 +319,10 @@ final class AgentBridge {
             answers[id] = continuation
             usageHandlers[id] = usage
             answeringHandlers[id] = answeredBy
+            progressHandlers[id] = progress
+            let secondBrain = sharesNotes && consents.contains(EndpointSettings.copilotNotesConsentID) ? basics() : nil
             let command = BridgeCommand.askCopilotQuestion(id: id, prompt: prompt, directory: directory, copilot: copilot,
-                                                           model: model, effort: effort)
+                                                           model: model, effort: effort, secondBrain: secondBrain)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

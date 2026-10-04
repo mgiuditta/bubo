@@ -3,12 +3,13 @@ import { mkdtempSync, realpathSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { copilotEnvironment } from "./copilot";
-import { CopilotQuestions, questionSession, refused, type CopilotQuestionEvent } from "./copilot-question";
+import { CopilotQuestions, questionSession, refused, type AskBubo, type CopilotQuestionEvent } from "./copilot-question";
+import type { BuboToolCall } from "./tools";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
 const fake = join(import.meta.dir, "fakeCopilotQuestion.mjs");
 
-function harness(environment: Record<string, string> = copilotEnvironment(process.env)) {
+function harness(environment: Record<string, string> = copilotEnvironment(process.env), askBubo?: AskBubo) {
   const events: CopilotQuestionEvent[] = [];
   const waiting: Array<{ match: (event: CopilotQuestionEvent) => boolean; resolve: () => void }> = [];
   const questions = new CopilotQuestions((event) => {
@@ -17,7 +18,7 @@ function harness(environment: Record<string, string> = copilotEnvironment(proces
       if (wait.match(event)) wait.resolve();
       else waiting.push(wait);
     }
-  }, environment);
+  }, environment, askBubo);
   const next = (match: (event: CopilotQuestionEvent) => boolean) => new Promise<void>((resolve) => {
     if (events.some(match)) resolve();
     else waiting.push({ match, resolve });
@@ -45,7 +46,7 @@ test("la risposta arriva in streaming, con i token, chi ha risposto e done", asy
 test("la sessione non ha strumenti; modello e sforzo arrivano a copilot, i token di gh no", async () => {
   const { questions, events } = harness(copilotEnvironment({ ...process.env, GH_TOKEN: "x", GITHUB_TOKEN: "y", COPILOT_GITHUB_TOKEN: "z" }));
   await questions.ask({ id: "b", prompt: "sessione", copilot: fake, cwd: folder(), model: "gpt-6", effort: "high" });
-  expect(JSON.parse(texts(events))).toEqual({ availableTools: [], model: "gpt-6", effort: "high", tokens: [] });
+  expect(JSON.parse(texts(events))).toEqual({ availableTools: [], tools: [], systemMessage: null, model: "gpt-6", effort: "high", tokens: [] });
 });
 
 test("una Richiesta che arriva comunque è respinta, senza passare da Bubo", async () => {
@@ -53,9 +54,48 @@ test("una Richiesta che arriva comunque è respinta, senza passare da Bubo", asy
   await questions.ask({ id: "c", prompt: "strumento", copilot: fake, cwd: folder() });
   expect(texts(events)).toBe("reject");
   expect(events.some((event) => (event.type as string) === "permission")).toBe(false);
-  const config = questionSession({ cwd: "/tmp" });
+  const config = questionSession({ id: "c", cwd: "/tmp" });
   expect(config.availableTools).toEqual([]);
   expect(config.onPermissionRequest?.({ kind: "shell" } as never, { sessionId: "s" })).toEqual(refused);
+});
+
+test("con il Secondo cervello la sessione ha solo cerca e ricorda di Bubo, e Profilo e Regole in coda al prompt", async () => {
+  const { questions, events } = harness(undefined, async () => "");
+  await questions.ask({ id: "g", prompt: "sessione", copilot: fake, cwd: folder(), brain: "## Bubo/Profilo.md\nMatteo" });
+  const session = JSON.parse(texts(events));
+  expect(session.availableTools).toEqual(["custom:cerca", "custom:ricorda"]);
+  expect(session.tools).toEqual([{ name: "cerca", skipPermission: true }, { name: "ricorda", skipPermission: true }]);
+  expect(session.systemMessage).toEqual({ mode: "append", content: "## Bubo/Profilo.md\nMatteo" });
+});
+
+test("senza Profilo e Regole, o senza Bubo che risponde, nessuno strumento né nota", () => {
+  for (const config of [questionSession({ id: "h", cwd: "/tmp" }, async () => ""),
+                        questionSession({ id: "h", cwd: "/tmp", brain: "## Bubo/Regole.md" })]) {
+    expect(config.availableTools).toEqual([]);
+    expect(config.tools).toBeUndefined();
+    expect(config.systemMessage).toBeUndefined();
+  }
+});
+
+test("cerca e ricorda arrivano a Bubo con la Domanda come conversazione, e la risposta torna a copilot", async () => {
+  const calls: BuboToolCall[] = [];
+  const { questions, events } = harness(undefined, async (call) => {
+    calls.push(call);
+    return call.type === "search" ? "Bubo/Note/Gatto.md: un gatto" : "Salvato in [[Gatto]]";
+  });
+  await questions.ask({ id: "i", prompt: "note", copilot: fake, cwd: folder(), brain: "## Bubo/Regole.md" });
+  expect(calls).toEqual([
+    { type: "search", query: "gatto", project: undefined, source: "secondo-cervello", conversation: "i" },
+    { type: "remember", conversation: "i", mode: "nuova", title: "Gatto", note: undefined, text: "Il gatto si chiama Bubo", confirmed: undefined },
+  ]);
+  expect(texts(events)).toBe("Bubo/Note/Gatto.md: un gatto | Salvato in [[Gatto]]");
+  expect(events.at(-1)).toEqual({ type: "done", id: "i" });
+});
+
+test("con il Secondo cervello ogni Richiesta di copilot resta respinta", async () => {
+  const { questions, events } = harness(undefined, async () => "");
+  await questions.ask({ id: "j", prompt: "strumento", copilot: fake, cwd: folder(), brain: "## Bubo/Regole.md" });
+  expect(texts(events)).toBe("reject");
 });
 
 test("Ferma chiude la Domanda senza done né errore", async () => {

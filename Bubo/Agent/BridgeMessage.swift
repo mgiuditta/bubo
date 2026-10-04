@@ -94,8 +94,10 @@ enum BridgeCommand: Equatable {
     /// Asks the user's `copilot` to answer the Domanda `prompt` in the empty `directory`, in a session with no tools
     /// (ADR 0011). `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the
     /// reasoning effort; without it, the model's default. The answer comes as for `ask`, with `usage` and `answeredBy`.
+    /// `secondBrain` is the Profilo and the Regole of the Secondo cervello: with it the session also has Bubo's `cerca`
+    /// and `ricorda`, answered as for `ask` (#678).
     case askCopilotQuestion(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil,
-                            effort: Effort? = nil)
+                            effort: Effort? = nil, secondBrain: String? = nil)
     /// Lists the models the Copilot plan of the user's `copilot` offers, answering the request `id`.
     case readCopilotModels(id: String, copilot: URL)
 
@@ -185,10 +187,11 @@ enum BridgeCommand: Equatable {
         case let .summarize(id, prompt, directory, model):
             object = ["type": "summarize", "id": id, "prompt": prompt, "cwd": directory.path]
             object["model"] = model
-        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort):
+        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort, secondBrain):
             object = ["type": "copilotQuestion", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
             object["effort"] = effort?.rawValue
+            object["brain"] = secondBrain
         case let .readCopilotModels(id, copilot):
             object = ["type": "copilotModels", "id": id, "copilot": copilot.path]
         case let .answerPreview(call, reply):
