@@ -23,9 +23,11 @@ const set: { versione: number; tipi: string[]; richieste: Richiesta[] } =
 const enumLine = read("Bubo/Catalogo/Categoria.swift").match(/^\s*case (.+)$/m);
 const categorie = new Set(enumLine ? enumLine[1].split(",").map((name) => name.trim()) : []);
 // Ogni Variante appartiene a una sola Categoria (CONTEXT.md): nome → Categoria dal Catalogo.
-const categoriaDi = new Map<string, string>(
-  JSON.parse(read("Bubo/Catalogo/catalogo.json")).varianti.map((v: { nome: string; categoria: string }) => [v.nome, v.categoria]),
-);
+type Voce = { nome: string; categoria: string; ritirata?: string };
+const voci: Voce[] = JSON.parse(read("Bubo/Catalogo/catalogo.json")).varianti;
+const categoriaDi = new Map<string, string>(voci.map((v) => [v.nome, v.categoria]));
+// Una Variante ritirata non si sceglie più (#401): non può essere l'etichetta giusta.
+const ritirate = new Set(voci.filter((v) => v.ritirata !== undefined).map((v) => v.nome));
 
 const errors: string[] = [];
 const fail = (message: string) => errors.push(message);
@@ -53,6 +55,7 @@ for (const r of set.richieste) {
   if (r.variante !== null) {
     const categoria = categoriaDi.get(r.variante);
     if (!categoria) fail(`${r.id}: Variante fuori dal Catalogo ${r.variante}`);
+    else if (ritirate.has(r.variante)) fail(`${r.id}: Variante ritirata ${r.variante}`);
     else if (categoria !== r.categoria) fail(`${r.id}: Variante ${r.variante} è di ${categoria}, non di ${r.categoria}`);
   }
   if (r.allegati !== undefined && (!Array.isArray(r.allegati) || r.allegati.some((a) => !a.trim())))

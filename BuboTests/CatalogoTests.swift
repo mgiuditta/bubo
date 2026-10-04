@@ -12,9 +12,10 @@ struct CatalogoTests {
 
     private static func entry(nome: String = "lente", forma: String = "lente", categoria: String = "ricerca",
                               descrizione: String = "Quando Bubo cerca.",
-                              parole: [String] = ["cerca", "trova", "lente"]) -> String {
+                              parole: [String] = ["cerca", "trova", "lente"], ritirata: String? = nil) -> String {
         let words = parole.map { #""\#($0)""# }.joined(separator: ", ")
-        return #"{"nome": "\#(nome)", "forma": "\#(forma)", "categoria": "\#(categoria)", "descrizione": "\#(descrizione)", "parole": [\#(words)]}"#
+        let retired = ritirata.map { #", "ritirata": "\#($0)""# } ?? ""
+        return #"{"nome": "\#(nome)", "forma": "\#(forma)", "categoria": "\#(categoria)", "descrizione": "\#(descrizione)", "parole": [\#(words)]\#(retired)}"#
     }
 
     // MARK: - The real catalogo.json
@@ -184,6 +185,62 @@ struct CatalogoTests {
             try Catalogo(bundle: Bundle(for: BundleMarker.self))
         }
     }
+
+    // MARK: - Retired Varianti and stable names (#401)
+
+    /// A Catalogo with `binocolo` retired, first of its Categoria.
+    private static func catalogoWithRetiredBinocolo() throws -> Catalogo {
+        try Catalogo(json: json([
+            entry(nome: "binocolo", forma: "binocolo", parole: ["binocolo", "osserva", "scruta"], ritirata: "#401"),
+            entry(nome: "lente", forma: "lente"),
+            entry(nome: "radar", forma: "radar", parole: ["radar", "scansiona", "rileva"]),
+        ].joined(separator: ",")))
+    }
+
+    @Test func aRetiredVarianteKeepsItsNameAndForma() throws {
+        let binocolo = try #require(try Self.catalogoWithRetiredBinocolo().variante(named: "binocolo"))
+        #expect(binocolo.isRetired)
+        #expect(binocolo.ritirata == "#401")
+        #expect(binocolo.forma == "binocolo")
+    }
+
+    @Test func aRetiredVarianteIsNeverChosen() throws {
+        let catalogo = try Self.catalogoWithRetiredBinocolo()
+        #expect(catalogo.attive.map(\.nome) == ["lente", "radar"])
+        #expect(catalogo.varianti(in: .ricerca).map(\.nome) == ["lente", "radar"])
+        #expect(catalogo.rosa(around: .ricerca).map(\.nome) == ["lente", "radar"])
+        #expect(!FoundationModelsClassifier.instructions(choosingAmong: catalogo.varianti(in: .ricerca)).contains("binocolo"))
+    }
+
+    @Test func theRulesNeverChooseARetiredVariante() throws {
+        let rules = RuleClassifier(catalogo: try Self.catalogoWithRetiredBinocolo())
+        let result = rules.classification(of: ClassifierInput(text: "Cerca con il binocolo, osserva e scruta"))
+        #expect(result.variante?.nome != "binocolo")
+    }
+
+    /// A retired name that still arrives, from an old tag or conversation, turns the Orb: its Forma is still there.
+    @Test func theOrbShowsARetiredNameThatStillArrives() throws {
+        let orb = OrbControls()
+        orb.showWork("binocolo", in: try Self.catalogoWithRetiredBinocolo())
+        #expect(orb.variante?.nome == "binocolo")
+    }
+
+    /// Every name ever in `catalogo.json` stays there, active or retired: renaming or removing one fails here.
+    @Test func noNameOfTheHistoryDisappears() throws {
+        let root = URL(filePath: #filePath).deletingLastPathComponent().deletingLastPathComponent()
+        let url = root.appending(path: "BuboTests/Fixtures/catalogo-nomi.json")
+        let history = try JSONDecoder().decode(NameHistory.self, from: Data(contentsOf: url))
+        let names = Set(try Self.bundled.get().varianti.map(\.nome))
+        let missing = history.nomi.filter { !names.contains($0) }
+        #expect(missing.isEmpty, "A name never leaves catalogo.json: retire it instead. Missing: \(missing)")
+        let unrecorded = names.subtracting(history.nomi)
+        #expect(unrecorded.isEmpty, "Append the new names to catalogo-nomi.json: \(unrecorded.sorted())")
+    }
+}
+
+/// The shape of `catalogo-nomi.json`: every name ever in the Catalogo, only ever appended to.
+private struct NameHistory: Decodable {
+    let nomi: [String]
 }
 
 /// A class in the test bundle, which has no catalogo.json.

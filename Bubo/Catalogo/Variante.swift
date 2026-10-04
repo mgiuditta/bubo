@@ -14,8 +14,15 @@ nonisolated struct Variante: Hashable, Identifiable, Decodable, Sendable {
     let descrizione: String
     /// Three to eight words, synonyms included, that point to it.
     let parole: [String]
+    /// When and why it was retired, a date or a ticket; `nil` while it may be chosen.
+    ///
+    /// A retired Variante keeps its name, Forma and label, so an old tag still finds it, but nothing chooses it any more.
+    var ritirata: String? = nil
 
     var id: String { nome }
+
+    /// Whether the Variante is retired: the router and the agent no longer choose it.
+    var isRetired: Bool { ritirata != nil }
 
     /// The name shown to the user, from the `Catalogo` String Catalog keyed by `nome`.
     var label: LocalizedStringResource {
