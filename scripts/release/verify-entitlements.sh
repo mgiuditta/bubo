@@ -23,6 +23,11 @@ allowed=(
     Contents/Helpers/bubo-agent '{"com.apple.security.cs.allow-jit":true}'
     Contents/PlugIns/BuboQuickLook.appex/Contents/MacOS/BuboQuickLook "{\"com.apple.security.app-sandbox\":true,\"com.apple.security.application-groups\":[\"$group\"]}"
 )
+# Il profilo Developer ID (serve a keychain-access-groups) aggiunge a Bubo gli identificativi dell'app e del team: in
+# una release devono essere i nostri. In --dev li toglie il confronto, perché vengono dal profilo di sviluppo.
+(( dev )) || allowed[Contents/MacOS/Bubo]=$(jq -c --arg app $group --arg team $team \
+    '. + {"com.apple.application-identifier": $app, "com.apple.developer.team-identifier": $team}' \
+    <<< ${allowed[Contents/MacOS/Bubo]})
 
 failures=0
 fail() { print -u2 "entitlement: $1"; failures=$((failures + 1)) }
