@@ -27,8 +27,9 @@ struct OnboardingStage: View {
                 .font(Typography.body(size: 13))
                 .foregroundStyle(Palette.textSecondary)
                 .multilineTextAlignment(.center)
+                // No vertical fixedSize: measured at a near-zero width it asks for thousands of points, and the window
+                // grows past the screen, the sidebar and the input bar out of sight.
                 .frame(maxWidth: 480)
-                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("onboarding.explanation")
             OnboardingSteps(flow: flow)
             if flow.needsRemedy { FixCard(flow: flow) }

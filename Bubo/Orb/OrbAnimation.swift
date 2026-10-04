@@ -35,8 +35,15 @@ nonisolated struct OrbAnimation {
     /// The voice level, from 0 to 1, that the ripple follows: heard in Ascolto, said in Parla; `nil` for a made-up one.
     var voiceLevel: Float?
 
-    /// The shader clock, in seconds.
-    private(set) var time: Float = 0
+    /// How long the shader clock runs forward before it runs back, in seconds. Below 4096 s a `Float` resolves the
+    /// clock to half a millisecond; a clock that only grows loses it within hours and the Orb stutters, then stops.
+    static let clockSpan: Double = 4096
+
+    /// The shader clock, in seconds: it runs from 0 to `clockSpan` and back, so it never jumps.
+    var time: Float {
+        let phase = clock.truncatingRemainder(dividingBy: 2 * Self.clockSpan)
+        return Float(phase <= Self.clockSpan ? phase : 2 * Self.clockSpan - phase)
+    }
     /// The motion at the current instant.
     private(set) var motion = OrbState.idle.motion
     /// The ripple of the voice, nonzero only while listening or speaking.
@@ -53,6 +60,8 @@ nonisolated struct OrbAnimation {
             && OrbMotion.components.allSatisfy { abs(motion[keyPath: $0] - target[keyPath: $0]) < tolerance }
     }
 
+    /// The wall time the clock has run, in seconds, kept in `Double` so that small steps are never lost.
+    private var clock: Double = 0
     private var tintaOrigin: Tinta
     private var tintaDestination: Tinta
     private var tintaProgress: Double = 1
@@ -60,7 +69,7 @@ nonisolated struct OrbAnimation {
     /// Moves the animation forward by `elapsed` seconds of wall time.
     mutating func advance(by elapsed: Double) {
         let step = min(Self.longestStep, max(0, elapsed))
-        time += Float(step * (reducesMotion ? Self.reducedPace : 1))
+        clock += step * (reducesMotion ? Self.reducedPace : 1)
         motion.approach(state.motion, by: Float(min(1, step * Self.stateRate)))
         audio += (voice - audio) * Float(min(1, step * Self.audioRate))
         advanceTinta(by: step)

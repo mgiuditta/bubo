@@ -20,7 +20,6 @@ struct FirstPermissionCard: View {
             }
                 .font(Typography.body(size: 13))
                 .foregroundStyle(Palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("onboarding.permissionExplanation")
             PermissionRequestView(pending: pending, project: session.project,
                                   queued: (store.permissions.queues[session.id]?.count ?? 1) - 1,

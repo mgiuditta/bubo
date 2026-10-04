@@ -68,10 +68,10 @@ nonisolated enum PerfBudgets {
     /// Orb frames measured for the GPU time: Morphs at 60 fps and the holds between them at 30, about 14 s.
     static let orbFrames = 600
 
-    /// The Orb's frame rate in Ascolto, Pensiero, Parla and Lavora, and during a Morph (#519).
+    /// The Orb's frame rate in every Stato, Riposo included, and during a Morph (#519): at 30 the Blob stutters.
     static let orbFrameRate = 60
 
-    /// The Orb's frame rate in Riposo, and in every Stato with Risparmio energia (#519). With Riduci movimento the
+    /// The Orb's frame rate in every Stato with Risparmio energia (#519). With Riduci movimento the
     /// Orb in Riposo stops and draws only when the Stato or the Tinta changes.
     static let orbRestFrameRate = 30
 
