@@ -10,10 +10,12 @@ identity=${BUBO_SIGN_IDENTITY:-Developer ID Application}
 sign=(codesign --force --timestamp --options runtime --sign $identity)
 
 # Entitlement dei figli; gli eseguibili e i bundle non elencati tengono quelli che ha messo l'export (l'estensione
-# Quick Look: sandbox e App Group).
+# Quick Look: sandbox e App Group). "nessuno" toglie quelli della firma originale: Autoupdate di Sparkle arriva con
+# com.apple.application-identifier, che senza un profilo non gli serve (#595).
 typeset -A entitlements
 entitlements=(
     Contents/Helpers/bubo-agent bridge/entitlements.plist
+    Contents/Frameworks/Sparkle.framework/Versions/B/Autoupdate nessuno
 )
 
 # Codice annidato (eseguibili e bundle), dal più profondo: il contenuto di un bundle prima del bundle.
@@ -26,7 +28,9 @@ done < <(find $app/Contents \( -type d \( -name '*.app' -o -name '*.framework' -
 nested=(${(f)"$(for item in $nested; do print -r -- "${#${(s:/:)item}} $item"; done | sort -rn -s -k1,1 | cut -d' ' -f2-)"})
 for item in $nested; do
     relative=${item#$app/}
-    if [[ -n ${entitlements[$relative]:-} ]]; then
+    if [[ ${entitlements[$relative]:-} == nessuno ]]; then
+        $sign $item
+    elif [[ -n ${entitlements[$relative]:-} ]]; then
         $sign --entitlements ${entitlements[$relative]} $item
     else
         $sign --preserve-metadata=entitlements $item
