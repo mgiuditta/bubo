@@ -13,7 +13,7 @@ extension QuestionModel: QuestionAsking {}
 /// once without opening the HUD.
 struct AskBuboIntent: AppIntent {
     static let title: LocalizedStringResource = "Chiedi a Bubo"
-    static let description = IntentDescription("Fa una Domanda a Bubo, con file di testo facoltativi. Bubo risponde senza aprire l'HUD.")
+    static let description = IntentDescription("Fa una Domanda a Bubo, con file di testo facoltativi. La risposta compare accanto all'Orb, o nella finestra di Bubo.")
     /// Bubo answers in the background: the HUD stays closed.
     static let supportedModes: IntentModes = .background
 
@@ -32,14 +32,15 @@ struct AskBuboIntent: AppIntent {
     /// Where the Domande go: the Domanda of the HUD, set at launch before any intent runs; tests set a stand-in.
     @MainActor static var questions: (any QuestionAsking)?
 
-    func perform() async throws -> some IntentResult {
+    func perform() async throws -> some IntentResult & ProvidesDialog {
         let question = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !question.isEmpty else {
             throw $text.needsValueError("Che cosa vuoi chiedere a Bubo?")
         }
         let attachments = try files.map(Self.attachment)
         try await Self.ask(question, attachments: attachments)
-        return .result()
+        // Not a silent run: with the Panel hidden nothing else says that Bubo got the Domanda.
+        return .result(dialog: "Domanda inviata a Bubo.")
     }
 
     /// Asks `question` with `attachments` through `questions`.
@@ -70,7 +71,7 @@ enum AskBuboError: Error, CustomLocalizedStringResourceConvertible {
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case let .notText(name): "«\(name)» non è un file di testo: per ora Bubo legge solo quelli."
+        case let .notText(name): "«\(name)» non è un file di testo. Trascinalo sull'Orb per allegarlo."
         case .notReady: "Bubo si sta avviando. Riprova tra un attimo."
         }
     }

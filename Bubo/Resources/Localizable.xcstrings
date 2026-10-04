@@ -8750,16 +8750,6 @@
         }
       }
     },
-    "Fa una Domanda a Bubo, con file di testo facoltativi. Bubo risponde senza aprire l'HUD." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Asks Bubo a question, with optional text files. Bubo answers without opening the HUD."
-          }
-        }
-      }
-    },
     "Fatta" : {
       "localizations" : {
         "en" : {
@@ -18112,16 +18102,6 @@
         }
       }
     },
-    "«%@» non è un file di testo: per ora Bubo legge solo quelli." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“%@” isn’t a text file: for now Bubo reads only those."
-          }
-        }
-      }
-    },
     "«%@» non è nel Secondo cervello." : {
       "localizations" : {
         "en" : {
@@ -19950,6 +19930,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Accept All Blocks"
+          }
+        }
+      }
+    },
+    "Fa una Domanda a Bubo, con file di testo facoltativi. La risposta compare accanto all'Orb, o nella finestra di Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asks Bubo a question, with optional text files. The answer shows next to the Orb, or in Bubo's window."
+          }
+        }
+      }
+    },
+    "«%@» non è un file di testo. Trascinalo sull'Orb per allegarlo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” isn’t a text file. Drag it onto the Orb to attach it."
+          }
+        }
+      }
+    },
+    "Domanda inviata a Bubo." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Question sent to Bubo."
           }
         }
       }
