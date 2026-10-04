@@ -9,10 +9,4 @@ enum SecondBrainSetupStep: Int, CaseIterable {
     case meetingAudio
     /// The main language of the Riunioni, in which they are transcribed.
     case meetingLanguage
-
-    /// The questions about the Riunioni, asked on their own at the first Riunione when the folder is already chosen.
-    static let meetings: [SecondBrainSetupStep] = [.callServices, .meetingAudio, .meetingLanguage]
-
-    /// The defaults key recording that the questions about the Riunioni were shown, so they open on their own once.
-    static let meetingsShownKey = "secondBrain.setup.meetingsShown"
 }

@@ -157,9 +157,6 @@ struct SecondBrainSetupSheet: View {
         callServices = saved.isEmpty ? CallService.installed() : Set(saved)
         meetingAudio = MeetingAudioRetention.saved(in: .standard)
         meetingLanguage = UserDefaults.standard.string(forKey: MeetingLanguage.defaultsKey) ?? ""
-        if steps.contains(.callServices) {
-            UserDefaults.standard.set(true, forKey: SecondBrainSetupStep.meetingsShownKey)
-        }
     }
 
     /// Saves the answer to the current question.

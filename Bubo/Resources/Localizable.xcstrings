@@ -19734,12 +19734,12 @@
         }
       }
     },
-    "Prima scegli dove salvare le note." : {
+    "Bubo salva ogni Riunione come nota nel Secondo cervello. Prima scegli la cartella delle tue note." : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First choose where to save the notes."
+            "value" : "Bubo saves each Meeting as a note in the Second Brain. First choose the folder of your notes."
           }
         }
       }

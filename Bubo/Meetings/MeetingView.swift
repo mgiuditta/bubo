@@ -9,11 +9,38 @@ struct MeetingView: View {
     @State private var hasInformed = false
     @Environment(\.openURL) private var openURL
     @Environment(SecondBrain.self) private var secondBrain
+    /// Whether the setup of the Secondo cervello is open, only when asked.
     @State private var isSettingUp = false
     /// The speakers of the Riunione just saved that can take a name.
     @State private var speakers: [String] = []
 
     var body: some View {
+        // The note of a Riunione goes in the Secondo cervello: without its folder the setup opens only on request,
+        // and stays open past the folder for the questions about the Riunioni (#563).
+        Group {
+            if secondBrain.location == nil {
+                noSecondBrain
+            } else {
+                form
+            }
+        }
+        .sheet(isPresented: $isSettingUp) { SecondBrainSetupSheet() }
+    }
+
+    /// What the Riunioni show without a Secondo cervello: why, and the button that opens its setup.
+    private var noSecondBrain: some View {
+        ContentUnavailableView {
+            Label("Nessun Secondo cervello", systemImage: "waveform")
+        } description: {
+            Text("Bubo salva ogni Riunione come nota nel Secondo cervello. Prima scegli la cartella delle tue note.")
+        } actions: {
+            Button("Scegli la cartella…") { isSettingUp = true }
+                .keyboardShortcut(.defaultAction)
+        }
+        .frame(minWidth: 440, maxWidth: .infinity, minHeight: 280, maxHeight: .infinity)
+    }
+
+    private var form: some View {
         Form {
             switch recorder.phase {
             case let .recording(recording):
@@ -41,11 +68,6 @@ struct MeetingView: View {
             }
             hasInformed = false
         }
-        // The first Riunione is the first use of the Secondo cervello for many: without a folder the note has nowhere
-        // to go, so the quick setup asks for it, then the questions about the Riunioni (#563). With a folder the
-        // recording starts at once: each question has a default, and Impostazioni › Generale changes it later.
-        .task { isSettingUp = secondBrain.location == nil }
-        .sheet(isPresented: $isSettingUp) { SecondBrainSetupSheet() }
     }
 
     /// How the last Riunione ended, when it did.
@@ -99,17 +121,11 @@ struct MeetingView: View {
                 }
             }
             Toggle("Ho avvisato i partecipanti della registrazione", isOn: $hasInformed)
-            // The note goes in the Secondo cervello: without its folder the recording could only fail at the end.
-            if secondBrain.location == nil {
-                LabeledContent("Prima scegli dove salvare le note.") {
-                    Button("Scegli la cartella…") { isSettingUp = true }
-                }
-            }
             Button("Registra") {
                 Task { await recorder.start(titled: title, app: app) }
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(!hasInformed || secondBrain.location == nil)
+            .disabled(!hasInformed)
         } header: {
             Text("Registra una Riunione")
         } footer: {
