@@ -10,8 +10,8 @@ struct QuestionDetail: View {
         VStack(spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.l) {
-                    if let question {
-                        Text(question.title)
+                    if let title = question?.title ?? model.turns.first?.prompt {
+                        Text(title)
                             .buboTitleStyle()
                             .accessibilityAddTraits(.isHeader)
                     }

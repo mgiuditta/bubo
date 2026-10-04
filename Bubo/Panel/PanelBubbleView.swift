@@ -189,10 +189,10 @@ struct PanelBubbleView: View {
                 hud.turnIntoSession(model.turnIntoSession())
             }
             .help("Trasforma in Sessione")
-            // The same Domanda in the HUD, with room for long answers and the Sessioni.
+            // The same Domanda in the window, with its earlier turns and room for long answers (ADR 0013).
             Button("Apri la chat completa", systemImage: "arrow.up.left.and.arrow.down.right") {
                 bubble.close()
-                hud.show()
+                hud.show(question: model.currentQuestionID)
             }
             .help("Apri la chat completa")
             .accessibilityIdentifier("bubble.openHUD")
