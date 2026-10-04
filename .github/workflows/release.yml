@@ -43,6 +43,9 @@ jobs:
         with:
           bun-version: 1.3.11
 
+      - name: Freschezza dell'SDK del ponte
+        run: bun scripts/release/sdk-fresh.ts
+
       - name: Note di rilascio in ogni lingua
         env:
           NAME: ${{ steps.version.outputs.name }}
