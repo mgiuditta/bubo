@@ -4,17 +4,10 @@ import SwiftUI
 /// (design system).
 struct HUDHeader: View {
     var body: some View {
+        // ponytail: Impostazioni live in the glass button at the bottom of the sidebar.
         HStack {
             brand
             Spacer()
-            SettingsLink {
-                Label("Impostazioni", systemImage: "gearshape")
-                    .labelStyle(.iconOnly)
-                    .font(.title3)
-                    .foregroundStyle(Palette.textSecondary)
-            }
-            .buttonStyle(.borderless)
-            .help("Impostazioni")
         }
     }
 
