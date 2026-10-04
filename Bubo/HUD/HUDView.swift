@@ -5,8 +5,6 @@ struct HUDView: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(DeliveriesController.self) private var deliveries
     @Environment(\.openWindow) private var openWindow
-    /// The Vista chosen in Aspetto: choosing another there switches the HUD to it.
-    @AppStorage(VistaDelleSessioni.defaultsKey) private var chosenVista = VistaDelleSessioni.colonna
     /// The Domanda under the Orb.
     let questions: QuestionModel
     /// The Sessioni; `nil` when they cannot be kept.
@@ -73,9 +71,6 @@ struct HUDView: View {
             if let sessions { NewSessionSheet(store: sessions, draft: hud.sessionDraft) }
         }
         .onAppear { hud.openWindow = openWindow }
-        .onChange(of: chosenVista) { hud.switchVista(to: chosenVista) }
-        // The new Vista's body has been laid out.
-        .onChange(of: hud.vista) { hud.endVistaSwitch() }
         // Runs after the first appearance, once the main thread is free again: launch is over.
         .task {
             let launching = launch.start()
@@ -144,12 +139,6 @@ struct HUDView: View {
         }
     }
 
-    /// The Sessioni to lay out, when there is at least one.
-    private var visibleSessions: SessionStore? {
-        guard let sessions, !sessions.sessions.isEmpty else { return nil }
-        return sessions
-    }
-
     private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
@@ -176,29 +165,18 @@ struct HUDView: View {
                 }
             }
             Spacer(minLength: Spacing.large)
-            if hud.vista == .orbita, let sessions = visibleSessions {
-                SessionOrbit(store: sessions, quota: questions.quota)
-            } else if hud.vista == .board, let sessions, !sessions.sessions.isEmpty || !sessions.drafts.drafts.isEmpty {
-                SessionBoard(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            } else {
-                HUDOrb()
-                    .frame(maxWidth: 520, maxHeight: 520)
-                    .padding(Spacing.large)
-                    .overlay(alignment: .bottom) {
-                        if OrbControls.shared.isShowingDedica {
-                            Text(Dedica.message)
-                                .font(Typography.body(size: 13))
-                                .foregroundStyle(Palette.textSecondary)
-                        } else if let forecast = questions.intake.forecast {
-                            OrbCaption(forecast: forecast)
-                        }
+            HUDOrb()
+                .frame(maxWidth: 360, maxHeight: 360)
+                .padding(Spacing.l)
+                .overlay(alignment: .bottom) {
+                    if OrbControls.shared.isShowingDedica {
+                        Text(Dedica.message)
+                            .font(Typography.body(size: 13))
+                            .foregroundStyle(Palette.textSecondary)
+                    } else if let forecast = questions.intake.forecast {
+                        OrbCaption(forecast: forecast)
                     }
-            }
-            if hud.vista == .striscia, let sessions = visibleSessions {
-                SessionStrip(store: sessions)
-                    .padding(.bottom, Spacing.small)
-            }
+                }
             if showsOnboarding {
                 OnboardingStage(flow: onboarding)
             } else {

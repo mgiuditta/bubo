@@ -69,19 +69,6 @@ struct BuboApp: App {
                     .keyboardShortcut("k")
             }
             CommandGroup(before: .toolbar) {
-                Section("Vista delle Sessioni") {
-                    ForEach(VistaDelleSessioni.allCases) { vista in
-                        Toggle(isOn: Binding {
-                            appDelegate.hud.vista == vista
-                        } set: { isOn in
-                            if isOn { appDelegate.hud.switchVista(to: vista) }
-                        }) {
-                            Text(vista.title)
-                        }
-                        .keyboardShortcut(KeyEquivalent(vista.shortcut))
-                    }
-                }
-                Divider()
                 Button {
                     appDelegate.toggleTerminal()
                 } label: {

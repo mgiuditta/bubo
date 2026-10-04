@@ -58,26 +58,6 @@ final class HUDPresenter {
     /// What the new Sessione sheet starts from.
     private(set) var sessionDraft = SessionDraft()
 
-    /// How the HUD lays out the Sessioni: the Vista chosen in Aspetto until the user switches.
-    private(set) var vista = VistaDelleSessioni.chosen()
-
-    /// The `Cambio vista` interval, from the switch until the HUD has laid out the new Vista.
-    @ObservationIgnored private var vistaSwitch: OSSignpostIntervalState?
-
-    /// Shows the Sessioni in `vista`, animated unless Riduci movimento is on.
-    func switchVista(to vista: VistaDelleSessioni) {
-        guard vista != self.vista else { return }
-        vistaSwitch = vistaSwitch ?? Signposts.beginInterval(.vistaSwitch)
-        withAnimation(Motion.isReduced ? nil : Motion.standard) { self.vista = vista }
-    }
-
-    /// Ends the `Cambio vista` interval, once the HUD has laid out the new Vista.
-    func endVistaSwitch() {
-        guard let vistaSwitch else { return }
-        Signposts.endInterval(.vistaSwitch, vistaSwitch)
-        self.vistaSwitch = nil
-    }
-
     /// Brings the HUD to the front with the new Sessione sheet (⌘N), filled in from `draft`.
     func createSession(from draft: SessionDraft = SessionDraft()) {
         sessionDraft = draft

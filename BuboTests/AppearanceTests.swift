@@ -19,19 +19,4 @@ struct AppearanceTests {
         defaults.set(true, forKey: Motion.reducesMotionKey)
         #expect(Motion.isReduced(in: defaults, system: false))
     }
-
-    @Test func vistaRawValuesStayStableForUserDefaults() {
-        #expect(VistaDelleSessioni.allCases.map(\.rawValue) == ["colonna", "orbita", "striscia", "board"])
-    }
-
-    @Test func theHUDOpensInColonnaUntilAVistaIsChosen() {
-        #expect(VistaDelleSessioni.chosen(in: defaults) == .colonna)
-        defaults.set("galassia", forKey: VistaDelleSessioni.defaultsKey)
-        #expect(VistaDelleSessioni.chosen(in: defaults) == .colonna)
-    }
-
-    @Test func theHUDOpensInTheVistaChosenInAspetto() {
-        defaults.set(VistaDelleSessioni.striscia.rawValue, forKey: VistaDelleSessioni.defaultsKey)
-        #expect(VistaDelleSessioni.chosen(in: defaults) == .striscia)
-    }
 }

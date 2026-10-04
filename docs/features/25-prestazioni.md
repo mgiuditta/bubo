@@ -239,7 +239,7 @@ Fonte: [#186](https://github.com/mgiuditta/bubo/issues/186), rilevamento da [#18
 
 Non decisi nelle issue, facili da cambiare.
 
-- **Nomi dei signpost** (catalogo chiuso in `Perf/Signposts`): eventi `HUD interattivo`; intervalli `Avvio differito`, `Apertura Sessione`, `Sessione pronta`, `Ripresa Sessione`, `Palette`, `Cambio vista`; intervalli di animazione `Morph` e `Animazione Notte`. Le altre feature aggiungono i loro nomi allo stesso catalogo.
+- **Nomi dei signpost** (catalogo chiuso in `Perf/Signposts`): eventi `HUD interattivo`; intervalli `Avvio differito`, `Apertura Sessione`, `Sessione pronta`, `Ripresa Sessione`, `Palette`; intervalli di animazione `Morph` e `Animazione Notte`. Le altre feature aggiungono i loro nomi allo stesso catalogo.
 - **Lettura del footprint dentro Bubo** con `proc_pid_rusage` (`RUSAGE_INFO_V4`, campo `ri_phys_footprint`) invece di lanciare `footprint`: 0 processi avviati per il controllo delle Sessioni pesanti. Lo script `footprint` resta per `perf.sh`.
 - **"Comandi in background"** per la sospensione = processi figli del `claude` ancora vivi, subagent in background o `Bash` con `run_in_background` non finiti. Se l'albero dei processi del `claude` ha figli diversi dai Server MCP, la Sessione non si sospende.
 - **Pressione di memoria**: con `DispatchSource.makeMemoryPressureSource` a livello `.critical` Bubo sospende subito le Sessioni idonee, senza aspettare i 10 minuti.
@@ -307,7 +307,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 - **Sessione pesante**: `ProcessFootprintMonitor` con un processo finto che alloca oltre 2 GB → avviso entro 30 s; [Riavvia] → nuovo `claude`, stessa Conversazione. 0 processi lanciati dal monitor.
 - **Frequenza dell'Orb**: `OrbPaceTests` controlla la regola per Stato, Morph, Risparmio energia e Riduci movimento contro `PerfBudgets.orbFrameRate` e `orbRestFrameRate`; l'impatto energetico si misura a mano con Energy Log di Instruments, Panel in Riposo, prima e dopo.
 - **Orb**: 600 fotogrammi di Morph → tempo GPU p95 ≤ 4 ms; Panel coperto per 10 s → 0 fotogrammi. In Release il pannello debug non c'è: lanciato con `-orbFrameLog <file>`, Bubo scrive il tempo GPU di ogni fotogramma del Panel in quel file, una riga per fotogramma, e fa passare l'Orb da una Variante del Catalogo all'altra.
-- **Hang e hitch**: `XCTOSSignpostMetric` su `Apertura Sessione`, `Palette`, `Cambio vista`: nessun intervallo sul main thread oltre 100 ms. `XCTHitchMetric` durante le animazioni Notte: rapporto < 1%.
+- **Hang e hitch**: `XCTOSSignpostMetric` su `Apertura Sessione`, `Palette`: nessun intervallo sul main thread oltre 100 ms. `XCTHitchMetric` durante le animazioni Notte: rapporto < 1%.
 - **CI**: una PR con un ritardo finto di 1,2 s all'avvio fallisce (oltre 2× di 500 ms); una con 600 ms passa con avviso nel report.
 - **`perf.sh`**: sull'M4 Max produce un report con una riga per ogni budget con CI *2×*, *invariante* o *perf.sh*.
 - **Diagnostica**: un payload MetricKit finto salvato e mostrato; nessuna connessione di rete aperta da `MetricsCollector`.
@@ -318,7 +318,7 @@ Architettura comune in [INDEX.md](INDEX.md). Moduli nuovi:
 La misura viene prima dell'ottimizzazione: i passi 1–5 danno numeri, i passi 6–8 li migliorano, il passo 9 cerca quello che i test non vedono.
 
 1. **Signpost e test di avvio e memoria**: `Perf/Signposts` con l'evento `HUD interattivo`; target `BuboPerfTests` con avvio caldo, memoria a riposo e invariante "0 `claude`"; `PerfBudgets.swift`. Dipende solo dalla shell dell'app.
-2. **Test di fotogrammi e reattività**: tempo GPU dell'Orb dai command buffer nei test, contatore dei fotogrammi a Panel coperto, intervalli `Apertura Sessione` e `Cambio vista` con `XCTOSSignpostMetric`, `XCTHitchMetric` sulle animazioni. Dipende da 1 e dall'Orb con pannello debug ([#29](https://github.com/mgiuditta/bubo/issues/29), [#32](https://github.com/mgiuditta/bubo/issues/32)).
+2. **Test di fotogrammi e reattività**: tempo GPU dell'Orb dai command buffer nei test, contatore dei fotogrammi a Panel coperto, intervalli `Apertura Sessione` con `XCTOSSignpostMetric`, `XCTHitchMetric` sulle animazioni. Dipende da 1 e dall'Orb con pannello debug ([#29](https://github.com/mgiuditta/bubo/issues/29), [#32](https://github.com/mgiuditta/bubo/issues/32)).
 3. **`scripts/perf.sh` e report**: build Release, test di prestazione, `footprint` di Bubo, ponte e `claude`, lettura del log del Metal HUD, report Markdown e JSON contro `PerfBudgets.swift`. Dipende da 1 e 2.
 4. **CI di prestazione**: workflow `macos-26`, regola del 2×, invarianti, report come artefatto, fotogrammi saltati senza Metal. Dipende da 3.
 5. **MetricKit e Impostazioni › Diagnostica**: `MetricsCollector`, avvio esteso fino a `HUD interattivo`, payload salvati sul Mac, sezione nelle Impostazioni. Dipende da 1.
