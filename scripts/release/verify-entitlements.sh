@@ -46,8 +46,13 @@ for exe in $executables; do
 
     actual=$(codesign -d --entitlements - --xml $exe 2>/dev/null | plutil -convert json -o - - 2>/dev/null || echo '{}')
     # Il profilo di sviluppo aggiunge anche gli identificativi dell'app e del team.
+    # Dopo i test Xcode lascia all'estensione in sandbox le eccezioni per testmanagerd: si tolgono solo se ci sono quelle.
     (( dev )) && actual=$(jq -c 'del(.["com.apple.security.get-task-allow"], .["com.apple.application-identifier"],
-        .["com.apple.developer.team-identifier"])' <<< $actual)
+        .["com.apple.developer.team-identifier"])
+        | if (.["com.apple.security.temporary-exception.mach-lookup.global-name"] // []) | index("com.apple.testmanagerd")
+          then del(.["com.apple.security.temporary-exception.mach-lookup.global-name"],
+                   .["com.apple.security.temporary-exception.files.absolute-path.read-only"])
+          else . end' <<< $actual)
     expected=${allowed[$relative]:-'{}'}
     if [[ $(jq -S -c . <<< $actual) != $(jq -S -c . <<< $expected) ]]; then
         fail "$relative: firmati $(jq -S -c . <<< $actual), ammessi $(jq -S -c . <<< $expected)"
