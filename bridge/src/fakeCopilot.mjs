@@ -6,6 +6,7 @@
 // - "errore": finisce con `session.error`;
 // - "token": due chiamate al modello, una di un subagente, con i loro token;
 // - "ambiente": risponde con argomenti, cartella e token visti dal processo;
+// - "attività": legge, modifica, crea e lancia uno shell, poi riassume;
 // - "ricordi": risponde con i prompt di prima, letti dallo stato della sessione;
 // - altro: risponde "Ciao mondo".
 // Lo stato di ogni sessione sta in `.copilot-state/<id>.json` nella sua cartella, come `~/.copilot/session-state`:
@@ -85,6 +86,20 @@ async function play(sessionId, prompt) {
       id: randomUUID(), timestamp: new Date().toISOString(), parentId: null, ephemeral: true, agentId: "sub",
       type: "assistant.usage", data: usage(50, 10) } } });
     say("Fatto");
+    idle();
+  } else if (prompt === "attività") {
+    const tool = (toolName, args) => {
+      const toolCallId = randomUUID();
+      emit(sessionId, "tool.execution_start", { toolCallId, toolName, arguments: args });
+      emit(sessionId, "tool.execution_complete", { toolCallId, success: true, result: { content: "ok" } });
+    };
+    tool("view", { path: join(session.cwd, "a.txt") });
+    tool("edit", { path: join(session.cwd, "a.txt"), old_str: "x", new_str: "  uno\ndue\n\nuno" });
+    tool("create", { path: join(session.cwd, "b.txt"), file_text: "nuovo" });
+    tool("str_replace_editor", { command: "view", path: join(session.cwd, "c.txt") });
+    tool("bash", { command: "npm run dev" });
+    emit(sessionId, "assistant.message", { content: "Riassunto del sub", messageId: "s1", parentToolCallId: "p1" });
+    emit(sessionId, "assistant.message", { content: "## Ho letto e scritto\nAltro", messageId: "m3" });
     idle();
   } else if (prompt === "ricordi" || prompt.endsWith("Ora: ricordi")) {
     const text = prompt === "ricordi" ? `Prima: ${earlier.join(", ")}` : "Dalla copia";

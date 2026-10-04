@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotTurns, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
 import { ConversationStore } from "./store";
 
@@ -171,4 +171,25 @@ test("se copilot non ha più la sessione, il turno riparte dalla copia di Bubo",
 test("i messaggi copiati hanno il formato di quelli di Claude, con la data", () => {
   const entries = [copiedEntry("user", "ciao", "u1", "2026-10-03T10:00:00.000Z"), copiedEntry("assistant", "  ", "a1")];
   expect(copiedMessages(entries)).toEqual([{ id: "u1", role: "user", text: "ciao", date: Date.parse("2026-10-03T10:00:00.000Z") }]);
+});
+
+test("riassunto, letture, scritture e comandi arrivano come quelli di Claude", async () => {
+  const cwd = folder();
+  const { turns, events } = harness();
+  await turns.run({ id: "n", prompt: "attività", cwd, copilot: fake });
+  const activity = events.filter((event) => ["summary", "read", "edit", "ran"].includes(event.type));
+  expect(activity).toEqual([
+    { type: "read", id: "n", files: [join(cwd, "a.txt")] },
+    { type: "edit", id: "n", file: join(cwd, "a.txt"), lines: ["uno", "due"] },
+    { type: "edit", id: "n", file: join(cwd, "b.txt"), lines: ["nuovo"] },
+    { type: "read", id: "n", files: [join(cwd, "c.txt")] },
+    { type: "ran", id: "n" },
+    { type: "summary", id: "n", text: "Ho letto e scritto" },
+  ]);
+});
+
+test("gli strumenti senza percorso o senza testo non sono Attività", () => {
+  expect(toolActivity("view", {})).toBeUndefined();
+  expect(toolActivity("grep", { path: "/a", pattern: "x" })).toBeUndefined();
+  expect(toolActivity("str_replace_editor", { command: "insert", path: "/a", new_str: "x" })).toEqual({ type: "edit", file: "/a", lines: ["x"] });
 });
