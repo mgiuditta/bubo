@@ -2,11 +2,13 @@ import Foundation
 
 /// A Riunione as a note of the Secondo cervello: properties for Obsidian, the summary, then the trascrizione.
 nonisolated struct MeetingNote: Equatable, Sendable {
-    /// The file an imported Riunione comes from.
+    /// The file or web link an imported Riunione comes from.
     struct Source: Equatable, Sendable {
         var fileName: String
-        /// The SHA-256 of the file's bytes, in hexadecimal: the same file is never imported twice.
+        /// The SHA-256 of the file's bytes in hexadecimal, or the normalized link: nothing is imported twice.
         var fingerprint: String
+        /// The web page of the video, for a Riunione made from a link; the note then says it instead of the file.
+        var link: URL? = nil
     }
 
     var title: String
@@ -33,7 +35,11 @@ nonisolated struct MeetingNote: Equatable, Sendable {
             format: "\(hour: .twoDigits(clock: .twentyFourHour, hourCycle: .zeroBased)):\(minute: .twoDigits)",
             timeZone: timeZone, calendar: calendar))
         let minutes = duration.map { "\(Int(($0 / .seconds(60)).rounded(.up))) min" } ?? ""
-        let origin = source.map { ["file: \(SummaryProperties.quoted($0.fileName))", "impronta: \($0.fingerprint)"] } ?? []
+        let origin = source.map { source in
+            [source.link.map { "link: \(SummaryProperties.quoted($0.absoluteString))" }
+                ?? "file: \(SummaryProperties.quoted(source.fileName))",
+             "impronta: \(source.fingerprint)"]
+        } ?? []
         let properties = [
             "---",
             "titolo: \(SummaryProperties.quoted(title))",

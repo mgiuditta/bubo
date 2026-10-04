@@ -29,7 +29,8 @@ nonisolated struct VideoDownloader: Sendable {
     var loginPathExecutable: @Sendable () async -> URL?
     /// Reads an address from the network; only `https` addresses are ever passed.
     var fetch: @Sendable (URL) async throws -> Data
-    /// Runs `yt-dlp`.
+    /// Runs `yt-dlp`, disclaimed (ADR 0005): a downloaded program never inherits Bubo's microphone, screen or
+    /// Files and Folders permissions.
     var runner: ProcessRunner
     /// The current time, for the daily update.
     var now: @Sendable () -> Date
@@ -39,7 +40,7 @@ nonisolated struct VideoDownloader: Sendable {
          temporaryFolder: URL = FileManager.default.temporaryDirectory,
          loginPathExecutable: @escaping @Sendable () async -> URL? = VideoDownloader.userExecutable,
          fetch: @escaping @Sendable (URL) async throws -> Data = VideoDownloader.fetchOverHTTPS,
-         runner: ProcessRunner = .live(environment: VideoDownloader.environment),
+         runner: ProcessRunner = .disclaimed(environment: VideoDownloader.environment),
          now: @escaping @Sendable () -> Date = { .now }) {
         self.binaryFolder = binaryFolder
         self.temporaryFolder = temporaryFolder

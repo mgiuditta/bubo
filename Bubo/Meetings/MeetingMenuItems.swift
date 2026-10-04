@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// «Registra una Riunione…», or «Ferma e salva la Riunione» while one is recorded, then «Importa Riunioni…»: in the menu
+/// «Registra una Riunione…», or «Ferma e salva la Riunione» while one is recorded, then «Importa Riunioni…» and «Trascrivi un video da un link…»: in the menu
 /// bar, the Orb's menu and, through the File menu, the Palette.
 struct MeetingMenuItems: View {
     let recorder: MeetingRecorder
@@ -12,6 +12,8 @@ struct MeetingMenuItems: View {
             Button("Registra una Riunione…") { recorder.showWindow() }
         }
         Button("Importa Riunioni…") { recorder.imports.chooseFiles() }
+            .disabled(recorder.imports.isImporting)
+        Button("Trascrivi un video da un link…") { recorder.imports.chooseVideoLink() }
             .disabled(recorder.imports.isImporting)
     }
 }

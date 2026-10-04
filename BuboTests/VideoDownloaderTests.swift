@@ -56,7 +56,7 @@ struct VideoDownloaderProcessTests {
 
     private var temporaryFolder: URL { root.appending(path: "tmp", directoryHint: .isDirectory) }
 
-    private func downloader(runner: ProcessRunner = .live(environment: ["PATH": "/usr/bin:/bin"]),
+    private func downloader(runner: ProcessRunner = .disclaimed(environment: ["PATH": "/usr/bin:/bin"]),
                             loginPath: URL? = nil, fetch: @escaping @Sendable (URL) async throws -> Data = { _ in
                                 throw URLError(.notConnectedToInternet) },
                             now: @escaping @Sendable () -> Date = { .now }) throws -> VideoDownloader {
