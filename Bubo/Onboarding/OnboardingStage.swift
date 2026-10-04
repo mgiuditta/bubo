@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The first launch under the Orb (spec 26): what the Orb says, the recent Progetti, and the input bar with three
-/// suggested questions. No window and no sheet: the Open panel appears only when the user asks for it.
+/// The first launch under the Orb (spec 26): what the Orb says, what Bubo does, the two steps, the recent Progetti, and
+/// the input bar with three suggested questions. No window and no sheet: the Open panel appears only when the user asks for it.
 ///
 /// From the keyboard: ↑↓ choose among the recent Progetti, ↩ sends, ⌘O opens another folder. When something else
 /// answers Bubo's shortcut, the "Scorciatoia" step says so (spec 08).
@@ -23,6 +23,14 @@ struct OnboardingStage: View {
                 .foregroundStyle(Palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.orbLine")
+            Text("Bubo usa Claude Code su questo Mac. Scegli la cartella di un Progetto e scrivi cosa fare: Claude legge i file e ti chiede il permesso prima di agire.")
+                .font(Typography.body(size: 13))
+                .foregroundStyle(Palette.textSecondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 480)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("onboarding.explanation")
+            OnboardingSteps(flow: flow)
             if flow.needsRemedy { FixCard(flow: flow) }
             if let hotKeys { ShortcutStep(hotKeys: hotKeys) }
             if flow.readiness != nil { projects }

@@ -191,6 +191,14 @@ struct HUDView: View {
                     FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
                         .padding(.bottom, Spacing.small)
                 }
+                // The first Richiesta di permesso of the onboarding is answered here, not only in its Sessione.
+                if let sessions, let id = onboarding.sessionAwaitingFirstPermission,
+                   let session = sessions.sessions.first(where: { $0.id == id }),
+                   let pending = sessions.permissions.queues[id]?.first {
+                    FirstPermissionCard(flow: onboarding, store: sessions, session: session, pending: pending)
+                        .id(pending.id)
+                        .padding(.bottom, Spacing.small)
+                }
                 QuestionView(model: questions)
                     .frame(maxWidth: 560)
                     // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
