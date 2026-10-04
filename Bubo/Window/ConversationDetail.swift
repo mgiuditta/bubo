@@ -16,6 +16,8 @@ struct ConversationDetail: View {
         case "s-":
             if let sessions, let session = sessions.sessions.first(where: { $0.id.uuidString == ownID }) {
                 SessionDetail(session: session, store: sessions)
+                    // Another Sessione is another chat: nothing typed or sent in this one shows there.
+                    .id(session.id)
             } else {
                 missing
             }

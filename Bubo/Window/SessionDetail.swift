@@ -7,6 +7,8 @@ struct SessionDetail: View {
     let store: SessionStore
     @State private var text = ""
     @State private var reader: ConversationReader?
+    /// What the user sent from here for the turn in progress, shown until the turn's conversation is read.
+    @State private var sent: String?
     @Environment(HUDPresenter.self) private var hud
 
     var body: some View {
@@ -26,11 +28,12 @@ struct SessionDetail: View {
                 .padding(.top, Spacing.s)
             Divider().overlay(Palette.line).padding(.top, Spacing.m)
             Group {
-                if let reader {
-                    ConversationReaderView(reader: reader)
-                } else {
+                let lines = reader?.lines ?? []
+                if lines.isEmpty && pendingPrompt == nil {
                     ContentUnavailableView("Ancora nessuna risposta", systemImage: "text.bubble",
                                            description: Text("La conversazione compare qui al primo turno."))
+                } else {
+                    SessionTranscript(lines: lines, pendingPrompt: pendingPrompt)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -82,11 +85,23 @@ struct SessionDetail: View {
         }
     }
 
+    /// The user's message of the turn in progress: what was sent from here, else the turn's own prompt.
+    private var pendingPrompt: String? {
+        guard session.activity == .lavora else { return nil }
+        return sent ?? session.turnPrompt
+    }
+
     private func send() {
-        if store.send(text, to: session.id) { text = "" }
+        let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if store.send(text, to: session.id) {
+            sent = prompt
+            text = ""
+        }
     }
 
     private func load() async {
+        // The turn ended: its message is in the conversation read below.
+        if session.activity != .lavora { sent = nil }
         guard let result = ConversationResult(latestOf: session) else {
             reader = nil
             return
