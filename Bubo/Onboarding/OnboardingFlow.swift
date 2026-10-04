@@ -11,6 +11,14 @@ final class OnboardingFlow {
     static let completedKey = "onboardingCompleted"
     /// The `UserDefaults` key of the question waiting for its Sessione.
     static let pendingQuestionKey = "onboardingPendingQuestion"
+    /// The `UserDefaults` key of whether the user answered the first Richiesta di permesso in the HUD.
+    static let firstPermissionAnsweredKey = "onboardingFirstPermissionAnswered"
+
+    /// The two steps shown under the Orb, in order: the Progetto, then the question.
+    enum Step: CaseIterable {
+        case project
+        case question
+    }
 
     /// The three questions offered under the input bar.
     static let suggestions: [LocalizedStringResource] = [
@@ -46,6 +54,8 @@ final class OnboardingFlow {
     private(set) var problem: Problem?
     /// Whether the user went to sign in from a remedy: the first question asks again when they are back.
     private(set) var isAwaitingSignIn = false
+    /// Whether the first Richiesta di permesso was answered from the HUD: later ones stay in their Sessione.
+    private(set) var isFirstPermissionAnswered: Bool
 
     /// Why the first turn did not answer (spec 26).
     enum Problem: Equatable {
@@ -91,6 +101,7 @@ final class OnboardingFlow {
         self.start = start
         pendingQuestion = defaults.string(forKey: Self.pendingQuestionKey)
         isCompleted = defaults.bool(forKey: Self.completedKey)
+        isFirstPermissionAnswered = defaults.bool(forKey: Self.firstPermissionAnsweredKey)
         if hasSessions && pendingQuestion == nil && !isCompleted { complete() }
     }
 
@@ -105,7 +116,7 @@ final class OnboardingFlow {
     @ObservationIgnored private let isOnline: () async -> Bool
     @ObservationIgnored private let restart: (UUID) -> Void
     /// The first Sessione, once started in this launch.
-    @ObservationIgnored private var session: UUID?
+    private var session: UUID?
     /// Waits for the first token of the first Sessione, up to `firstTokenTimeout`.
     @ObservationIgnored private var firstTokenWait: Task<Void, Never>?
     /// When the last check of `claude` started.
@@ -121,6 +132,35 @@ final class OnboardingFlow {
         if readiness == nil { return "Controllo cosa c'è sul Mac…" }
         if pendingQuestion != nil && project == nil { return "In quale Progetto?" }
         return "Su cosa lavoriamo?"
+    }
+
+    /// Whether `step` is done: a Progetto chosen, or a question sent.
+    func isDone(_ step: Step) -> Bool {
+        switch step {
+        case .project: project != nil
+        case .question: pendingQuestion != nil || hasStarted
+        }
+    }
+
+    /// The step the user should do next, once the other one is under way; `nil` before anything or when both are
+    /// done.
+    ///
+    /// A question typed or sent with no Progetto highlights the Progetto, so the user sees what is missing.
+    var highlightedStep: Step? {
+        let isTyping = !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if !isDone(.project) { return isDone(.question) || isTyping ? .project : nil }
+        return isDone(.question) ? nil : .question
+    }
+
+    /// The first Sessione, while its first Richiesta di permesso is to be answered from the centre of the HUD.
+    var sessionAwaitingFirstPermission: UUID? {
+        isFirstPermissionAnswered ? nil : session
+    }
+
+    /// The user answered the first Richiesta di permesso: the next ones stay in their Sessione.
+    func answerFirstPermission() {
+        isFirstPermissionAnswered = true
+        defaults.set(true, forKey: Self.firstPermissionAnsweredKey)
     }
 
     /// Whether `claude` was found and can answer.

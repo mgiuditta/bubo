@@ -3148,6 +3148,16 @@
         }
       }
     },
+    "Azione rischiosa. Tieni premuto «Solo ora» per consentirla, «No» per bloccarla." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Risky action. Press and hold “Just this time” to allow it, or “No” to block it."
+          }
+        }
+      }
+    },
     "Azione rischiosa: con il puntatore, tieni premuto per un secondo." : {
       "localizations" : {
         "en" : {
@@ -3738,6 +3748,16 @@
         }
       }
     },
+    "Bubo usa Claude Code su questo Mac. Scegli la cartella di un Progetto e scrivi cosa fare: Claude legge i file e ti chiede il permesso prima di agire." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo uses Claude Code on this Mac. Choose a Project's folder and write what to do: Claude reads the files and asks your permission before acting."
+          }
+        }
+      }
+    },
     "Bubo usa il login della CLI claude e non vede mai i tuoi token." : {
       "localizations" : {
         "en" : {
@@ -3978,6 +3998,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cited in the last answer"
+          }
+        }
+      }
+    },
+    "Claude chiede il permesso per: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude asks permission for: %@"
+          }
+        }
+      }
+    },
+    "Claude chiede il permesso prima di agire. «Solo ora» vale per questa azione, «Per questa Sessione» fino alla sua fine, «Sempre in questo Progetto» salva una regola. Con «No» Claude cerca un'altra strada." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude asks permission before acting. “Just this time” covers this action, “For this Session” lasts until the Session ends, “Always in This Project” saves a rule. With “No” Claude looks for another way."
           }
         }
       }
@@ -4468,6 +4508,16 @@
         }
       }
     },
+    "Da fare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To do"
+          }
+        }
+      }
+    },
     "Decidi i possibili segreti" : {
       "localizations" : {
         "en" : {
@@ -4545,6 +4595,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The account's email and organization"
+          }
+        }
+      }
+    },
+    "Fatto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
           }
         }
       }
@@ -5631,6 +5691,16 @@
         }
       }
     },
+    "Passo %lld di 2: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %lld of 2: %@"
+          }
+        }
+      }
+    },
     "Per aggiornarlo, claude esegue questo comando sul Mac:" : {
       "localizations" : {
         "en" : {
@@ -5733,6 +5803,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ready: %@"
+          }
+        }
+      }
+    },
+    "Prossimo" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
           }
         }
       }
