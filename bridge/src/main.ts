@@ -32,14 +32,14 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools, systemPromptOf } from "./tools";
+import { allowedBuboTools, brainHomeInstruction, readOnlyOf, readOnlyOptions, systemPromptOf, type ReadOnly } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
 const version = 4;
 
 type Command =
-  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown }
+  | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown }
   | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
@@ -380,11 +380,13 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `dirs` sono le cartelle che `claude` legge oltre a `cwd`, come `--add-dir`: quelle degli Allegati di una Domanda.
 // `maxBudget` è il residuo in dollari del Budget più stretto, con l'API key (spec 18): diventa `maxBudgetUsd`, e al
 // tetto il turno finisce con `budgetExhausted`. Senza, nessun tetto.
+// `readOnly` è il turno di una Domanda: solo gli strumenti che leggono, mai le cartelle escluse del Secondo cervello;
+// nel Secondo cervello l'agente sa di esserci e che scrive solo con `ricorda`.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
                    permissionMode?: PermissionMode, effort?: EffortLevel, rosa: string[] = [], unattended?: Unattended,
-                   dirs: string[] = [], maxBudget?: number, brain?: string) {
+                   dirs: string[] = [], maxBudget?: number, brain?: string, readOnly?: ReadOnly) {
   const resumed = resume === undefined ? undefined : await transcriptOf(resume);
   const restored = resumed?.restored;
   const copy = store && (resumed?.isLocal === false ? store : mirrorOnly(store));
@@ -415,7 +417,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
   };
   const memory = keep === undefined ? undefined : memoryHooks(id);
   const witness = new AnswerWitness();
-  const systemPrompt = systemPromptOf(rosa.length > 0 ? orbInstruction(rosa) : undefined, brain);
+  const systemPrompt = systemPromptOf(rosa.length > 0 ? orbInstruction(rosa) : undefined,
+    readOnly?.inBrain ? brainHomeInstruction : undefined, brain);
   const conversation = query({
     prompt,
     options: {
@@ -430,6 +433,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       settingSources: sources,
       mcpServers: turnServers(buboTools(id, remembers), preview ? previewTools(id, previewCalls) : undefined),
       ...ruleOptions,
+      ...(readOnly ? readOnlyOptions(readOnly, ruleOptions.disallowedTools) : {}),
       includePartialMessages: true,
       resume,
       forkSession: resume !== undefined,
@@ -803,7 +807,8 @@ lines.on("line", (line) => {
       void ask(command.id, command.prompt, command.cwd, settingSources(command.settingSources), root, model, env, resume, upTo, keep,
                sandboxSettings(command.sandbox), command.preview === true, teamRules(command.rules),
                command.remember === true, mode, effortOf(command.effort), rosaOf(command.orb), unattendedOf(command.unattended),
-               directoriesOf(command.dirs), budgetOf(command.maxBudget), typeof command.brain === "string" ? command.brain : undefined);
+               directoriesOf(command.dirs), budgetOf(command.maxBudget), typeof command.brain === "string" ? command.brain : undefined,
+               readOnlyOf(command.readOnly));
       break;
     }
     case "config": {

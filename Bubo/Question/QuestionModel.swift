@@ -997,10 +997,11 @@ final class QuestionModel {
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
             // Claude is in a cloud, also when it answers for Apple FM.
             let prompt = Self.prompt(asked(onMac: false), attachments: richiesta.attachments)
-            let stream = bridge.ask(prompt, in: try Self.directory(), model: route.model, effort: route.effort,
+            let workplace = try Self.workplace(in: secondBrain?.location)
+            let stream = bridge.ask(prompt, in: workplace.directory, model: route.model, effort: route.effort,
                                     remembers: true, rosa: rosa,
                                     readableDirectories: Self.readableDirectories(for: richiesta.attachments),
-                                    maxBudget: maxBudget,
+                                    maxBudget: maxBudget, readOnly: workplace.readOnly,
                                     progress: { [orb, weak self] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                         if case let .memory(.saved(change)) = progress { self?.savedChange = change }
@@ -1259,7 +1260,15 @@ final class QuestionModel {
         self.savedChange?.isUndone = true
     }
 
-    /// Where Domande run: they have no Progetto, so an empty folder of Bubo's own.
+    /// Where a Claude Domanda runs, and what it reads: the Secondo cervello at `location` when it can be reached,
+    /// but not its excluded folders; otherwise ``directory()``. Either way the Domanda only reads files.
+    static func workplace(in location: SecondBrainLocation?) throws -> (directory: URL, readOnly: ReadOnlyTurn) {
+        guard let location, location.isReachable else { return (try directory(), ReadOnlyTurn()) }
+        let hidden = location.excludedFolders.map { location.url.appending(path: $0, directoryHint: .isDirectory) }
+        return (location.url, ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: hidden))
+    }
+
+    /// Where Domande run without a Secondo cervello: they have no Progetto, so an empty folder of Bubo's own.
     static func directory() throws -> URL {
         let directory = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
