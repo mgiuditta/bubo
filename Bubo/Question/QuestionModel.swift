@@ -176,6 +176,10 @@ final class QuestionModel {
     @ObservationIgnored private let budgets: BudgetSettings
     /// The Domanda in the CostLedger: one per prompt, its retries included.
     @ObservationIgnored private var question = UUID()
+    /// The Domanda in course, the same through its turns; a new one gets a new id.
+    private(set) var currentQuestionID = UUID()
+    /// Where the Domande that end are kept, to show among the Conversazioni; set at launch.
+    @ObservationIgnored var archive: QuestionArchive?
     /// How long the first token took, the last time each choice of "Rifai con…" answered.
     @ObservationIgnored private var firstTokens: [String: Duration] = [:]
     @ObservationIgnored private var bridge: AgentBridge?
@@ -618,6 +622,8 @@ final class QuestionModel {
     /// Starts a new Domanda ("Nuova Domanda"): the answer in progress stops, and the turns so far go with it.
     func startNewQuestion() {
         stop()
+        archiveCurrentQuestion()
+        currentQuestionID = UUID()
         turns = []
         lastPrompt = ""
         activeSkill = nil
@@ -629,6 +635,27 @@ final class QuestionModel {
         confirmedAttachments = [:]
         declinedEndpoints = []
         lastActivity = nil
+    }
+
+    /// Keeps the Domanda that is ending among the Conversazioni, with its last turn; nothing for an empty one.
+    private func archiveCurrentQuestion() {
+        var all = turns
+        if !lastPrompt.isEmpty, !answer.isEmpty {
+            all.append(QuestionTurn(prompt: lastPrompt, answer: answer, isOnMac: routedAnswer?.isOnMac ?? true))
+        }
+        guard let first = all.first else { return }
+        let sessionID = archive?.questions.first { $0.id == currentQuestionID }?.sessionID
+        archive?.save(ArchivedQuestion(id: currentQuestionID, title: String(first.prompt.prefix(80)), date: now(),
+                                       turns: all, sessionID: sessionID))
+    }
+
+    /// Makes `archived` the Domanda in course: its turns are what the next prompt follows, and archiving it again
+    /// replaces it.
+    func continueQuestion(_ archived: ArchivedQuestion) {
+        guard archived.id != currentQuestionID else { return }
+        startNewQuestion()
+        currentQuestionID = archived.id
+        turns = archived.turns
     }
 
     /// Starts a new Domanda if this one has been still for ``idleLimit``.

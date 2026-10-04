@@ -51,7 +51,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }()
     /// The Domanda of the HUD, answered through the agent bridge.
-    private(set) lazy var questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
+    private(set) lazy var questions: QuestionModel = {
+        let questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
+        questions.archive = try? QuestionArchive.live()
+        return questions
+    }()
     /// Refreshes the PriceTable, at most once a day.
     private var priceUpdates: Task<Void, Never>?
     /// Checks the updates of every Marketplace's plugins, once a day, with the Plugin window closed too.
