@@ -54,6 +54,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private(set) lazy var questions: QuestionModel = {
         let questions = QuestionModel(index: searchIndex, secondBrain: secondBrain, ledger: ledger)
         questions.archive = try? QuestionArchive.live()
+        #if DEBUG
+        // The UI tests' fake Domanda, never the user's.
+        if SessionFixture.isRequested { questions.archive = try? SessionFixture.makeQuestionArchive() }
+        #endif
         return questions
     }()
     /// Refreshes the PriceTable, at most once a day.

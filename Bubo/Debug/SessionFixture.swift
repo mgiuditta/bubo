@@ -28,5 +28,20 @@ enum SessionFixture {
         try JSONEncoder().encode([session]).write(to: bubo.appending(path: "Sessioni.json"))
         return root
     }
+
+    /// Creates an archive in a temporary folder holding one answered Domanda, «Come funziona il router?».
+    ///
+    /// - Returns: The archive, in place of the user's Domande.
+    static func makeQuestionArchive() throws -> QuestionArchive {
+        let folder = URL.temporaryDirectory.appending(path: "BuboQuestionFixture-\(UUID().uuidString)",
+                                                      directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let file = folder.appending(path: "Domande.json")
+        let turn = QuestionTurn(prompt: "Come funziona il router?",
+                                answer: "Il router sceglie il modello per ogni richiesta: prima la Categoria, poi il costo e la Quota rimasta.")
+        let question = ArchivedQuestion(id: UUID(), title: "Come funziona il router?", date: .now, turns: [turn])
+        try JSONEncoder().encode([question]).write(to: file)
+        return QuestionArchive(file: file)
+    }
 }
 #endif
