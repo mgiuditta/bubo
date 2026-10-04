@@ -1,5 +1,8 @@
 import { expect, test } from "bun:test";
-import { allowedBuboTools, brainHomeInstruction, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
+import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
 
 test("ricorda solo quando Bubo lo chiede: Domande e Sessioni, non le Esecuzioni", () => {
   expect(allowedBuboTools(true)).toEqual(["mcp__bubo__cerca", "mcp__bubo__ricorda"]);
@@ -37,4 +40,18 @@ test("readOnly dal comando: solo percorsi assoluti, e senza oggetto nessuna rest
 test("nel Secondo cervello l'istruzione della Domanda viene prima di Profilo e Regole", () => {
   expect(systemPromptOf("orb", brainHomeInstruction, "## Bubo/Profilo.md"))
     .toBe(`orb\n\n${brainHomeInstruction}\n\n## Bubo/Profilo.md`);
+});
+
+test("una Domanda non legge le cartelle escluse, nemmeno da un symlink o da una ricerca che le attraversa", () => {
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "brain-")));
+  mkdirSync(join(root, "Archivio [vecchio]"));
+  mkdirSync(join(root, "Progetti"));
+  symlinkSync(join(root, "Archivio [vecchio]"), join(root, "Progetti", "link"));
+  const hidden = [join(root, "Archivio [vecchio]")];
+  expect(hiddenPathDenial("Read", { file_path: "Archivio [vecchio]/a.md" }, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Read", { file_path: join(root, "Progetti", "link", "a.md") }, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Grep", {}, root, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Grep", { path: "Progetti" }, root, hidden)).toBeUndefined();
+  expect(hiddenPathDenial("Read", { file_path: "Progetti/b.md" }, root, hidden)).toBeUndefined();
+  expect(hiddenPathDenial("Read", { file_path: "Archivio [vecchio]/a.md" }, root, [])).toBeUndefined();
 });

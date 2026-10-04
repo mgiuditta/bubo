@@ -32,7 +32,7 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools, brainHomeInstruction, readOnlyOf, readOnlyOptions, systemPromptOf, type ReadOnly } from "./tools";
+import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf, type ReadOnly } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
 
@@ -339,6 +339,18 @@ function memoryHooks(id: string): Record<"PreToolUse" | "PostToolUse" | "PostToo
   };
 }
 
+// L'hook che tiene una Domanda nel Secondo cervello fuori dalle sue cartelle escluse `hidden`, sul percorso reale.
+function hiddenFolders(cwd: string, hidden: string[]): HookCallbackMatcher {
+  return {
+    matcher: "Read|Grep|Glob",
+    hooks: [async (input) => {
+      if (input.hook_event_name !== "PreToolUse") return {};
+      const reason = hiddenPathDenial(input.tool_name, input.tool_input, cwd, hidden);
+      return reason ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: reason } } : {};
+    }],
+  };
+}
+
 // I file trovati da Grep e Glob, letture tenui della Galassia: l'SDK li dà solo nella risposta dello strumento.
 function searchedFiles(id: string): HookCallbackMatcher {
   return {
@@ -450,7 +462,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       hooks: {
         // Il primo hook del filo principale dice se l'Esecuzione gira come il suo agente (`MainAgent`).
         UserPromptSubmit: checkAgent,
-        PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? [])],
+        PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? []),
+          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : [])],
         SubagentStart: [{ hooks: [subagents.hook] }],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],

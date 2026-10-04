@@ -1,3 +1,6 @@
+import { realpathSync } from "node:fs";
+import { isAbsolute, resolve, sep } from "node:path";
+
 // Gli strumenti di Bubo che `claude` usa senza chiedere: `cerca` sempre, `ricorda` nelle Domande e nelle Sessioni,
 // dove scrive nel Secondo cervello; ogni scrittura si può annullare da Bubo. Le Esecuzioni non lo ricevono.
 export function allowedBuboTools(remembers: boolean): string[] {
@@ -43,3 +46,31 @@ export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { tools:
 export const brainHomeInstruction = "Lavori dentro il Secondo cervello dell'utente: la cartella di lavoro è la sua "
   + "cartella di note. Leggi e cerca i file liberamente con Read, Grep e Glob, oltre che con cerca. Non puoi "
   + "modificare, creare né cancellare file: per scrivere nel Secondo cervello usa solo ricorda.";
+
+// Il percorso reale di `path`, symlink risolti; se non esiste ancora, quello della cartella più vicina che esiste.
+function realPath(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    const parent = resolve(path, "..");
+    return parent === path ? path : resolve(realPath(parent), path.slice(parent.length + 1));
+  }
+}
+
+// Perché Read, Grep o Glob non possono toccare `input` in una Domanda che gira in `cwd`: il loro percorso, reale, è
+// in una cartella esclusa `hidden`, o la contiene (una ricerca da sopra la attraverserebbe); `undefined` se possono.
+// Le regole `Read(...)` restano: questo vale anche con symlink e con nomi che hanno caratteri da glob.
+export function hiddenPathDenial(tool: string, input: unknown, cwd: string, hidden: string[]): string | undefined {
+  if (hidden.length === 0 || !["Read", "Grep", "Glob"].includes(tool)) return undefined;
+  const fields = (input ?? {}) as { file_path?: unknown; path?: unknown };
+  const raw = typeof fields.file_path === "string" ? fields.file_path : typeof fields.path === "string" ? fields.path : cwd;
+  const target = realPath(isAbsolute(raw) ? raw : resolve(cwd, raw));
+  const inside = (child: string, parent: string) => child === parent || child.startsWith(parent + sep);
+  for (const dir of hidden.map(realPath)) {
+    if (inside(target, dir)) return "Questa cartella è esclusa dal Secondo cervello: Bubo non la legge.";
+    if (tool !== "Read" && inside(dir, target)) {
+      return "La ricerca attraverserebbe una cartella esclusa dal Secondo cervello: usa cerca, o cerca in una sottocartella.";
+    }
+  }
+  return undefined;
+}
