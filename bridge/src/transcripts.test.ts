@@ -7,6 +7,7 @@ import { join } from "node:path";
 const diskReaders = new Set([
   "gate.ts",   // il cancello della Sandbox risolve i symlink dei percorsi (`lstat`, `readlink`, `realpath`)
   "memory.ts", // le righe Ricordato leggono il file della Memoria di Progetto prima e dopo la scrittura
+  "tools.ts",  // le cartelle escluse del Secondo cervello si confrontano sul percorso reale (`realpath`)
 ]);
 
 test("nessun file del ponte legge i transcript JSONL", () => {
