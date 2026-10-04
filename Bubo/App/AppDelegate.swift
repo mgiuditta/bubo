@@ -245,7 +245,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillFinishLaunching(_ notification: Notification) {
         // Before the first frame, or MetricKit refuses to extend the launch.
         MetricsCollector.shared.extendLaunch()
-        FontRegistry.registerBundledFonts()
         UserDefaults.standard.register(defaults: [DockIcon.defaultsKey: true, ConversationStore.keepsCLIHistoryKey: true])
         // Before any App Intent runs: "Chiedi a Bubo" asks the Domanda of the HUD.
         AskBuboIntent.questions = questions
