@@ -8103,16 +8103,6 @@
         }
       }
     },
-    "Copia e apri Terminale" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copy and Open Terminal"
-          }
-        }
-      }
-    },
     "Copia il comando" : {
       "localizations" : {
         "en" : {
@@ -19770,6 +19760,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Thinking…"
+          }
+        }
+      }
+    },
+    "Cosa fare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What to Do"
+          }
+        }
+      }
+    },
+    "Chiedi senza Progetto" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask Without a Project"
+          }
+        }
+      }
+    },
+    "Scegli la cartella del Progetto…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose the Project Folder…"
           }
         }
       }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The two steps of the first launch, 1 Progetto → 2 Domanda: a done step has a check, the one still missing is
+/// The two steps of the first launch, 1 Progetto → 2 Cosa fare: a done step has a check, the one still missing is
 /// highlighted once the other is under way.
 struct OnboardingSteps: View {
     let flow: OnboardingFlow
@@ -12,7 +12,7 @@ struct OnboardingSteps: View {
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(Palette.textSecondary)
                 .accessibilityHidden(true)
-            step(.question, number: 2, title: "Domanda")
+            step(.question, number: 2, title: "Cosa fare")
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding.steps")

@@ -277,6 +277,12 @@ final class OnboardingFlow {
         startIfReady()
     }
 
+    /// Ends the first launch without a Sessione («Chiedi senza Progetto»): the home shows the Domanda instead.
+    func skip() {
+        firstTokenWait?.cancel()
+        complete()
+    }
+
     /// The first token of a Sessione's answer arrived: the onboarding is over.
     func receiveFirstToken() {
         guard !isCompleted else { return }

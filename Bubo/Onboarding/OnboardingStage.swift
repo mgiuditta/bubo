@@ -37,6 +37,12 @@ struct OnboardingStage: View {
             if flow.readiness != nil { projects }
             input
             suggestions
+            // A way out for who only wants to ask: the Domanda needs no Progetto.
+            Button("Chiedi senza Progetto", action: flow.skip)
+                .font(Typography.body(size: 13))
+                .buttonStyle(.plain)
+                .foregroundStyle(Palette.textSecondary)
+                .accessibilityIdentifier("onboarding.skip")
         }
         .onAppear { isInputFocused = true }
         // The focus stays in the input bar: VoiceOver hears what the Orb asks next without moving there.
@@ -69,7 +75,7 @@ struct OnboardingStage: View {
                 folderToOpen = nil
                 isChoosingFolder = true
             } label: {
-                Text("Scegli un'altra cartella…")
+                Text(flow.recents.isEmpty ? "Scegli la cartella del Progetto…" : "Scegli un'altra cartella…")
                     .font(Typography.body(size: 14))
                     .padding(.horizontal, Spacing.small)
                     .padding(.vertical, Spacing.xSmall)

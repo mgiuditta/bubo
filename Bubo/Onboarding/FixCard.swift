@@ -156,7 +156,7 @@ struct FixCard: View {
             }
             .buttonStyle(.borderedProminent)
         default:
-            Button("Copia e apri Terminale", action: copyAndOpenTerminal)
+            Button("Installa nel Terminale", action: copyAndOpenTerminal)
                 .buttonStyle(.borderedProminent)
             Button("Riprova") { Task { await flow.recheck() } }
                 .help("Se l'hai già installato, Bubo lo cerca di nuovo.")
