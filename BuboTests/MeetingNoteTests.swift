@@ -134,6 +134,16 @@ struct MeetingNoteTests {
         defaults.set(MeetingAudioRetention.afterTranscription.rawValue, forKey: MeetingAudioRetention.defaultsKey)
         #expect(MeetingAudioRetention.saved(in: defaults) == .afterTranscription)
     }
+
+    @Test func aRiunioneFromALinkSaysTheLinkInsteadOfTheFile() throws {
+        var note = MeetingNote(title: "Lezione", start: .now, duration: nil, app: nil, transcript: [])
+        let link = try #require(URL(string: "https://www.youtube.com/watch?v=abc"))
+        note.source = MeetingNote.Source(fileName: "Lezione", fingerprint: "https://www.youtube.com/watch?v=abc", link: link)
+        let markdown = note.markdown(in: .gmt)
+        #expect(markdown.contains("link: \"https://www.youtube.com/watch?v=abc\""))
+        #expect(markdown.contains("impronta: https://www.youtube.com/watch?v=abc"))
+        #expect(!markdown.contains("file: "))
+    }
 }
 
 /// A model that answers each piece with an action quoting the piece's last line, keeping every prompt it read.

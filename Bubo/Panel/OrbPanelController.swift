@@ -34,6 +34,9 @@ final class OrbPanelController {
 
     /// Imports the recordings and trascrizioni dropped on the Orb as Riunioni; set by the app.
     var importMeetings: ([URL]) -> Void = { _ in }
+    /// Imports the web video of a link dropped on the Orb as a Riunione, calling the closure instead when the link
+    /// has no video; set by the app.
+    var importVideo: (URL, @escaping () -> Void) -> Void = { _, fallback in fallback() }
 
     /// The bubble beside the Orb, with the prompt and the answer of the Domanda.
     let bubble = PanelBubble()
@@ -95,9 +98,13 @@ final class OrbPanelController {
         view.onDragEnd = { [weak self] in self?.snapAfterDrag() }
         view.onPointerMove = { [weak self] in self?.updateClickThrough() }
         view.registerForDraggedTypes(OrbDropTarget.types)
-        view.onDropEnter = questions.awaitAttachments
-        view.onDropExit = { [questions] in
+        view.onDropEnter = { [weak self, questions] pasteboard in
+            questions.awaitAttachments()
+            self?.isOfferingTranscription = OrbDropTarget.drop(in: pasteboard).isTranscription
+        }
+        view.onDropExit = { [weak self, questions] in
             if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
+            self?.isOfferingTranscription = false
         }
         view.onDrop = { [weak self, questions] pasteboard in
             self?.drop(pasteboard, into: questions) ?? false
@@ -218,20 +225,42 @@ final class OrbPanelController {
     private func drop(_ pasteboard: NSPasteboard, into questions: QuestionModel) -> Bool {
         let interval = Signposts.beginInterval(.dropToListening)
         defer { Signposts.endInterval(.dropToListening, interval) }
-        let files = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL] ?? []
-        if MeetingImportFile.isMeetingDrop(files) {
+        isOfferingTranscription = false
+        let attachments: [Allegato]
+        switch OrbDropTarget.drop(in: pasteboard) {
+        case .meetingFiles(let files):
             if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
             importMeetings(files)
             return true
+        case .videoLink(let link):
+            // Read now: the pasteboard of a drag does not outlive it, and the link may still become an Allegato.
+            let fallback = self.attachments(of: pasteboard)
+            if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
+            importVideo(link) { [weak self, questions] in
+                questions.awaitAttachments()
+                self?.attach(fallback, into: questions)
+            }
+            return true
+        case .attachments:
+            attachments = self.attachments(of: pasteboard)
         }
-        let attachments: [Allegato]
+        return attach(attachments, into: questions)
+    }
+
+    /// The Allegati of a drop, with a dragged image saved in the Domande's folder.
+    private func attachments(of pasteboard: NSPasteboard) -> [Allegato] {
         do {
             let images = try QuestionModel.directory().appending(path: "Allegati", directoryHint: .isDirectory)
-            attachments = OrbDropTarget.attachments(from: pasteboard, imageDirectory: images)
+            return OrbDropTarget.attachments(from: pasteboard, imageDirectory: images)
         } catch {
             Logger.panel.error("No folder for dropped images: \(error)")
-            attachments = []
+            return []
         }
+    }
+
+    /// Puts `attachments` in the prompt of the bubble; returns whether there was anything to attach.
+    @discardableResult
+    private func attach(_ attachments: [Allegato], into questions: QuestionModel) -> Bool {
         guard !attachments.isEmpty else {
             if questions.attachments.isEmpty { questions.stopAwaitingAttachments() }
             return false
@@ -261,6 +290,10 @@ final class OrbPanelController {
     @ObservationIgnored private var statusWindow: PanelStatusWindow?
     /// What the pill would say were it on screen, as last computed from the Sessioni and the Domanda.
     @ObservationIgnored private var pendingStatus: PanelStatus?
+    /// Whether media files or a web link are dragged over the Orb: the pill then says what a drop does.
+    @ObservationIgnored private var isOfferingTranscription = false {
+        didSet { if isOfferingTranscription != oldValue { updateStatus() } }
+    }
     @ObservationIgnored private var panel: NSPanel?
     @ObservationIgnored private var view: OrbPanelView?
     @ObservationIgnored private var renderer: OrbRenderer?
@@ -372,6 +405,7 @@ final class OrbPanelController {
         switch status {
         case .waiting(_, let session), .failing(_, let session): hud.show(session: session)
         case .answerReady, .questionFailed: bubble.open(focus: .prompt)
+        case .dropHint: break
         }
     }
 
@@ -379,7 +413,8 @@ final class OrbPanelController {
     /// it otherwise; VoiceOver hears it once as it comes.
     private func updateStatus() {
         let isShowable = size == .reduced && !bubble.isOpen && panel?.isVisible == true
-        let newStatus = isShowable ? pendingStatus : nil
+        let newStatus = isOfferingTranscription && panel?.isVisible == true ? .dropHint
+            : isShowable ? pendingStatus : nil
         guard newStatus != status else { return }
         if status == nil, let newStatus {
             statusAppearance = .appearance(reducesMotion: Motion.isReduced)

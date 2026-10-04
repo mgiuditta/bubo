@@ -7,6 +7,37 @@ enum OrbDropTarget {
     /// The pasteboard types the Orb accepts.
     static let types: [NSPasteboard.PasteboardType] = [.fileURL, .URL, .png, .tiff, .string]
 
+    /// What a drop asks for.
+    enum Drop: Equatable {
+        /// Audio, video and subtitles: each becomes a Riunione.
+        case meetingFiles([URL])
+        /// One web link and no file: its video becomes a Riunione, or an Allegato when it has none.
+        case videoLink(URL)
+        /// Everything else becomes Allegati.
+        case attachments
+
+        /// Whether the drop is transcribed into the Secondo cervello rather than attached.
+        var isTranscription: Bool { self != .attachments }
+    }
+
+    /// What dropping `files` and the web addresses `links` asks for.
+    static func drop(files: [URL], links: [URL]) -> Drop {
+        if MeetingImportFile.isMeetingDrop(files) { return .meetingFiles(files) }
+        if files.isEmpty, links.count == 1, let link = links.first, MeetingImporter.isWebLink(link) {
+            return .videoLink(link)
+        }
+        return .attachments
+    }
+
+    /// What dropping the contents of `pasteboard` asks for.
+    static func drop(in pasteboard: NSPasteboard) -> Drop {
+        let files = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true])
+            as? [URL] ?? []
+        let links = (pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] ?? [])
+            .filter { !$0.isFileURL }
+        return drop(files: files, links: links)
+    }
+
     /// Returns the Allegati of `pasteboard`, in the order they were dragged; empty when nothing can be attached.
     ///
     /// Files and folders go by path. An image with no file behind it, such as one dragged from a web page, is saved

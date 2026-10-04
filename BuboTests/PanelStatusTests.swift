@@ -116,4 +116,9 @@ struct PanelStatusTests {
         #expect(Self.screen.contains(frame))
         #expect(frame.size == Self.pill)
     }
+
+    @Test func theDropHintSaysWhatADropDoes() {
+        #expect(PanelStatus.dropHint.text == String(localized: "Rilascia: trascrivo e salvo nel cervello"))
+        #expect(!PanelStatus.dropHint.showsLume)
+    }
 }

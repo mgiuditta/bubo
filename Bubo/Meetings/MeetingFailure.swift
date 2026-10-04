@@ -20,6 +20,10 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
     case noteNotWritten
     /// An imported file cannot be read, or a video has no audio.
     case fileUnreadable
+    /// The web link has no video that `yt-dlp` can download, or not in a format the Mac can read.
+    case noVideo
+    /// `yt-dlp` could not be downloaded, or its checksum did not match: nothing was run.
+    case downloaderUnavailable
 
     /// What happened and what to do, for the window and VoiceOver.
     var explanation: LocalizedStringResource {
@@ -42,6 +46,10 @@ nonisolated enum MeetingFailure: Error, Equatable, Sendable {
             "Cartella del Secondo cervello non trovata: la nota non è stata salvata. L'audio è salvato sul Mac. Controlla la cartella in Impostazioni › Generale."
         case .fileUnreadable:
             "Bubo non riesce a leggere il file o il video non ha audio."
+        case .noVideo:
+            "Questo link non ha un video che posso scaricare."
+        case .downloaderUnavailable:
+            "Non sono riuscito a scaricare yt-dlp"
         }
     }
 

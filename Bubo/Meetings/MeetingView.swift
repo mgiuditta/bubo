@@ -151,11 +151,12 @@ private struct MeetingImportSection: View {
             } else {
                 if let outcome = importer.outcome { OutcomeRows(outcome: outcome) }
                 Button("Importa Riunioni…", action: importer.chooseFiles)
+                Button("Trascrivi un video da un link…", action: importer.chooseVideoLink)
             }
         } header: {
             Text("Importa Riunioni")
         } footer: {
-            Text("Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella.")
+            Text("Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella. Da un link (YouTube, Vimeo…) scarica solo l'audio, con yt-dlp.")
         }
     }
 }

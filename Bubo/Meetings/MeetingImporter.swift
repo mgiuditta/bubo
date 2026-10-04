@@ -49,6 +49,7 @@ final class MeetingImporter {
     @ObservationIgnored private let secondBrain: SecondBrain
     @ObservationIgnored private let summarize: ([MeetingLine]) async -> MeetingSummary?
     @ObservationIgnored private let showWindow: () -> Void
+    @ObservationIgnored private let videoDownloader: VideoDownloader
 
     /// Creates the importer.
     ///
@@ -56,11 +57,54 @@ final class MeetingImporter {
     ///   - secondBrain: Where the notes go.
     ///   - summarize: Writes the summary of a trascrizione; `nil` when no model can.
     ///   - showWindow: Opens the window of the Riunioni, where the import shows.
+    ///   - videoDownloader: Downloads the audio of a web video.
     init(secondBrain: SecondBrain, summarize: @escaping ([MeetingLine]) async -> MeetingSummary?,
-         showWindow: @escaping () -> Void = {}) {
+         showWindow: @escaping () -> Void = {}, videoDownloader: VideoDownloader = VideoDownloader()) {
         self.secondBrain = secondBrain
         self.summarize = summarize
         self.showWindow = showWindow
+        self.videoDownloader = videoDownloader
+    }
+
+    /// Asks for the link of a web video, prefilled from the clipboard when it holds one, then imports it.
+    func chooseVideoLink() {
+        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 360, height: 24))
+        field.placeholderString = "https://"
+        field.setAccessibilityLabel(String(localized: "Link del video"))
+        if let copied = NSPasteboard.general.string(forType: .string),
+           let link = URL(string: copied.trimmingCharacters(in: .whitespacesAndNewlines)), Self.isWebLink(link) {
+            field.stringValue = link.absoluteString
+        }
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Trascrivi un video da un link")
+        alert.informativeText = String(localized: "Bubo scarica solo l'audio, lo trascrive e salva la Riunione nel Secondo cervello.")
+        alert.accessoryView = field
+        alert.addButton(withTitle: String(localized: "Trascrivi"))
+        alert.addButton(withTitle: String(localized: "Annulla"))
+        alert.window.initialFirstResponder = field
+        NSApp.activate()
+        guard alert.runModal() == .alertFirstButtonReturn,
+              let link = URL(string: field.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)),
+              Self.isWebLink(link)
+        else { return }
+        start(importingVideoAt: link)
+    }
+
+    /// Imports the web video at `link` as a Riunione in the background; ignored while another import runs.
+    ///
+    /// - Parameter onNoVideo: Called instead of showing a failure when the link has no video, or the user does not
+    ///   let Bubo download `yt-dlp`: a dropped link then becomes an Allegato.
+    func start(importingVideoAt link: URL, onNoVideo: (() -> Void)? = nil) {
+        guard task == nil else { return }
+        task = Task {
+            await importVideo(at: link, onNoVideo: onNoVideo)
+            task = nil
+        }
+    }
+
+    /// Whether `link` is an `http` or `https` address.
+    static func isWebLink(_ link: URL) -> Bool {
+        ["http", "https"].contains(link.scheme?.lowercased()) && link.host() != nil
     }
 
     /// Asks for files or folders to import, then imports them.
@@ -127,6 +171,67 @@ final class MeetingImporter {
         outcome.isCancelled = Task.isCancelled
         self.outcome = outcome
         announce(outcome)
+    }
+
+    /// Downloads the audio of `link`, transcribes it and saves the Riunione, titled as the video; sets ``outcome``.
+    func importVideo(at link: URL, onNoVideo: (() -> Void)?) async {
+        outcome = nil
+        defer { progress = nil }
+        var outcome = Outcome()
+        let fingerprint = VideoDownloader.fingerprint(of: link)
+        do throws(MeetingFailure) {
+            guard let root = secondBrain.location?.url else { throw .noSecondBrain }
+            let known = await Self.fingerprints(inNotesAt: root.appending(path: NoteWriter.meetingFolder))
+            if known.contains(fingerprint) {
+                showWindow()
+                outcome.duplicates = 1
+            } else {
+                let executable: URL
+                if let installed = await videoDownloader.installedExecutable() {
+                    executable = installed
+                } else {
+                    guard Self.mayInstallDownloader() else {
+                        onNoVideo?()
+                        return
+                    }
+                    executable = try await videoDownloader.install()
+                }
+                showWindow()
+                progress = Progress(done: 0, total: 1, fileName: link.host() ?? link.absoluteString)
+                await videoDownloader.updateIfDue(executable)
+                let video = try await videoDownloader.download(link, with: executable)
+                defer { try? FileManager.default.removeItem(at: video.folder) }
+                var note = try await Self.note(of: video.audio)
+                note.title = video.title
+                note.start = .now
+                note.source = MeetingNote.Source(fileName: video.title, fingerprint: fingerprint, link: link)
+                note.summary = await summarize(note.transcript)
+                if !Task.isCancelled { outcome.saved.append(try await write(note)) }
+            }
+        } catch .noVideo where onNoVideo != nil && !Task.isCancelled {
+            onNoVideo?()
+            return
+        } catch {
+            Logger.meetings.error("Video Riunione not imported: \(String(describing: error), privacy: .public)")
+            if !Task.isCancelled {
+                showWindow()
+                outcome.failures.append(Failure(fileName: link.absoluteString, reason: error))
+            }
+        }
+        outcome.isCancelled = Task.isCancelled
+        self.outcome = outcome
+        announce(outcome)
+    }
+
+    /// Asks whether Bubo may download `yt-dlp`, which it needs for web videos.
+    private static func mayInstallDownloader() -> Bool {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Scarico yt-dlp per trascrivere il video?")
+        alert.informativeText = String(localized: "Bubo usa yt-dlp, un programma libero, per scaricare l'audio dei video dal web. Lo scarica da GitHub, ne controlla l'impronta e lo tiene nella sua cartella.")
+        alert.addButton(withTitle: String(localized: "Scarica e trascrivi"))
+        alert.addButton(withTitle: String(localized: "Annulla"))
+        NSApp.activate()
+        return alert.runModal() == .alertFirstButtonReturn
     }
 
     private func write(_ note: MeetingNote) async throws(MeetingFailure) -> URL {

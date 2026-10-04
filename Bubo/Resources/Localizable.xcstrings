@@ -3628,6 +3628,16 @@
         }
       }
     },
+    "Bubo scarica solo l'audio, lo trascrive e salva la Riunione nel Secondo cervello." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo downloads only the audio, transcribes it and saves the Meeting in your Second Brain."
+          }
+        }
+      }
+    },
     "Bubo scrive questa voce in %@. Le altre voci del file restano com'erano." : {
       "localizations" : {
         "en" : {
@@ -3678,12 +3688,22 @@
         }
       }
     },
-    "Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella." : {
+    "Bubo trascrive l'audio e salva la Riunione nel Secondo cervello" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bubo transcribes audio and video (m4a, mp3, wav, mp4, mov) on the Mac and cleans up transcripts (vtt, srt, txt). You can also choose a folder."
+            "value" : "Bubo transcribes the audio and saves the Meeting in your Second Brain"
+          }
+        }
+      }
+    },
+    "Bubo trascrive sul Mac audio e video (m4a, mp3, wav, mp4, mov) e ripulisce le trascrizioni (vtt, srt, txt). Puoi scegliere anche una cartella. Da un link (YouTube, Vimeo…) scarica solo l'audio, con yt-dlp." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo transcribes audio and video on your Mac (m4a, mp3, wav, mp4, mov) and cleans up transcripts (vtt, srt, txt). You can also choose a folder. From a link (YouTube, Vimeo…) it downloads only the audio, with yt-dlp."
           }
         }
       }
@@ -3704,6 +3724,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bubo uses the copilot CLI's login and never sees your tokens."
+          }
+        }
+      }
+    },
+    "Bubo usa yt-dlp, un programma libero, per scaricare l'audio dei video dal web. Lo scarica da GitHub, ne controlla l'impronta e lo tiene nella sua cartella." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bubo uses yt-dlp, a free program, to download the audio of web videos. It downloads it from GitHub, checks its fingerprint and keeps it in its own folder."
           }
         }
       }
@@ -5065,6 +5095,16 @@
         }
       }
     },
+    "Link del video" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Video link"
+          }
+        }
+      }
+    },
     "Lo scanner non trova tutto: guarda anche la conversazione qui sotto." : {
       "localizations" : {
         "en" : {
@@ -5331,6 +5371,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Can't be chosen until you compare the new code in Settings › Deliveries."
+          }
+        }
+      }
+    },
+    "Non sono riuscito a scaricare yt-dlp" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't download yt-dlp"
           }
         }
       }
@@ -5669,6 +5719,16 @@
         }
       }
     },
+    "Questo link non ha un video che posso scaricare." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This link has no video I can download."
+          }
+        }
+      }
+    },
     "Ramo %@: %lld commit, %lld file" : {
       "localizations" : {
         "en" : {
@@ -5832,6 +5892,16 @@
         }
       }
     },
+    "Rilascia: trascrivo e salvo nel cervello" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop: I'll transcribe it and save it to your brain"
+          }
+        }
+      }
+    },
     "Riporta %@ com'era prima di questo salvataggio" : {
       "localizations" : {
         "en" : {
@@ -5968,6 +6038,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saved in %@"
+          }
+        }
+      }
+    },
+    "Scarica e trascrivi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download and Transcribe"
+          }
+        }
+      }
+    },
+    "Scarico yt-dlp per trascrivere il video?" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Download yt-dlp to transcribe the video?"
           }
         }
       }
@@ -6151,6 +6241,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On individual Copilot plans (Free, Pro, Pro+, Max), GitHub uses what it receives to train its models by default. You can turn this off on GitHub in Copilot settings, under Privacy."
+          }
+        }
+      }
+    },
+    "Trascrivi" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribe"
+          }
+        }
+      }
+    },
+    "Trascrivi un video da un link" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribe a Video from a Link"
+          }
+        }
+      }
+    },
+    "Trascrivi un video da un link…" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Transcribe a Video from a Link…"
           }
         }
       }
