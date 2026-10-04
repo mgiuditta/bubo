@@ -163,6 +163,8 @@ struct PluginsWindow: View {
         } else {
             PluginEntryList(sections: sections,
                             emptyTitle: emptyTitle,
+                            emptyDescription: selection == .installed || selection == nil
+                                ? "Scegli un Marketplace nella barra a sinistra per sfogliare i plugin." : nil,
                             isLoading: catalog.snapshot == nil, isSearching: !query.isEmpty,
                             isListingUnavailable: catalog.isListingUnavailable, failing: failing,
                             marketplaces: catalog.snapshot?.marketplaces ?? [],
@@ -198,7 +200,7 @@ struct PluginsWindow: View {
             } description: {
                 Text(store == nil || project == nil
                      ? "Scegli un Progetto per vedere i server MCP che Claude carica."
-                     : "Claude non carica server MCP in questo Progetto.")
+                     : "Nessun server MCP in questo Progetto. Arrivano con i Plugin: cercane uno in un Marketplace.")
             }
         } else {
             ScrollView {

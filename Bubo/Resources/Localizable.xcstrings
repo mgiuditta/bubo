@@ -5963,16 +5963,6 @@
         }
       }
     },
-    "Ricaricare può invalidare la cache del prompt." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reloading can invalidate the prompt cache."
-          }
-        }
-      }
-    },
     "Ricaricare può invalidare la cache del prompt: in quel caso Claude si ferma e chiede conferma." : {
       "localizations" : {
         "en" : {
@@ -7267,16 +7257,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Claude works without asking your permission up to level 3, only in the Project's copy. Levels 4 and 5 still ask. Takes effect on the next turn."
-          }
-        }
-      }
-    },
-    "Claude non carica server MCP in questo Progetto." : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Claude loads no MCP servers in this Project."
           }
         }
       }
@@ -19930,6 +19910,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Choose a time in the future."
+          }
+        }
+      }
+    },
+    "Nessun server MCP in questo Progetto. Arrivano con i Plugin: cercane uno in un Marketplace." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No MCP servers in this Project. They come with Plugins: look for one in a Marketplace."
+          }
+        }
+      }
+    },
+    "Ricaricando, il turno successivo può costare un po' di più." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After reloading, the next turn may cost a little more."
+          }
+        }
+      }
+    },
+    "Scegli un Marketplace nella barra a sinistra per sfogliare i plugin." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a Marketplace in the sidebar to browse plugins."
           }
         }
       }

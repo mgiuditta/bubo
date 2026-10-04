@@ -16,7 +16,7 @@ struct PluginReloadBanner: View {
                         Text("\(outdated.count) Sessioni al lavoro usano i plugin di prima")
                             .font(Typography.body(size: 13))
                             .foregroundStyle(Palette.textPrimary)
-                        Text("Ricaricare può invalidare la cache del prompt.")
+                        Text("Ricaricando, il turno successivo può costare un po' di più.")
                             .font(Typography.body(size: 12))
                             .foregroundStyle(Palette.textSecondary)
                     }

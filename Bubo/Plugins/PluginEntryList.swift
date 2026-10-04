@@ -5,6 +5,8 @@ struct PluginEntryList: View {
     let sections: [PluginSection]
     /// What the list says when it has nothing and nobody is searching.
     let emptyTitle: LocalizedStringKey
+    /// The next step under ``emptyTitle``, when there is one.
+    var emptyDescription: LocalizedStringKey?
     let isLoading: Bool
     let isSearching: Bool
     let isListingUnavailable: Bool
@@ -45,7 +47,8 @@ struct PluginEntryList: View {
             if isSearching {
                 ContentUnavailableView.search
             } else {
-                ContentUnavailableView(emptyTitle, systemImage: "puzzlepiece.extension")
+                ContentUnavailableView(emptyTitle, systemImage: "puzzlepiece.extension",
+                                       description: emptyDescription.map { Text($0) })
             }
         } else {
             List(selection: $selection) {
