@@ -24,6 +24,10 @@ struct CostsView: View {
                                   source: source, sessionTitle: sessionTitle)
         VStack(alignment: .leading, spacing: Spacing.medium) {
             filters(history)
+            // Its own row: beside three fixed-width pickers it had no room and wrapped word by word.
+            if cliHistory.isReading {
+                LoadingLabel("Leggo la Cronologia CLI…")
+            }
             CostTotals(history: history)
             chart(history)
             CostTable(history: history, grouping: grouping)
@@ -50,11 +54,9 @@ struct CostsView: View {
                 ForEach(CostHistory.Source.allCases) { Text($0.title) }
             }
             .fixedSize()
-            if cliHistory.isReading {
-                LoadingLabel("Leggo la Cronologia CLI…")
-            }
             Spacer()
             Button("Esporta CSV…") { export(history.csv) }
+                .fixedSize()
                 .disabled(history.rows.isEmpty)
         }
     }
