@@ -38,7 +38,7 @@ nonisolated enum PanelStatus: Equatable, Sendable {
         case .failing(let count, _): String(localized: "\(count) in Errore")
         case .answerReady: String(localized: "Risposta pronta")
         case .questionFailed: String(localized: "Domanda non riuscita")
-        case .dropHint: String(localized: "Rilascia: trascrivo e salvo nel cervello")
+        case .dropHint: String(localized: "Rilascia per farne una Riunione")
         }
     }
 

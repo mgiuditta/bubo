@@ -62,7 +62,7 @@ final class HotKeyCenter {
     /// Switches to `newShortcut` and saves it, keeping the old one if registration fails.
     func change(to newShortcut: KeyShortcut) {
         guard newShortcut != askShortcut else {
-            problem = String(localized: "\(newShortcut.displayName) apre già la bolla. Scegline un'altra.")
+            problem = String(localized: "\(newShortcut.displayName) è già la scorciatoia di «Chiedi nel Panel». Scegline un'altra.")
             return
         }
         guard newShortcut != attachWindowShortcut else {

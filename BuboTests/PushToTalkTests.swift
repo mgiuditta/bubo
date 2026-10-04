@@ -123,7 +123,7 @@ struct PushToTalkTests {
         #expect(recorder.taps == 0)
     }
 
-    @Test func nothingHeardSendsNothing() async {
+    @Test func nothingHeardSendsNothingAndSaysSo() async {
         let voice = pushToTalk()
         voice.press()
         await voice.holding?.value
@@ -131,6 +131,7 @@ struct PushToTalkTests {
         await voice.closing?.value
         #expect(recorder.dictated.isEmpty)
         #expect(orb.questionState == nil)
+        #expect(voice.failure == .nothingHeard)
     }
 
     @Test func aDeniedMicrophoneLeavesTheOrbAtRestWithTheLine() async {

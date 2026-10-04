@@ -29,8 +29,6 @@ struct PanelBubbleView: View {
                     .onChange(of: bubble.takesKeyboard, initial: true) { _, takesKeyboard in
                         if takesKeyboard { promptHasFocus = true }
                     }
-                    // A Domanda still for 15 minutes is over: the bubble opens on a new one.
-                    .onAppear(perform: model.resetIfIdle)
             }
         }
         .animation(bubble.appearance == .grow ? Motion.emphasized : Motion.quick, value: bubble.isOpen)
@@ -82,7 +80,7 @@ struct PanelBubbleView: View {
                         QuestionNotice(failure: failure, model: model, pickRetry: hud.show)
                             .transition(.opacity)
                     } else if model.isAnswering && model.answer.isEmpty {
-                        LoadingLabel("Chiedo a Claude…")
+                        LoadingLabel("Sto pensando…")
                             .transition(.opacity)
                     } else if !model.answer.isEmpty {
                         // As tall as the bubble lets it: the bubble scrolls past half the screen.
@@ -159,14 +157,14 @@ struct PanelBubbleView: View {
         // At the bottom, beside the last line, once a long prompt wraps.
         HStack(alignment: .bottom, spacing: Spacing.xSmall) {
             // Wraps up to six lines, then scrolls; Invio sends.
-            TextField("Chiedi qualcosa a Claude", text: $model.prompt, axis: .vertical)
+            TextField("Chiedi a Bubo", text: $model.prompt, axis: .vertical)
                 .lineLimit(1...6)
                 .textFieldStyle(.plain)
                 .font(Typography.body(size: 15))
                 .focused($promptHasFocus)
                 .onSubmit(model.ask)
                 // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
-                .accessibilityLabel("Chiedi qualcosa a Claude")
+                .accessibilityLabel("Chiedi a Bubo")
                 .accessibilityIdentifier("bubble.prompt")
                 // Before the prompt's keys, so ↑↓, Tab, Invio and Esc go to the menu while it shows.
                 .slashCompletion(text: $model.prompt, folder: brainSetup.secondBrainFolder)
@@ -184,17 +182,20 @@ struct PanelBubbleView: View {
                 .keyboardShortcut("n", modifiers: .command)
                 .help("Nuova Domanda (⌘N)")
                 .accessibilityIdentifier("bubble.newQuestion")
-            // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD.
-            Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
-                hud.turnIntoSession(model.turnIntoSession())
+            // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD. Not twice: with a
+            // proposal above, that one already says where the Sessione goes.
+            if model.sessionProposal == nil {
+                Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
+                    hud.turnIntoSession(model.turnIntoSession())
+                }
+                .help("Trasforma in Sessione")
             }
-            .help("Trasforma in Sessione")
             // The same Domanda in the window, with its earlier turns and room for long answers (ADR 0013).
-            Button("Apri la chat completa", systemImage: "arrow.up.left.and.arrow.down.right") {
+            Button("Apri nella finestra", systemImage: "arrow.up.left.and.arrow.down.right") {
                 bubble.close()
                 hud.show(question: model.currentQuestionID)
             }
-            .help("Apri la chat completa")
+            .help("Apri nella finestra")
             .accessibilityIdentifier("bubble.openHUD")
             Button("Chiudi", systemImage: "xmark", action: bubble.close)
                 .help("Chiudi")

@@ -10,4 +10,6 @@ nonisolated enum VoiceFailure: Error, Equatable {
     case modelDownloading
     /// The on-device model of the language is missing and could not be downloaded, usually for lack of network.
     case modelUnavailable
+    /// The shortcut was released and the transcription had no words: too quiet, or released too soon.
+    case nothingHeard
 }

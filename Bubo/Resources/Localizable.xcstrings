@@ -2761,16 +2761,6 @@
         }
       }
     },
-    "Apri la chat completa" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Open Full Chat"
-          }
-        }
-      }
-    },
     "Apri la nota" : {
       "localizations" : {
         "en" : {
@@ -6093,16 +6083,6 @@
         }
       }
     },
-    "Rilascia: trascrivo e salvo nel cervello" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drop: I'll transcribe it and save it to your brain"
-          }
-        }
-      }
-    },
     "Riporta %@ com'era prima di questo salvataggio" : {
       "localizations" : {
         "en" : {
@@ -7126,16 +7106,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Asking Claude which CLAUDE.md files it loads…"
-          }
-        }
-      }
-    },
-    "Chiedo a Claude…" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Asking Claude…"
           }
         }
       }
@@ -12118,32 +12088,12 @@
         }
       }
     },
-    "Mostra HUD  %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show HUD  %@"
-          }
-        }
-      }
-    },
     "Mostra il QR" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Show QR Code"
-          }
-        }
-      }
-    },
-    "Mostra Panel" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show Panel"
           }
         }
       }
@@ -12164,16 +12114,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Shows what it merges and where, then asks to confirm"
-          }
-        }
-      }
-    },
-    "Mostra e nascondi Bubo" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show and hide Bubo"
           }
         }
       }
@@ -19488,17 +19428,6 @@
         }
       }
     },
-    "%@ apre già la bolla. Scegline un'altra." : {
-      "comment" : "Shortcut settings: the HUD shortcut cannot be the one of Ask in the Panel.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ already opens the bubble. Choose a different one."
-          }
-        }
-      }
-    },
     "%@ mostra già l'HUD. Scegline un'altra." : {
       "comment" : "Shortcut settings: Ask in the Panel cannot use the HUD shortcut.",
       "localizations" : {
@@ -19810,6 +19739,87 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "The Session didn't start. Try again."
+          }
+        }
+      }
+    },
+    "Apri nella finestra" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Window"
+          }
+        }
+      }
+    },
+    "Mostra Bubo  %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Bubo  %@"
+          }
+        }
+      }
+    },
+    "Mostra il Panel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the Panel"
+          }
+        }
+      }
+    },
+    "Mostra Bubo · tieni premuto per parlare" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Bubo · hold to talk"
+          }
+        }
+      }
+    },
+    "%@ è già la scorciatoia di «Chiedi nel Panel». Scegline un'altra." : {
+      "comment" : "Shortcut settings: the HUD shortcut cannot be the one of Ask in the Panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is already the shortcut for “Ask in the Panel”. Choose a different one."
+          }
+        }
+      }
+    },
+    "Non ho sentito niente" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I didn't hear anything"
+          }
+        }
+      }
+    },
+    "Tieni premuta la scorciatoia mentre parli, poi rilascia." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold the shortcut while you talk, then release it."
+          }
+        }
+      }
+    },
+    "Rilascia per farne una Riunione" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop to make it a Meeting"
           }
         }
       }

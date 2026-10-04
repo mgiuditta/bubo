@@ -161,7 +161,11 @@ final class PushToTalk {
             let text = await listener.finish()
             Signposts.endInterval(.voiceFinalText, interval)
             endListening()
-            guard !text.isEmpty else { return }
+            // Not in silence: the Orb went back to rest, and the user would not know whether Bubo heard.
+            guard !text.isEmpty else {
+                failure = .nothingHeard
+                return
+            }
             dictate(text, sends)
         }
     }

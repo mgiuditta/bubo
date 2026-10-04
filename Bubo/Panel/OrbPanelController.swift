@@ -174,6 +174,9 @@ final class OrbPanelController {
         }
         // Read before the bubble opens: the Panel never activates Bubo, so the app in front is the user's.
         let front = NSWorkspace.shared.frontmostApplication
+        // Opening to ask: a Domanda still for 15 minutes is over. Not when the bubble opens from «Risposta pronta» or
+        // a drop, which come back to the answer.
+        questions?.resetIfIdle()
         bubble.open(focus: .prompt)
         guard let front, let id = front.bundleIdentifier, BrowserPage.script(forBrowser: id) != nil else { return }
         let browserName = front.localizedName ?? id

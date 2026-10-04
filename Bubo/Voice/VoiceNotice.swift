@@ -28,6 +28,10 @@ struct VoiceNotice: View {
             ErrorNotice("Manca il modello della dettatura",
                         remedy: "Collegati a Internet e riprova: si scarica una volta sola, poi funziona offline.",
                         actionTitle: "Chiudi", action: dismiss)
+        case .nothingHeard:
+            ErrorNotice("Non ho sentito niente",
+                        remedy: "Tieni premuta la scorciatoia mentre parli, poi rilascia.",
+                        actionTitle: "Chiudi", action: dismiss)
         }
     }
 

@@ -7,7 +7,7 @@ struct ShortcutSettingsView: View {
 
     var body: some View {
         Form {
-            LabeledContent("Mostra e nascondi Bubo") {
+            LabeledContent("Mostra Bubo · tieni premuto per parlare") {
                 ShortcutRecorder(shortcut: hotKeys.shortcut) { hotKeys.change(to: $0) }
             }
             LabeledContent("Chiedi nel Panel") {

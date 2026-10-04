@@ -116,7 +116,7 @@ final class HUDPresenter {
         show()
     }
 
-    /// Brings the window to the front on the Domanda `id`, to continue it there («Apri la chat completa»).
+    /// Brings the window to the front on the Domanda `id`, to continue it there («Apri nella finestra»).
     func show(question id: UUID) {
         selection = .question(id)
         show()

@@ -59,12 +59,14 @@ struct MenuBarContent: View {
         Button("Importa nel Secondo cervello…", action: documents.chooseAndImport)
             .disabled(!documents.canImport)
         Button("Mostra i Neuroni", action: showNeurons)
-        Button("Mostra HUD  \(hotKeys.shortcut.displayName)") { hud.show() }
-        Toggle("Mostra Panel", isOn: $panel.isShown)
+        Button("Mostra Bubo  \(hotKeys.shortcut.displayName)") { hud.show() }
+        Toggle("Mostra il Panel", isOn: $panel.isShown)
         Toggle("Panel ridotto", isOn: $panel.isReduced)
             .disabled(!panel.isShown)
-        Button("Chiedi nel Panel  \(hotKeys.askShortcut.displayName)", action: panel.askInPanel)
-            .disabled(!panel.isShown)
+        // As its shortcut: with the Panel hidden, the Domanda of the window.
+        Button("Chiedi nel Panel  \(hotKeys.askShortcut.displayName)") {
+            panel.isShown ? panel.askInPanel() : hud.show()
+        }
         Button("Allega finestra…  \(hotKeys.attachWindowShortcut.displayName)", action: panel.attachWindow)
         #if DEBUG
         Button("Debug Orb…") { openWindow(id: OrbDebugView.windowID) }
