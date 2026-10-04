@@ -36,7 +36,10 @@ jobs:
         env:
           CHOSEN: ${{ inputs.variant || 'tutte' }}
           VARIANT: ${{ matrix.variant }}
+          HAS_KEY: ${{ secrets.ANTHROPIC_API_KEY_CI != '' }}
         run: |
+          # Senza il segreto (#220) lo smoke salta, invece di fallire e aprire un'issue ogni notte.
+          if [[ "$HAS_KEY" != true ]]; then echo "::notice::ANTHROPIC_API_KEY_CI mancante: smoke saltato"; echo "run=false" >> "$GITHUB_OUTPUT"; exit 0; fi
           if [[ "$CHOSEN" == tutte || "$CHOSEN" == "$VARIANT" ]]; then echo "run=true"; else echo "run=false"; fi >> "$GITHUB_OUTPUT"
 
       - uses: actions/checkout@v5
