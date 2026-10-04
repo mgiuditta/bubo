@@ -39,7 +39,7 @@ struct QuestionView: View {
                     .onKeyPress(phases: .down, action: chipKeyPress)
                 // The Domanda ↔ Sessione switch: the conversation so far goes with it.
                 Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
-                    hud.createSession(from: model.turnIntoSession())
+                    hud.turnIntoSession(model.turnIntoSession())
                 }
                 .labelStyle(.iconOnly)
                 .buttonStyle(.plain)
@@ -91,23 +91,8 @@ struct QuestionView: View {
                 attachmentReview(attachmentVerdict, endpoint: endpoint, alternative: reviewedAlternative)
             }
 
-            if let resumesAt = model.resumesAt {
-                HStack(spacing: Spacing.small) {
-                    Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")
-                        .font(Typography.body(size: 13))
-                        .foregroundStyle(Palette.textSecondary)
-                    Button("Annulla", action: model.stop)
-                }
-            } else if let failure = model.failure {
-                QuestionNotice(failure: failure, model: model) { isPickingRetry = true }
-            } else if model.isAnswering && model.answer.isEmpty {
-                LoadingLabel("Chiedo a Claude…")
-            } else if !model.answer.isEmpty {
-                QuestionAnswer(model: model) { isPickingRetry = true }
-            }
-
-            if let savedChange = model.savedChange {
-                SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
+            if hasOutcome {
+                outcome
             }
         }
         // On the whole field, not on the button: a failed answer offers "Rifai con…" too, without the reason line.
@@ -164,6 +149,54 @@ struct QuestionView: View {
 
     /// The chip's keys in the prompt: Tab and ⇧Tab the model, ⌥↑ and ⌥↓ the effort, Esc back to the router; any
     /// other key, or one with nothing to change, keeps its usual meaning.
+    /// Whether the Domanda has anything to show under the prompt: an answer, its wait, its failure or its saved note.
+    private var hasOutcome: Bool {
+        model.resumesAt != nil || model.failure != nil || model.isAnswering || !model.answer.isEmpty
+            || model.savedChange != nil
+    }
+
+    /// The Domanda's answer in a card of its own, headed by its prompt and closed with "Nuova Domanda": never mixed
+    /// with the Sessione's card above the prompt.
+    private var outcome: some View {
+        VStack(alignment: .leading, spacing: Spacing.small) {
+            HStack(spacing: Spacing.xSmall) {
+                Text(verbatim: model.lastPrompt.isEmpty ? String(localized: "Domanda") : model.lastPrompt)
+                    .font(Typography.body(size: 12))
+                    .foregroundStyle(Palette.textSecondary)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button("Chiudi la Domanda", systemImage: "xmark", action: model.startNewQuestion)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.plain)
+                    .foregroundStyle(Palette.textSecondary)
+                    .help("Chiudi la Domanda")
+                    .accessibilityIdentifier("question.close")
+            }
+            if let resumesAt = model.resumesAt {
+                HStack(spacing: Spacing.small) {
+                    Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")
+                        .font(Typography.body(size: 13))
+                        .foregroundStyle(Palette.textSecondary)
+                    Button("Annulla", action: model.stop)
+                }
+            } else if let failure = model.failure {
+                QuestionNotice(failure: failure, model: model) { isPickingRetry = true }
+            } else if model.isAnswering && model.answer.isEmpty {
+                LoadingLabel("Chiedo a Claude…")
+            } else if !model.answer.isEmpty {
+                QuestionAnswer(model: model) { isPickingRetry = true }
+            }
+            if let savedChange = model.savedChange {
+                SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
+            }
+        }
+        .padding(Spacing.medium)
+        .overlay {
+            RoundedRectangle(cornerRadius: CornerRadius.large).strokeBorder(Palette.line)
+        }
+        .padding(.top, Spacing.small)
+    }
+
     private func chipKeyPress(_ press: KeyPress) -> KeyPress.Result {
         guard showsChip,
               model.handleChipKey(press.key, modifiers: press.modifiers, escapeReturnsToRouter: true)

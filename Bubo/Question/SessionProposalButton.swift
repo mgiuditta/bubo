@@ -9,7 +9,7 @@ struct SessionProposalButton: View {
     var body: some View {
         if let proposal = model.sessionProposal {
             Button(Self.title(of: proposal), systemImage: "arrow.triangle.branch") {
-                hud.createSession(from: model.turnIntoSession(accepting: proposal))
+                hud.turnIntoSession(model.turnIntoSession(accepting: proposal))
             }
             .buttonStyle(.plain)
             .font(Typography.body(size: 12))

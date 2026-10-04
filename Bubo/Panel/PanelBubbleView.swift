@@ -180,7 +180,7 @@ struct PanelBubbleView: View {
                 .accessibilityIdentifier("bubble.newQuestion")
             // The Domanda ↔ Sessione switch: the conversation so far goes with it, in the HUD.
             Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {
-                hud.createSession(from: model.turnIntoSession())
+                hud.turnIntoSession(model.turnIntoSession())
             }
             .help("Trasforma in Sessione")
             // The same Domanda in the HUD, with room for long answers and the Sessioni.

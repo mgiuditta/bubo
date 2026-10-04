@@ -108,6 +108,20 @@ final class HUDPresenter {
         show()
     }
 
+    /// Starts a Sessione from a Domanda at once, without the sheet, and returns its identifier; `nil` when the sheet is
+    /// needed, as with no trusted Progetto.
+    @ObservationIgnored var startSession: ((SessionDraft) -> Session.ID?)?
+
+    /// Hands the Domanda to a Sessione ("Trasforma in Sessione"): started at once with the proposed title, branch and
+    /// Progetto, and shown; the sheet only when it cannot start on its own.
+    func turnIntoSession(_ draft: SessionDraft) {
+        if draft.continuesQuestion, let id = startSession?(draft) {
+            show(session: id)
+        } else {
+            createSession(from: draft)
+        }
+    }
+
     /// Brings the HUD to the front on the Sessione `id`.
     func show(session id: Session.ID) {
         revealedSession = id

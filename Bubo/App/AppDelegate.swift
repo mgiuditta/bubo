@@ -312,6 +312,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .environment(updates))
         panel.start(openingHUD: { [hud] in hud.show() }, menu: menu, questions: questions, hud: hud,
                     sessions: sessions, meetings: meetings, brainSetup: brainSetup)
+        hud.startSession = { [weak self] draft in self?.startSession(continuing: draft) }
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
         hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
@@ -503,6 +504,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             galaxies.show(project)
         } else {
             galaxies.chooseFolder()
+        }
+    }
+
+    /// Starts a Sessione that continues the Domanda in `draft` on the first trusted Progetto, as the sheet would
+    /// propose it, and leaves the Domanda behind; `nil` without a trusted Progetto or when the start fails.
+    private func startSession(continuing draft: SessionDraft) -> Session.ID? {
+        guard let sessions, let project = draft.project ?? sessions.projects.first, TrustGate().isTrusted(project)
+        else { return nil }
+        let title = Session.proposedTitle(for: draft.question)
+        do {
+            let id = try sessions.start(draft.firstPrompt(draft.prompt), title: title,
+                                        branch: Session.proposedBranch(for: title), in: project)
+            questions.startNewQuestion()
+            return id
+        } catch {
+            Logger.sessions.error("Sessione not started: \(String(describing: error), privacy: .public)")
+            return nil
         }
     }
 
