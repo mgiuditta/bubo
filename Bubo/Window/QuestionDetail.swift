@@ -24,11 +24,8 @@ struct QuestionDetail: View {
                 .padding(Spacing.l)
             }
             .defaultScrollAnchor(.bottom)
-            HStack(alignment: .top, spacing: Spacing.s) {
-                RecipientChip(recipient: .brain)
-                QuestionView(model: model)
-            }
-            .frame(maxWidth: Spacing.readingWidth)
+            QuestionView(model: model)
+                .frame(maxWidth: Spacing.readingWidth)
             .padding(Spacing.l)
         }
         .onAppear {
