@@ -168,6 +168,8 @@ struct PanelBubbleView: View {
                 // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
                 .accessibilityLabel("Chiedi qualcosa a Claude")
                 .accessibilityIdentifier("bubble.prompt")
+                // Before the prompt's keys, so ↑↓, Tab, Invio and Esc go to the menu while it shows.
+                .slashCompletion(text: $model.prompt, folder: brainSetup.secondBrainFolder)
                 .onKeyPress(phases: .down, action: promptKeyPress)
                 // Esc closes and the answer goes on; ⌘. stops it, from the Ferma button.
                 .onExitCommand(perform: bubble.close)

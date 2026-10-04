@@ -13,6 +13,7 @@ struct BuboApp: App {
                 .environment(appDelegate.pushToTalk)
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.deliveries)
+                .environment(appDelegate.secondBrain)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

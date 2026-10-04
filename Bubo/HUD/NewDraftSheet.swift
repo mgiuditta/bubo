@@ -11,6 +11,8 @@ struct NewDraftSheet: View {
     @State private var isChoosingFolder = false
     @State private var choice = EngineChoice.claude
     @State private var isProjectDefault = false
+    /// While the `/` menu shows, Invio and Esc go to it, not to the sheet's buttons.
+    @State private var isSlashMenuShowing = false
     @FocusState private var isTitleFocused: Bool
 
     var body: some View {
@@ -27,6 +29,7 @@ struct NewDraftSheet: View {
                     .focused($isTitleFocused)
                 TextField("Cosa deve fare Claude?", text: $text, axis: .vertical)
                     .lineLimit(3...8)
+                    .slashCompletion(text: $text, folder: project, isShowing: $isSlashMenuShowing)
                 EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
                                   copilotModels: store.copilotModels)
             }
@@ -35,9 +38,9 @@ struct NewDraftSheet: View {
             HStack {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
-                    .keyboardShortcut(.cancelAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .cancelAction)
                 Button("Salva Bozza", action: save)
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .defaultAction)
                     .disabled(project == nil || title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             }
         }
