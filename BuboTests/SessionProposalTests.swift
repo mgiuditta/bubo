@@ -137,3 +137,19 @@ struct HUDDropDestinationTests {
         #expect(reloaded.sessions.first { $0.id == open.id }?.attachments == [])
     }
 }
+
+/// A Progetto named in the text of a Domanda proposes a Sessione on it (ADR 0013).
+struct SessionProposalFromTextTests {
+    let bubo = URL(filePath: "/Users/io/dev/bubo", directoryHint: .isDirectory)
+    let sito = URL(filePath: "/Users/io/dev/sito", directoryHint: .isDirectory)
+
+    @Test(arguments: ["entra in bubo e sistema il login", "Bubo: aggiungi un test", "nel progetto BUBO fai il build"])
+    func aKnownProjectNamedInTheTextIsProposed(text: String) {
+        #expect(SessionProposal.forText(text, among: [sito, bubo]) == .session(on: bubo))
+    }
+
+    @Test(arguments: ["che tempo fa a Torino", "bubolo è una parola", "il sito di bubo"])
+    func noProposalUnlessExactlyOneProjectIsNamed(text: String) {
+        #expect(SessionProposal.forText(text, among: [sito, bubo]) == nil)
+    }
+}
