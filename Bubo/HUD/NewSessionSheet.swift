@@ -20,6 +20,8 @@ struct NewSessionSheet: View {
     @State private var isProjectDefault = false
     @State private var isChoosingFolder = false
     @State private var isAskingTrust = false
+    /// While the `/` menu shows, Invio and Esc go to it, not to the sheet's buttons.
+    @State private var isSlashMenuShowing = false
     @FocusState private var isPromptFocused: Bool
 
     var body: some View {
@@ -68,6 +70,7 @@ struct NewSessionSheet: View {
                 TextField("Cosa deve fare Claude?", text: $prompt, axis: .vertical)
                     .lineLimit(3...6)
                     .focused($isPromptFocused)
+                    .slashCompletion(text: $prompt, folder: project, isShowing: $isSlashMenuShowing)
                 TextField("Titolo", text: $title)
                 EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
                                   copilotModels: store.copilotModels)
@@ -88,9 +91,9 @@ struct NewSessionSheet: View {
             HStack {
                 Spacer()
                 Button("Annulla", role: .cancel) { dismiss() }
-                    .keyboardShortcut(.cancelAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .cancelAction)
                 Button("Crea", action: create)
-                    .keyboardShortcut(.defaultAction)
+                    .keyboardShortcut(isSlashMenuShowing ? nil : .defaultAction)
                     .disabled(!canCreate)
             }
         }

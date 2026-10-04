@@ -20,6 +20,8 @@ struct QuestionView: View {
     @State private var alwaysUse = false
     /// Push-to-talk, whose partial text fills the prompt; `nil` in previews.
     @Environment(PushToTalk.self) private var voice: PushToTalk?
+    /// Where the `/` menu finds the Secondo cervello's skills; `nil` in previews.
+    @Environment(SecondBrain.self) private var secondBrain: SecondBrain?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.small) {
@@ -36,6 +38,8 @@ struct QuestionView: View {
                     // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
                     .accessibilityLabel("Chiedi qualcosa a Claude")
                     .accessibilityIdentifier("question.prompt")
+                    // Before the chip's keys, so ↑↓, Tab, Invio and Esc go to the menu while it shows.
+                    .slashCompletion(text: $model.prompt, folder: secondBrain?.location?.url)
                     .onKeyPress(phases: .down, action: chipKeyPress)
                 // The Domanda ↔ Sessione switch: the conversation so far goes with it.
                 Button("Trasforma in Sessione", systemImage: "arrow.triangle.branch") {

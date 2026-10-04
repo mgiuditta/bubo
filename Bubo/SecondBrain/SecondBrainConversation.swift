@@ -27,6 +27,9 @@ final class SecondBrainConversation {
         self.secondBrain = secondBrain
     }
 
+    /// The Secondo cervello's folder, whose `.claude` skills the `/` menu of the Bolla offers; `nil` without one.
+    var secondBrainFolder: URL? { secondBrain.location?.url }
+
     /// Whether the Domanda in the Bolla is still this interview: "Nuova Domanda" ends it.
     var isActive: Bool {
         folder != nil && !openingPrompt.isEmpty && (questions.turns.first?.prompt ?? questions.lastPrompt) == openingPrompt
