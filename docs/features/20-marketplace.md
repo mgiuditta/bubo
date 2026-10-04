@@ -225,7 +225,7 @@ Fonte: [#190](https://github.com/mgiuditta/bubo/issues/190), variante A (tre col
   1. Nome, Marketplace, versione; etichette di stato (scope, "fuori dalla sandbox", aggiornamento).
   2. Riquadri d'azione in ordine di gravità, ciascuno con un solo pulsante: Plugin mancante → Installa; errore → azione suggerita; `needs-auth` → Accedi, con accanto il comando `claude mcp login`; impostazioni mancanti → Configura…; aggiornamento → Aggiorna.
   3. Inventario: "Cosa installa" prima dell'installazione, "Componenti installati" dopo, con il segno sui componenti eseguibili.
-  4. In fondo: Attiva/Disattiva (primaria), Impostazioni…, Disinstalla… (in rosso, secondaria).
+  4. In fondo: Attiva/Disattiva (primaria), Impostazioni…, Disinstalla… (in `danger`, secondaria).
 - **Fogli** (modali sulla finestra):
   - **Installa**: scope (Per me predefinito · Per questo Progetto · Solo io qui) e inventario. Componenti sconosciuti → riquadro "Componenti sconosciuti: può eseguire codice sul Mac". Sorgente `command` → comando, impronta sha256 e casella "Ho letto il comando e mi fido": Installa resta spento finché la casella non è spuntata. Server MCP remoto → "non esegue codice sul Mac".
   - **Aggiorna** con nuovo codice eseguibile: elenca solo i componenti nuovi. Senza codice nuovo nessun foglio: 1 clic.

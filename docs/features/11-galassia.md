@@ -93,7 +93,7 @@ Oggi, per sapere dove lavora un agente, il riferimento è il **pannello changes 
 
 1. **Trovare il file toccato**: dall'apertura della Galassia al diff di un file toccato da una Sessione, tempo mediano ≤ quello della lista dei file modificati della stessa Sessione. Test con 10 file bersaglio su un repo da ≥ 5.000 file. Se la mappa perde, vince la lista integrata.
 2. **Orientarsi**: alla domanda "in quale cartella di primo livello lavora ciascun agente?" risposta corretta in ≤ 5 s con 3 Sessioni attive, senza aprire nulla. Nessuna lista lo fa.
-3. **Collisioni**: due Sessioni che toccano lo stesso file o la stessa cartella si vedono subito (stesso ammasso acceso con due Tinte), prima del merge (feature 02).
+3. **Collisioni**: due Sessioni che toccano lo stesso file o la stessa cartella si vedono subito (stesso ammasso acceso da due comete, doppio anello sul file), prima del merge (feature 02).
 4. **Stabilità**: la stessa cartella resta nella stessa posizione tra due aperture e dopo un commit che aggiunge file altrove (spostamento 0).
 5. **Prestazioni**: 10.000 file a 120 fps sull'M4 Max e 60 fps su un M1 base; p95 di fotogramma < 8 ms; prima immagine < 500 ms su 10k file con layout in cache.
 6. **Scala**: 100.000 file senza scartarne nessuno (a differenza di `--max-files` di Gource), grazie ai livelli di dettaglio per cartella.
@@ -117,7 +117,7 @@ Fonte: [Prototipo: Galassia del repo](https://github.com/mgiuditta/bubo/issues/4
 
 - **Piano 2,5D inclinato.** Cartelle = ammassi a posizione fissa (circle packing gerarchico ordinato per nome); file = stelle istanziate. La terza dimensione serve solo all'attività: le letture sono tenui e restano sul piano, le scritture si alzano e si accendono. Due Sessioni sullo stesso file: doppio anello.
 - **Livelli di dettaglio.** Da lontano un punto per cartella (dimensione = numero di file), poi le stelle, poi le etichette. File ignorati da git esclusi. La soglia delle stelle guarda il nucleo, che ha lo stesso raggio in ogni cartella: si accendono quando il nucleo sullo schermo passa da 4 a 10 pt, insieme per tutte le cartelle, mentre i punti di cartella sfumano allo stesso ritmo. Il raggio della cartella non conta, perché crescerebbe con le sottocartelle e falserebbe la soglia (#375).
-- **Comete.** Una per Sessione, con scia sugli ultimi file toccati, nome, segno (● ▲ ■ …) e Attività. Colore: nessuno per Sessione, la Tinta resta del fornitore (ADR 0004: il contenitore è acromatico, Lume solo per "Attende te").
+- **Comete.** Una per Sessione, con scia sugli ultimi file toccati, nome, segno (● ▲ ■ …) e Attività. Colore: nessuno per Sessione, la Tinta resta del fornitore (ADR 0004: il contenitore è acromatico, Lume solo per "Attende te" e le Richieste di permesso).
 - **Lista sempre a destra.** File modificati per Sessione con `+n −m`; letture raccolte in "N letture"; campo di ricerca nel Progetto che accende i risultati sulla mappa. Clic su una riga → camera sulla stella, e viceversa. La lista è l'equivalente accessibile della scena.
 - **Filtro per Sessione.** Chip in cima alla lista; il clic filtra e fa seguire la cometa dalla camera, trascinare la sgancia (da B).
 - **Etichette.** I nomi dei file modificati sono sempre visibili sulla mappa, entro un tetto di etichette (da B).
