@@ -318,6 +318,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         hud.startSession = { [weak self] draft in self?.startSession(continuing: draft) }
         hud.searchConversations = { [weak self] text in self?.palette.show(text: text) }
         hud.showCosts = { [weak self] in self?.costs.show() }
+        hud.showNeurons = { [weak self] in self?.showNeurons() }
+        hud.showMeetings = { [weak self] in self?.meetingWindow.show() }
         hud.importMeetings = { [meetings] files in meetings.imports.start(importing: files) }
         panel.importMeetings = hud.importMeetings
     }
@@ -518,7 +520,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let title = Session.proposedTitle(for: draft.question)
         do {
             let id = try sessions.start(draft.firstPrompt(draft.prompt), title: title,
-                                        branch: Session.proposedBranch(for: title), in: project)
+                                        branch: Session.proposedBranch(for: title), in: project,
+                                        fromQuestion: draft.originQuestion)
             questions.startNewQuestion()
             return id
         } catch {

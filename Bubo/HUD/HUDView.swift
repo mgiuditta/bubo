@@ -18,15 +18,23 @@ struct HUDView: View {
 
     var body: some View {
         @Bindable var hud = hud
-        HStack(alignment: .top, spacing: Spacing.large) {
-            if hud.vista == .colonna, let sessions = visibleSessions {
-                SessionColumn(store: sessions)
-                    .padding(.vertical, Spacing.medium)
-            }
-            main
+        NavigationSplitView {
+            MainSidebar(selection: $hud.selection, questions: questions, sessions: sessions)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+        } detail: {
+            detail(for: hud.selection)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.horizontal, Spacing.large)
-        .frame(minWidth: 720, minHeight: 560)
+        .frame(minWidth: 900, minHeight: 560)
+        // Neuroni and Riunioni keep their own windows: the sidebar opens them and stays where it was.
+        .onChange(of: hud.selection) { previous, selection in
+            switch selection {
+            case .neurons: hud.showNeurons?()
+            case .meetings: hud.showMeetings?()
+            default: return
+            }
+            hud.selection = previous
+        }
         .background {
             HUDBackground()
                 // Here, not next to the other sheets: one sheet modifier per view.
@@ -114,6 +122,26 @@ struct HUDView: View {
     /// The recent Progetti, read off the main thread.
     @concurrent nonisolated private static func recentProjects() async -> [RecentProject] {
         RecentProjects.load()
+    }
+
+    /// What the right column shows for `selection`.
+    @ViewBuilder
+    private func detail(for selection: SidebarSelection) -> some View {
+        switch selection {
+        case .brain, .neurons, .meetings:
+            main.padding(.horizontal, Spacing.l)
+        case .conversation(let id):
+            ConversationDetail(id: id, questions: questions, sessions: sessions)
+        case .project(let project):
+            if let sessions {
+                ProjectSessions(project: project, store: sessions, selection: Bindable(hud).selection)
+            }
+        case .work:
+            if let sessions {
+                SessionBoard(store: sessions)
+                    .padding(Spacing.l)
+            }
+        }
     }
 
     /// The Sessioni to lay out, when there is at least one.

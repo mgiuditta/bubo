@@ -45,6 +45,13 @@ final class HUDPresenter {
 
     /// Opens the Costi window; set by the app, since it is an AppKit window.
     @ObservationIgnored var showCosts: (() -> Void)?
+    /// Opens the Neuroni window; set by the app.
+    @ObservationIgnored var showNeurons: (() -> Void)?
+    /// Opens the Riunioni window; set by the app.
+    @ObservationIgnored var showMeetings: (() -> Void)?
+
+    /// What the sidebar of the window has chosen, shown on the right; the Cervello when the window opens.
+    var selection = SidebarSelection.brain
     /// Shows the Galassia of a Sessione's Progetto, filtered on it with its comet followed; `nil` in previews.
     @ObservationIgnored var showInGalaxy: ((Session) -> Void)?
 
@@ -86,7 +93,7 @@ final class HUDPresenter {
 
     /// Brings the HUD to the front on the Board, where the Bozze are.
     func showDrafts() {
-        switchVista(to: .board)
+        selection = .work
         show()
     }
 
@@ -125,6 +132,13 @@ final class HUDPresenter {
     /// Brings the HUD to the front on the Sessione `id`.
     func show(session id: Session.ID) {
         revealedSession = id
+        selection = .session(id)
+        show()
+    }
+
+    /// Brings the window to the front on the Domanda `id`, to continue it there («Apri la chat completa»).
+    func show(question id: UUID) {
+        selection = .question(id)
         show()
     }
 
