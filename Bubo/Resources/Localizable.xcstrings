@@ -15050,16 +15050,6 @@
         }
       }
     },
-    "Router" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Router"
-          }
-        }
-      }
-    },
     "Saltata" : {
       "localizations" : {
         "en" : {
