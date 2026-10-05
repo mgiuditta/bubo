@@ -252,6 +252,8 @@ enum BridgeEvent: Equatable, Decodable {
     case turnFailed(id: String, TurnFailure)
     /// The conversation `id` stopped at a subscription limit.
     case limit(id: String, reached: Quota.Limit)
+    /// The Domanda `id` on Copilot stopped because its Quota ran out or it hit a limit, as `copilot` wrote it in `message`.
+    case copilotLimit(id: String, message: String)
     /// The conversation `id` stopped because the login of `claude` is no longer valid.
     case signInRequired(id: String)
     /// The conversation `id` stopped at the cap of its Budget (`error_max_budget_usd`).
@@ -369,6 +371,8 @@ enum BridgeEvent: Equatable, Decodable {
                                     reached: Quota.Limit(window: try container.decodeIfPresent(String.self, forKey: .window),
                                                         resetsAt: try container.decodeIfPresent(Double.self, forKey: .resetsAt)
                                                             .map(Date.init(timeIntervalSince1970:))))
+        case "copilotLimit": self = .copilotLimit(id: try container.decode(String.self, forKey: .id),
+                                                  message: try container.decode(String.self, forKey: .message))
         case "signInRequired": self = .signInRequired(id: try container.decode(String.self, forKey: .id))
         case "budgetExhausted": self = .budgetExhausted(id: try container.decode(String.self, forKey: .id))
         case "sandboxUnavailable": self = .sandboxUnavailable(id: try container.decode(String.self, forKey: .id),

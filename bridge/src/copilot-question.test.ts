@@ -3,7 +3,7 @@ import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { copilotEnvironment, CopilotPermissions, type IsDangerous } from "./copilot";
-import { buboTools, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, questionSession, type AskBubo,
+import { buboTools, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, isCopilotLimit, questionSession, type AskBubo,
   type CopilotQuestionEvent } from "./copilot-question";
 import type { RiskQuestion } from "./gate";
 import { declined } from "./question";
@@ -275,7 +275,28 @@ test("Ferma chiude anche la domanda in attesa", async () => {
 test("un errore di copilot arriva come error", async () => {
   const { questions, events } = harness();
   await questions.ask({ id: "e", prompt: "errore", copilot: fake, cwd: folder() });
-  expect(events).toEqual([{ type: "error", id: "e", message: "Crediti finiti" }]);
+  expect(events).toEqual([{ type: "error", id: "e", message: "fetch failed" }]);
+});
+
+// #726: solo Quota finita o un limite fanno rispondere la Riserva.
+test("la Quota finita di copilot arriva come copilotLimit", async () => {
+  const { questions, events } = harness();
+  await questions.ask({ id: "q", prompt: "crediti", copilot: fake, cwd: folder() });
+  expect(events).toEqual([{ type: "copilotLimit", id: "q", message: "Crediti finiti" }]);
+});
+
+test("Quota e limiti di copilot sono un limite; licenza, login, contesto e rete no", () => {
+  for (const errorCode of ["quota_exceeded", "additional_spend_limit_reached", "session_quota_exceeded", undefined]) {
+    expect(isCopilotLimit({ errorType: "quota", errorCode })).toBe(true);
+  }
+  for (const errorCode of ["user_weekly_rate_limited", "user_global_rate_limited", "user_model_rate_limited",
+    "integration_rate_limited", "rate_limited", undefined]) {
+    expect(isCopilotLimit({ errorType: "rate_limit", errorCode })).toBe(true);
+  }
+  expect(isCopilotLimit({ errorType: "quota", errorCode: "billing_not_configured" })).toBe(false);
+  for (const errorType of ["authentication", "authorization", "context_limit", "query"]) {
+    expect(isCopilotLimit({ errorType })).toBe(false);
+  }
 });
 
 test("listModels arriva come copilotModels, senza i modelli spenti", async () => {

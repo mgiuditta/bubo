@@ -378,6 +378,8 @@ struct BridgeMessageTests {
         (#"{"v":4,"type":"limit","id":"a1","window":"five_hour","resetsAt":1790852400}"#,
          .limit(id: "a1", reached: Quota.Limit(window: "five_hour", resetsAt: Date(timeIntervalSince1970: 1_790_852_400)))),
         (#"{"v":4,"type":"limit","id":"a1"}"#, .limit(id: "a1", reached: Quota.Limit())),
+        (#"{"v":4,"type":"copilotLimit","id":"a1","message":"Crediti finiti"}"#,
+         .copilotLimit(id: "a1", message: "Crediti finiti")),
         (#"{"v":4,"type":"signInRequired","id":"a1"}"#, .signInRequired(id: "a1")),
         (#"{"v":4,"type":"permissionWithdrawn","id":"a1","request":"p1"}"#, .permissionWithdrawn(id: "a1", request: "p1")),
         (#"{"v":5,"type":"whatever"}"#, .unsupportedVersion(5)),

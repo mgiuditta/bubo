@@ -1081,10 +1081,15 @@ final class QuestionModel {
             guard !Task.isCancelled else { return }
             // The Tinta of the model's vendor, whatever the router would choose (ADR 0011).
             intake.answer(submission, movedTo: copilot.provider)
-            await answer(Richiesta(text: text(onMac: false), attachments: richiesta.attachments), withCopilot: copilot,
-                         route: route,
-                         submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
-            return
+            let isLimited = await answer(Richiesta(text: text(onMac: false), attachments: richiesta.attachments),
+                                         withCopilot: copilot, route: route,
+                                         submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
+            guard isLimited, !Task.isCancelled else { return }
+            // Copilot's Quota ran out: Claude, the Riserva, answers with its own default model (ADR 0014).
+            Logger.agent.notice("Domanda: Copilot at its limit, the Riserva answers")
+            route = Route(family: nil, model: nil, effort: nil, reason: route.reason, exhaustedEngine: .copilot)
+            intake.answer(submission, movedTo: .anthropic)
+            answer = ""
         }
         if let endpoint = route.endpoint {
             guard !Task.isCancelled else { return }
@@ -1166,8 +1171,9 @@ final class QuestionModel {
         if !Task.isCancelled { routedAnswer = RoutedAnswer(route: route, provider: .anthropic) }
         let turn = UUID().uuidString, question = question
         defer {
-            // Only a window `claude` reported both before and during the turn says what the turn used.
-            if !Task.isCancelled, quotaReports > reportsBefore {
+            // Only a window `claude` reported both before and during the turn says what the turn used; not when the
+            // Riserva answered instead.
+            if !Task.isCancelled, quotaReports > reportsBefore, routedAnswer?.route.destination == .claude {
                 routedAnswer?.fiveHourShare = RoutedAnswer.fiveHourShare(from: windowBefore, to: quota.fiveHour)
             }
         }
@@ -1232,6 +1238,19 @@ final class QuestionModel {
             self.failure = failure
         } catch let error as AgentBridgeError {
             Logger.agent.error("Domanda failed: \(String(describing: error), privacy: .public)")
+            // Claude's Quota ran out: Copilot, the Riserva, answers with the model set in `copilot` (ADR 0014). It
+            // reads no Allegato, so a Domanda with Allegati keeps the limit.
+            if case .limitReached = error, route.exhaustedEngine == nil, richiesta.attachments.isEmpty,
+               await isReserveReady(after: .claude), !Task.isCancelled {
+                Logger.agent.notice("Domanda: Claude at its limit, the Riserva answers")
+                var reserve = Route.copilot(.configured, effort: nil, reason: route.reason)
+                reserve.exhaustedEngine = .claude
+                intake.answer(submission, movedTo: CopilotModel.configured.provider)
+                answer = ""
+                await answer(Richiesta(text: text(onMac: false)), withCopilot: .configured, route: reserve,
+                             submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
+                return
+            }
             // With no network `claude` gives up with a generic error: say why instead.
             if case .failed = error, !(await cli.isOnline()) {
                 failure = .offline
@@ -1251,26 +1270,29 @@ final class QuestionModel {
     /// tools, behind the same level 4–5 gate as a Claude Domanda, the excluded folders closed (ADR 0014).
     ///
     /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
+    /// - Returns: Whether Copilot's Quota ran out, or it hit a limit, and Claude, the Riserva, is to answer instead
+    ///   (ADR 0014); without a Riserva ready the limit is the Domanda's failure, and the result `false`.
+    @discardableResult
     private func answer(_ richiesta: Richiesta, withCopilot model: CopilotModel, route: Route,
-                        submission: IntakePipeline.Submission, speaksAnswer: Bool, ignoringBudget: Bool) async {
+                        submission: IntakePipeline.Submission, speaksAnswer: Bool, ignoringBudget: Bool) async -> Bool {
         // Not a byte of an Allegato goes to Copilot.
         guard richiesta.attachments.isEmpty else {
             failure = .attachmentsHeld
-            return
+            return false
         }
         if !ignoringBudget, case let .exhausted(scope) = allowance(for: Budgets.copilot) {
             failure = .budgetExhausted(QuestionBudgetStop(scope: scope, route: route))
-            return
+            return false
         }
         guard let copilot = await copilotExecutable() else {
             failure = .copilotUnavailable
-            return
+            return false
         }
-        guard !Task.isCancelled else { return }
+        guard !Task.isCancelled else { return false }
         // The first time the notes would go to Copilot, nothing is sent before the user's answer.
         if endpoints.needsCopilotNotesConsent(hasSecondBrain: secondBrain?.location != nil) {
             copilotNotesQuestion = route
-            return
+            return false
         }
         routedAnswer = RoutedAnswer(route: route, provider: model.provider)
         let started = ContinuousClock.now
@@ -1331,12 +1353,28 @@ final class QuestionModel {
         } catch let AgentBridgeError.failed(message) {
             Logger.agent.error("Copilot failed: \(message, privacy: .public)")
             failure = .copilotFailed(message)
+        } catch let AgentBridgeError.copilotLimitReached(message) {
+            Logger.agent.error("Copilot at its limit: \(message, privacy: .public)")
+            if route.exhaustedEngine == nil, await isReserveReady(after: .copilot) { return true }
+            failure = .copilotFailed(message)
         } catch let error as AgentBridgeError {
             Logger.agent.error("Copilot failed: \(String(describing: error), privacy: .public)")
             failure = .bridge(error)
         } catch {
             Logger.agent.error("Copilot failed: \(String(describing: error), privacy: .public)")
             failure = .unexpected
+        }
+        return false
+    }
+
+    /// Whether the Riserva can answer a Domanda that `engine` could not, for Quota or a limit (ADR 0014): `engine` is
+    /// the Motore principale, the user has both with the Riserva on, and the other one is ready.
+    private func isReserveReady(after engine: Session.Engine) async -> Bool {
+        let primary = PrimaryEngine.saved(in: defaults)
+        guard primary.hasReserve, primary.engine == engine, endpoints.allowsCopilot else { return false }
+        switch engine {
+        case .claude: return await copilotExecutable() != nil
+        case .copilot: return await cli.executableURL() != nil
         }
     }
 

@@ -15,6 +15,8 @@ enum AgentBridgeError: Error, Equatable {
     case unsupportedVersion(Int)
     /// `claude` stopped at a subscription limit.
     case limitReached(Quota.Limit)
+    /// `copilot` ran out of Quota or hit a limit, and said so with `message`.
+    case copilotLimitReached(message: String)
     /// The login of `claude` is no longer valid.
     case signInRequired
     /// The turn stopped at the cap of its Budget, or was never sent because a Budget it counts in is spent (spec 18).
@@ -621,6 +623,8 @@ final class AgentBridge {
             finishAll(throwing: .failed(message: message))
         case let .limit(id, limit):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.limitReached(limit))
+        case let .copilotLimit(id, message):
+            removeAnswer(id)?.finish(throwing: AgentBridgeError.copilotLimitReached(message: message))
         case let .signInRequired(id):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.signInRequired)
         case let .budgetExhausted(id):
