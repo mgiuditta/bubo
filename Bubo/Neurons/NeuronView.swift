@@ -41,28 +41,48 @@ struct NeuronView: View {
                                        description: Text("Le note Markdown che aggiungi alla cartella compaiono qui da sole."))
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            Button("Mostra tutto", systemImage: "arrow.up.left.and.arrow.down.right") { model.fit() }
-                .keyboardShortcut("0")
-                .disabled(model.graph == nil)
-                .help("Mostra tutte le note (⌘0)")
-                .buttonStyle(.borderless)
-                .controlSize(.small)
-                .padding(.horizontal, Spacing.small)
-                // Room for the window's buttons: the bar sits under its transparent title bar.
-                .padding(.top, 28)
+            HStack(spacing: Spacing.xSmall) {
+                // Only for a vault, with Obsidian on the Mac: the selected note, else the vault itself.
+                if model.secondBrain.isObsidianVault, Self.hasObsidian {
+                    Button("Apri in Obsidian", systemImage: "arrow.up.forward.app", action: openInObsidian)
+                        .keyboardShortcut("o")
+                        .help(model.selection == nil ? "Apri il vault in Obsidian (⌘O)" : "Apri la nota in Obsidian (⌘O)")
+                }
+                Button("Mostra tutto", systemImage: "arrow.up.left.and.arrow.down.right") { model.fit() }
+                    .keyboardShortcut("0")
+                    .disabled(model.graph == nil)
+                    .help("Mostra tutte le note (⌘0)")
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+            .padding(.horizontal, Spacing.small)
+            // Room for the window's buttons: the bar sits under its transparent title bar.
+            .padding(.top, 28)
         }
     }
 
     /// Opens the note at `index` in Obsidian, or in Quick Look, as the citations of an answer do.
     private func open(_ index: Int) {
         guard let file = model.file(of: index) else { return }
-        let hasObsidian = NoteDestination.obsidianLink(to: URL(filePath: "/"))
-            .flatMap(NSWorkspace.shared.urlForApplication(toOpen:)) != nil
-        switch NoteDestination(file: file, isObsidianVault: model.secondBrain.isObsidianVault, hasObsidian: hasObsidian) {
+        switch NoteDestination(file: file, isObsidianVault: model.secondBrain.isObsidianVault,
+                               hasObsidian: Self.hasObsidian) {
         case let .obsidian(link):
             NSWorkspace.shared.open(link)
         case let .quickLook(file):
             previewedNote = file
         }
+    }
+
+    /// Whether Obsidian is on the Mac: something opens its `obsidian://` links.
+    private static var hasObsidian: Bool {
+        NoteDestination.obsidianLink(to: URL(filePath: "/"))
+            .flatMap(NSWorkspace.shared.urlForApplication(toOpen:)) != nil
+    }
+
+    /// Opens the selected note in Obsidian, or the vault when no note is selected.
+    private func openInObsidian() {
+        let target = model.selection.flatMap(model.file(of:)) ?? model.secondBrain.url
+        guard let link = NoteDestination.obsidianLink(to: target) else { return }
+        NSWorkspace.shared.open(link)
     }
 }
