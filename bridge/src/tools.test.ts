@@ -16,13 +16,14 @@ test("Profilo e Regole vanno nel prompt di sistema dopo l'Orb, e senza nulla res
   expect(systemPromptOf(undefined, "")).toBeUndefined();
 });
 
-test("una Domanda legge e cerca i file, ma non scrive, non esegue e non delega", () => {
+test("una Domanda legge da sola, scrive ed esegue chiedendo, e non delega", () => {
   const options = readOnlyOptions({ inBrain: true, hidden: [] });
-  expect(options.tools).toEqual(["Read", "Grep", "Glob", "WebSearch"]);
-  for (const tool of ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "Task"]) {
-    expect(options.tools).not.toContain(tool);
-    expect(options.disallowedTools).toContain(tool);
+  for (const tool of ["Read", "Grep", "Glob", "WebSearch", "Edit", "Write", "Bash", "WebFetch"]) {
+    expect(options.tools).toContain(tool);
+    expect(options.disallowedTools).not.toContain(tool);
   }
+  expect(options.tools).not.toContain("Task");
+  expect(options.disallowedTools).toContain("Task");
 });
 
 test("le cartelle escluse del Secondo cervello diventano regole Read negate, dopo quelle della squadra", () => {

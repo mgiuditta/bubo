@@ -38,6 +38,8 @@ struct QuestionDetail: View {
                     }
                     QuestionOutcome(model: model, isInChat: true)
                         .chatEntrance()
+                    QuestionRequests(model: model)
+                        .chatEntrance()
                 }
                 .animation(Motion.standard, value: model.turns.count)
                 .animation(Motion.standard, value: model.lastPrompt)

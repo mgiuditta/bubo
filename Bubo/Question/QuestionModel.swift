@@ -47,6 +47,13 @@ final class QuestionModel {
     private(set) var routedAnswer: RoutedAnswer?
     /// The last write of the Domanda in the Secondo cervello, with `ricorda`, if any: «Salvato in [[nota]] · Annulla».
     private(set) var savedChange: BrainChange?
+    /// The Richieste di permesso of the Domanda in course, oldest first: what `claude` wants to do beyond reading, such as
+    /// a Server MCP, a command or a file to write. Under ``requestsKey``: a Domanda is one conversation.
+    private(set) var permissions = RequestCenter()
+    /// The questions the agent asks in the Domanda in course, oldest first.
+    private(set) var agentQuestions: [AgentQuestion] = []
+    /// The key of the Domanda's Richieste in ``permissions``.
+    static let requestsKey = UUID()
     /// The Sintesi parlata while Bubo says it, as subtitles; `nil` when Bubo is silent.
     private(set) var subtitle: String?
     /// Whether to invite the user to download a better voice: Bubo spoke with a basic-quality one, and the user did not
@@ -716,8 +723,76 @@ final class QuestionModel {
     /// Stops the answer in progress, keeping what arrived, or stops waiting for a reset.
     func stop() {
         answering?.cancel()
+        // `claude` stops waiting with the turn: no card is left to answer.
+        permissions = RequestCenter()
+        agentQuestions = []
         stopSpeaking()
         resumesAt = nil
+    }
+
+    /// Takes a Richiesta di permesso, or a question, of the Domanda in course from `bridge`: a critical path is refused,
+    /// a call already allowed for this Domanda runs, the rest waits in the chat for the user.
+    func receive(_ event: PermissionEvent, from bridge: AgentBridge, classifier: RiskClassifier) {
+        switch event {
+        case let .asked(request):
+            switch permissions.receive(request, in: Self.requestsKey, risk: classifier.risk(of: request)) {
+            case .denied:
+                Logger.agent.notice("Domanda: critical path refused: \(request.tool, privacy: .public)")
+                bridge.answerPermission(request.id, allows: false)
+            case .allowed:
+                bridge.answerPermission(request.id, allows: true, isLasting: true)
+            case .queued:
+                break
+            }
+        case let .question(question):
+            agentQuestions.append(question)
+        case let .withdrawn(request):
+            permissions.withdraw(request, in: Self.requestsKey)
+            agentQuestions.removeAll { $0.id == request }
+        }
+    }
+
+    /// Answers the Richiesta di permesso `request` of the Domanda; nothing if `claude` no longer waits for it.
+    /// "Sempre in questo Progetto" counts for the rest of the Domanda, as "Per questa Sessione".
+    func answerPermission(_ request: PermissionRequest.ID, with answer: PermissionAnswer) {
+        let isLasting = (answer == .allowForSession || answer == .allowInProject)
+            && permissions.pending(request, in: Self.requestsKey)?.allowsSessionRule == true
+        guard let allows = permissions.answer(request, in: Self.requestsKey, with: answer) else { return }
+        bridge?.answerPermission(request, allows: allows, isLasting: isLasting)
+    }
+
+    /// The folder the Domanda works in, where "Sempre in questo Progetto" saves its rule: the Secondo cervello, or
+    /// Bubo's own folder of the Domande.
+    var requestsFolder: URL? {
+        try? Self.workplace(in: secondBrain?.location).directory
+    }
+
+    /// Answers Sempre in questo Progetto: saves the rule of the Richiesta `request` in ``requestsFolder``, then allows
+    /// the call. Nothing if `claude` no longer waits for it or no rule is offered.
+    ///
+    /// - Throws: `RuleStoreError.untrusted` until the folder is trusted, since `claude` would not read the rule;
+    ///   `RuleStoreError` or a file error when it cannot be saved. The Richiesta keeps waiting then.
+    func allowInProject(_ request: PermissionRequest.ID) throws {
+        guard let folder = requestsFolder,
+              let rule = permissions.pending(request, in: Self.requestsKey)?.projectRule
+        else { return }
+        guard TrustGate().isTrusted(folder) else { throw RuleStoreError.untrusted }
+        try RuleStore(project: folder).add(rule.text)
+        answerPermission(request, with: .allowInProject)
+    }
+
+    /// Answers the agent's questions `question` with `replies`, one per question in order; `nil` when the user does not
+    /// answer. Nothing if `claude` no longer waits for them.
+    func answerAgentQuestion(_ question: AgentQuestion.ID, with replies: [AgentQuestion.Reply]?) {
+        guard let index = agentQuestions.firstIndex(where: { $0.id == question }) else { return }
+        agentQuestions.remove(at: index)
+        bridge?.answerQuestion(question, with: replies)
+    }
+
+    /// The Richiesta di permesso the chat shows: the oldest one, and how many wait behind it.
+    var pendingPermission: (pending: RequestCenter.Pending, queued: Int)? {
+        guard let queue = permissions.queues[Self.requestsKey], let first = queue.first else { return nil }
+        return (first, queue.count - 1)
     }
 
     /// Stops the Sintesi parlata being said, if any, with the audio stopped before it returns: the Orb leaves Parla, and
@@ -1101,6 +1176,9 @@ final class QuestionModel {
                                     progress: { [orb, weak self] progress in
                                         if case let .variante(nome) = progress { orb.showWork(nome) }
                                         if case let .memory(.saved(change)) = progress { self?.savedChange = change }
+                                    },
+                                    permissions: { [weak self, classifier = RiskClassifier(workingDirectory: workplace.directory)] in
+                                        self?.receive($0, from: bridge, classifier: classifier)
                                     },
                                     usage: { [weak self] usage in
                                         guard let self else { return }

@@ -87,6 +87,7 @@ struct PanelBubbleView: View {
                         QuestionAnswer(model: model, pickRetry: hud.show, maxAnswerHeight: nil)
                             .transition(.opacity)
                     }
+                    QuestionRequests(model: model)
                     SecondBrainProposalCard(conversation: brainSetup)
                     if let savedChange = model.savedChange {
                         SavedNoteLine(change: savedChange, undo: model.undoSavedChange)

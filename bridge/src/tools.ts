@@ -16,7 +16,7 @@ export function systemPromptOf(...parts: (string | undefined)[]): string | undef
   return found.length > 0 ? found.join("\n\n") : undefined;
 }
 
-// Una Domanda legge i file e non li cambia mai: `inBrain` dice che gira nel Secondo cervello, `hidden` sono le sue
+// Una Domanda legge i file da sola e li cambia solo dopo una Richiesta: `inBrain` dice che gira nel Secondo cervello, `hidden` sono le sue
 // cartelle escluse, che non legge.
 export type ReadOnly = { inBrain: boolean; hidden: string[] };
 
@@ -29,25 +29,28 @@ export function readOnlyOf(value: unknown): ReadOnly | undefined {
   };
 }
 
-// Gli strumenti integrati di una Domanda: solo quelli che leggono. Quelli che scrivono, eseguono, delegano a un
-// subagent o mandano fuori le note sono anche negati, perché nessuna regola dell'utente li riaccenda: nel Secondo
-// cervello si scrive solo con `ricorda`.
+// Gli strumenti integrati di una Domanda: quelli che leggono partono da soli; quelli che scrivono, eseguono o vanno in
+// rete passano ognuno da una Richiesta di permesso nella chat, come nelle Sessioni. Restano negati solo i subagent:
+// lavorerebbero fuori dalla vista della Domanda.
 export const readTools = ["Read", "Grep", "Glob", "WebSearch"];
-export const deniedTools = ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "BashOutput", "KillShell", "Task", "WebFetch"];
+export const askedTools = ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "BashOutput", "KillShell", "WebFetch"];
+export const deniedTools = ["Task"];
 
-// Le opzioni di una Domanda: gli strumenti che leggono; negati, dopo le regole `denied` della squadra, `deniedTools`
-// e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
+// Le opzioni di una Domanda: gli strumenti che leggono e quelli che chiedono; negati, dopo le regole `denied` della
+// squadra, `deniedTools` e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
 export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { tools: string[]; disallowedTools: string[] } {
   return {
-    tools: readTools,
+    tools: [...readTools, ...askedTools],
     disallowedTools: [...denied, ...deniedTools, ...turn.hidden.map((dir) => `Read(/${dir.replace(/\/+$/, "")}/**)`)],
   };
 }
 
-// Cosa sa una Domanda che gira nel Secondo cervello: dove si trova e che scrive solo con `ricorda`.
+// Cosa sa una Domanda che gira nel Secondo cervello: dove si trova, che legge liberamente e che il resto lo chiede.
 export const brainHomeInstruction = "Lavori dentro il Secondo cervello dell'utente: la cartella di lavoro è la sua "
-  + "cartella di note. Leggi e cerca i file liberamente con Read, Grep e Glob, oltre che con cerca. Non puoi "
-  + "modificare, creare né cancellare file: per scrivere nel Secondo cervello usa solo ricorda.";
+  + "cartella di note. Leggi e cerca i file liberamente con Read, Grep e Glob, oltre che con cerca. Per salvare un "
+  + "ricordo o una nota usa ricorda. Quando serve fare di più (creare cartelle o file, lanciare uno script, usare un "
+  + "Server MCP, aprire un link) fallo con gli strumenti che hai: l'utente approva ogni azione nella chat. Non "
+  + "rimandarlo a una Sessione o a un altro strumento per cose che puoi fare tu.";
 
 // Il percorso reale di `path`, symlink risolti; se non esiste ancora, quello della cartella più vicina che esiste.
 function realPath(path: string): string {
