@@ -781,10 +781,9 @@ async function transcript(id: string, session: string, all: boolean) {
   }
 }
 
-if (!claudePath) {
-  send({ type: "error", message: "BUBO_CLAUDE_PATH mancante" });
-  process.exit(1);
-}
+// I comandi che avviano `claude`. Senza `claude` il ponte parte lo stesso per Copilot (#719): questi rispondono con un
+// errore, gli altri lavorano come sempre.
+const claudeCommands = new Set(["ask", "config", "warm", "quota", "summarize", "sandboxRules"]);
 
 const lines = createInterface({ input: process.stdin });
 lines.on("line", (line) => {
@@ -797,6 +796,10 @@ lines.on("line", (line) => {
   }
   if (command.v !== version) {
     send({ type: "error", message: `versione ${command.v} non supportata, attesa ${version}` });
+    return;
+  }
+  if (!claudePath && claudeCommands.has(command.type)) {
+    if ("id" in command && typeof command.id === "string") send({ type: "error", id: command.id, message: "claude mancante" });
     return;
   }
   switch (command.type) {

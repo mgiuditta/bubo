@@ -8,7 +8,7 @@ import Testing
 @MainActor
 struct CopilotSessionTests {
     /// A bridge played by `/bin/sh` that writes every command to `$1` and keeps each turn going until it is cancelled.
-    static func bridge(log: URL) -> AgentBridge {
+    static func bridge(log: URL, hasClaude: Bool = true) -> AgentBridge {
         let script = #"""
             while read line; do
                 echo "$line" >> "$1"
@@ -20,7 +20,45 @@ struct CopilotSessionTests {
             done
             """#
         return AgentBridge(executable: URL(filePath: "/bin/sh"), arguments: ["-c", script, "sh", log.path],
-                           environment: ["PATH": "/usr/bin:/bin"]) { _, _, _ in "" }
+                           environment: ["PATH": "/usr/bin:/bin"], hasClaude: hasClaude) { _, _, _ in "" }
+    }
+
+    // #719: with only `copilot` a Sessione on Copilot starts, and one on Claude keeps today's error and remedy.
+    @Test func withOnlyCopilotACopilotSessioneStartsAndAClaudeOneSaysClaudeIsMissing() async throws {
+        let log = URL.temporaryDirectory.appending(path: "bridge-\(UUID().uuidString).log")
+        let file = URL.temporaryDirectory.appending(path: "Sessioni-\(UUID().uuidString).json")
+        defer {
+            try? FileManager.default.removeItem(at: log)
+            try? FileManager.default.removeItem(at: file)
+        }
+        let project = URL(filePath: "/tmp")
+        func interrupted(on engine: Session.Engine) -> Session {
+            var session = Session(id: UUID(), title: "Prova", project: project, activitySince: .now)
+            session.engine = engine
+            session.prompt = "Lavora"
+            session.isInterrupted = true
+            session.isOnCheckout = true
+            session.workspace = Workspace(folder: project)
+            return session
+        }
+        let copilot = interrupted(on: .copilot), claude = interrupted(on: .claude)
+        try JSONEncoder().encode([copilot, claude]).write(to: file)
+        let bridge = Self.bridge(log: log, hasClaude: false)
+        let store = SessionStore(file: file, worktrees: WorktreeManager(root: URL.temporaryDirectory)) { bridge }
+        store.locateCopilot = { URL(filePath: "/c") }
+        store.copilotConsents = { [EndpointSettings.copilotConsentID] }
+
+        store.resume(copilot.id)
+        store.resume(claude.id)
+        try await waitForCondition { (try? String(contentsOf: log, encoding: .utf8))?.contains(#""type":"copilot""#) == true }
+        try await waitForCondition { store.sessions.first { $0.id == claude.id }?.failure != nil }
+
+        #expect(store.sessions.first { $0.id == claude.id }?.failure
+                == String(localized: "Claude Code non trovato: installa la CLI claude."))
+        store.interrupt(copilot.id)
+        try await waitForCondition { store.sessions.first { $0.id == copilot.id }?.isRunning == false }
+        #expect(store.sessions.first { $0.id == copilot.id }?.failure == nil)
+        #expect(try !String(contentsOf: log, encoding: .utf8).contains(#""type":"ask""#))
     }
 
     @Test func aCopilotTurnNeverCallsClaudeNorHasItsSandboxAndPlugins() async throws {

@@ -17,6 +17,13 @@ struct ChildEnvironmentTests {
         #expect(environment["BUBO_CLAUDE_PATH"] == Self.claude.path)
     }
 
+    // #719: with only `copilot`, the bridge starts without `claude`.
+    @Test func withoutClaudeTheBridgeGetsNoClaudePath() {
+        let environment = ChildEnvironment.make(claude: nil, base: Self.base)
+        #expect(environment["BUBO_CLAUDE_PATH"] == nil)
+        #expect(environment["PATH"] == "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin")
+    }
+
     @Test func theBridgeKnowsWhereToKeepTheConversations() {
         let environment = ChildEnvironment.make(claude: Self.claude, conversations: URL(filePath: "/tmp/C.sqlite"),
                                                 base: Self.base)

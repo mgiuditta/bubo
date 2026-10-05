@@ -14,7 +14,7 @@ final class LaunchSequence {
     /// - Parameters:
     ///   - startBridge: Starts the bridge without asking it anything: no `claude` starts with it.
     ///   - isOnboarding: Whether onboarding is still on, read when the sequence runs.
-    ///   - detectClaude: Finds `claude` and reads its version and login; only during onboarding.
+    ///   - detectEngines: Finds `claude` and `copilot` and reads their version and login; only during onboarding.
     ///   - keepIndexFresh: Keeps the Indice and the Secondo cervello in step with the disk; never returns.
     ///   - subscribeToMetrics: Subscribes to MetricKit's payloads.
     ///   - startConfigurationSpare: Starts the wait before the configuration panel's spare `claude`.
@@ -22,14 +22,14 @@ final class LaunchSequence {
     ///     returns.
     init(startBridge: @escaping () async -> Void,
          isOnboarding: @escaping () -> Bool,
-         detectClaude: @escaping () async -> Void,
+         detectEngines: @escaping () async -> Void,
          keepIndexFresh: @escaping () async -> Void,
          subscribeToMetrics: @escaping () -> Void,
          startConfigurationSpare: @escaping () -> Void,
          keepCLIHistoryFresh: @escaping () async -> Void) {
         self.startBridge = startBridge
         self.isOnboarding = isOnboarding
-        self.detectClaude = detectClaude
+        self.detectEngines = detectEngines
         self.keepIndexFresh = keepIndexFresh
         self.subscribeToMetrics = subscribeToMetrics
         self.startConfigurationSpare = startConfigurationSpare
@@ -38,7 +38,7 @@ final class LaunchSequence {
 
     private let startBridge: () async -> Void
     private let isOnboarding: () -> Bool
-    private let detectClaude: () async -> Void
+    private let detectEngines: () async -> Void
     private let keepIndexFresh: () async -> Void
     private let subscribeToMetrics: () -> Void
     private let startConfigurationSpare: () -> Void
@@ -63,7 +63,7 @@ final class LaunchSequence {
         await Signposts.measure(.deferredLaunch) {
             await startBridge()
             if isOnboarding() {
-                await detectClaude()
+                await detectEngines()
             }
             Task(priority: .utility) { [keepIndexFresh] in await keepIndexFresh() }
             subscribeToMetrics()

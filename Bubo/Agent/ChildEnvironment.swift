@@ -11,17 +11,18 @@ nonisolated enum ChildEnvironment {
     /// The environment for the bridge.
     ///
     /// - Parameters:
-    ///   - claude: The user's `claude`, which the bridge starts.
+    ///   - claude: The user's `claude`, which the bridge starts; `nil` when there is none, and the bridge answers only
+    ///     for Copilot (#719).
     ///   - apiKey: The API key, only when the user chose it (ADR 0003); never logged.
     ///   - conversations: The database where the bridge keeps its copy of the conversations; the bridge alone reads it.
     ///   - base: The environment to copy from; Bubo's own by default.
-    static func make(claude: URL, apiKey: String? = nil, conversations: URL? = nil,
+    static func make(claude: URL?, apiKey: String? = nil, conversations: URL? = nil,
                      base: [String: String] = ProcessInfo.processInfo.environment) -> [String: String] {
         var environment = base.filter { copied.contains($0.key) }
-        environment["PATH"] = [claude.deletingLastPathComponent().path,
-                               "/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", "/usr/sbin", "/sbin"]
+        environment["PATH"] = ([claude?.deletingLastPathComponent().path].compactMap(\.self)
+                               + ["/opt/homebrew/bin", "/usr/local/bin", "/usr/bin", "/bin", "/usr/sbin", "/sbin"])
             .joined(separator: ":")
-        environment["BUBO_CLAUDE_PATH"] = claude.path
+        environment["BUBO_CLAUDE_PATH"] = claude?.path
         environment["CLAUDE_CODE_EMIT_SESSION_STATE_EVENTS"] = "1"
         environment["CLAUDE_AGENT_SDK_CLIENT_APP"] = "bubo/\(Bundle.main.shortVersion)"
         if let apiKey { environment["ANTHROPIC_API_KEY"] = apiKey }

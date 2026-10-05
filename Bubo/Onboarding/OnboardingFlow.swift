@@ -44,6 +44,8 @@ final class OnboardingFlow {
             if case .ready = readiness, oldValue != readiness { onClaudeReady() }
         }
     }
+    /// The `copilot` that can answer in place of `claude`; `nil` until detected at launch (#719).
+    private(set) var copilotReadiness: CopilotReadiness?
     /// Called each time `claude` becomes ready: the Sessioni waiting for it start.
     @ObservationIgnored var onClaudeReady: () -> Void = {}
     /// Whether the user chose to answer with the API key, until Bubo quits.
@@ -73,6 +75,7 @@ final class OnboardingFlow {
     ///   - defaults: Where the flow keeps its state.
     ///   - checkInterval: The shortest time between two checks of `claude`.
     ///   - detect: Finds out whether `claude` can answer.
+    ///   - detectCopilot: Finds out whether `copilot` can answer.
     ///   - moveToAPIKey: Moves the Sessioni to the API key saved in the keychain.
     ///   - moveToSubscription: Moves the Sessioni back to the login of `claude`.
     ///   - firstTokenTimeout: How long the first Sessione may go without its first token.
@@ -82,6 +85,7 @@ final class OnboardingFlow {
     ///   - start: Starts the first Sessione with the question in the Progetto, returning its id.
     init(hasSessions: Bool, defaults: UserDefaults = .standard, checkInterval: Duration = .seconds(1),
          detect: @escaping () async -> ClaudeReadiness = { await ClaudeReadiness.detect() },
+         detectCopilot: @escaping @Sendable () async -> CopilotReadiness = { await CopilotReadiness.detect() },
          moveToAPIKey: @escaping () -> Void = {},
          moveToSubscription: @escaping () -> Void = {},
          firstTokenTimeout: Duration = .seconds(30),
@@ -92,6 +96,7 @@ final class OnboardingFlow {
         self.defaults = defaults
         self.checkInterval = checkInterval
         self.detect = detect
+        self.detectCopilot = detectCopilot
         self.moveToAPIKey = moveToAPIKey
         self.moveToSubscription = moveToSubscription
         self.firstTokenTimeout = firstTokenTimeout
@@ -109,6 +114,7 @@ final class OnboardingFlow {
     @ObservationIgnored private let start: (String, URL) throws -> UUID
     @ObservationIgnored private let checkInterval: Duration
     @ObservationIgnored private let detect: () async -> ClaudeReadiness
+    @ObservationIgnored private let detectCopilot: @Sendable () async -> CopilotReadiness
     @ObservationIgnored private let moveToAPIKey: () -> Void
     @ObservationIgnored private let moveToSubscription: () -> Void
     @ObservationIgnored private let firstTokenTimeout: Duration
@@ -184,6 +190,13 @@ final class OnboardingFlow {
     func detectClaude() async {
         lastCheck = .now
         readiness = await Signposts.measure(.claudeDetection) { await detect() }
+    }
+
+    /// Finds out at launch whether `claude` and `copilot` can answer, both at once (#719).
+    func detectEngines() async {
+        async let copilot = detectCopilot()
+        await detectClaude()
+        copilotReadiness = await copilot
     }
 
     /// Checks `claude` again while it is not ready, at most once per `checkInterval`.

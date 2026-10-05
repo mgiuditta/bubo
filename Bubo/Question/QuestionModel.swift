@@ -904,7 +904,7 @@ final class QuestionModel {
         guard !hasFreshQuota else { return }
         hasFreshQuota = true
         do {
-            try await readyBridge().readQuota()
+            try await readyBridge(needsClaude: true).readQuota()
         } catch {
             Logger.agent.notice("Quota not read: \(String(describing: error), privacy: .public)")
         }
@@ -1162,7 +1162,7 @@ final class QuestionModel {
             }
         }
         do {
-            let bridge = try await readyBridge()
+            let bridge = try await readyBridge(needsClaude: true)
             // The Varianti the agent may give the Orb at work: the ones near the Richiesta's Categoria first.
             let rosa = Catalogo.bundled?.rosa(around: submission.classification?.categoria) ?? []
             // Claude is in a cloud, also when it answers for Apple FM.
@@ -1396,17 +1396,28 @@ final class QuestionModel {
         }
     }
 
-    /// The bridge to `claude`, started on first use and shared with the Sessioni.
-    func readyBridge() async throws -> AgentBridge {
-        if let bridge { return bridge }
-        guard let claude = await cli.executableURL() else { throw QuestionFailure.claudeMissing }
+    /// The bridge to `claude` and `copilot`, started on first use and shared with the Sessioni.
+    ///
+    /// Without `claude` the bridge starts all the same, for Copilot alone (#719); its turns of `claude` then fail with
+    /// `QuestionFailure.claudeMissing`.
+    ///
+    /// - Parameter needsClaude: Whether the caller is about to start `claude`: a bridge without it looks for `claude`
+    ///   again, and is replaced once the user installed it.
+    /// - Throws: `QuestionFailure.claudeMissing` when `needsClaude` and there is no `claude`.
+    func readyBridge(needsClaude: Bool = false) async throws -> AgentBridge {
+        if let bridge, bridge.hasClaude || !needsClaude { return bridge }
+        let claude = await cli.executableURL()
+        if needsClaude, claude == nil { throw QuestionFailure.claudeMissing }
         // The key is read only once the user chose it, and goes only into the bridge's environment.
         let key = try await usesAPIKey ? apiKey() : nil
         // The bridge's start, the Quota read and a Domanda can all get here across the awaits: keep one bridge.
-        if let bridge { return bridge }
+        if let bridge, bridge.hasClaude || claude == nil { return bridge }
+        // A bridge for Copilot alone ends once its answers do: the new one has `claude` too.
+        self.bridge?.closeWhenIdle()
         let bridge = AgentBridge(executable: bridgeExecutable, arguments: bridgeArguments,
                                  environment: ChildEnvironment.make(claude: claude, apiKey: key,
                                                                     conversations: try? ConversationStore.defaultFile()),
+                                 hasClaude: claude != nil,
                                  quota: { [weak self] reported in
                                      guard let self else { return }
                                      hasFreshQuota = true

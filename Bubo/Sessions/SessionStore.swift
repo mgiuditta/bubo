@@ -143,6 +143,10 @@ final class SessionStore {
     /// The version of `claude` when it is too old to start a turn, checked before each one (spec 27); `nil` lets it
     /// start. By default nothing is checked here: the bridge still checks at `init`.
     @ObservationIgnored var outdatedClaude: () async -> String? = { nil }
+    /// Readies the bridge with `claude` before a turn of `claude`, or throws `QuestionFailure.claudeMissing`: a bridge
+    /// started for Copilot alone gets `claude` once the user installed it (#719). By default nothing is checked here:
+    /// the bridge without `claude` refuses the turn.
+    @ObservationIgnored var readyClaude: () async throws -> Void = {}
     /// Where the Consegne wait in the clear, and how their branch goes (spec 24).
     @ObservationIgnored var deliveryOpener = DeliveryOpener()
     /// `~/.claude/projects`, where Avvia of a Consegna writes its conversation for `claude` to resume.
@@ -1188,7 +1192,10 @@ final class SessionStore {
         var hasAnswered = false
         do {
             // Before the copy and the prompt: a `claude` too old starts nothing.
-            if !isCopilot, let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
+            if !isCopilot {
+                try await readyClaude()
+                if let version = await outdatedClaude() { throw AgentBridgeError.claudeOutdated(version: version) }
+            }
             let workspace: Workspace
             if let prepared = session.workspace {
                 workspace = prepared

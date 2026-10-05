@@ -134,6 +134,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         sessions?.onTurnFailure = { [weak flow] session, error in flow?.receiveFailure(error, in: session) }
         // A `claude` too old stops the Sessione before its prompt and shows the remedy; once updated, it starts.
         sessions?.outdatedClaude = { await ClaudeReadiness.outdatedVersion() }
+        sessions?.readyClaude = { [questions] in _ = try await questions.readyBridge(needsClaude: true) }
         sessions?.onClaudeOutdated = { [weak flow] version in flow?.readiness = .outdated(version: version ?? "") }
         flow.onClaudeReady = { [weak self] in self?.sessions?.startTurnsAwaitingUpdate() }
         return flow
@@ -217,7 +218,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func makeSummarizer() -> SessionSummarizer? {
         guard let sessions else { return nil }
-        let claude = ClaudeSummaryEngine(bridge: { [questions] in try await questions.readyBridge() },
+        let claude = ClaudeSummaryEngine(bridge: { [questions] in try await questions.readyBridge(needsClaude: true) },
                                          usage: { usage, id, turn in
             guard let project = sessions.sessions.first(where: { $0.id == id })?.project else { return }
             sessions.ledger.record(usage, turn: turn, session: id, project: project)
@@ -232,8 +233,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             await questions.startBridge()
         } isOnboarding: { [weak self] in
             self?.onboarding.isCompleted == false
-        } detectClaude: { [weak self] in
-            await self?.onboarding.detectClaude()
+        } detectEngines: { [weak self] in
+            await self?.onboarding.detectEngines()
         } keepIndexFresh: { [searchIndex, secondBrain, semanticSearch] in
             secondBrain.start()
             semanticSearch.start()

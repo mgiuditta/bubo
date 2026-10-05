@@ -140,6 +140,15 @@ struct OnboardingFlowTests {
         #expect(starts.started.map(\.question) == ["Trova i TODO più vecchi"])
     }
 
+    // #719: at launch both engines are detected, so Copilot alone can answer.
+    @Test func theLaunchDetectsBothClaudeAndCopilot() async {
+        let flow = OnboardingFlow(hasSessions: false, defaults: defaults, detect: { .missing },
+                                  detectCopilot: { .ready(version: "1.0.16", account: "ada") }) { _, _ in UUID() }
+        await flow.detectEngines()
+        #expect(flow.readiness == .missing)
+        #expect(flow.copilotReadiness == .ready(version: "1.0.16", account: "ada"))
+    }
+
     @Test func aReadyClaudeIsNotCheckedAgain() async {
         let detections = Detections(ready)
         let flow = makeFlow(detections: detections, starts: Starts())
