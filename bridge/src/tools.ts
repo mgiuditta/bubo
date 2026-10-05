@@ -16,8 +16,7 @@ export function systemPromptOf(...parts: (string | undefined)[]): string | undef
   return found.length > 0 ? found.join("\n\n") : undefined;
 }
 
-// Una Domanda legge i file da sola e li cambia solo dopo una Richiesta: `inBrain` dice che gira nel Secondo cervello, `hidden` sono le sue
-// cartelle escluse, che non legge.
+// Una Domanda: `inBrain` dice che gira nel Secondo cervello, `hidden` sono le sue cartelle escluse, che non tocca.
 export type ReadOnly = { inBrain: boolean; hidden: string[] };
 
 export function readOnlyOf(value: unknown): ReadOnly | undefined {
@@ -29,34 +28,19 @@ export function readOnlyOf(value: unknown): ReadOnly | undefined {
   };
 }
 
-// Gli strumenti integrati di una Domanda: quelli che leggono partono da soli; quelli che scrivono, eseguono o vanno in
-// rete passano ognuno da una Richiesta di permesso nella chat, come nelle Sessioni. Restano negati solo i subagent:
-// lavorerebbero fuori dalla vista della Domanda.
-export const readTools = ["Read", "Grep", "Glob", "WebSearch"];
-export const askedTools = ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "BashOutput", "KillShell", "WebFetch"];
-export const deniedTools = ["Task"];
-
-// Perché uno strumento di `askedTools` chiede sempre in una Domanda: nessuna regola `allow` né `defaultMode` delle
-// impostazioni dell'utente lo lascia partire da solo; `undefined` per gli altri.
-export function askedToolReason(tool: string): string | undefined {
-  return askedTools.includes(tool) ? "In una Domanda ogni scrittura, comando o accesso alla rete si approva nella chat." : undefined;
+// Una Domanda ha gli strumenti e i permessi della riga di comando dell'utente: le sue regole e la Modalità autonoma.
+// Negate solo le regole `denied` della squadra e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
+export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { disallowedTools: string[] } {
+  return { disallowedTools: [...denied, ...turn.hidden.map((dir) => `Read(/${dir.replace(/\/+$/, "")}/**)`)] };
 }
 
-// Le opzioni di una Domanda: gli strumenti che leggono e quelli che chiedono; negati, dopo le regole `denied` della
-// squadra, `deniedTools` e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
-export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { tools: string[]; disallowedTools: string[] } {
-  return {
-    tools: [...readTools, ...askedTools],
-    disallowedTools: [...denied, ...deniedTools, ...turn.hidden.map((dir) => `Read(/${dir.replace(/\/+$/, "")}/**)`)],
-  };
-}
-
-// Cosa sa una Domanda che gira nel Secondo cervello: dove si trova, che legge liberamente e che il resto lo chiede.
+// Cosa sa una Domanda che gira nel Secondo cervello: dove si trova e che può fare tutto come nella riga di comando.
 export const brainHomeInstruction = "Lavori dentro il Secondo cervello dell'utente: la cartella di lavoro è la sua "
-  + "cartella di note. Leggi e cerca i file liberamente con Read, Grep e Glob, oltre che con cerca. Per salvare un "
-  + "ricordo o una nota usa ricorda. Quando serve fare di più (creare cartelle o file, lanciare uno script, usare un "
-  + "Server MCP, aprire un link) fallo con gli strumenti che hai: l'utente approva ogni azione nella chat. Non "
-  + "rimandarlo a una Sessione o a un altro strumento per cose che puoi fare tu.";
+  + "cartella di note, e hai gli stessi strumenti e permessi di Claude Code nel suo terminale. Leggi e cerca i file "
+  + "con Read, Grep e Glob, oltre che con cerca. Per salvare un ricordo o una nota usa ricorda. Quando serve fare di "
+  + "più (creare cartelle o file, lanciare uno script, leggere fuori dalla cartella, usare un Server MCP, aprire un "
+  + "link) fallo direttamente, seguendo il CLAUDE.md della cartella. Non rimandare l'utente a una Sessione, al "
+  + "terminale o a un altro strumento per cose che puoi fare tu.";
 
 // Il percorso reale di `path`, symlink risolti; se non esiste ancora, quello della cartella più vicina che esiste.
 function realPath(path: string): string {

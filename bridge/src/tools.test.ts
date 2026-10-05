@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { allowedBuboTools, askedToolReason, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
+import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
 
 test("ricorda solo quando Bubo lo chiede: Domande e Sessioni, non le Esecuzioni", () => {
   expect(allowedBuboTools(true)).toEqual(["mcp__bubo__cerca", "mcp__bubo__ricorda"]);
@@ -16,14 +16,10 @@ test("Profilo e Regole vanno nel prompt di sistema dopo l'Orb, e senza nulla res
   expect(systemPromptOf(undefined, "")).toBeUndefined();
 });
 
-test("una Domanda legge da sola, scrive ed esegue chiedendo, e non delega", () => {
+test("una Domanda ha tutti gli strumenti della riga di comando", () => {
   const options = readOnlyOptions({ inBrain: true, hidden: [] });
-  for (const tool of ["Read", "Grep", "Glob", "WebSearch", "Edit", "Write", "Bash", "WebFetch"]) {
-    expect(options.tools).toContain(tool);
-    expect(options.disallowedTools).not.toContain(tool);
-  }
-  expect(options.tools).not.toContain("Task");
-  expect(options.disallowedTools).toContain("Task");
+  expect(options).not.toHaveProperty("tools");
+  expect(options.disallowedTools).toEqual([]);
 });
 
 test("le cartelle escluse del Secondo cervello diventano regole Read negate, dopo quelle della squadra", () => {
@@ -63,11 +59,6 @@ test("una Domanda non legge le cartelle escluse, nemmeno da un symlink o da una 
   expect(hiddenPathDenial("Glob", { path: "Progetti", pattern: "**/*.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Progetti/b.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Archivio [vecchio]/a.md" }, root, [])).toBeUndefined();
-});
-
-test("in una Domanda scrivere, eseguire e andare in rete chiedono sempre, leggere no", () => {
-  for (const tool of ["Write", "Edit", "Bash", "WebFetch"]) expect(askedToolReason(tool)).toBeDefined();
-  for (const tool of ["Read", "Grep", "Glob", "mcp__bubo__ricorda"]) expect(askedToolReason(tool)).toBeUndefined();
 });
 
 test("le cartelle escluse fermano anche le scritture", () => {

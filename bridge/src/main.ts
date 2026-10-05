@@ -31,7 +31,7 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools, askedToolReason, askedTools, brainHomeInstruction, hiddenGuardedTools, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
+import { allowedBuboTools, brainHomeInstruction, hiddenGuardedTools, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
   searchTool, systemPromptOf, type ReadOnly } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
@@ -341,17 +341,6 @@ function hiddenFolders(cwd: string, hidden: string[]): HookCallbackMatcher {
   };
 }
 
-// L'hook che in una Domanda manda sempre a una Richiesta gli strumenti che scrivono, eseguono o vanno in rete, anche
-// dove una regola `allow` o il `defaultMode` delle impostazioni li approverebbe.
-const askInQuestion: HookCallbackMatcher = {
-  matcher: askedTools.join("|"),
-  hooks: [async (input) => {
-    if (input.hook_event_name !== "PreToolUse") return {};
-    const reason = askedToolReason(input.tool_name);
-    return reason ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "ask", permissionDecisionReason: reason } } : {};
-  }],
-};
-
 // I file trovati da Grep e Glob, letture tenui della Galassia: l'SDK li dà solo nella risposta dello strumento.
 function searchedFiles(id: string): HookCallbackMatcher {
   return {
@@ -393,8 +382,8 @@ function searchedFiles(id: string): HookCallbackMatcher {
 // `dirs` sono le cartelle che `claude` legge oltre a `cwd`, come `--add-dir`: quelle degli Allegati di una Domanda.
 // `maxBudget` è il residuo in dollari del Budget più stretto, con l'API key (spec 18): diventa `maxBudgetUsd`, e al
 // tetto il turno finisce con `budgetExhausted`. Senza, nessun tetto.
-// `readOnly` è il turno di una Domanda: solo gli strumenti che leggono, mai le cartelle escluse del Secondo cervello;
-// nel Secondo cervello l'agente sa di esserci e che scrive solo con `ricorda`.
+// `readOnly` è il turno di una Domanda: i permessi della riga di comando, mai le cartelle escluse del Secondo cervello;
+// nel Secondo cervello l'agente sa di esserci.
 async function ask(id: string, prompt: string, cwd: string, sources: SettingSource[], projectConfigRoot?: string,
                    model?: string, env: Record<string, string> = {}, resume?: string, upTo?: string, keep?: string,
                    sandbox?: SandboxSettings, preview = false, rules: TeamRules = teamRules(undefined), remembers = false,
@@ -452,8 +441,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       forkSession: resume !== undefined,
       ...(resume !== undefined && upTo !== undefined ? { resumeSessionAt: upTo } : {}),
       sandbox,
-      // Una Domanda chiede sempre: il `defaultMode` delle impostazioni non vale per lei.
-      permissionMode: readOnly ? "default" : permissionMode,
+      // Una Domanda gira come la riga di comando dell'utente: Modalità autonoma, il cancello chiede sui livelli 4–5.
+      permissionMode: readOnly ? "auto" : permissionMode,
       ...(systemPrompt !== undefined ? { systemPrompt } : {}),
       ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
       ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined, subagents) }),
@@ -465,7 +454,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         // Il primo hook del filo principale dice se l'Esecuzione gira come il suo agente (`MainAgent`).
         UserPromptSubmit: checkAgent,
         PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? []),
-          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : []), ...(readOnly ? [askInQuestion] : [])],
+          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : [])],
         SubagentStart: [{ hooks: [subagents.hook] }],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],
