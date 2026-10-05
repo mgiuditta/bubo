@@ -2,18 +2,21 @@ import SwiftUI
 
 /// What the agent of a Domanda waits for before going on: its questions, then a Richiesta di permesso, such as a
 /// Server MCP to call, a command to run or a file to write. The same in the chat and in the Panel's bubble.
+///
+/// Answered by click only: the Domanda's field usually has the focus, and a ↩ meant for it must never approve a call
+/// that has just arrived.
 struct QuestionRequests: View {
     let model: QuestionModel
 
     var body: some View {
         if let question = model.agentQuestions.first {
-            AgentQuestionView(question: question, hasKeyboard: model.pendingPermission == nil) { replies in
+            AgentQuestionView(question: question, hasKeyboard: false) { replies in
                 model.answerAgentQuestion(question.id, with: replies)
             }
             .id(question.id)
         }
         if let (pending, queued) = model.pendingPermission, let folder = model.requestsFolder {
-            PermissionRequestView(pending: pending, project: folder, queued: queued, hasKeyboard: true) { answer in
+            PermissionRequestView(pending: pending, project: folder, queued: queued, hasKeyboard: false) { answer in
                 model.answerPermission(pending.id, with: answer)
             } allowInProject: {
                 try model.allowInProject(pending.id)
