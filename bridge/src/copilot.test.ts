@@ -2,14 +2,16 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotTurns, approvedByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
+import type { RiskQuestion } from "./gate";
 import { ConversationStore } from "./store";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
 const fake = join(import.meta.dir, "fakeCopilot.mjs");
 
-function harness(environment: Record<string, string> = copilotEnvironment(process.env), copy?: ConversationStore) {
+function harness(environment: Record<string, string> = copilotEnvironment(process.env), copy?: ConversationStore,
+                 isDangerous?: ConstructorParameters<typeof CopilotTurns>[3]) {
   const events: CopilotEvent[] = [];
   const waiting: Array<{ match: (event: CopilotEvent) => boolean; resolve: (event: CopilotEvent) => void }> = [];
   const turns = new CopilotTurns((event) => {
@@ -18,7 +20,7 @@ function harness(environment: Record<string, string> = copilotEnvironment(proces
       if (wait.match(event)) wait.resolve(event);
       else waiting.push(wait);
     }
-  }, environment, copy);
+  }, environment, copy, isDangerous);
   const next = (match: (event: CopilotEvent) => boolean) => new Promise<CopilotEvent>((resolve) => {
     const seen = events.find(match);
     if (seen) resolve(seen);
@@ -81,6 +83,59 @@ test("negata, il file non si scrive e copilot legge il perché", async () => {
   expect(texts(events)).toBe(`Rifiutato: ${deniedByUser}`);
 });
 
+test("Modalità autonoma: sotto il livello 4 copilot scrive senza chiedere, come una Sessione Claude", async () => {
+  const cwd = folder();
+  const questions: RiskQuestion[] = [];
+  const { turns, events } = harness(undefined, undefined, async (id, question) => {
+    expect(id).toBe("auto");
+    questions.push(question);
+    return false;
+  });
+  await turns.run({ id: "auto", prompt: "scrivi", cwd, copilot: fake, permissionMode: "auto" });
+  expect(questions).toEqual([{ tool: "Edit", path: join(cwd, "nota.txt"), command: undefined, url: undefined }]);
+  expect(events.some((event) => event.type === "permission")).toBe(false);
+  expect(readFileSync(join(cwd, "nota.txt"), "utf8")).toBe("ciao\n");
+  expect(events.at(-1)).toEqual({ type: "done", id: "auto" });
+});
+
+test("Modalità autonoma: sui livelli 4–5 la Richiesta arriva a Bubo", async () => {
+  const cwd = folder();
+  const { turns, next } = harness(undefined, undefined, async () => true);
+  const run = turns.run({ id: "pericolo", prompt: "scrivi", cwd, copilot: fake, permissionMode: "auto" });
+  const asked = await next((event) => event.type === "permission");
+  expect(asked).toMatchObject({ tool: "Edit", path: join(cwd, "nota.txt") });
+  turns.answer((asked as { request: string }).request, false);
+  await run;
+  expect(existsSync(join(cwd, "nota.txt"))).toBe(false);
+});
+
+test("Modalità autonoma: senza la risposta sul livello, Ferma chiude su no", async () => {
+  const cwd = folder();
+  const asked = Promise.withResolvers<void>();
+  const { turns, events } = harness(undefined, undefined, (_id, _question, signal) => new Promise((resolve) => {
+    asked.resolve();
+    signal.addEventListener("abort", () => resolve(true), { once: true });
+  }));
+  const run = turns.run({ id: "muto", prompt: "scrivi", cwd, copilot: fake, permissionMode: "auto" });
+  await asked.promise;
+  turns.cancel("muto");
+  await run;
+  expect(events.some((event) => event.type === "permission")).toBe(false);
+  expect(existsSync(join(cwd, "nota.txt"))).toBe(false);
+});
+
+test("modalità default: ogni Richiesta va a Bubo, senza cancello, come una Sessione Claude", async () => {
+  const cwd = folder();
+  let gated = false;
+  const { turns, next } = harness(undefined, undefined, async () => { gated = true; return false; });
+  const run = turns.run({ id: "manuale", prompt: "scrivi", cwd, copilot: fake, permissionMode: "default" });
+  const asked = await next((event) => event.type === "permission");
+  turns.answer((asked as { request: string }).request, true);
+  await run;
+  expect(gated).toBe(false);
+  expect(readFileSync(join(cwd, "nota.txt"), "utf8")).toBe("ciao\n");
+});
+
 test("Ferma interrompe entro 2 s, senza done", async () => {
   const { turns, events, next } = harness();
   const run = turns.run({ id: "e", prompt: "lungo", cwd: folder(), copilot: fake });
@@ -122,11 +177,14 @@ test("i tipi di Richiesta prendono il nome dello strumento di Claude", () => {
     .toEqual({ type: "permission", request: "r", tool: "Bash", command: "rm -rf x", description: "Pulisce" });
   expect(permissionRequest("r", { kind: "url", url: "https://x.it", intention: "Legge" })).toMatchObject({ tool: "WebFetch", url: "https://x.it" });
   expect(permissionRequest("r", { kind: "read", path: "/a", intention: "Legge" })).toMatchObject({ tool: "Read", path: "/a" });
+  expect(permissionRequest("r", { kind: "mcp", serverName: "gh", toolName: "issue", toolTitle: "Apre una issue", readOnly: false }))
+    .toMatchObject({ tool: "mcp__gh__issue", description: "Apre una issue" });
 });
 
 test("solo l'approvazione esplicita approva; sforzi validi soltanto", () => {
   expect(decision(true)).toEqual({ kind: "approve-once", approvedInteractively: true });
   expect(decision(false)).toEqual({ kind: "reject", feedback: deniedByUser });
+  expect(approvedByMode).toEqual({ kind: "approve-once" });
   expect(reasoningEffortOf("high")).toBe("high");
   expect(reasoningEffortOf("ultra")).toBeUndefined();
 });
