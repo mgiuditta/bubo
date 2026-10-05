@@ -42,7 +42,9 @@ struct MenuBarContent: View {
         }
         let quota = questions.quota
         let now = Date.now
-        if [quota.fiveHour, quota.sevenDay].contains(where: { ($0?.resetsAt ?? .distantPast) > now }) {
+        // Without `claude` a Quota saved before is not the user's any more (#729).
+        if !questions.isClaudeMissing,
+           [quota.fiveHour, quota.sevenDay].contains(where: { ($0?.resetsAt ?? .distantPast) > now }) {
             Section("Quota") {
                 if let window = quota.fiveHour, window.resetsAt > now {
                     Text("5 ore: \(window.used, format: .percent.precision(.fractionLength(0))) · si azzera alle \(window.resetsAt, format: .dateTime.hour().minute())")

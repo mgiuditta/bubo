@@ -197,7 +197,12 @@ struct HUDView: View {
             HStack(alignment: .top) {
                 HUDHeader()
                 if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
-                QuotaView(quota: questions.quota) { hud.showCosts?() }
+                // Without `claude` there is no Quota: the Spesa of Copilot in its place (#729).
+                if questions.isClaudeMissing, let spent = questions.copilotSpesa {
+                    CopilotSpendView(spent: spent) { hud.showCosts?() }
+                } else {
+                    QuotaView(quota: questions.quota) { hud.showCosts?() }
+                }
             }
             // The Risorse di squadra to look at, or that cannot be read, of each Progetto with Sessioni.
             if let sessions {

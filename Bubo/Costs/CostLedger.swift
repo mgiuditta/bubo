@@ -101,6 +101,14 @@ final class CostLedger {
         }
     }
 
+    /// The Spesa of `provider`, as the ledger names it, in the calendar month of `date`.
+    func spesa(of provider: String, inMonthOf date: Date = .now, calendar: Calendar = .current) -> Amount {
+        let month = calendar.dateInterval(of: .month, for: date) ?? DateInterval(start: date, end: date)
+        return entries.filter { ($0.provider ?? Budgets.claude) == provider && $0.usage.unit == .spesa }
+            .filter { $0.date >= month.start && $0.date < month.end }
+            .reduce(into: Amount()) { $0.add($1.usage) }
+    }
+
     /// The latest turn of the Sessione `session`.
     func lastTurn(of session: UUID) -> Entry? {
         entries.last { $0.session == session }
