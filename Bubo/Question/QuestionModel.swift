@@ -39,6 +39,9 @@ final class QuestionModel {
     /// The Quota last reported by `claude` through the bridge this model owns, or else the one saved at the last
     /// launch; empty when there is neither.
     private(set) var quota: Quota
+    /// Whether the bridge started without `claude`: the parts that exist only with Claude are hidden, and the Spesa
+    /// of Copilot takes the place of the Quota (#729). `false` until the bridge starts, so nothing hides by mistake.
+    private(set) var isClaudeMissing = false
     /// When the last prompt will be asked again, while waiting for a limit's reset.
     private(set) var resumesAt: Date?
     /// Whether `claude` runs with the API key, paid per use; only after the user's consent (ADR 0003).
@@ -409,6 +412,11 @@ final class QuestionModel {
         let guarded = BudgetGuard(budgets: budgets.budgets, entries: ledger.entries)
         let paid = endpoints.filter { !$0.isOnMac }.map(\.name) + (usesAPIKey ? [Budgets.claude] : [])
         return Set(paid.filter(guarded.isAvoided))
+    }
+
+    /// The estimated Spesa of Copilot this month, Domande and Sessioni; `nil` without a ledger.
+    var copilotSpesa: CostLedger.Amount? {
+        ledger?.spesa(of: Budgets.copilot)
     }
 
     /// What a Domanda to `provider`, as the CostLedger names it, may still spend; no cap without a ledger.
@@ -1433,6 +1441,7 @@ final class QuestionModel {
             await self?.searchResult(for: query, project: project, source: source) ?? "L'Indice non è disponibile."
         }
         self.bridge = bridge
+        isClaudeMissing = claude == nil
         return bridge
     }
 

@@ -15,6 +15,7 @@ struct BuboApp: App {
                 .environment(appDelegate.hotKeys)
                 .environment(appDelegate.deliveries)
                 .environment(appDelegate.secondBrain)
+                .environment(appDelegate.questions)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -106,21 +107,24 @@ struct BuboApp: App {
                 Button("Cronologia") { appDelegate.history.show() }
                 // Also in the Palette, as every menu item; no shortcut (spec 18).
                 Button("Costi") { appDelegate.costs.show() }
+                ClaudeWindowMenuItems(questions: appDelegate.questions)
                 Divider()
             }
         }
 
-        // In the Finestra menu, with no shortcut (spec 19).
+        // In the Finestra menu, with no shortcut (spec 19); only with `claude`, from ClaudeWindowMenuItems (#729).
         Window("Agenti", id: AgentsWindow.windowID) {
             AgentsWindow(store: appDelegate.sessions)
         }
         .defaultLaunchBehavior(.suppressed)
+        .commandsRemoved()
 
-        // In the Finestra menu and the Palette, with no shortcut (spec 20).
+        // In the Finestra menu and the Palette, with no shortcut (spec 20); only with `claude` (#729).
         Window("Plugin", id: PluginsWindow.windowID) {
             PluginsWindow(store: appDelegate.sessions)
         }
         .defaultLaunchBehavior(.suppressed)
+        .commandsRemoved()
 
         // In the Finestra menu, with no shortcut (spec 19).
         Window("Automazioni", id: AutomationsWindow.windowID) {

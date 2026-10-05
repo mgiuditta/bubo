@@ -18243,6 +18243,16 @@
         }
       }
     },
+    "Spesa Copilot" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot spend"
+          }
+        }
+      }
+    },
     "Spesa stimata %@" : {
       "comment" : "The total of a Sessione on GitHub Copilot in its header: the Spesa estimated from its tokens.",
       "localizations" : {
@@ -18467,6 +18477,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Estimate: tokens counted by Copilot, at GitHub's list prices of %@, 1 credit = $0.01. Bubo can't see the credits taken from your account."
+          }
+        }
+      }
+    },
+    "stimata, questo mese" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "estimated, this month"
           }
         }
       }

@@ -39,6 +39,8 @@ struct SessionRow: View {
     @Environment(HUDPresenter.self) private var hud
     @Environment(SessionSummarizer.self) private var summarizer: SessionSummarizer?
     @Environment(DeliveriesController.self) private var deliveries: DeliveriesController?
+    /// Says whether Bubo runs without `claude`, when the parts only Claude has are hidden (#729).
+    @Environment(QuestionModel.self) private var questions: QuestionModel?
     let session: Session
     let store: SessionStore
     /// Whether the row is a card on the Board: `+n −m` in place of the cost, which stays in the Sessione.
@@ -92,7 +94,11 @@ struct SessionRow: View {
     }
 
     /// Whether the Sessione can have the Sandbox: this build has it, and the Sessione runs on Claude.
-    private var hasSandbox: Bool { ReleaseArea.sandbox.isAvailable(hidesUnreleased: hidesUnreleased) && !isOnCopilot }
+    private var hasSandbox: Bool {
+        ReleaseArea.sandbox.isAvailable(hidesUnreleased: hidesUnreleased) && !isOnCopilot && !isClaudeMissing
+    }
+    /// Whether Bubo runs without `claude`: the parts only Claude has are hidden, also for a Sessione on Claude (#729).
+    private var isClaudeMissing: Bool { questions?.isClaudeMissing == true }
     /// Whether the Sessione runs on Copilot, without the parts that exist only with Claude (ADR 0012).
     private var isOnCopilot: Bool { session.engine == .copilot }
 
@@ -260,9 +266,12 @@ struct SessionRow: View {
                 .foregroundStyle(Palette.textSecondary)
                 .lineLimit(1)
                 .accessibilityHidden(true)
+            // Without `claude` there is nothing to miss: the notice is only for who has both (#729).
             if !isArchived && isOnCopilot {
-                CopilotUnavailableNotice()
-                    .padding(.top, Spacing.xxSmall)
+                if !isClaudeMissing {
+                    CopilotUnavailableNotice()
+                        .padding(.top, Spacing.xxSmall)
+                }
             } else if !isArchived && hasSandbox {
                 SandboxIndicator(state: SandboxState(isEnabled: store.sandbox.isEnabled(in: session.project),
                                                      currentTurn: store.sandboxedTurns[session.id])) {
@@ -396,7 +405,7 @@ struct SessionRow: View {
                     .disabled(session.activity == .lavora)
             }
             // Both are read by `claude`: a Sessione on Copilot never calls it (ADR 0012).
-            if !isOnCopilot {
+            if !isOnCopilot && !isClaudeMissing {
                 Button("Configurazione di Claude…") { isShowingConfiguration = true }
                 Button("Memoria del Progetto…") { isShowingMemory = true }
             }
@@ -422,7 +431,7 @@ struct SessionRow: View {
             }
             if canDeliver && session.activity != .lavora { Button("Consegna…") { hud.deliver(session) } }
             // Both are read by `claude`: a Sessione on Copilot never calls it (ADR 0012).
-            if !isOnCopilot {
+            if !isOnCopilot && !isClaudeMissing {
                 Button("Configurazione di Claude…") { isShowingConfiguration = true }
                 Button("Memoria del Progetto…") { isShowingMemory = true }
             }

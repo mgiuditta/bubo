@@ -156,6 +156,23 @@ struct QuestionModelCopilotTests {
         #expect(model.answer.isEmpty)
     }
 
+    // #729: without `claude` the parts only Claude has are hidden, and the Spesa of Copilot replaces the Quota.
+    @Test func withoutClaudeThePartsOnlyClaudeHasAreHidden() async throws {
+        let model = try modelWithoutClaude()
+        #expect(!model.isClaudeMissing, "Nothing hides before the bridge says so")
+
+        await model.startBridge()
+
+        #expect(model.isClaudeMissing)
+    }
+
+    // #729: with `claude` everything stays as it is.
+    @Test func withClaudeThePartsOnlyClaudeHasStay() async {
+        let model = await answeredModel()
+
+        #expect(!model.isClaudeMissing)
+    }
+
     @Test func withoutAPaidCopilotNothingIsListedNorSent() async throws {
         let model = await answeredModel(copilot: { nil })
         await model.readCopilotModels()

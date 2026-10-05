@@ -159,4 +159,21 @@ struct CostLedgerTests {
         #expect(SessionCostTotal.formatted(0) == Decimal(0).formatted(.currency(code: "USD")))
         #expect(SessionCostTotal.formatted(Decimal(string: "0.004")!) != Decimal(0).formatted(.currency(code: "USD")))
     }
+
+    // #729: without `claude` the HUD shows the Spesa of Copilot this month, Domande and Sessioni, in place of the Quota.
+    @Test func theSpesaOfCopilotCountsOnlyItsTurnsOfTheMonth() {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "Europe/Rome")!
+        let now = calendar.date(from: DateComponents(year: 2026, month: 3, day: 15, hour: 12))!
+        let lastMonth = calendar.date(from: DateComponents(year: 2026, month: 2, day: 28, hour: 23))!
+        let ledger = CostLedger()
+        ledger.record(Self.usage(.apiKey, 0.3), turn: "s1", session: UUID(), project: Self.project,
+                      provider: Budgets.copilot, at: now)
+        ledger.record(Self.usage(.apiKey, 0.2), turn: "q1", question: UUID(), provider: Budgets.copilot, at: now)
+        ledger.record(Self.usage(.apiKey, 5), turn: "old", question: UUID(), provider: Budgets.copilot, at: lastMonth)
+        ledger.record(Self.usage(.apiKey, 7), turn: "claude", session: UUID(), project: Self.project, at: now)
+
+        #expect(ledger.spesa(of: Budgets.copilot, inMonthOf: now, calendar: calendar) == .init(value: 0.5))
+        #expect(ledger.spesa(of: "OpenAI", inMonthOf: now, calendar: calendar) == .init())
+    }
 }
