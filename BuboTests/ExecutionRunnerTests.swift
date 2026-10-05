@@ -30,6 +30,15 @@ struct ExecutionRunnerTests {
                                 echo "{\"v\":4,\"type\":\"denial\",\"id\":\"$id\",\"toolUseID\":\"t2\",\"tool\":\"Bash\",\"command\":\"npm test\",\"agent\":\"revisore\",\"suggestions\":[\"Bash(npm test)\"],\"source\":\"sdk\"}" ;;
                         esac
                         echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                    *'"type":"copilot"'*)
+                        id=$(echo "$line" | sed 's/.*"id":"\([^"]*\)".*/\1/')
+                        case "$line" in
+                            *'Crediti finiti'*)
+                                echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"Crediti finiti\"}" ;;
+                            *)
+                                echo "{\"v\":4,\"type\":\"denial\",\"id\":\"$id\",\"toolUseID\":\"c1\",\"tool\":\"Bash\",\"command\":\"rm -rf ~\",\"suggestions\":[],\"source\":\"gate\"}"
+                                echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
+                        esac ;;
                 esac
             done
             """#
@@ -206,6 +215,71 @@ struct ExecutionRunnerTests {
         let session = try #require(store.sessions.first { $0.id == id })
         #expect(session.permissionMode == .autonomous)
         #expect(session.effectiveMode == "default")
+    }
+
+    /// The commands of `type` the bridge received, oldest first.
+    private func commands(_ type: String) throws -> [[String: Any]] {
+        try String(contentsOf: log, encoding: .utf8).split(separator: "\n")
+            .filter { $0.contains(#""type":"\#(type)""#) }
+            .map { try #require(try JSONSerialization.jsonObject(with: Data($0.utf8)) as? [String: Any]) }
+    }
+
+    /// Makes Copilot the Motore principale of `store`, with `copilot` found and consented; returns the defaults suite
+    /// to remove once done.
+    private func makeCopilotPrimary() throws -> String {
+        let suite = "ExecutionRunnerTests-\(UUID().uuidString)"
+        let defaults = try #require(UserDefaults(suiteName: suite))
+        defaults.set(Session.Engine.copilot.rawValue, forKey: PrimaryEngine.engineKey)
+        store.engines = ProjectEngineStore(defaults: defaults)
+        store.locateCopilot = { URL(filePath: "/c") }
+        store.copilotConsents = { [EndpointSettings.copilotConsentID] }
+        return suite
+    }
+
+    // #728: con principale Copilot l'Esecuzione parte su Copilot, senza nessuno davanti, e mai su `claude`.
+    @Test(.timeLimit(.minutes(1)))
+    func withCopilotPrimaryAnExecutionRunsOnCopilotUnattended() async throws {
+        let suite = try makeCopilotPrimary()
+        defer {
+            try? FileManager.default.removeItem(at: repos.base)
+            UserDefaults().removePersistentDomain(forName: suite)
+        }
+        let automation = addAutomation()
+
+        let id = try #require(runner.run(automation.id))
+        try await waitForTheExecution(of: automation.id)
+
+        let turn = try #require(try commands("copilot").first)
+        #expect(turn["unattended"] as? Bool == true)
+        #expect(turn["permissionMode"] as? String == "auto")
+        #expect(try asks().isEmpty)
+        let session = try #require(store.sessions.first { $0.id == id })
+        #expect(session.engine == .copilot)
+        #expect(session.denials.map(\.id) == ["c1"])
+        #expect(automations[automation.id]?.lastExecution?.outcome == .fatta)
+    }
+
+    // #728: alla Quota finita l'Esecuzione si ferma in Errore e lo notifica, senza passare a `claude`.
+    @Test(.timeLimit(.minutes(1)))
+    func anExecutionOutOfCopilotQuotaStopsAndNotifiesWithoutSwitchingEngine() async throws {
+        let suite = try makeCopilotPrimary()
+        defer {
+            try? FileManager.default.removeItem(at: repos.base)
+            UserDefaults().removePersistentDomain(forName: suite)
+        }
+        var automation = addAutomation()
+        automation.request = "Crediti finiti"
+        automations.update(automation)
+        var notified: [Execution.Outcome] = []
+        runner.onFinish = { _, execution in notified.append(execution.outcome) }
+
+        let id = try #require(runner.run(automation.id))
+        try await waitForTheExecution(of: automation.id)
+
+        #expect(notified == [.errore])
+        #expect(store.sessions.first { $0.id == id }?.failure == "Crediti finiti")
+        #expect(try commands("copilot").count == 1)
+        #expect(try asks().isEmpty)
     }
 
     @Test func thePromptCarriesTheRequestAndTheAutomationsName() {

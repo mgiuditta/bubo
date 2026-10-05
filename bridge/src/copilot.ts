@@ -5,12 +5,13 @@ import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionR
   type PermissionRequestResult, type ResumeSessionConfig, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
-import type { RiskQuestion } from "./gate";
+import { unattendedReason, type RiskQuestion } from "./gate";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import { summary, writtenLines, type Edit, type Progress, type Read } from "./activity";
 import { CopilotUsage } from "./copilot-question";
 import { dates, messages, transcriptLimit, type Message } from "./history";
 import type { ConversationStore } from "./store";
+import type { Denial } from "./unattended";
 import type { TurnUsage } from "./usage";
 
 type ReasoningEffort = NonNullable<SessionConfig["reasoningEffort"]>;
@@ -25,7 +26,8 @@ export type CopilotEvent =
   | (Read & { id: string })
   | { type: "ran"; id: string }
   | (PermissionRequest & { id: string })
-  | { type: "permissionWithdrawn"; id: string; request: string };
+  | { type: "permissionWithdrawn"; id: string; request: string }
+  | (Denial & { type: "denial"; id: string });
 
 export type CopilotTurn = {
   id: string;
@@ -41,6 +43,8 @@ export type CopilotTurn = {
   resume?: boolean;
   /** `auto` nella Modalità autonoma: si approva da sé e chiede solo sui livelli 4–5, come una Sessione Claude. */
   permissionMode?: "auto" | "default";
+  /** Il turno di un'Esecuzione, senza nessuno davanti: nessuna Richiesta arriva a Bubo, il resto è negato (#728). */
+  unattended?: boolean;
 };
 
 /** Se Bubo dà il livello 4 o 5 a una chiamata del turno `id`; senza risposta, sì. */
@@ -190,7 +194,8 @@ export class CopilotTurns {
         model: turn.model,
         reasoningEffort: turn.effort,
         streaming: true,
-        onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal, turn.permissionMode === "auto"),
+        onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal, turn.permissionMode === "auto",
+                                                turn.unattended === true),
       };
       let prompt = turn.prompt;
       const { keep } = turn;
@@ -254,17 +259,24 @@ export class CopilotTurns {
   }
 
   // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude. Nella Modalità
-  // autonoma passa prima dal cancello: approva da sé, e chiede a Bubo solo sui livelli 4–5.
-  private async ask(id: string, asked: CopilotRequest, signal: AbortSignal, isAutonomous: boolean): Promise<PermissionRequestResult> {
+  // autonoma passa prima dal cancello: approva da sé, e chiede a Bubo solo sui livelli 4–5. Senza nessuno davanti
+  // (`isUnattended`) non chiede mai: quello che la modalità non approva da sé è negato, e finisce nel resoconto.
+  private async ask(id: string, asked: CopilotRequest, signal: AbortSignal, isAutonomous: boolean,
+                    isUnattended = false): Promise<PermissionRequestResult> {
     if (signal.aborted) return decision(false, deniedWithoutBubo);
     const request = randomUUID();
     const shown = permissionRequest(request, asked);
     if (isTooLong(shown)) return decision(false, deniedWithoutBubo);
+    const { tool, command, path, url } = shown;
+    let isDangerous = false;
     if (isAutonomous && mayApproveByMode(asked)) {
-      const { tool, command, path, url } = shown;
-      const isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
+      isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
       if (signal.aborted) return decision(false, deniedWithoutBubo);
       if (!isDangerous) return approvedByMode;
+    }
+    if (isUnattended) {
+      this.send({ type: "denial", id, toolUseID: request, tool, command, path, url, suggestions: [], source: "gate" });
+      return decision(false, unattendedReason(isDangerous ? "Livello di rischio 4 o 5." : "Serve un'approvazione."));
     }
     let reached = true;
     const allowed = await new Promise<boolean>((resolve) => {

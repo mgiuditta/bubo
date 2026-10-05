@@ -222,6 +222,8 @@ final class AgentBridge {
     ///     `nil` for none.
     ///   - resuming: Whether `copilot` resumes `conversation` with what was said in it, instead of starting it.
     ///   - permissionMode: How the calls are approved; `nil` asks on every call.
+    ///   - isUnattended: Makes it the turn of an Esecuzione, with nobody in front of it: the bridge never asks, denies
+    ///     what `permissionMode` does not approve, levels 4–5 included, and reports each denial in `progress`.
     ///   - progress: Receives the state of the conversation, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
@@ -230,7 +232,7 @@ final class AgentBridge {
     ///     autonoma; `nil` counts every call as dangerous.
     func askCopilot(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>, model: String? = nil,
                     effort: Effort? = nil, keeping conversation: String? = nil, resuming: Bool = false,
-                    permissionMode: PermissionMode? = nil, id: String = UUID().uuidString,
+                    permissionMode: PermissionMode? = nil, isUnattended: Bool = false, id: String = UUID().uuidString,
                     progress: @escaping (AgentProgress) -> Void = { _ in },
                     permissions: ((PermissionEvent) -> Void)? = nil,
                     usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -253,7 +255,8 @@ final class AgentBridge {
             riskHandlers[id] = isDangerous
             let command = BridgeCommand.askCopilot(id: id, prompt: prompt, directory: directory, copilot: copilot,
                                                    model: model, effort: effort, keeping: conversation,
-                                                   resumes: resuming, permissionMode: permissionMode)
+                                                   resumes: resuming, permissionMode: permissionMode,
+                                                   isUnattended: isUnattended)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

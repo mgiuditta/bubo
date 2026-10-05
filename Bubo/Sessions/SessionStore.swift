@@ -412,8 +412,12 @@ final class SessionStore {
     }
 
     /// Starts the Sessione of an Esecuzione of an Automazione, marked with `automation`, in a new copy of `project` on
-    /// `branch`, and asks `claude` `prompt` there with nobody in front of it (`unattended`). Only that turn is
-    /// unattended: the next ones, asked by the user, are ordinary turns without the Automazione's rules.
+    /// `branch`, and asks `prompt` there with nobody in front of it (`unattended`). Only that turn is unattended: the
+    /// next ones, asked by the user, are ordinary turns without the Automazione's rules.
+    ///
+    /// It runs on the engine new Sessioni of `project` start on, the Motore principale unless the user chose another
+    /// (ADR 0014); on Copilot with that choice's model, since the Automazione's model is a `claude` alias. A turn that
+    /// runs out of Quota or hits a limit ends in Errore, never on the other engine.
     ///
     /// - Parameters:
     ///   - isAutonomous: Whether the turn runs in the Modalità autonoma; it counts only in a worktree of its own.
@@ -427,6 +431,9 @@ final class SessionStore {
         session.prompt = prompt
         session.automation = automation
         session.isAutonomous = isAutonomous
+        // On Claude the Sessione keeps today's choice: the Automazione's model, then the one of `claude`.
+        let choice = engines.choice(for: project)
+        if choice.engine == .copilot { session.choice = choice }
         session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         sessions.append(session)
         save()
@@ -1169,7 +1176,7 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         // The Allegati dropped on the Sessione go with this turn, and only with it.
         let attachments = session.attachments
-        let isCopilot = session.engine == .copilot && unattended == nil
+        let isCopilot = session.engine == .copilot
         // A `/name` Claude runs on its own stays as it is; otherwise Bubo writes the skill into the prompt (#689).
         var skill: Skill?
         var asked = prompt
@@ -1294,8 +1301,8 @@ final class SessionStore {
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
                                  model: current?.copilotModel?.model, effort: current?.copilotModel?.effort,
                                  keeping: kept, resuming: copilotConversation != nil, permissionMode: permissionMode,
-                                 id: answerID, progress: onProgress,
-                                 permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
+                                 isUnattended: unattended != nil, id: answerID, progress: onProgress,
+                                 permissions: unattended == nil ? onPermission : nil) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
                                   provider: Budgets.copilot)
                     self?.stopTurnsPastBudget(besides: id)
