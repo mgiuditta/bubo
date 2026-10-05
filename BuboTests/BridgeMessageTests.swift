@@ -121,6 +121,16 @@ struct BridgeMessageTests {
         }
     }
 
+    // #722: as `claude`, `copilot` loads a folder's own configuration only once the folder is trusted.
+    @Test(arguments: [false, true])
+    func aCopilotQuestionLoadsTheFoldersConfigurationOnlyWhenTrusted(isTrusted: Bool) throws {
+        let line = try BridgeCommand.askCopilotQuestion(id: "c1", prompt: "Ciao", directory: URL(filePath: "/vault"),
+                                                        copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+                                                        isTrusted: isTrusted).line()
+        let object = try #require(try JSONSerialization.jsonObject(with: line) as? [String: Any])
+        #expect(object["trusted"] as? Bool == (isTrusted ? true : nil))
+    }
+
     @Test func copilotModelsSkipAnEffortBuboDoesNotKnow() throws {
         let line = #"{"v":4,"type":"copilotModels","id":"m1","models":[{"id":"gpt-6","name":"GPT-6","multiplier":1,"#
             + #""supportedEfforts":["low","ultra"],"defaultEffort":"ultra"},{"id":"grok-5","name":"Grok 5"}]}"#

@@ -5,9 +5,11 @@
 import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo,
   type PermissionRequest as CopilotRequest, type PermissionRequestResult, type SessionConfig, type SessionHooks,
   type SessionEvent, type Tool } from "@github/copilot-sdk";
-import { dirname } from "node:path";
+import { homedir } from "node:os";
+import { dirname, relative, resolve } from "node:path";
 import { z } from "zod";
 import { close, CopilotPermissions, decision, withFolderFirst, type CopilotPermissionEvent } from "./copilot";
+import { isInside, realPath } from "./gate";
 import { clean, deniedWithoutBubo } from "./permission";
 import type { AnsweredBy } from "./router";
 import { hiddenPathDenial, rememberCall, rememberTool, searchCall, searchTool, type BuboToolCall } from "./tools";
@@ -49,6 +51,9 @@ export type CopilotQuestion = {
   brain?: string;
   /** Le cartelle escluse del Secondo cervello, assolute: nessuno strumento di `copilot` le tocca. */
   hidden?: string[];
+  /** Se l'utente si fida di `cwd` (#266): solo allora `copilot` carica la configurazione e le istruzioni che vi trova,
+   * hook, server MCP ed estensioni compresi, come `claude` le impostazioni di Progetto. */
+  trusted?: boolean;
 };
 
 /** Manda a Bubo una chiamata a `cerca` o `ricorda` e aspetta il testo con cui risponde (`found`). */
@@ -64,10 +69,73 @@ const guardedAs: Record<string, string> = {
   create: "Write", edit: "Write", str_replace_editor: "Write", str_replace: "Write", insert: "Write",
 };
 
+// Gli strumenti di `copilot` che lanciano un comando: il loro testo non nomina una cartella esclusa.
+const shellTools = new Set(["bash", "powershell"]);
+
+const insideHidden = "Questa cartella è esclusa dal Secondo cervello: Bubo non la legge.";
+const acrossHidden = "Il comando o la ricerca attraverserebbe una cartella esclusa dal Secondo cervello: usa cerca, o una sottocartella.";
+const unresolved = "Con cartelle escluse dal Secondo cervello, un percorso di cui Bubo non sa dire dove finisce è negato.";
+
+// Maiuscole e forma Unicode non contano: su un volume che non le distingue «privato» è «Privato». Al più nega di più.
+const comparable = (path: string) => path.normalize("NFC").toLowerCase();
+
+/** Dove finisce `path` in `cwd`, `~` compreso, come lo apre il disco (symlink, poi `..`) e come lo normalizza chi
+ * risolve `..` sul testo; `undefined` se non si può dire (un symlink che non porta da nessuna parte, un ciclo). */
+function landings(path: string, cwd: string): string[] | undefined {
+  const raw = path === "~" || path.startsWith("~/") ? homedir() + path.slice(1) : path;
+  const reals = [realPath(raw, cwd), realPath(resolve(cwd, raw), cwd)];
+  return reals.every((real): real is string => real !== undefined) ? reals.map(comparable) : undefined;
+}
+
+/** Le cartelle escluse risolte, e anche come sono scritte: un percorso che porta a una delle due forme è dentro. */
+function hiddenLandings(hidden: string[], cwd: string): string[] {
+  return hidden.flatMap((dir) => [...(landings(dir, cwd) ?? []), comparable(resolve(cwd, dir))]);
+}
+
+/** Perché `path` tocca una cartella esclusa `hidden`: ci finisce dentro, o, se `isSearch`, ne è sopra e la
+ * attraverserebbe; nega anche quando non si sa dove finisce. `undefined` se non la tocca. */
+export function hiddenPathReason(path: string, cwd: string, hidden: string[], isSearch: boolean): string | undefined {
+  const reals = landings(path, cwd);
+  if (!reals) return unresolved;
+  const dirs = hiddenLandings(hidden, cwd);
+  if (reals.some((real) => isInside(real, dirs))) return insideHidden;
+  if (isSearch && dirs.some((dir) => isInside(dir, reals))) return acrossHidden;
+  return undefined;
+}
+
+/** Perché il testo di un comando nomina una cartella esclusa: assoluta, reale, dalla home o relativa a `cwd`. Il
+ * testo non dice tutto (variabili, glob, `cd`): è una difesa in più, non l'unica. */
+function hiddenCommandReason(command: string, cwd: string, hidden: string[]): string | undefined {
+  const text = comparable(command);
+  const home = comparable(homedir());
+  const forms = new Set<string>();
+  for (const dir of hiddenLandings(hidden, cwd)) {
+    forms.add(dir);
+    if (dir.startsWith(home + "/")) forms.add(`~${dir.slice(home.length)}`).add(`$home${dir.slice(home.length)}`);
+    const fromCwd = relative(comparable(cwd), dir);
+    if (fromCwd && !fromCwd.startsWith("..")) forms.add(fromCwd);
+  }
+  const escape = (form: string) => form.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return [...forms].some((form) => new RegExp(`(^|[\\s'"=:(/])${escape(form)}(?=$|[\\s'"/;|&)*])`).test(text))
+    ? insideHidden : undefined;
+}
+
 /** Perché lo strumento `tool` di `copilot` non può toccare `args` in una Domanda in `cwd` con le cartelle escluse
- * `hidden`; `undefined` se può. Le stesse regole delle Domande Claude (`hiddenPathDenial`). */
+ * `hidden`; `undefined` se può. Le regole delle Domande Claude (`hiddenPathDenial`), poi ogni percorso risolto come
+ * fa il cancello (`gate.ts`), e il testo dei comandi. */
 export function hiddenToolDenial(tool: string, args: unknown, cwd: string, hidden: string[]): string | undefined {
-  return hiddenPathDenial(guardedAs[tool] ?? "Read", args, cwd, hidden);
+  if (hidden.length === 0) return undefined;
+  const as = guardedAs[tool] ?? "Read";
+  const claude = hiddenPathDenial(as, args, cwd, hidden);
+  if (claude) return claude;
+  const fields = (typeof args === "object" && args !== null ? args : {}) as Record<string, unknown>;
+  for (const key of ["path", "file_path", "notebook_path"]) {
+    const path = fields[key];
+    const reason = typeof path === "string" ? hiddenPathReason(path, cwd, hidden, as === "Grep" || as === "Glob") : undefined;
+    if (reason) return reason;
+  }
+  if (shellTools.has(tool) && typeof fields.command === "string") return hiddenCommandReason(fields.command, cwd, hidden);
+  return undefined;
 }
 
 /** L'hook prima di ogni strumento che tiene `copilot` fuori dalle cartelle escluse: un errore nega, mai lascia passare
@@ -84,10 +152,19 @@ export function hiddenFoldersHook(cwd: string, hidden: string[]): PreToolUseHand
   };
 }
 
-/** Una Richiesta di lettura o scrittura dentro una cartella esclusa: respinta prima del cancello. */
-function hiddenRequestDenial(asked: CopilotRequest, cwd: string, hidden: string[]): string | undefined {
+/** Perché una Richiesta tocca una cartella esclusa, e va respinta prima del cancello: il file da leggere o scrivere, e
+ * ogni percorso di un comando, che non può nemmeno passarci sopra, e il suo testo. */
+export function hiddenRequestDenial(asked: CopilotRequest, cwd: string, hidden: string[]): string | undefined {
+  if (hidden.length === 0) return undefined;
   if (asked.kind === "read") return hiddenToolDenial("view", { path: asked.path }, cwd, hidden);
   if (asked.kind === "write") return hiddenToolDenial("create", { path: asked.fileName }, cwd, hidden);
+  if (asked.kind === "shell") {
+    for (const path of asked.possiblePaths ?? []) {
+      const reason = hiddenPathReason(path, cwd, hidden, true);
+      if (reason) return reason;
+    }
+    return hiddenCommandReason(asked.fullCommandText ?? "", cwd, hidden);
+  }
   return undefined;
 }
 
@@ -113,19 +190,23 @@ export function buboTools(conversation: string, askBubo: AskBubo): Tool<any>[] {
   ];
 }
 
-/** La sessione di una Domanda come `copilot` nel terminale: i suoi strumenti e la sua configurazione, e ogni Richiesta
- * a `askPermission`. Con il Secondo cervello (`brain` e `askBubo`) Profilo e Regole in coda al prompt di sistema, e in
- * più `cerca` e `ricorda` di Bubo. Le cartelle escluse `hidden` restano chiuse a ogni strumento. */
-export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain" | "hidden">,
+/** La sessione di una Domanda come `copilot` nel terminale: i suoi strumenti, e ogni Richiesta a `askPermission`. La
+ * configurazione e le istruzioni della cartella solo se `trusted`. Con il Secondo cervello (`brain` e `askBubo`)
+ * Profilo e Regole in coda al prompt di sistema, e in più `cerca` e `ricorda` di Bubo. Le cartelle escluse `hidden`
+ * restano chiuse a ogni strumento. */
+export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain" | "hidden" | "trusted">,
                                 askPermission: AskPermission, askBubo?: AskBubo): SessionConfig {
   const hidden = question.hidden ?? [];
+  const trusted = question.trusted === true;
   return {
     clientName: "bubo",
     workingDirectory: question.cwd,
     model: question.model,
     reasoningEffort: question.effort,
     streaming: true,
-    enableConfigDiscovery: true,
+    // Una cartella di cui l'utente non si fida non esegue nulla di suo: niente hook, server MCP, estensioni né istruzioni.
+    enableConfigDiscovery: trusted,
+    enableOnDemandInstructionDiscovery: trusted,
     ...(question.brain && askBubo
       ? { tools: buboTools(question.id, askBubo), systemMessage: { mode: "append" as const, content: question.brain } }
       : {}),

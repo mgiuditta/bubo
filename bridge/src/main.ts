@@ -41,7 +41,7 @@ const version = 4;
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown; permissionMode?: unknown; unattended?: unknown }
-  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown; readOnly?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown; readOnly?: unknown; trusted?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
@@ -235,7 +235,7 @@ async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>
     id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
     model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
     brain: typeof command.brain === "string" && command.brain.length > 0 ? command.brain : undefined,
-    hidden: readOnlyOf(command.readOnly)?.hidden,
+    hidden: readOnlyOf(command.readOnly)?.hidden, trusted: command.trusted === true,
   });
   if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
 }

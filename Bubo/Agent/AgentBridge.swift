@@ -303,7 +303,8 @@ final class AgentBridge {
     /// gate approves by itself and asks only on levels 4–5, as for a Claude Domanda. `copilot` answers with the user's
     /// own login: the bridge removes the tokens that would override it. Cancelling the iteration stops the answer.
     /// Without the user's consent for Copilot nothing is sent, and the answer fails with
-    /// `CopilotFailure.consentMissing`.
+    /// `CopilotFailure.consentMissing`. `copilot` loads the configuration and the instructions of `directory` only
+    /// when the folder is trusted, as `claude` loads a folder's own settings.
     ///
     /// - Parameters:
     ///   - directory: Where the Domanda runs: the Secondo cervello, only with the user's consent for the notes, or an
@@ -351,7 +352,7 @@ final class AgentBridge {
             let secondBrain = sharesNotes && consents.contains(EndpointSettings.copilotNotesConsentID) ? basics() : nil
             let command = BridgeCommand.askCopilotQuestion(id: id, prompt: prompt, directory: directory, copilot: copilot,
                                                            model: model, effort: effort, secondBrain: secondBrain,
-                                                           readOnly: readOnly)
+                                                           readOnly: readOnly, isTrusted: trustGate.isTrusted(directory))
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

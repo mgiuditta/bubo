@@ -49,6 +49,7 @@ async function play(sessionId, prompt) {
       availableTools: session.availableTools ?? null,
       hooks: session.hooks ?? false,
       enableConfigDiscovery: session.enableConfigDiscovery ?? false,
+      instructionDiscovery: session.instructionDiscovery ?? null,
       tools: session.tools,
       systemMessage: session.systemMessage ?? null,
       model: session.model ?? null,
@@ -138,7 +139,8 @@ function handle(message) {
     case "session.create": {
       const sessionId = params.sessionId ?? randomUUID();
       sessions.set(sessionId, { model: params.model, effort: params.reasoningEffort, availableTools: params.availableTools,
-        hooks: params.hooks, enableConfigDiscovery: params.enableConfigDiscovery, cwd: params.workingDirectory,
+        hooks: params.hooks, enableConfigDiscovery: params.enableConfigDiscovery,
+        instructionDiscovery: params.enableOnDemandInstructionDiscovery, cwd: params.workingDirectory,
         tools: (params.tools ?? []).map((tool) => ({ name: tool.name, skipPermission: tool.skipPermission ?? false })),
         systemMessage: params.systemMessage });
       return reply({ sessionId, workspacePath: params.workingDirectory });

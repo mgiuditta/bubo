@@ -336,6 +336,26 @@ struct QuestionWorkplaceTests {
         #expect(workplace.readOnly == ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [hidden]))
     }
 
+    // #722: Copilot has its own tools; without the consent for the notes the whole Secondo cervello stays closed.
+    @Test func aCopilotDomandaReadsTheNotesOnlyWithTheirConsent() throws {
+        let folder = FileManager.default.temporaryDirectory.appending(path: "Cervello-\(UUID().uuidString)",
+                                                                      directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+        var location = SecondBrainLocation(folder: folder)
+        location.excludedFolders = ["Privato"]
+
+        let shared = try QuestionModel.copilotWorkplace(in: location, sharesNotes: true)
+        let kept = try QuestionModel.copilotWorkplace(in: location, sharesNotes: false)
+        let none = try QuestionModel.copilotWorkplace(in: nil, sharesNotes: false)
+
+        #expect(shared.directory == location.url)
+        #expect(shared.readOnly == (try QuestionModel.workplace(in: location)).readOnly)
+        #expect(kept.directory == (try QuestionModel.directory()))
+        #expect(kept.readOnly == ReadOnlyTurn(hiddenDirectories: [location.url]))
+        #expect(none.readOnly == ReadOnlyTurn())
+    }
+
     @Test(arguments: [false, true])
     func withoutAReachableSecondBrainTheDomandeFolderIsTheWorkplace(isConfigured: Bool) throws {
         let missing = FileManager.default.temporaryDirectory.appending(path: "Sparito-\(UUID().uuidString)")

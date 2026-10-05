@@ -59,7 +59,11 @@ struct AgentBridgeTests {
     // #722: a Copilot Domanda runs where a Claude one does, its excluded folders closed, and the gate asks Bubo the level.
     @Test func aCopilotQuestionRunsInItsWorkplaceAndAsksTheLevelOfItsCalls() async throws {
         let bridge = Self.bridge(Self.answering(#"""
-            case "$line" in *'"cwd":"/vault"'*'"hidden":["/vault/Privato"]'*) place=chiusa ;; *) place=aperta ;; esac
+            case "$line" in
+              *'"trusted"'*) place=fidata ;;
+              *'"cwd":"/vault"'*'"hidden":["/vault/Privato"]'*) place=chiusa ;;
+              *) place=aperta ;;
+            esac
             echo "{\"v\":4,\"type\":\"risk\",\"id\":\"$id\",\"request\":\"r1\",\"tool\":\"Read\",\"path\":\"/vault/a.md\"}"
             read risk
             dangerous=$(echo "$risk" | sed 's/.*"dangerous":\([a-z]*\).*/\1/')
