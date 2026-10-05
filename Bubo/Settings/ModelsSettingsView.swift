@@ -3,6 +3,7 @@ import SwiftUI
 /// Impostazioni › Modelli: the Motore principale (ADR 0014), GitHub Copilot (ADR 0012), the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
 /// Claude (spec 10), and the PriceTable their Spesa is estimated with (spec 18).
 struct ModelsSettingsView: View {
+    @Environment(QuestionModel.self) private var questions: QuestionModel?
     @State private var settings = EndpointSettings.shared
     @State private var prices = PriceTable.shared
     @State private var preferences = TypePreferences.shared
@@ -33,17 +34,20 @@ struct ModelsSettingsView: View {
             } footer: {
                 Text("Senza rete le Domande vanno al Modello locale invece che a Claude; se non risponde, ad Apple FM. In nessun altro caso Bubo lo sceglie da solo.")
             }
-            Section {
-                Stepper(value: $stepDown, in: 0.5...0.95, step: 0.05) {
-                    Text("Modello più leggero oltre: \(Self.percent(stepDown))")
+            // The Quota is the Claude subscription's: without `claude` there is none to watch (#729).
+            if questions?.isClaudeMissing != true {
+                Section {
+                    Stepper(value: $stepDown, in: 0.5...0.95, step: 0.05) {
+                        Text("Modello più leggero oltre: \(Self.percent(stepDown))")
+                    }
+                    Stepper(value: $onMac, in: 0.5...1, step: 0.05) {
+                        Text("Domande sul Mac oltre: \(Self.percent(onMac))")
+                    }
+                } header: {
+                    Text("Quota di 5 ore")
+                } footer: {
+                    Text("Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale.")
                 }
-                Stepper(value: $onMac, in: 0.5...1, step: 0.05) {
-                    Text("Domande sul Mac oltre: \(Self.percent(onMac))")
-                }
-            } header: {
-                Text("Quota di 5 ore")
-            } footer: {
-                Text("Oltre la prima soglia le scelte automatiche scendono di un gradino; oltre la seconda le Domande vanno al Modello locale o ad Apple FM. Le Sessioni restano su Claude, le tue scelte valgono sempre e niente si blocca. Con la API key non vale.")
             }
             ForEach(settings.endpoints) { endpoint in
                 EndpointSection(endpoint: endpoint, settings: settings)
