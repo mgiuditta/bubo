@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, approvedByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotTurns, approvedByMode, mayApproveByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
 import type { RiskQuestion } from "./gate";
 import { ConversationStore } from "./store";
@@ -250,4 +250,13 @@ test("gli strumenti senza percorso o senza testo non sono Attività", () => {
   expect(toolActivity("view", {})).toBeUndefined();
   expect(toolActivity("grep", { path: "/a", pattern: "x" })).toBeUndefined();
   expect(toolActivity("str_replace_editor", { command: "insert", path: "/a", new_str: "x" })).toEqual({ type: "edit", file: "/a", lines: ["x"] });
+});
+
+test("la Modalità autonoma approva da sé solo i tipi classificati, mai contro policy o sandbox", () => {
+  const asked = (fields: object) => fields as Parameters<typeof mayApproveByMode>[0];
+  expect(mayApproveByMode(asked({ kind: "read", path: "a" }))).toBe(true);
+  expect(mayApproveByMode(asked({ kind: "extension-env-access" }))).toBe(false);
+  expect(mayApproveByMode(asked({ kind: "hook" }))).toBe(false);
+  expect(mayApproveByMode(asked({ kind: "shell", managedApprovalRequired: true }))).toBe(false);
+  expect(mayApproveByMode(asked({ kind: "shell", requestSandboxBypass: true }))).toBe(false);
 });

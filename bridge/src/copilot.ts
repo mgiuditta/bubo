@@ -122,6 +122,14 @@ export function decision(allowed: boolean, message = deniedByUser): PermissionRe
 // Approvato dalla Modalità autonoma, senza chiedere: livelli 1–3.
 export const approvedByMode: PermissionRequestResult = { kind: "approve-once" };
 
+// La Modalità autonoma approva da sé solo i tipi che Bubo sa classificare, e mai contro la policy dell'organizzazione
+// o per uscire dalla sandbox di `copilot`: estensioni, hook, variabili d'ambiente e il resto chiedono sempre.
+const classifiedKinds = new Set(["shell", "write", "read", "url", "mcp"]);
+export function mayApproveByMode(asked: CopilotRequest): boolean {
+  const flags = asked as { managedApprovalRequired?: boolean; requestSandboxBypass?: boolean };
+  return classifiedKinds.has(asked.kind) && !flags.managedApprovalRequired && !flags.requestSandboxBypass;
+}
+
 // Quanto aspetta Ferma la fine del turno dopo `abort`, prima di chiudere `copilot`: l'obiettivo è 2 s.
 const abortGrace = 1_500;
 
@@ -252,7 +260,7 @@ export class CopilotTurns {
     const request = randomUUID();
     const shown = permissionRequest(request, asked);
     if (isTooLong(shown)) return decision(false, deniedWithoutBubo);
-    if (isAutonomous) {
+    if (isAutonomous && mayApproveByMode(asked)) {
       const { tool, command, path, url } = shown;
       const isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
       if (signal.aborted) return decision(false, deniedWithoutBubo);
