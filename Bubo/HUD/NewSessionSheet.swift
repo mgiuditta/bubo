@@ -1,7 +1,7 @@
 import os
 import SwiftUI
 
-/// ⌘N: a new Sessione on a Progetto, with its title and branch proposed from the prompt, or from the Domanda or the
+/// ⌘N: a new Sessione on a Progetto, with its title and branch taken from the prompt, never asked, or from the Domanda or the
 /// conversation it continues: whole from the Cronologia CLI, or up to a message with Continua da qui.
 ///
 /// In a folder that is not trusted, the trust dialog comes first (#266).
@@ -73,7 +73,6 @@ struct NewSessionSheet: View {
                     .lineLimit(3...6)
                     .focused($isPromptFocused)
                     .slashCompletion(text: $prompt, folder: project, isShowing: $isSlashMenuShowing)
-                TextField("Titolo", text: $title)
                 EngineChoiceField(choice: $choice, isProjectDefault: $isProjectDefault,
                                   copilotModels: store.copilotModels)
                 Toggle(isOn: $isOnCheckout) {
