@@ -122,6 +122,9 @@ struct NewSessionSheet: View {
             guard let project else { return }
             choice = store.engines.choice(for: project)
             isProjectDefault = false
+            // Straight in the Progetto's folder, on the branch it has open: no branch to name. A copy of its own
+            // only when another Sessione already works there.
+            isOnCheckout = store.checkoutSession(of: project) == nil
         }
         .task { await store.loadCopilotModels() }
         .onChange(of: title) { old, new in
