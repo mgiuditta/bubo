@@ -9,7 +9,7 @@
 // - "chiedi <json>": fa a Bubo la domanda `<json>` (`userInput.request`, come `ask_user`) e risponde con la risposta
 //   ricevuta, in JSON; se il turno si ferma prima, con `session.abort`, finisce lì;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
-// - "errore": finisce con `session.error`;
+// - "errore": finisce con `session.error` di rete; "crediti": con `session.error` di Quota finita;
 // - altro: risponde "Ciao mondo", con i token di due chiamate al modello e di un subagent.
 import { randomUUID } from "node:crypto";
 
@@ -118,7 +118,10 @@ async function play(sessionId, prompt) {
       idle();
     };
   } else if (prompt === "errore") {
-    emit(sessionId, "session.error", { errorType: "quota", message: "Crediti finiti" });
+    emit(sessionId, "session.error", { errorType: "query", message: "fetch failed" });
+    idle();
+  } else if (prompt === "crediti") {
+    emit(sessionId, "session.error", { errorType: "quota", errorCode: "quota_exceeded", message: "Crediti finiti" });
     idle();
   } else {
     say("Ciao");

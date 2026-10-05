@@ -53,7 +53,8 @@ struct QuestionNotice: View {
             ErrorNotice("Copilot non è collegato",
                         remedy: "Collegalo in Impostazioni › Modelli. Serve un piano Copilot a pagamento.",
                         actionTitle: "Apri Impostazioni") { openSettings() }
-        case .copilotFailed(let message):
+        // The model turns `copilotLimitReached` into `copilotFailed`, or into the Riserva.
+        case .copilotFailed(let message), .bridge(.copilotLimitReached(let message)):
             ErrorNotice("Copilot non ha risposto", remedy: "\(message)", actionTitle: "Rifai con…", action: pickRetry)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",

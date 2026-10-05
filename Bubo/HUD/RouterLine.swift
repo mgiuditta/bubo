@@ -73,6 +73,16 @@ struct RouterLine: View {
 
     /// Why the router chose `route`, as the line and the chip in the prompt say it.
     static func reason(for route: Route) -> LocalizedStringResource {
+        switch route.exhaustedEngine {
+        case .claude?:
+            return LocalizedStringResource("Quota di Claude finita: risponde Copilot",
+                                           comment: "Reason line: Claude's Quota ran out or hit a limit, so Copilot, the Riserva, answers this Domanda.")
+        case .copilot?:
+            return LocalizedStringResource("Quota di Copilot finita: risponde Claude",
+                                           comment: "Reason line: Copilot's Quota ran out or hit a limit, so Claude, the Riserva, answers this Domanda.")
+        case nil:
+            break
+        }
         let family = switch route.destination {
         case .claude: route.family?.name ?? ""
         case .onDevice: appleFM

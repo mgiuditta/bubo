@@ -84,6 +84,9 @@ nonisolated struct Route: Equatable, Sendable {
     /// The provider the route avoids, as the CostLedger names it, because its Budget is past the threshold; `nil` when
     /// it avoided none, and for a preference that went to its default, which `pausedPreference` says.
     var avoidedBudget: String?
+    /// The Motore principale whose Quota ran out, or that hit a limit, when the Riserva answers instead (ADR 0014);
+    /// `nil` when the principale answers.
+    var exhaustedEngine: Session.Engine?
 
     /// The route of a Domanda of `type` that Apple Foundation Models answers on the Mac.
     static func onDevice(_ type: RequestType, runnerUp: RequestType?) -> Route {

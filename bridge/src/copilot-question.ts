@@ -32,6 +32,8 @@ export type CopilotQuestionEvent =
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
   | { type: "error"; id: string; message: string }
+  /** La Domanda si è fermata per Quota finita o un limite di Copilot: con la Riserva risponde Claude (#726). */
+  | { type: "copilotLimit"; id: string; message: string }
   | ({ type: "usage"; id: string } & TurnUsage)
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
   | { type: "copilotModels"; id: string; models: CopilotModel[] }
@@ -285,7 +287,7 @@ export class CopilotQuestions {
     let session: CopilotSession | undefined;
     let firstToken: FirstToken | undefined;
     const client = this.client(question.copilot, question.cwd);
-    const finished = Promise.withResolvers<"done" | "stopped" | { error: string }>();
+    const finished = Promise.withResolvers<"done" | "stopped" | { error: string; isLimit: boolean }>();
     const usage = new CopilotUsage();
     this.running.set(id, () => {
       if (stopped.signal.aborted) return;
@@ -311,7 +313,7 @@ export class CopilotQuestions {
         } else if (event.type === "session.idle") {
           finished.resolve("done");
         } else if (event.type === "session.error") {
-          finished.resolve({ error: clean(event.data.message) ?? event.data.errorType });
+          finished.resolve({ error: clean(event.data.message) ?? event.data.errorType, isLimit: isCopilotLimit(event.data) });
         }
       });
       sent = performance.now();
@@ -324,7 +326,7 @@ export class CopilotQuestions {
         if (answeredBy) this.send({ type: "answeredBy", id, ...answeredBy });
         this.send({ type: "done", id });
       } else if (end !== "stopped") {
-        this.send({ type: "error", id, message: end.error });
+        this.send({ type: end.isLimit ? "copilotLimit" : "error", id, message: end.error });
       }
       return firstToken;
     } catch (error) {
@@ -375,6 +377,21 @@ export class CopilotUsage {
   answeredBy(): AnsweredBy | undefined {
     return this.last;
   }
+}
+
+type ErrorData = Extract<SessionEvent, { type: "session.error" }>["data"];
+
+/**
+ * Se un `session.error` di `copilot` è Quota finita o un limite: l'unico caso in cui risponde la Riserva (ADR 0014).
+ * Dall'SDK 1.0.16: `errorType` `quota` con i codici CAPI `quota_exceeded` (crediti del mese finiti),
+ * `additional_spend_limit_reached`, `session_quota_exceeded`; `rate_limit` con `user_weekly_rate_limited`,
+ * `user_global_rate_limited`, `user_model_rate_limited`, `integration_rate_limited`, `rate_limited`.
+ * `billing_not_configured` è anch'esso `quota`, ma chiede di scegliere la licenza: si corregge, non si aggira, come
+ * `authentication`, `authorization`, `context_limit`, `query` e gli errori di rete.
+ */
+export function isCopilotLimit(error: Pick<ErrorData, "errorType" | "errorCode">): boolean {
+  if (error.errorType === "rate_limit") return true;
+  return error.errorType === "quota" && error.errorCode !== "billing_not_configured";
 }
 
 function messageOf(error: unknown): string {
