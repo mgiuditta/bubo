@@ -6,7 +6,7 @@ import { clean } from "./permission";
 export type ShownQuestion = {
   question: string;
   header: string;
-  options: { label: string; description?: string }[];
+  options: { label: string; description?: string; preview?: string }[];
   multiSelect: boolean;
 };
 
@@ -55,6 +55,7 @@ export function agentQuestion(request: string, input: Record<string, unknown>): 
         options: item.options.map((option) => ({
           label: clean(option.label) ?? "",
           description: clean((option as Record<string, unknown>).description),
+          preview: clean((option as Record<string, unknown>).preview),
         })),
         multiSelect: multiSelect === true,
       };
@@ -63,12 +64,12 @@ export function agentQuestion(request: string, input: Record<string, unknown>): 
 }
 
 // Le risposte nel formato della CLI: testo della domanda → etichetta, oppure etichette scelte più la risposta scritta
-// per `multiSelect`; con una risposta scritta, a scelta singola vale quella. Le etichette e le domande sono quelle
+// unite da ", " per `multiSelect` (l'SDK vuole una stringa); con una risposta scritta, a scelta singola vale quella. Le etichette e le domande sono quelle
 // originali, mai il testo ripulito. `undefined` se `replies` non è una risposta valida a ogni domanda.
-export function answersOf(input: Record<string, unknown>, replies: unknown): Record<string, string | string[]> | undefined {
+export function answersOf(input: Record<string, unknown>, replies: unknown): Record<string, string> | undefined {
   const questions = questionsOf(input);
   if (!questions || !Array.isArray(replies) || replies.length !== questions.length) return undefined;
-  const answers: Record<string, string | string[]> = {};
+  const answers: Record<string, string> = {};
   for (const [index, question] of questions.entries()) {
     const reply = replies[index] as Partial<Reply> | null;
     if (typeof reply !== "object" || reply === null || !Array.isArray(reply.options)) return undefined;
@@ -80,7 +81,7 @@ export function answersOf(input: Record<string, unknown>, replies: unknown): Rec
     if (question.multiSelect) {
       const all = text ? [...labels, text] : labels;
       if (all.length === 0) return undefined;
-      answers[question.question] = all;
+      answers[question.question] = all.join(", ");
     } else if (text) {
       answers[question.question] = text;
     } else if (labels.length === 1) {
@@ -93,7 +94,7 @@ export function answersOf(input: Record<string, unknown>, replies: unknown): Rec
 }
 
 // Con le risposte, `AskUserQuestion` gira con l'input mostrato più `answers`; senza, è negata e Claude lo sa.
-export function questionResult(input: Record<string, unknown>, answers?: Record<string, string | string[]>,
+export function questionResult(input: Record<string, unknown>, answers?: Record<string, string>,
                                message = declined): PermissionResult {
   return answers
     ? { behavior: "allow", updatedInput: { ...input, answers }, decisionClassification: "user_temporary" }

@@ -13,9 +13,11 @@ nonisolated struct AgentQuestion: Identifiable, Equatable, Sendable, Decodable {
             let label: String
             /// What choosing it means, if the agent says.
             var detail: String?
+            /// What it would look like, such as a layout or a snippet, shown in monospace beside the options.
+            var preview: String?
 
             private enum CodingKeys: String, CodingKey {
-                case label, detail = "description"
+                case label, detail = "description", preview
             }
         }
 

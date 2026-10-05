@@ -47,14 +47,14 @@ test("le risposte usano domanda ed etichette originali, non il testo ripulito", 
   const original = input();
   expect(answersOf(original, [{ options: [1] }, { options: [0, 2] }])).toEqual({
     "Quale libreria \x1b[31muso\x1b[0m?": "Luxon",
-    "Cosa abilito?": ["Cache", "Metriche"],
+    "Cosa abilito?": "Cache, Metriche",
   });
 });
 
 test("la risposta scritta vale da sola a scelta singola e si aggiunge a scelta multipla", () => {
   expect(answersOf(input(), [{ options: [], text: "  Temporal  " }, { options: [1], text: "Tracce" }])).toEqual({
     "Quale libreria \x1b[31muso\x1b[0m?": "Temporal",
-    "Cosa abilito?": ["Log", "Tracce"],
+    "Cosa abilito?": "Log, Tracce",
   });
   const long = answersOf(input(), [{ options: [], text: "x".repeat(10_000) }, { options: [0] }]);
   expect((long?.["Quale libreria \x1b[31muso\x1b[0m?"] as string).length).toBe(replyLength);
@@ -71,10 +71,16 @@ test("una risposta storta o incompleta non risponde", () => {
 
 test("con le risposte la domanda gira; senza, è negata con il perché", () => {
   const original = input();
-  const answers = { "Cosa abilito?": ["Log"] };
+  const answers = { "Cosa abilito?": "Log" };
   expect(questionResult(original, answers)).toEqual({
     behavior: "allow", updatedInput: { ...original, answers }, decisionClassification: "user_temporary",
   });
   expect(questionResult(original)).toEqual({ behavior: "deny", message: declined, decisionClassification: "user_reject" });
   expect(questionResult(original, undefined, notShown)).toMatchObject({ behavior: "deny", message: notShown });
+});
+
+test("l'anteprima di un'opzione arriva a Bubo ripulita", () => {
+  const shown = agentQuestion("q", { questions: [{ question: "Layout?", options: [
+    { label: "A", preview: "┌─┐\n└─┘\x1b[0m" }, { label: "B" }] }] });
+  expect(shown?.questions[0].options.map((option) => option.preview)).toEqual(["┌─┐\n└─┘", undefined]);
 });
