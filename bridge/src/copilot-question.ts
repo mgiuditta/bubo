@@ -171,7 +171,8 @@ export function hiddenRequestDenial(asked: CopilotRequest, cwd: string, hidden: 
 }
 
 /** Chiede il permesso per una Richiesta di `copilot` nella Domanda: dal cancello di `CopilotPermissions`. */
-export type AskPermission = (asked: CopilotRequest) => Promise<PermissionRequestResult>;
+// `mustAsk`: la Richiesta va all'utente anche nei livelli 1–3.
+export type AskPermission = (asked: CopilotRequest, mustAsk?: boolean) => Promise<PermissionRequestResult>;
 
 /** `cerca` e `ricorda` di Bubo come strumenti della sessione della Domanda `conversation`: rispondono da Bubo, senza
  * Richiesta di permesso, e ogni scrittura va nel registro delle modifiche, annullabile. */
@@ -221,7 +222,9 @@ export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "
       } catch {
         reason = deniedWithoutBubo;
       }
-      return reason ? decision(false, reason) : askPermission(asked);
+      // Il testo di un comando non dice tutto quello che legge (variabili, glob, `cd`): con cartelle escluse ogni
+      // comando lo approva l'utente, mai la Modalità autonoma.
+      return reason ? decision(false, reason) : askPermission(asked, hidden.length > 0 && asked.kind === "shell");
     },
     ...(askUser ? { onUserInputRequest: askUser } : {}),
   };
@@ -297,7 +300,7 @@ export class CopilotQuestions {
     });
     try {
       // Una Domanda gira come la riga di comando: Modalità autonoma, il cancello chiede solo sui livelli 4–5.
-      const askPermission: AskPermission = (asked) => this.permissions.ask(id, asked, stopped.signal, true);
+      const askPermission: AskPermission = (asked, mustAsk) => this.permissions.ask(id, asked, stopped.signal, !mustAsk);
       const askUser: UserInputHandler = (asked) => this.permissions.question(id, asked, stopped.signal);
       session = await client.createSession(questionSession(question, askPermission, this.askBubo, askUser));
       if (stopped.signal.aborted) return undefined;

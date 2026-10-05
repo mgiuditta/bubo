@@ -141,6 +141,17 @@ test("anche una Richiesta di lettura o scrittura in una cartella esclusa è resp
     .toEqual({ kind: "approve-once" });
 });
 
+test("con cartelle escluse ogni comando lo approva l'utente, mai la Modalità autonoma", async () => {
+  const mustAsk: (boolean | undefined)[] = [];
+  const ask = async (_: unknown, must?: boolean) => { mustAsk.push(must); return { kind: "approve-once" } as const; };
+  const command = { kind: "shell", fullCommandText: "cat $NOTE", possiblePaths: [], possibleUrls: [] } as never;
+  await questionSession({ id: "c", cwd: "/vault", hidden: ["/vault/Privato"] }, ask).onPermissionRequest?.(command, { sessionId: "s" });
+  await questionSession({ id: "c", cwd: "/vault", hidden: ["/vault/Privato"] }, ask)
+    .onPermissionRequest?.({ kind: "read", path: "/vault/a.md" } as never, { sessionId: "s" });
+  await questionSession({ id: "c", cwd: "/vault" }, ask).onPermissionRequest?.(command, { sessionId: "s" });
+  expect(mustAsk).toEqual([true, false, false]);
+});
+
 test("grep e glob non attraversano una cartella esclusa; i nomi di copilot valgono come quelli di Claude", () => {
   const hidden = ["/vault/Privato"];
   expect(hiddenToolDenial("view", { path: "/vault/Privato/a.md" }, "/vault", hidden)).toBeDefined();
