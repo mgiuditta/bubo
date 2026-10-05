@@ -13,6 +13,8 @@ struct MainSidebar: View {
     @Environment(HUDPresenter.self) private var hud
     @State private var isChoosingProject = false
     @AppStorage(ReleaseArea.hidesUnreleasedKey) private var hidesUnreleased = false
+    /// Whether the Progetti section is open: closed, it leaves only its title.
+    @AppStorage("sezioneProgettiAperta") private var showsProjects = true
 
     var body: some View {
         List(selection: $selection) {
@@ -36,10 +38,9 @@ struct MainSidebar: View {
             }
             // Always there, even before the first Sessione: it is where a Progetto is added.
             if let sessions {
-                Section("Progetti") {
+                Section("Progetti", isExpanded: $showsProjects) {
                     ForEach(sessions.projects, id: \.self) { project in
-                        Label(project.lastPathComponent, systemImage: "folder")
-                            .selectableRow(SidebarSelection.project(project), selection: selection)
+                        ProjectDisclosure(project: project, sessions: sessions, selection: selection)
                     }
                     if !sessions.projects.isEmpty {
                         Label("Lavoro", systemImage: "rectangle.split.3x1")
