@@ -416,8 +416,9 @@ final class SessionStore {
     /// next ones, asked by the user, are ordinary turns without the Automazione's rules.
     ///
     /// It runs on the engine new Sessioni of `project` start on, the Motore principale unless the user chose another
-    /// (ADR 0014); on Copilot with that choice's model, since the Automazione's model is a `claude` alias. A turn that
-    /// runs out of Quota or hits a limit ends in Errore, never on the other engine.
+    /// (ADR 0014); on Copilot with that choice's model, since the Automazione's model is a `claude` alias. It stays on
+    /// Claude when ``executionNeedsClaude(in:agent:)``. A turn that runs out of Quota or hits a limit ends in Errore,
+    /// never on the other engine.
     ///
     /// - Parameters:
     ///   - isAutonomous: Whether the turn runs in the Modalità autonoma; it counts only in a worktree of its own.
@@ -433,7 +434,9 @@ final class SessionStore {
         session.isAutonomous = isAutonomous
         // On Claude the Sessione keeps today's choice: the Automazione's model, then the one of `claude`.
         let choice = engines.choice(for: project)
-        if choice.engine == .copilot { session.choice = choice }
+        if choice.engine == .copilot, !executionNeedsClaude(in: project, agent: unattended.agent) {
+            session.choice = choice
+        }
         session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         sessions.append(session)
         save()
@@ -443,6 +446,12 @@ final class SessionStore {
             await ended(session.id, succeeded)
         }
         return session.id
+    }
+
+    /// Whether an Esecuzione in `project` run as `agent` must stay on Claude, whatever the Motore principale: Copilot
+    /// has no Sandbox, nor the limits an agent of `claude` puts on its tools, and would run the turn with fewer limits.
+    func executionNeedsClaude(in project: URL, agent: String?) -> Bool {
+        agent != nil || (ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: project))
     }
 
     /// Asks `claude` the first prompt of the open Sessione `id` again, in its copy and in a new Conversazione, once
@@ -1370,6 +1379,9 @@ final class SessionStore {
                     String(localized: "Claude Code \(version) è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
                 case AgentBridgeError.claudeOutdated:
                     String(localized: "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
+                case QuestionFailure.claudeMissing where unattended != nil
+                    && executionNeedsClaude(in: session.project, agent: unattended?.agent):
+                    String(localized: "Claude Code non trovato: questa Automazione usa la Sandbox o un agente, che Copilot non ha, e gira solo su Claude. Installa la CLI claude.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 case CopilotFailure.missing: String(localized: "GitHub Copilot non trovato: installa la CLI copilot.")
                 case CopilotFailure.consentMissing:

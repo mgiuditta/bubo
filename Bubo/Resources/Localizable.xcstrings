@@ -5364,6 +5364,16 @@
         }
       }
     },
+    "Claude Code non trovato: questa Automazione usa la Sandbox o un agente, che Copilot non ha, e gira solo su Claude. Installa la CLI claude." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code not found: this Automation uses the Sandbox or an agent, which Copilot lacks, so it runs only on Claude. Install the claude CLI."
+          }
+        }
+      }
+    },
     "Claude con API key" : {
       "comment" : "The Budget of Claude paid with the user's API key.",
       "localizations" : {
