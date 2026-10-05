@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Impostazioni › Modelli: GitHub Copilot (ADR 0012), the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
+/// Impostazioni › Modelli: the Motore principale (ADR 0014), GitHub Copilot (ADR 0012), the preferences for each Tipo, the OpenAI-compatible endpoints "Rifai con…" offers besides
 /// Claude (spec 10), and the PriceTable their Spesa is estimated with (spec 18).
 struct ModelsSettingsView: View {
     @State private var settings = EndpointSettings.shared
@@ -14,10 +14,11 @@ struct ModelsSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Text("Le Domande vanno a Claude. Qui scegli gli altri modelli che «Rifai con…» propone: scrivi l'id del modello come lo chiama il fornitore. Bubo li chiama direttamente dal Mac, senza passare da altri server.")
+                Text("Le Domande vanno al Motore principale. Qui scegli gli altri modelli che «Rifai con…» propone: scrivi l'id del modello come lo chiama il fornitore. Bubo li chiama direttamente dal Mac, senza passare da altri server.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
+            PrimaryEngineSection(settings: settings)
             CopilotSettingsSection()
             // Next to Copilot's account: the two read together.
             CopilotConsentSection(settings: settings)

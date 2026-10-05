@@ -12,8 +12,11 @@ nonisolated struct ModelRouter {
         /// The endpoints with a model that may receive a Domanda: on the Mac, or in a cloud with the user's consent.
         var endpoints: [OpenAICompatibleEndpoint] = []
         /// The models of the user's Copilot plan, which a Copilot preference must be among; `nil` when not read yet,
-        /// and a preference is taken on trust. Copilot answers only a preference: never an automatic choice (ADR 0011).
+        /// and a preference is taken on trust.
         var copilotModels: [CopilotModel]?
+        /// The Motore principale, which answers the Domande no preference sends elsewhere (ADR 0014): with Copilot,
+        /// the model the user set in `copilot` takes Claude's place in the defaults of the Tipi.
+        var primaryEngine: Session.Engine = .claude
         /// The Modello locale the user set, which answers without a network; `nil` without one.
         var localModel: OpenAICompatibleEndpoint?
         /// The servers on the Mac, by endpoint id, found unable to answer just now; one not here is taken on trust.
@@ -69,7 +72,7 @@ nonisolated struct ModelRouter {
         }
         guard let choice = preferences.choices[type] else {
             let route = Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
-                                          readsOnDevice: readsOnDevice, in: catalog)
+                                          readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
             return Self.savingQuota(route, for: type, fit: fit, hasAttachments: hasAttachments,
                                     readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
         }
@@ -78,7 +81,7 @@ nonisolated struct ModelRouter {
             return Self.preferredRoute(of: choice, for: type, preferences: preferences, in: catalog)
         }
         var route = Self.defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
-                                      readsOnDevice: readsOnDevice, in: catalog)
+                                      readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
         route.pausedPreference = pause
         return route
     }
@@ -101,7 +104,7 @@ nonisolated struct ModelRouter {
                                     in catalog: ModelCatalog?) -> Route? {
         if case .preferred = route.reason {
             var fallback = defaultRoute(for: classification, fit: fit, hasAttachments: hasAttachments,
-                                        readsOnDevice: readsOnDevice, in: catalog)
+                                        readsOnDevice: readsOnDevice, preferences: preferences, in: catalog)
             if paidProvider(of: fallback).map(preferences.overBudget.contains) != true {
                 fallback.pausedPreference = .overBudget(provider)
                 return fallback
@@ -117,14 +120,20 @@ nonisolated struct ModelRouter {
         return fallback
     }
 
-    /// The route of the Tipo's default, from the table of spec 10, within `catalog`.
+    /// The route of the Tipo's default, from the table of spec 10, within `catalog`; with Copilot as the Motore
+    /// principale, what would go to Claude goes to the model the user set in `copilot` (ADR 0014).
     private static func defaultRoute(for classification: RequestClassification, fit: OnDeviceFit,
-                                     hasAttachments: Bool, readsOnDevice: Bool, in catalog: ModelCatalog?) -> Route {
+                                     hasAttachments: Bool, readsOnDevice: Bool, preferences: Preferences,
+                                     in catalog: ModelCatalog?) -> Route {
         let type = classification.type
         let fallback = onDeviceFallback(for: type, fit: fit, hasAttachments: hasAttachments,
                                         readsOnDevice: readsOnDevice)
         if onDeviceTypes.contains(type), fallback == nil {
             return .onDevice(type, runnerUp: classification.runnerUp)
+        }
+        if preferences.primaryEngine == .copilot {
+            return Route(family: nil, model: nil, effort: nil, reason: .type(type, runnerUp: classification.runnerUp),
+                         destination: .copilot(.configured), onDeviceFallback: fallback)
         }
         let (family, effort) = defaultChoice(for: type)
         guard let catalog else {

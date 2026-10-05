@@ -50,8 +50,9 @@ struct RouterLine: View {
         let name: String
         let effort: Effort?
         if let copilot = answer.route.copilotModel {
-            // The name `listModels()` gives, not `copilot`'s id.
-            (name, effort) = (copilot.name, answer.answeringModel?.effort ?? answer.route.effort)
+            // The name `listModels()` gives, not `copilot`'s id; for the model set in `copilot`, the one it answered with.
+            let answering = copilot == .configured ? answer.answeringModel?.name : nil
+            (name, effort) = (answering ?? copilot.name, answer.answeringModel?.effort ?? answer.route.effort)
         } else if let answering = answer.answeringModel {
             (name, effort) = (answering.name, answering.effort)
         } else if let family = answer.route.family {
