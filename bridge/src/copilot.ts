@@ -5,6 +5,7 @@ import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionR
   type PermissionRequestResult, type ResumeSessionConfig, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
+import type { RiskQuestion } from "./gate";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import { summary, writtenLines, type Edit, type Progress, type Read } from "./activity";
 import { CopilotUsage } from "./copilot-question";
@@ -38,7 +39,12 @@ export type CopilotTurn = {
   keep?: string;
   /** Riprende `keep` con `resumeSession`, invece di aprirla. */
   resume?: boolean;
+  /** `auto` nella Modalità autonoma: si approva da sé e chiede solo sui livelli 4–5, come una Sessione Claude. */
+  permissionMode?: "auto" | "default";
 };
+
+/** Se Bubo dà il livello 4 o 5 a una chiamata del turno `id`; senza risposta, sì. */
+export type IsDangerous = (id: string, question: RiskQuestion, signal: AbortSignal) => Promise<boolean>;
 
 // La copia delle conversazioni Copilot nello store di Bubo, separata da quelle di Claude da questo Progetto.
 export const copilotProject = "copilot";
@@ -87,6 +93,7 @@ export function permissionRequest(request: string, asked: CopilotRequest): Permi
     case "write": return { ...shown, tool: "Edit", path: raw(asked.fileName), description: clean(asked.intention) };
     case "read": return { ...shown, tool: "Read", path: raw(asked.path), description: clean(asked.intention) };
     case "url": return { ...shown, tool: "WebFetch", url: raw(asked.url), description: clean(asked.intention) };
+    case "mcp": return { ...shown, tool: `mcp__${clean(asked.serverName)}__${clean(asked.toolName)}`, description: clean(asked.toolTitle) };
     default: return shown;
   }
 }
@@ -112,6 +119,9 @@ export function decision(allowed: boolean, message = deniedByUser): PermissionRe
   return allowed ? { kind: "approve-once", approvedInteractively: true } : { kind: "reject", feedback: message };
 }
 
+// Approvato dalla Modalità autonoma, senza chiedere: livelli 1–3.
+export const approvedByMode: PermissionRequestResult = { kind: "approve-once" };
+
 // Quanto aspetta Ferma la fine del turno dopo `abort`, prima di chiudere `copilot`: l'obiettivo è 2 s.
 const abortGrace = 1_500;
 
@@ -122,7 +132,8 @@ export class CopilotTurns {
 
   constructor(private readonly send: (event: CopilotEvent) => void,
               private readonly environment: Record<string, string>,
-              private readonly copy?: Copy) {}
+              private readonly copy?: Copy,
+              private readonly isDangerous: IsDangerous = async () => true) {}
 
   has(id: string): boolean {
     return this.running.has(id);
@@ -171,7 +182,7 @@ export class CopilotTurns {
         model: turn.model,
         reasoningEffort: turn.effort,
         streaming: true,
-        onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal),
+        onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal, turn.permissionMode === "auto"),
       };
       let prompt = turn.prompt;
       const { keep } = turn;
@@ -234,12 +245,19 @@ export class CopilotTurns {
     return entries ? copiedMessages(entries) : [];
   }
 
-  // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude.
-  private async ask(id: string, asked: CopilotRequest, signal: AbortSignal): Promise<PermissionRequestResult> {
+  // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude. Nella Modalità
+  // autonoma passa prima dal cancello: approva da sé, e chiede a Bubo solo sui livelli 4–5.
+  private async ask(id: string, asked: CopilotRequest, signal: AbortSignal, isAutonomous: boolean): Promise<PermissionRequestResult> {
     if (signal.aborted) return decision(false, deniedWithoutBubo);
     const request = randomUUID();
     const shown = permissionRequest(request, asked);
     if (isTooLong(shown)) return decision(false, deniedWithoutBubo);
+    if (isAutonomous) {
+      const { tool, command, path, url } = shown;
+      const isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
+      if (signal.aborted) return decision(false, deniedWithoutBubo);
+      if (!isDangerous) return approvedByMode;
+    }
     let reached = true;
     const allowed = await new Promise<boolean>((resolve) => {
       this.permissions.set(request, resolve);

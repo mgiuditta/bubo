@@ -51,9 +51,10 @@ enum BridgeCommand: Equatable {
     /// `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the reasoning effort;
     /// without it, the model's default. The answer, the Richieste di permesso and Ferma go as for `ask`.
     /// `keeping` is the conversation Bubo keeps a copy of (ADR 0006), also the id of the session of `copilot`, which
-    /// `resumes` continues instead of starting it.
+    /// `resumes` continues instead of starting it. `permissionMode` is how the calls are approved, as for `ask`: in the
+    /// Modalità autonoma the bridge approves them itself and asks only on levels 4–5; without it, every call asks.
     case askCopilot(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil, effort: Effort? = nil,
-                    keeping: String? = nil, resumes: Bool = false)
+                    keeping: String? = nil, resumes: Bool = false, permissionMode: PermissionMode? = nil)
     /// Interrupts the conversation `id`.
     case cancel(id: String)
     /// Answers the call `id` of the `cerca` or `ricorda` tool with its result.
@@ -144,12 +145,13 @@ enum BridgeCommand: Equatable {
             if let readOnly {
                 object["readOnly"] = ["brain": readOnly.isInSecondBrain, "hidden": readOnly.hiddenDirectories.map(\.path)]
             }
-        case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes):
+        case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes, permissionMode):
             object = ["type": "copilot", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
             object["effort"] = effort?.rawValue
             object["keep"] = keeping
             if resumes { object["resume"] = true }
+            object["permissionMode"] = permissionMode?.rawValue
         case let .cancel(id):
             object = ["type": "cancel", "id": id]
         case let .found(id, text):

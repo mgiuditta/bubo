@@ -215,16 +215,20 @@ final class AgentBridge {
     ///   - conversation: The conversation Bubo keeps a copy of (ADR 0006), also the id of the session of `copilot`;
     ///     `nil` for none.
     ///   - resuming: Whether `copilot` resumes `conversation` with what was said in it, instead of starting it.
+    ///   - permissionMode: How the calls are approved; `nil` asks on every call.
     ///   - progress: Receives the state of the conversation, until the answer ends.
     ///   - permissions: Receives the Richieste di permesso, answered with `answerPermission(_:allows:isLasting:)`;
     ///     `nil` refuses them all.
     ///   - usage: Receives the tokens of the turn, with no figure, when it ends: Bubo prices them (#542).
+    ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5, so that it asks even in the Modalità
+    ///     autonoma; `nil` counts every call as dangerous.
     func askCopilot(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>, model: String? = nil,
                     effort: Effort? = nil, keeping conversation: String? = nil, resuming: Bool = false,
-                    id: String = UUID().uuidString,
+                    permissionMode: PermissionMode? = nil, id: String = UUID().uuidString,
                     progress: @escaping (AgentProgress) -> Void = { _ in },
                     permissions: ((PermissionEvent) -> Void)? = nil,
-                    usage: @escaping (TurnUsage) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
+                    usage: @escaping (TurnUsage) -> Void = { _ in },
+                    isDangerous: ((PermissionRequest) -> Bool)? = nil) -> AsyncThrowingStream<String, any Error> {
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
             guard case .cancelled = termination else { return }
@@ -240,9 +244,10 @@ final class AgentBridge {
             progressHandlers[id] = progress
             permissionHandlers[id] = permissions
             usageHandlers[id] = usage
+            riskHandlers[id] = isDangerous
             let command = BridgeCommand.askCopilot(id: id, prompt: prompt, directory: directory, copilot: copilot,
                                                    model: model, effort: effort, keeping: conversation,
-                                                   resumes: resuming)
+                                                   resumes: resuming, permissionMode: permissionMode)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

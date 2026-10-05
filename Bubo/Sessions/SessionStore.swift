@@ -1286,11 +1286,14 @@ final class SessionStore {
             let answer = if let copilot {
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
                                  model: current?.copilotModel?.model, effort: current?.copilotModel?.effort,
-                                 keeping: kept, resuming: copilotConversation != nil, id: answerID, progress: onProgress,
+                                 keeping: kept, resuming: copilotConversation != nil, permissionMode: permissionMode,
+                                 id: answerID, progress: onProgress,
                                  permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
                                   provider: Budgets.copilot)
                     self?.stopTurnsPastBudget(besides: id)
+                } isDangerous: { request in
+                    classifier.risk(of: request).isDangerous
                 }
             } else {
                 agent.ask(prompt, in: workspace.folder, model: unattended?.model ?? chosen?.family.alias,

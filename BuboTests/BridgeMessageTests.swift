@@ -22,6 +22,9 @@ struct BridgeMessageTests {
         let resumed = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                                    copilot: URL(filePath: "/c"), keeping: "k-1", resumes: true).line()
         #expect(String(decoding: resumed, as: UTF8.self).contains(#""keep":"k-1","prompt":"Ciao","resume":true"#))
+        let autonomous = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                      copilot: URL(filePath: "/c"), permissionMode: .autonomous).line()
+        #expect(String(decoding: autonomous, as: UTF8.self).contains(#""permissionMode":"auto""#))
     }
 
     @Test func askWithAllegatiCarriesTheirFolders() throws {
