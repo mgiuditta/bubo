@@ -23,7 +23,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         self.queue = queue
         self.controls = controls
         self.frameLog = frameLog
-        animation = OrbAnimation(tinta: Tinta(for: controls.provider))
+        animation = OrbAnimation(tinta: OrbColor.current.tinta(for: controls.provider))
         pipelines = try OrbPipelines(device: device, library: library)
         super.init()
         if isMonochrome { uniforms.applyMonochromeTinta() }
@@ -84,7 +84,7 @@ final class OrbRenderer: NSObject, MTKViewDelegate {
         let now = CACurrentMediaTime()
         let reducesMotion = Motion.isReduced
         animation.state = controls.displayedState
-        animation.targetTinta = Tinta(for: controls.provider)
+        animation.targetTinta = OrbColor.current.tinta(for: controls.provider)
         animation.reducesMotion = reducesMotion
         animation.voiceLevel = controls.voiceLevel
         let elapsed = refreshes(in: now - lastFrameTime, of: view)

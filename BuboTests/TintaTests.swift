@@ -142,4 +142,11 @@ struct TintaTests {
         #expect(uniforms.gloss == Tinta.perplexity.gloss)
         #expect(abs(uniforms.spike - (OrbState.working.motion.spike + Tinta.perplexity.spike)) < 0.01)
     }
+
+    @Test func automaticOrbColorFollowsTheProviderAndAFixedOneDoesNot() {
+        #expect(OrbColor.automatic.tinta(for: .google) == Tinta.google)
+        #expect(OrbColor.automatic.tinta(for: nil) == Tinta.neutral)
+        #expect(OrbColor.violet.tinta(for: .google) == Tinta.alibaba)
+        #expect(OrbColor.violet.tinta(for: nil) == Tinta.alibaba)
+    }
 }
