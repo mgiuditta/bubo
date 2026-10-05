@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
+import { allowedBuboTools, askedToolReason, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, systemPromptOf } from "./tools";
 
 test("ricorda solo quando Bubo lo chiede: Domande e Sessioni, non le Esecuzioni", () => {
   expect(allowedBuboTools(true)).toEqual(["mcp__bubo__cerca", "mcp__bubo__ricorda"]);
@@ -63,4 +63,19 @@ test("una Domanda non legge le cartelle escluse, nemmeno da un symlink o da una 
   expect(hiddenPathDenial("Glob", { path: "Progetti", pattern: "**/*.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Progetti/b.md" }, root, hidden)).toBeUndefined();
   expect(hiddenPathDenial("Read", { file_path: "Archivio [vecchio]/a.md" }, root, [])).toBeUndefined();
+});
+
+test("in una Domanda scrivere, eseguire e andare in rete chiedono sempre, leggere no", () => {
+  for (const tool of ["Write", "Edit", "Bash", "WebFetch"]) expect(askedToolReason(tool)).toBeDefined();
+  for (const tool of ["Read", "Grep", "Glob", "mcp__bubo__ricorda"]) expect(askedToolReason(tool)).toBeUndefined();
+});
+
+test("le cartelle escluse fermano anche le scritture", () => {
+  const brain = realpathSync(mkdtempSync(join(tmpdir(), "brain-")));
+  mkdirSync(join(brain, "Privato"));
+  const hidden = [join(brain, "Privato")];
+  expect(hiddenPathDenial("Write", { file_path: join(brain, "Privato/x.md") }, brain, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Edit", { file_path: "Privato/x.md" }, brain, hidden)).toBeDefined();
+  expect(hiddenPathDenial("NotebookEdit", { notebook_path: join(brain, "Privato/n.ipynb") }, brain, hidden)).toBeDefined();
+  expect(hiddenPathDenial("Write", { file_path: join(brain, "Note/x.md") }, brain, hidden)).toBeUndefined();
 });

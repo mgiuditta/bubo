@@ -31,7 +31,7 @@ import { SpareSlot, type SpareKey } from "./spare";
 import { ConversationStore, mirrorOnly } from "./store";
 import { teamRuleOptions, teamRules, type TeamRules } from "./teamRules";
 import { Denials, MainAgent, unattendedOf, unattendedOptions, wrongAgent, type Denial, type Unattended } from "./unattended";
-import { allowedBuboTools, brainHomeInstruction, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
+import { allowedBuboTools, askedToolReason, askedTools, brainHomeInstruction, hiddenGuardedTools, hiddenPathDenial, readOnlyOf, readOnlyOptions, rememberCall, rememberTool, searchCall,
   searchTool, systemPromptOf, type ReadOnly } from "./tools";
 import { pluginReload, reloadOptions, type PluginReload } from "./reload";
 import { restoredFrom, UsageReader, type Restored, type TurnUsage } from "./usage";
@@ -332,7 +332,7 @@ function memoryHooks(id: string): Record<"PreToolUse" | "PostToolUse" | "PostToo
 // L'hook che tiene una Domanda nel Secondo cervello fuori dalle sue cartelle escluse `hidden`, sul percorso reale.
 function hiddenFolders(cwd: string, hidden: string[]): HookCallbackMatcher {
   return {
-    matcher: "Read|Grep|Glob",
+    matcher: hiddenGuardedTools.join("|"),
     hooks: [async (input) => {
       if (input.hook_event_name !== "PreToolUse") return {};
       const reason = hiddenPathDenial(input.tool_name, input.tool_input, cwd, hidden);
@@ -340,6 +340,17 @@ function hiddenFolders(cwd: string, hidden: string[]): HookCallbackMatcher {
     }],
   };
 }
+
+// L'hook che in una Domanda manda sempre a una Richiesta gli strumenti che scrivono, eseguono o vanno in rete, anche
+// dove una regola `allow` o il `defaultMode` delle impostazioni li approverebbe.
+const askInQuestion: HookCallbackMatcher = {
+  matcher: askedTools.join("|"),
+  hooks: [async (input) => {
+    if (input.hook_event_name !== "PreToolUse") return {};
+    const reason = askedToolReason(input.tool_name);
+    return reason ? { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: "ask", permissionDecisionReason: reason } } : {};
+  }],
+};
 
 // I file trovati da Grep e Glob, letture tenui della Galassia: l'SDK li dà solo nella risposta dello strumento.
 function searchedFiles(id: string): HookCallbackMatcher {
@@ -441,7 +452,8 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
       forkSession: resume !== undefined,
       ...(resume !== undefined && upTo !== undefined ? { resumeSessionAt: upTo } : {}),
       sandbox,
-      permissionMode,
+      // Una Domanda chiede sempre: il `defaultMode` delle impostazioni non vale per lei.
+      permissionMode: readOnly ? "default" : permissionMode,
       ...(systemPrompt !== undefined ? { systemPrompt } : {}),
       ...(keep === undefined ? { persistSession: false } : { sessionId: keep, persistSession: true, sessionStore: copy }),
       ...(unattended ? unattendedOptions(ruleOptions, unattended) : { canUseTool: askBubo(id, sandbox !== undefined, subagents) }),
@@ -453,7 +465,7 @@ async function ask(id: string, prompt: string, cwd: string, sources: SettingSour
         // Il primo hook del filo principale dice se l'Esecuzione gira come il suo agente (`MainAgent`).
         UserPromptSubmit: checkAgent,
         PreToolUse: [...checkAgent, { hooks: [gate] }, ...(memory?.PreToolUse ?? []),
-          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : [])],
+          ...(readOnly?.hidden.length ? [hiddenFolders(cwd, readOnly.hidden)] : []), ...(readOnly ? [askInQuestion] : [])],
         SubagentStart: [{ hooks: [subagents.hook] }],
         PostToolUse: [ranBash(id, sandbox !== undefined), searchedFiles(id), ...(memory?.PostToolUse ?? [])],
         PostToolUseFailure: [ranBash(id, sandbox !== undefined), ...(memory?.PostToolUseFailure ?? [])],

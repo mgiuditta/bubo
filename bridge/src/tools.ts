@@ -36,6 +36,12 @@ export const readTools = ["Read", "Grep", "Glob", "WebSearch"];
 export const askedTools = ["Edit", "MultiEdit", "Write", "NotebookEdit", "Bash", "BashOutput", "KillShell", "WebFetch"];
 export const deniedTools = ["Task"];
 
+// Perché uno strumento di `askedTools` chiede sempre in una Domanda: nessuna regola `allow` né `defaultMode` delle
+// impostazioni dell'utente lo lascia partire da solo; `undefined` per gli altri.
+export function askedToolReason(tool: string): string | undefined {
+  return askedTools.includes(tool) ? "In una Domanda ogni scrittura, comando o accesso alla rete si approva nella chat." : undefined;
+}
+
 // Le opzioni di una Domanda: gli strumenti che leggono e quelli che chiedono; negati, dopo le regole `denied` della
 // squadra, `deniedTools` e le cartelle `hidden` (una regola `Read` vale anche per Grep e Glob).
 export function readOnlyOptions(turn: ReadOnly, denied: string[] = []): { tools: string[]; disallowedTools: string[] } {
@@ -63,19 +69,24 @@ function realPath(path: string): string {
   }
 }
 
-// Perché Read, Grep o Glob non possono toccare `input` in una Domanda che gira in `cwd`: il loro percorso, reale, è
+// Gli strumenti che le cartelle escluse fermano sul percorso: quelli che leggono e quelli che scrivono un file.
+export const hiddenGuardedTools = ["Read", "Grep", "Glob", "Edit", "MultiEdit", "Write", "NotebookEdit"];
+
+// Perché Read, Grep, Glob o uno strumento che scrive non possono toccare `input` in una Domanda che gira in `cwd`: il loro percorso, reale, è
 // in una cartella esclusa `hidden`, o la contiene (una ricerca da sopra la attraverserebbe); `undefined` se possono.
 // Le regole `Read(...)` restano: questo vale anche con symlink e con nomi che hanno caratteri da glob.
 export function hiddenPathDenial(tool: string, input: unknown, cwd: string, hidden: string[]): string | undefined {
-  if (hidden.length === 0 || !["Read", "Grep", "Glob"].includes(tool)) return undefined;
-  const fields = (input ?? {}) as { file_path?: unknown; path?: unknown; pattern?: unknown; glob?: unknown };
+  if (hidden.length === 0 || !hiddenGuardedTools.includes(tool)) return undefined;
+  const fields = (input ?? {}) as { file_path?: unknown; notebook_path?: unknown; path?: unknown; pattern?: unknown; glob?: unknown };
   // Un pattern di Glob, o il filtro `glob` di Grep, assoluto, dalla home, con `..` ovunque (anche in `{..,x}`) o con
   // escape `\\` può uscire dalla cartella cercata: negato senza provare a interpretarlo.
   const pattern = tool === "Glob" ? fields.pattern : fields.glob;
   if (tool !== "Read" && typeof pattern === "string" && /^[/~]|\.\.|\\/.test(pattern)) {
     return "Con cartelle escluse dal Secondo cervello i pattern restano dentro la cartella cercata: niente percorsi assoluti né «..».";
   }
-  const given = typeof fields.file_path === "string" ? fields.file_path : typeof fields.path === "string" ? fields.path : cwd;
+  const given = typeof fields.file_path === "string" ? fields.file_path
+    : typeof fields.notebook_path === "string" ? fields.notebook_path
+    : typeof fields.path === "string" ? fields.path : cwd;
   // `~` lo espande la CLI: qui pure, perché il percorso confrontato sia quello che verrà letto.
   const raw = given === "~" || given.startsWith("~/") ? homedir() + given.slice(1) : given;
   const target = realPath(isAbsolute(raw) ? raw : resolve(cwd, raw));
