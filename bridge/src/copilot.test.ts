@@ -136,6 +136,37 @@ test("modalità default: ogni Richiesta va a Bubo, senza cancello, come una Sess
   expect(readFileSync(join(cwd, "nota.txt"), "utf8")).toBe("ciao\n");
 });
 
+test("Esecuzione nella Modalità autonoma: sotto il livello 4 copilot scrive senza chiedere", async () => {
+  const cwd = folder();
+  const { turns, events } = harness(undefined, undefined, async () => false);
+  await turns.run({ id: "notte", prompt: "scrivi", cwd, copilot: fake, permissionMode: "auto", unattended: true });
+  expect(events.some((event) => event.type === "permission" || event.type === "denial")).toBe(false);
+  expect(readFileSync(join(cwd, "nota.txt"), "utf8")).toBe("ciao\n");
+});
+
+test("Esecuzione: sui livelli 4–5 nessuna Richiesta, la chiamata è negata e va nel resoconto", async () => {
+  const cwd = folder();
+  const { turns, events } = harness(undefined, undefined, async () => true);
+  await turns.run({ id: "notte", prompt: "scrivi", cwd, copilot: fake, permissionMode: "auto", unattended: true });
+  expect(events.some((event) => event.type === "permission")).toBe(false);
+  expect(events.find((event) => event.type === "denial"))
+    .toMatchObject({ id: "notte", tool: "Edit", path: join(cwd, "nota.txt"), suggestions: [], source: "gate" });
+  expect(existsSync(join(cwd, "nota.txt"))).toBe(false);
+  expect(texts(events)).toContain("Nessuno può approvare");
+  expect(events.at(-1)).toEqual({ type: "done", id: "notte" });
+});
+
+test("Esecuzione senza Modalità autonoma: ogni Richiesta è negata senza chiedere né classificare", async () => {
+  const cwd = folder();
+  let gated = false;
+  const { turns, events } = harness(undefined, undefined, async () => { gated = true; return false; });
+  await turns.run({ id: "notte", prompt: "scrivi", cwd, copilot: fake, permissionMode: "default", unattended: true });
+  expect(gated).toBe(false);
+  expect(events.some((event) => event.type === "permission")).toBe(false);
+  expect(events.some((event) => event.type === "denial")).toBe(true);
+  expect(existsSync(join(cwd, "nota.txt"))).toBe(false);
+});
+
 test("Ferma interrompe entro 2 s, senza done", async () => {
   const { turns, events, next } = harness();
   const run = turns.run({ id: "e", prompt: "lungo", cwd: folder(), copilot: fake });

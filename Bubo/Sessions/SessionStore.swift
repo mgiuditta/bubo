@@ -412,8 +412,13 @@ final class SessionStore {
     }
 
     /// Starts the Sessione of an Esecuzione of an Automazione, marked with `automation`, in a new copy of `project` on
-    /// `branch`, and asks `claude` `prompt` there with nobody in front of it (`unattended`). Only that turn is
-    /// unattended: the next ones, asked by the user, are ordinary turns without the Automazione's rules.
+    /// `branch`, and asks `prompt` there with nobody in front of it (`unattended`). Only that turn is unattended: the
+    /// next ones, asked by the user, are ordinary turns without the Automazione's rules.
+    ///
+    /// It runs on the engine new Sessioni of `project` start on, the Motore principale unless the user chose another
+    /// (ADR 0014); on Copilot with that choice's model, since the Automazione's model is a `claude` alias. It stays on
+    /// Claude when ``executionNeedsClaude(in:agent:)``. A turn that runs out of Quota or hits a limit ends in Errore,
+    /// never on the other engine.
     ///
     /// - Parameters:
     ///   - isAutonomous: Whether the turn runs in the Modalità autonoma; it counts only in a worktree of its own.
@@ -427,6 +432,11 @@ final class SessionStore {
         session.prompt = prompt
         session.automation = automation
         session.isAutonomous = isAutonomous
+        // On Claude the Sessione keeps today's choice: the Automazione's model, then the one of `claude`.
+        let choice = engines.choice(for: project)
+        if choice.engine == .copilot, !executionNeedsClaude(in: project, agent: unattended.agent) {
+            session.choice = choice
+        }
         session.ports = ports.ports(avoiding: sessions.compactMap(\.ports))
         sessions.append(session)
         save()
@@ -436,6 +446,12 @@ final class SessionStore {
             await ended(session.id, succeeded)
         }
         return session.id
+    }
+
+    /// Whether an Esecuzione in `project` run as `agent` must stay on Claude, whatever the Motore principale: Copilot
+    /// has no Sandbox, nor the limits an agent of `claude` puts on its tools, and would run the turn with fewer limits.
+    func executionNeedsClaude(in project: URL, agent: String?) -> Bool {
+        agent != nil || (ReleaseArea.sandbox.isAvailable() && sandbox.isEnabled(in: project))
     }
 
     /// Asks `claude` the first prompt of the open Sessione `id` again, in its copy and in a new Conversazione, once
@@ -1169,7 +1185,7 @@ final class SessionStore {
         guard let session = sessions.first(where: { $0.id == id }) else { return false }
         // The Allegati dropped on the Sessione go with this turn, and only with it.
         let attachments = session.attachments
-        let isCopilot = session.engine == .copilot && unattended == nil
+        let isCopilot = session.engine == .copilot
         // A `/name` Claude runs on its own stays as it is; otherwise Bubo writes the skill into the prompt (#689).
         var skill: Skill?
         var asked = prompt
@@ -1294,8 +1310,8 @@ final class SessionStore {
                 agent.askCopilot(prompt, in: workspace.folder, copilot: copilot, consents: copilotConsents(),
                                  model: current?.copilotModel?.model, effort: current?.copilotModel?.effort,
                                  keeping: kept, resuming: copilotConversation != nil, permissionMode: permissionMode,
-                                 id: answerID, progress: onProgress,
-                                 permissions: onPermission) { [weak self, ledger, copilotPrices] usage in
+                                 isUnattended: unattended != nil, id: answerID, progress: onProgress,
+                                 permissions: unattended == nil ? onPermission : nil) { [weak self, ledger, copilotPrices] usage in
                     ledger.record(copilotPrices.spesa(of: usage), turn: kept, session: id, project: session.project,
                                   provider: Budgets.copilot)
                     self?.stopTurnsPastBudget(besides: id)
@@ -1363,6 +1379,9 @@ final class SessionStore {
                     String(localized: "Claude Code \(version) è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
                 case AgentBridgeError.claudeOutdated:
                     String(localized: "Claude Code è troppo vecchio per Bubo. Aggiornalo e la Sessione parte da sola.")
+                case QuestionFailure.claudeMissing where unattended != nil
+                    && executionNeedsClaude(in: session.project, agent: unattended?.agent):
+                    String(localized: "Claude Code non trovato: questa Automazione usa la Sandbox o un agente, che Copilot non ha, e gira solo su Claude. Installa la CLI claude.")
                 case QuestionFailure.claudeMissing: String(localized: "Claude Code non trovato: installa la CLI claude.")
                 case CopilotFailure.missing: String(localized: "GitHub Copilot non trovato: installa la CLI copilot.")
                 case CopilotFailure.consentMissing:

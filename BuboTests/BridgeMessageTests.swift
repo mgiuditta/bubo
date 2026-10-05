@@ -25,6 +25,10 @@ struct BridgeMessageTests {
         let autonomous = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
                                                       copilot: URL(filePath: "/c"), permissionMode: .autonomous).line()
         #expect(String(decoding: autonomous, as: UTF8.self).contains(#""permissionMode":"auto""#))
+        #expect(!String(decoding: autonomous, as: UTF8.self).contains("unattended"))
+        let unattended = try BridgeCommand.askCopilot(id: "a1", prompt: "Ciao", directory: URL(filePath: "/tmp/w"),
+                                                      copilot: URL(filePath: "/c"), isUnattended: true).line()
+        #expect(String(decoding: unattended, as: UTF8.self).contains(#""unattended":true"#))
     }
 
     @Test func askWithAllegatiCarriesTheirFolders() throws {

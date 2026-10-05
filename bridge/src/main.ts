@@ -40,7 +40,7 @@ const version = 4;
 
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
-  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown; permissionMode?: unknown }
+  | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown; permissionMode?: unknown; unattended?: unknown }
   | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
@@ -874,7 +874,8 @@ lines.on("line", (line) => {
                               effort: reasoningEffortOf(command.effort),
                               keep: typeof command.keep === "string" ? command.keep : undefined, resume: command.resume === true,
                               permissionMode: command.permissionMode === "auto" || command.permissionMode === "default"
-                                ? command.permissionMode : undefined });
+                                ? command.permissionMode : undefined,
+                              unattended: command.unattended === true });
       break;
     case "copilotQuestion":
       if (isCopilotPath(command.copilot)) void askCopilot(command);
