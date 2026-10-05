@@ -81,7 +81,7 @@ export function withoutOrbTags(text: string): string {
   return tags.push(text).text + tags.flush();
 }
 
-// L'istruzione all'agente, in coda al prompt di sistema: la rosa di nomi che Bubo gli dà, non tutto il Catalogo.
+// L'istruzione all'agente, in coda al prompt di sistema: la rosa di nomi che Bubo gli dà, cioè tutto il Catalogo.
 export function orbInstruction(names: readonly string[]): string {
   return `Bubo mostra all'utente un Orb che prende la forma di ciò che stai facendo. Quando cominci un'attività diversa `
     + `(cercare, leggere o scrivere codice, scrivere un testo, organizzare il lavoro…), scrivi da solo, prima del testo, `
@@ -199,7 +199,7 @@ export class TurnVariante {
 }
 
 // La rosa del comando `ask`: solo nomi come quelli del Catalogo, al più `rosaLimit`; altro non entra nel prompt.
-const rosaLimit = 64;
+const rosaLimit = 1024;
 export function rosaOf(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   const names = value.filter((name): name is string => typeof name === "string" && /^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)

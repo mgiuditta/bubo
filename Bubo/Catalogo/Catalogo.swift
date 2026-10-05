@@ -5,8 +5,9 @@ nonisolated struct Catalogo: Sendable {
     /// The Catalogo in the app bundle, read once; `nil` if it is missing or broken, which `CatalogoTests` rules out.
     static let bundled = try? Catalogo(bundle: .main)
 
-    /// How many names the agent gets for its tag `⟦orb:nome⟧`: the list goes into every prompt, so it stays short.
-    static let rosaLimit = 24
+    /// How many names the agent gets for its tag `⟦orb:nome⟧`: the whole Catalogo, so the agent chooses among every Variante.
+    // ponytail: the list goes into every prompt (~2k tokens at 479); cut it here if the prompt cost starts to matter.
+    static let rosaLimit = 1024
 
     /// Every Variante, in file order, retired ones included: a name never disappears.
     let varianti: [Variante]
