@@ -1190,6 +1190,10 @@ final class QuestionModel {
                                     answeredBy: { [weak self] in
                                         self?.routedAnswer?.answeringModel = $0
                                         self?.learnEffortCap(asked: route, answeredBy: $0)
+                                    },
+                                    // Without it every call counts as level 4–5 and the gate asks even for a Read.
+                                    isDangerous: { [classifier = RiskClassifier(workingDirectory: workplace.directory)] in
+                                        classifier.risk(of: $0).isDangerous
                                     })
             var summary = speaksAnswer ? SpokenSummary() : nil
             var firstAudio: OSSignpostIntervalState?
