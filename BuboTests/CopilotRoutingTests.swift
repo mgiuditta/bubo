@@ -60,7 +60,8 @@ struct CopilotRoutingTests {
         #expect(route.copilotModel == CopilotModel(id: "gpt-6", name: "GPT-6"))
     }
 
-    @Test func aCopilotPreferencePausesWithAllegatiOrWithoutItsModel() {
+    // #725: Copilot reads the Allegati, so its preference answers with them too.
+    @Test func aCopilotPreferencePausesOnlyWithoutItsModel() {
         let choices: [RequestType: TypePreference] = [.writing: .copilot(id: "gpt-6", name: "GPT-6")]
         let classification = ModelRouterTests.classification(.writing)
 
@@ -71,8 +72,8 @@ struct CopilotRoutingTests {
                                         preferences: ModelRouter.Preferences(choices: choices, copilotModels: [Self.gemini]),
                                         in: ModelRouterTests.catalog)
 
-        #expect(withAllegati.pausedPreference == .attachments)
-        #expect(withAllegati.copilotModel == nil)
+        #expect(withAllegati.pausedPreference == nil)
+        #expect(withAllegati.copilotModel == Self.gpt)
         #expect(withoutModel.pausedPreference == .endpointUnavailable)
         #expect(withoutModel.copilotModel == nil)
     }

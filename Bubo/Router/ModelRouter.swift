@@ -150,7 +150,8 @@ nonisolated struct ModelRouter {
     /// Why `choice` cannot answer now, and the default does; `nil` when it can.
     ///
     /// A Claude family not in the catalog, an endpoint without a model or consent, or one offered a Domanda with
-    /// Allegati, which go only to Claude or to the Mac (#101). Without a catalog, a Claude family is taken on trust.
+    /// Allegati, which go only to Claude, Copilot or the Mac (#101, #725). Without a catalog, a Claude family is taken
+    /// on trust.
     private static func pause(of choice: TypePreference, preferences: Preferences, hasAttachments: Bool,
                               in catalog: ModelCatalog?) -> Route.PausedPreference? {
         switch choice {
@@ -166,7 +167,6 @@ nonisolated struct ModelRouter {
             case .available?, nil: return nil
             }
         case let .copilot(id, _):
-            if hasAttachments { return .attachments }
             guard let models = preferences.copilotModels, !models.contains(where: { $0.id == id }) else { return nil }
             return .endpointUnavailable
         }

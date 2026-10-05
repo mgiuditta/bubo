@@ -35,7 +35,7 @@ nonisolated struct Route: Equatable, Sendable {
         case notInCatalog(ModelFamily)
         /// The preferred endpoint has no model, or a cloud lost the user's consent.
         case endpointUnavailable
-        /// The Domanda carries Allegati, which go only to Claude or to the Mac (#101).
+        /// The Domanda carries Allegati, which go only to Claude, Copilot or the Mac (#101, #725).
         case attachments
         /// The preferred server on the Mac, called so, does not answer.
         case localServerOff(String)

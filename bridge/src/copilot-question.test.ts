@@ -1,10 +1,10 @@
 import { expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
+import { mkdirSync, mkdtempSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { copilotEnvironment, CopilotPermissions, type IsDangerous } from "./copilot";
-import { buboTools, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, isCopilotLimit, questionSession, type AskBubo,
-  type CopilotQuestionEvent } from "./copilot-question";
+import { buboTools, copilotAttachments, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, isCopilotLimit,
+  questionAttachmentsOf, questionSession, type AskBubo, type CopilotQuestionEvent } from "./copilot-question";
 import type { RiskQuestion } from "./gate";
 import { declined } from "./question";
 import type { BuboToolCall } from "./tools";
@@ -335,4 +335,76 @@ test("Copilot cerca solo nelle note e non riscrive mai le note dell'utente, qual
     { type: "search", query: "x", project: undefined, source: "secondo-cervello", conversation: "c" },
     { type: "remember", conversation: "c", mode: "riscrivi", title: undefined, note: "Mie/nota.md", text: "y", confirmed: false },
   ]);
+});
+
+// #725: gli Allegati di una Domanda arrivano a Copilot come `attachments` dell'SDK.
+const png = Buffer.from("89504e470d0a1a0a", "hex");
+
+test("un'immagine, un file di testo e una cartella allegati arrivano al modello, con il loro nome", async () => {
+  const dir = folder();
+  writeFileSync(join(dir, "foto.png"), png);
+  writeFileSync(join(dir, "nota.md"), "Il gatto si chiama Bubo");
+  const { questions, events } = harness();
+  await questions.ask({ id: "h", prompt: "allegati", copilot: fake, cwd: folder(), model: "gpt-6", attachments: [
+    { kind: "image", path: join(dir, "foto.png"), name: "foto.png" },
+    { kind: "file", path: join(dir, "nota.md"), name: "nota.md" },
+    { kind: "folder", path: dir, name: "cartella" },
+  ] });
+  expect(JSON.parse(texts(events))).toEqual([
+    { type: "file", path: join(dir, "foto.png"), displayName: "foto.png", read: png.toString("base64") },
+    { type: "file", path: join(dir, "nota.md"), displayName: "nota.md", read: Buffer.from("Il gatto si chiama Bubo").toString("base64") },
+    { type: "directory", path: dir, displayName: "cartella", read: true },
+  ]);
+  expect(events.at(-1)).toEqual({ type: "done", id: "h" });
+});
+
+test("senza Allegati, nessun attachments", async () => {
+  const { questions, events } = harness();
+  await questions.ask({ id: "i", prompt: "allegati", copilot: fake, cwd: folder() });
+  expect(JSON.parse(texts(events))).toEqual([]);
+});
+
+test("un'immagine che il modello non legge ferma la Domanda con un avviso, senza mandare nulla", async () => {
+  const dir = folder();
+  writeFileSync(join(dir, "foto.png"), png);
+  writeFileSync(join(dir, "foto.heic"), png);
+  writeFileSync(join(dir, "grande.png"), Buffer.alloc(2000));
+  const image = (name: string) => ({ kind: "image" as const, path: join(dir, name), name });
+  const noVision = "Grok 5 non legge le immagini. Scegli un altro modello in «Rifai con…», o chiedi a Claude.";
+  const cases: Array<[string | undefined, ReturnType<typeof image>[], string]> = [
+    // Senza un modello scelto, quello che `copilot` usa da sé: nel finto, Grok 5, senza vista.
+    [undefined, [image("foto.png")], noVision],
+    ["grok-5", [image("foto.png")], noVision],
+    ["gpt-6", [image("foto.heic")], "GPT-6 non legge il formato di «foto.heic». Salvala in PNG o JPEG, poi riprova."],
+    ["gpt-6", [image("grande.png")], "«grande.png» è troppo grande per GPT-6. Riducila, poi riprova."],
+    ["gpt-6", [image("foto.png"), image("foto.png"), image("foto.png")],
+      "GPT-6 legge al massimo 2 immagini per Domanda. Togline qualcuna, poi riprova."],
+  ];
+  for (const [model, attachments, message] of cases) {
+    const { questions, events } = harness();
+    await questions.ask({ id: "j", prompt: "allegati", copilot: fake, cwd: folder(), model, attachments });
+    expect(events).toEqual([{ type: "error", id: "j", message, reason: "attachment" }]);
+  }
+});
+
+test("un Allegato che non c'è più ferma la Domanda con un avviso, mai perso in silenzio", async () => {
+  const { questions, events } = harness();
+  await questions.ask({ id: "k", prompt: "allegati", copilot: fake, cwd: folder(), model: "gpt-6",
+    attachments: [{ kind: "file", path: join(folder(), "sparito.md"), name: "sparito.md" }] });
+  expect(events).toEqual([{ type: "error", id: "k", reason: "attachment",
+    message: "«sparito.md» non è più dove l'avevi preso. Allegalo di nuovo, poi riprova." }]);
+});
+
+test("degli Allegati di Bubo arrivano i tipi noti; un percorso relativo lo ferma l'avviso", () => {
+  expect(questionAttachmentsOf([
+    { kind: "image", path: "/a/foto.png", name: "foto.png" },
+    { kind: "eseguibile", path: "/a/x", name: "x" },
+    { kind: "file", path: "relativo.md" },
+    "testo",
+  ])).toEqual([
+    { kind: "image", path: "/a/foto.png", name: "foto.png" },
+    { kind: "file", path: "relativo.md", name: "relativo.md" },
+  ]);
+  expect(copilotAttachments([{ kind: "file", path: "relativo.md", name: "relativo.md" }]))
+    .toEqual({ notice: "«relativo.md» non è più dove l'avevi preso. Allegalo di nuovo, poi riprova." });
 });

@@ -116,9 +116,10 @@ enum BridgeCommand: Equatable {
     /// also has Bubo's `cerca` and `ricorda`, answered as for `ask` (#678). `readOnly` keeps the excluded folders of the
     /// Secondo cervello closed to every tool of `copilot`. `isTrusted` lets `copilot` load the configuration and the
     /// instructions it finds in `directory`, as `claude` loads a folder's own settings only once trusted (#266).
+    /// `attachments` are the Allegati `copilot` reads from the disk (#725): they open no folder to its tools.
     case askCopilotQuestion(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil,
                             effort: Effort? = nil, secondBrain: String? = nil, readOnly: ReadOnlyTurn? = nil,
-                            isTrusted: Bool = false)
+                            isTrusted: Bool = false, attachments: [CopilotAttachments.Attachment] = [])
     /// Lists the models the Copilot plan of the user's `copilot` offers, answering the request `id`.
     case readCopilotModels(id: String, copilot: URL)
 
@@ -212,13 +213,15 @@ enum BridgeCommand: Equatable {
         case let .summarize(id, prompt, directory, model):
             object = ["type": "summarize", "id": id, "prompt": prompt, "cwd": directory.path]
             object["model"] = model
-        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort, secondBrain, readOnly, isTrusted):
+        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort, secondBrain, readOnly, isTrusted,
+                                     attachments):
             object = ["type": "copilotQuestion", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
             object["effort"] = effort?.rawValue
             object["brain"] = secondBrain
             object["readOnly"] = readOnly?.jsonObject
             if isTrusted { object["trusted"] = true }
+            if !attachments.isEmpty { object["attachments"] = attachments.map(\.jsonObject) }
         case let .readCopilotModels(id, copilot):
             object = ["type": "copilotModels", "id": id, "copilot": copilot.path]
         case let .answerPreview(call, reply):

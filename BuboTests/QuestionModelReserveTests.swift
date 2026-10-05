@@ -18,6 +18,9 @@ struct QuestionModelReserveTests {
               case "$line" in
                 *@copilot-finita*) echo "{\"v\":4,\"type\":\"copilotLimit\",\"id\":\"$id\",\"message\":\"Crediti finiti\"}" ;;
                 *@rete-giu*) echo "{\"v\":4,\"type\":\"error\",\"id\":\"$id\",\"message\":\"fetch failed\"}" ;;
+                *'"attachments":[{"kind":"image"'*)
+                   echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"da copilot, con la foto\"}"
+                   echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
                 *) echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"da copilot\"}"
                    echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}" ;;
               esac ;;
@@ -71,6 +74,31 @@ struct QuestionModelReserveTests {
         #expect(model.answer == "da copilot")
         #expect(model.routedAnswer?.route.exhaustedEngine == .claude)
         #expect(try reason(of: model) == String(localized: "Quota di Claude finita: risponde Copilot"))
+    }
+
+    // #725: the Riserva carries the Allegati to Copilot; one it cannot read keeps Claude's limit.
+    @Test func theRiservaCarriesTheAllegatiToCopilot() async throws {
+        let model = try model(primary: .claude, hasReserve: true)
+        let folder = URL.temporaryDirectory.appending(path: "QuestionModelReserveTests-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        try Data("png".utf8).write(to: folder.appending(path: "foto.png"))
+        try Data("zip".utf8).write(to: folder.appending(path: "archivio.zip"))
+
+        model.ask("Ciao @claude-finita", attachments: [Allegato(fileAt: folder.appending(path: "foto.png"))])
+        await model.answering?.value
+
+        #expect(model.failure == nil)
+        #expect(model.answer == "da copilot, con la foto")
+        #expect(model.routedAnswer?.route.exhaustedEngine == .claude)
+
+        model.ask("Ciao @claude-finita", attachments: [Allegato(fileAt: folder.appending(path: "archivio.zip"))])
+        await model.answering?.value
+
+        #expect(model.answer.isEmpty)
+        guard case .bridge(.limitReached) = model.failure else {
+            Issue.record("Expected Claude's limit, got \(String(describing: model.failure))")
+            return
+        }
     }
 
     @Test func copilotAtItsLimitHandsTheDomandaToClaude() async throws {

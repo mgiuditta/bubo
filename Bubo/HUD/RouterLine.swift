@@ -154,7 +154,7 @@ struct RouterLine: View {
         case .endpointUnavailable:
             LocalizedStringResource("\(type) → \(family), tua preferenza in pausa", comment: comment)
         case .attachments:
-            LocalizedStringResource("\(type) → \(family), gli allegati vanno solo a Claude o sul Mac", comment: comment)
+            LocalizedStringResource("\(type) → \(family), gli allegati vanno solo a Claude, Copilot o sul Mac", comment: comment)
         case let .localServerOff(server):
             LocalizedStringResource("\(type) → \(family), \(server) non risponde", comment: comment)
         case let .localModelMissing(server):

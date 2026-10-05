@@ -318,10 +318,8 @@ final class QuestionModel {
         let answeredByCopilot = routedAnswer.route.copilotModel
         let current = routedAnswer.endpoint == nil && answeredByCopilot == nil
             ? routedAnswer.route.step(answeredBy: routedAnswer.answeringModel) : nil
-        // With Allegati too: picking one checks them first (`attachmentVerdict(for:)`).
+        // With Allegati too: picking one checks them first (`attachmentVerdict(for:)`); Copilot reads them (#725).
         let offered = endpoints.ready.filter { !declinedEndpoints.contains($0.id) }
-        // Copilot gets only the Domanda's text: the Allegati go only to Claude, the Mac, or an endpoint that confirms them.
-        let copilotModels = lastAttachments.isEmpty ? copilotModels : []
         let answeredBy = routedAnswer.endpoint?.id ?? answeredByCopilot.map { RetryAlternative(target: .copilot($0)).id }
         return RetryAlternative.alternatives(around: current, on: Scala(catalog: catalog, effortCaps: effortCaps),
                                              endpoints: offered, copilotModels: copilotModels, answeredBy: answeredBy)
@@ -585,7 +583,8 @@ final class QuestionModel {
     /// other app. Any answer in progress stops; what is typed in the prompt stays there.
     ///
     /// The turns of the Domanda in the Bolla do not follow it: another app gets no answer that read them, and they
-    /// reach no model on its behalf (#668). The Allegati go only to Claude or to the model on the Mac, as their content.
+    /// reach no model on its behalf (#668). The Allegati go to Claude, to Copilot, or to the model on the Mac as their
+    /// content.
     func ask(_ text: String, attachments: [Allegato]) {
         let text = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return }
@@ -1238,16 +1237,18 @@ final class QuestionModel {
             self.failure = failure
         } catch let error as AgentBridgeError {
             Logger.agent.error("Domanda failed: \(String(describing: error), privacy: .public)")
-            // Claude's Quota ran out: Copilot, the Riserva, answers with the model set in `copilot` (ADR 0014). It
-            // reads no Allegato, so a Domanda with Allegati keeps the limit.
-            if case .limitReached = error, route.exhaustedEngine == nil, richiesta.attachments.isEmpty,
+            // Claude's Quota ran out: Copilot, the Riserva, answers with the model set in `copilot` (ADR 0014), with
+            // the Allegati (#725); a Domanda with one Copilot cannot read keeps the limit.
+            if case .limitReached = error, route.exhaustedEngine == nil,
+               CopilotAttachments(richiesta.attachments).unreadable.isEmpty,
                await isReserveReady(after: .claude), !Task.isCancelled {
                 Logger.agent.notice("Domanda: Claude at its limit, the Riserva answers")
                 var reserve = Route.copilot(.configured, effort: nil, reason: route.reason)
                 reserve.exhaustedEngine = .claude
                 intake.answer(submission, movedTo: CopilotModel.configured.provider)
                 answer = ""
-                await answer(Richiesta(text: text(onMac: false)), withCopilot: .configured, route: reserve,
+                await answer(Richiesta(text: text(onMac: false), attachments: richiesta.attachments),
+                             withCopilot: .configured, route: reserve,
                              submission: submission, speaksAnswer: speaksAnswer, ignoringBudget: ignoringBudget)
                 return
             }
@@ -1267,7 +1268,8 @@ final class QuestionModel {
     }
 
     /// Streams the answer of `model`, a Copilot model the user picked or prefers, through the user's `copilot`: with its
-    /// tools, behind the same level 4–5 gate as a Claude Domanda, the excluded folders closed (ADR 0014).
+    /// tools, behind the same level 4–5 gate as a Claude Domanda, the excluded folders closed (ADR 0014). The Allegati
+    /// go as ``CopilotAttachments``: an Allegato Copilot cannot read holds the whole Domanda, with a notice (#725).
     ///
     /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
     /// - Returns: Whether Copilot's Quota ran out, or it hit a limit, and Claude, the Riserva, is to answer instead
@@ -1275,9 +1277,10 @@ final class QuestionModel {
     @discardableResult
     private func answer(_ richiesta: Richiesta, withCopilot model: CopilotModel, route: Route,
                         submission: IntakePipeline.Submission, speaksAnswer: Bool, ignoringBudget: Bool) async -> Bool {
-        // Not a byte of an Allegato goes to Copilot.
-        guard richiesta.attachments.isEmpty else {
-            failure = .attachmentsHeld
+        // Never an Allegato dropped in silence: one Copilot cannot read holds the Domanda.
+        let attachments = CopilotAttachments(richiesta.attachments)
+        guard attachments.unreadable.isEmpty else {
+            failure = .copilotUnreadable(attachments.unreadable.map(\.name))
             return false
         }
         if !ignoringBudget, case let .exhausted(scope) = allowance(for: Budgets.copilot) {
@@ -1298,7 +1301,7 @@ final class QuestionModel {
         let started = ContinuousClock.now
         var waitingForFirstToken = true
         let turn = UUID().uuidString, question = question
-        let asked = speaksAnswer ? richiesta.text + SpokenSummary.instruction : richiesta.text
+        let asked = attachments.prompt(speaksAnswer ? richiesta.text + SpokenSummary.instruction : richiesta.text)
         var summary = speaksAnswer ? SpokenSummary() : nil
         var firstAudio: OSSignpostIntervalState?
         do {
@@ -1312,6 +1315,8 @@ final class QuestionModel {
                 asked, in: workplace.directory, copilot: copilot, consents: endpoints.consents,
                 model: model == .configured ? nil : model.id, effort: route.effort,
                 sharesNotes: endpoints.allowsCopilotNotes, readOnly: workplace.readOnly,
+                // The Allegati the user chose: `copilot` reads them, while the folders stay as closed as before.
+                attachments: attachments.attachments,
                 progress: { [weak self] progress in
                     if case let .memory(.saved(change)) = progress { self?.savedChange = change }
                 },
@@ -1350,6 +1355,8 @@ final class QuestionModel {
         } catch CopilotFailure.consentMissing {
             // Nothing was sent: the same notice as a cloud endpoint without consent.
             failure = .endpoint(.consentMissing)
+        } catch let CopilotFailure.attachmentRefused(reason) {
+            failure = .copilotAttachmentRefused(reason)
         } catch let AgentBridgeError.failed(message) {
             Logger.agent.error("Copilot failed: \(message, privacy: .public)")
             failure = .copilotFailed(message)

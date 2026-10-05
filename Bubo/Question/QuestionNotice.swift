@@ -56,6 +56,17 @@ struct QuestionNotice: View {
         // The model turns `copilotLimitReached` into `copilotFailed`, or into the Riserva.
         case .copilotFailed(let message), .bridge(.copilotLimitReached(let message)):
             ErrorNotice("Copilot non ha risposto", remedy: "\(message)", actionTitle: "Rifai con…", action: pickRetry)
+        // Without `claude` there is no one to ask in its place (#729).
+        case .copilotUnreadable(let names) where model.isClaudeMissing:
+            ErrorNotice("Copilot non legge \(names.formatted(.list(type: .and)))",
+                        remedy: "Legge testo, immagini e cartelle. Fai una nuova Domanda senza quel file.",
+                        actionTitle: "Nuova Domanda", action: model.startNewQuestion)
+        case .copilotUnreadable(let names):
+            ErrorNotice("Copilot non legge \(names.formatted(.list(type: .and)))",
+                        remedy: "Legge testo, immagini e cartelle. Chiedi a Claude, che apre ogni file.",
+                        actionTitle: "Chiedi a Claude", action: model.askClaude)
+        case .copilotAttachmentRefused(let reason):
+            ErrorNotice("Allegati non inviati", remedy: "\(reason)", actionTitle: "Rifai con…", action: pickRetry)
         case .apiKeyMissing:
             ErrorNotice("Nessuna API key salvata", remedy: "Aggiungila in Impostazioni › Account, poi riprova.",
                         actionTitle: "Apri Impostazioni") { openSettings() }

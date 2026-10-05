@@ -20,6 +20,12 @@ enum QuestionFailure: Error, Equatable {
     case copilotUnavailable
     /// Copilot did not answer, saying why.
     case copilotFailed(String)
+    /// These Allegati, by name, are neither text, nor an image, nor a folder: Copilot cannot read them, and the Domanda
+    /// was not sent (#725).
+    case copilotUnreadable([String])
+    /// `copilot` cannot read an Allegato, for this reason as the bridge wrote it: an image the model does not see, or
+    /// a file no longer there. Nothing was sent (#725).
+    case copilotAttachmentRefused(String)
     /// Anything else, such as the Domande folder not being writable.
     case unexpected
 }

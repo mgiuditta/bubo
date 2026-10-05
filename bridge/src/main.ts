@@ -13,7 +13,7 @@ import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
 import { CopilotPermissions, CopilotTurns, copiedMessages, copilotEnvironment, copilotProject, reasoningEffortOf } from "./copilot";
-import { CopilotQuestions, type CopilotQuestionEvent } from "./copilot-question";
+import { CopilotQuestions, questionAttachmentsOf, type CopilotQuestionEvent } from "./copilot-question";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
 import { agentQuestion, answersOf, notShown, questionResult, type AgentQuestion } from "./question";
@@ -41,7 +41,7 @@ const version = 4;
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown; permissionMode?: unknown; unattended?: unknown }
-  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown; readOnly?: unknown; trusted?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown; readOnly?: unknown; trusted?: unknown; attachments?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
@@ -236,6 +236,7 @@ async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>
     model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
     brain: typeof command.brain === "string" && command.brain.length > 0 ? command.brain : undefined,
     hidden: readOnlyOf(command.readOnly)?.hidden, trusted: command.trusted === true,
+    attachments: questionAttachmentsOf(command.attachments),
   });
   if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
 }

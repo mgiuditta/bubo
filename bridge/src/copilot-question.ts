@@ -2,11 +2,12 @@
 // nel terminale: i suoi strumenti e la sua configurazione, in Modalità autonoma con lo stesso cancello livelli 4–5 delle
 // Domande Claude; con il Secondo cervello anche `cerca` e `ricorda` di Bubo (#678), mai le cartelle escluse. Verso Bubo
 // i messaggi neutri del ponte: testo in streaming, Richieste di permesso, token (`usage`), chi ha risposto, fine.
-import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo,
+import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type MessageOptions, type ModelInfo,
   type PermissionRequest as CopilotRequest, type PermissionRequestResult, type SessionConfig, type SessionHooks,
   type SessionEvent, type Tool, type UserInputHandler } from "@github/copilot-sdk";
+import { statSync } from "node:fs";
 import { homedir } from "node:os";
-import { dirname, relative, resolve } from "node:path";
+import { dirname, extname, isAbsolute, relative, resolve } from "node:path";
 import { z } from "zod";
 import { close, CopilotPermissions, decision, withFolderFirst, type CopilotPermissionEvent } from "./copilot";
 import { isInside, realPath } from "./gate";
@@ -31,7 +32,7 @@ export type CopilotModel = {
 export type CopilotQuestionEvent =
   | { type: "text"; id: string; text: string }
   | { type: "done"; id: string }
-  | { type: "error"; id: string; message: string }
+  | { type: "error"; id: string; message: string; reason?: typeof attachmentReason }
   /** La Domanda si è fermata per Quota finita o un limite di Copilot: con la Riserva risponde Claude (#726). */
   | { type: "copilotLimit"; id: string; message: string }
   | ({ type: "usage"; id: string } & TurnUsage)
@@ -53,10 +54,81 @@ export type CopilotQuestion = {
   brain?: string;
   /** Le cartelle escluse del Secondo cervello, assolute: nessuno strumento di `copilot` le tocca. */
   hidden?: string[];
+  /** Gli Allegati che l'utente ha scelto (#725): arrivano a `copilot` come `attachments`, letti dal disco. Non aprono
+   * nessuna cartella agli strumenti: le cartelle escluse restano chiuse. */
+  attachments?: QuestionAttachment[];
   /** Se l'utente si fida di `cwd` (#266): solo allora `copilot` carica la configurazione e le istruzioni che vi trova,
    * hook, server MCP ed estensioni compresi, come `claude` le impostazioni di Progetto. */
   trusted?: boolean;
 };
+
+/** Il motivo di un errore che un Allegato ha fermato prima dell'invio: Bubo lo mostra come avviso sugli Allegati. */
+export const attachmentReason = "attachment";
+
+/** Un Allegato di una Domanda come arriva da Bubo: un file di testo, un'immagine o una cartella, per percorso. */
+export type QuestionAttachment = { kind: "file" | "image" | "folder"; path: string; name: string };
+
+/** Gli Allegati come arrivano da Bubo, quelli con un tipo noto; un percorso non assoluto lo ferma `copilotAttachments`. */
+export function questionAttachmentsOf(value: unknown): QuestionAttachment[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    const { kind, path, name } = (typeof item === "object" && item !== null ? item : {}) as Record<string, unknown>;
+    if ((kind !== "file" && kind !== "image" && kind !== "folder") || typeof path !== "string") return [];
+    return [{ kind, path, name: typeof name === "string" ? name : path }];
+  });
+}
+
+type Attachment = NonNullable<MessageOptions["attachments"]>[number];
+
+/** I formati di immagine, per estensione, per confrontarli con quelli che il modello accetta. */
+const imageTypes: Record<string, string> = {
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp",
+  ".heic": "image/heic", ".heif": "image/heif", ".tif": "image/tiff", ".tiff": "image/tiff", ".bmp": "image/bmp",
+};
+
+/** Gli Allegati come `attachments` dell'SDK, che `copilot` legge dal disco; un avviso, senza mandare nulla, se uno non
+ * è più dove era. */
+export function copilotAttachments(attachments: QuestionAttachment[]): { attachments: Attachment[] } | { notice: string } {
+  const sent: Attachment[] = [];
+  for (const attachment of attachments) {
+    const isFolder = attachment.kind === "folder";
+    let isThere = false;
+    try {
+      isThere = isAbsolute(attachment.path) && statSync(attachment.path).isDirectory() === isFolder;
+    } catch {}
+    if (!isThere) return { notice: `«${attachment.name}» non è più dove l'avevi preso. Allegalo di nuovo, poi riprova.` };
+    sent.push({ type: isFolder ? "directory" : "file", path: attachment.path, displayName: attachment.name });
+  }
+  return { attachments: sent };
+}
+
+/** Perché `model` non legge le immagini `images` (#725): non ha la vista, un formato o una dimensione che non accetta,
+ * troppe insieme. `undefined` se le legge, o se `copilot` non dice cosa accetta: allora decide lui. */
+export function imageNotice(images: QuestionAttachment[], model: ModelInfo | undefined): string | undefined {
+  if (images.length === 0 || !model?.capabilities) return undefined;
+  const { supports, limits } = model.capabilities;
+  if (!supports.vision) return `${model.name} non legge le immagini. Scegli un altro modello in «Rifai con…», o chiedi a Claude.`;
+  const vision = limits.vision;
+  if (!vision) return undefined;
+  if (vision.max_prompt_images > 0 && images.length > vision.max_prompt_images) {
+    const most = vision.max_prompt_images === 1 ? "un'immagine" : `${vision.max_prompt_images} immagini`;
+    return `${model.name} legge al massimo ${most} per Domanda. Togline qualcuna, poi riprova.`;
+  }
+  for (const image of images) {
+    const type = imageTypes[extname(image.path).toLowerCase()];
+    if (vision.supported_media_types?.length && (!type || !vision.supported_media_types.includes(type))) {
+      return `${model.name} non legge il formato di «${image.name}». Salvala in PNG o JPEG, poi riprova.`;
+    }
+    let size = 0;
+    try {
+      size = statSync(image.path).size;
+    } catch {}
+    if (vision.max_prompt_image_size > 0 && size > vision.max_prompt_image_size) {
+      return `«${image.name}» è troppo grande per ${model.name}. Riducila, poi riprova.`;
+    }
+  }
+  return undefined;
+}
 
 /** Manda a Bubo una chiamata a `cerca` o `ricorda` e aspetta il testo con cui risponde (`found`). */
 export type AskBubo = (call: BuboToolCall) => Promise<string>;
@@ -319,8 +391,18 @@ export class CopilotQuestions {
           finished.resolve({ error: clean(event.data.message) ?? event.data.errorType, isLimit: isCopilotLimit(event.data) });
         }
       });
+      // Un Allegato che `copilot` non può leggere ferma la Domanda con un avviso: mai perso in silenzio.
+      const attached = copilotAttachments(question.attachments ?? []);
+      const images = (question.attachments ?? []).filter((attachment) => attachment.kind === "image");
+      const notice = "notice" in attached ? attached.notice : await this.imageNotice(client, session, question.model, images);
+      if (stopped.signal.aborted) return undefined;
+      if (notice) {
+        this.send({ type: "error", id, message: notice, reason: attachmentReason });
+        return undefined;
+      }
       sent = performance.now();
-      await session.send({ prompt: question.prompt });
+      await session.send({ prompt: question.prompt,
+        ...("attachments" in attached && attached.attachments.length > 0 && { attachments: attached.attachments }) });
       const end = await finished.promise;
       const turn = usage.turn();
       if (turn) this.send({ type: "usage", id, ...turn });
@@ -339,6 +421,19 @@ export class CopilotQuestions {
       stopped.abort();
       this.running.delete(id);
       await close(client, session);
+    }
+  }
+
+  /** Perché il modello della Domanda non legge `images`: quello scelto, o quello che `copilot` usa da sé. */
+  private async imageNotice(client: CopilotClient, session: CopilotSession, model: string | undefined,
+                            images: QuestionAttachment[]): Promise<string | undefined> {
+    if (images.length === 0) return undefined;
+    try {
+      const id = model ?? (await session.rpc.model.getCurrent()).modelId;
+      return imageNotice(images, (await client.listModels()).find((info) => info.id === id));
+    } catch {
+      // Senza l'elenco dei modelli decide `copilot`: le immagini partono come gli altri Allegati.
+      return undefined;
     }
   }
 

@@ -10,6 +10,7 @@
 //   ricevuta, in JSON; se il turno si ferma prima, con `session.abort`, finisce lì;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error` di rete; "crediti": con `session.error` di Quota finita;
+// - "allegati": risponde con gli `attachments` ricevuti, e il contenuto di ogni file come lo leggerebbe `copilot`;
 // - altro: risponde "Ciao mondo", con i token di due chiamate al modello e di un subagent.
 import { randomUUID } from "node:crypto";
 
@@ -42,7 +43,7 @@ function emit(sessionId, type, data, extra = {}) {
 const usage = (model, inputTokens, outputTokens) =>
   ({ model, inputTokens, outputTokens, cacheReadTokens: 10, reasoningTokens: 5, reasoningEffort: "low" });
 
-async function play(sessionId, prompt) {
+async function play(sessionId, prompt, attachments) {
   const session = sessions.get(sessionId);
   const say = (text) => emit(sessionId, "assistant.message_delta", { deltaContent: text, messageId: "m1" });
   const idle = () => emit(sessionId, "session.idle", {});
@@ -117,6 +118,11 @@ async function play(sessionId, prompt) {
       emit(sessionId, "abort", { reason: "user" });
       idle();
     };
+  } else if (prompt === "allegati") {
+    const { readFileSync, statSync } = await import("node:fs");
+    say(JSON.stringify((attachments ?? []).map((attachment) => ({ ...attachment,
+      read: attachment.type === "file" ? readFileSync(attachment.path).toString("base64") : statSync(attachment.path).isDirectory() }))));
+    idle();
   } else if (prompt === "errore") {
     emit(sessionId, "session.error", { errorType: "query", message: "fetch failed" });
     idle();
@@ -134,7 +140,8 @@ async function play(sessionId, prompt) {
 }
 
 const models = [
-  { id: "gpt-6", name: "GPT-6", capabilities: { supports: { vision: true, reasoningEffort: true }, limits: { max_context_window_tokens: 1 } },
+  { id: "gpt-6", name: "GPT-6", capabilities: { supports: { vision: true, reasoningEffort: true }, limits: { max_context_window_tokens: 1,
+    vision: { supported_media_types: ["image/png", "image/jpeg"], max_prompt_images: 2, max_prompt_image_size: 1000 } } },
     policy: { state: "enabled", terms: "" }, billing: { multiplier: 1 }, supportedReasoningEfforts: ["low", "high"], defaultReasoningEffort: "low" },
   { id: "grok-5", name: "Grok 5", capabilities: { supports: { vision: false, reasoningEffort: false }, limits: { max_context_window_tokens: 1 } } },
   { id: "spento", name: "Spento", capabilities: { supports: { vision: false, reasoningEffort: false }, limits: { max_context_window_tokens: 1 } },
@@ -152,6 +159,7 @@ function handle(message) {
   switch (method) {
     case "connect": return reply({ protocolVersion: 3 });
     case "models.list": return reply({ models });
+    case "session.model.getCurrent": return reply({ modelId: sessions.get(params.sessionId)?.model ?? "grok-5" });
     case "session.create": {
       const sessionId = params.sessionId ?? randomUUID();
       sessions.set(sessionId, { model: params.model, effort: params.reasoningEffort, availableTools: params.availableTools,
@@ -163,7 +171,7 @@ function handle(message) {
     }
     case "session.send":
       reply({ messageId: randomUUID() });
-      void play(params.sessionId, params.prompt);
+      void play(params.sessionId, params.prompt, params.attachments);
       return;
     case "session.abort":
       sessions.get(params.sessionId)?.stop?.();

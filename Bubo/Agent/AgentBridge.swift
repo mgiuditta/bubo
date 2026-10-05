@@ -319,6 +319,8 @@ final class AgentBridge {
     ///     and `ricorda` (#678); only with the user's consent for the notes. Each write reaches `progress` as a line
     ///     Salvato. Without a Secondo cervello, nothing changes.
     ///   - readOnly: The excluded folders of the Secondo cervello, closed to every tool of `copilot`; `nil` for none.
+    ///   - attachments: The Allegati `copilot` reads from the disk (#725). One it cannot read ends the answer with
+    ///     ``CopilotFailure/attachmentRefused(_:)``, before anything is sent.
     ///   - progress: Receives the state of the answer, until it ends.
     ///   - permissions: Receives the Richieste di permesso of levels 4–5, answered with
     ///     `answerPermission(_:allows:isLasting:)`; `nil` refuses them all.
@@ -327,7 +329,7 @@ final class AgentBridge {
     ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5; `nil` counts every call as dangerous.
     func askCopilotQuestion(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>,
                             model: String? = nil, effort: Effort? = nil, sharesNotes: Bool = false,
-                            readOnly: ReadOnlyTurn? = nil,
+                            readOnly: ReadOnlyTurn? = nil, attachments: [CopilotAttachments.Attachment] = [],
                             progress: @escaping (AgentProgress) -> Void = { _ in },
                             permissions: ((PermissionEvent) -> Void)? = nil,
                             usage: @escaping (TurnUsage) -> Void = { _ in },
@@ -354,7 +356,8 @@ final class AgentBridge {
             let secondBrain = sharesNotes && consents.contains(EndpointSettings.copilotNotesConsentID) ? basics() : nil
             let command = BridgeCommand.askCopilotQuestion(id: id, prompt: prompt, directory: directory, copilot: copilot,
                                                            model: model, effort: effort, secondBrain: secondBrain,
-                                                           readOnly: readOnly, isTrusted: trustGate.isTrusted(directory))
+                                                           readOnly: readOnly, isTrusted: trustGate.isTrusted(directory),
+                                                           attachments: attachments)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))
@@ -617,6 +620,8 @@ final class AgentBridge {
         case let .error(id?, message):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.failed(message: message))
             requests.removeValue(forKey: id)?.resume(throwing: AgentBridgeError.failed(message: message))
+        case let .turnFailed(id, failure) where failure.reason == CopilotFailure.attachmentReason:
+            removeAnswer(id)?.finish(throwing: CopilotFailure.attachmentRefused(failure.message))
         case let .turnFailed(id, failure):
             removeAnswer(id)?.finish(throwing: AgentBridgeError.turnFailed(failure))
         case let .error(nil, message):

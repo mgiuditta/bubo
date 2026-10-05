@@ -208,6 +208,11 @@ nonisolated enum CopilotFailure: Error, Equatable {
     case missing
     /// The user did not allow Copilot to receive the contenuti del Progetto: nothing was sent (spec 10).
     case consentMissing
+    /// `copilot` cannot read an Allegato of the Domanda, for this reason (#725): nothing was sent.
+    case attachmentRefused(String)
+
+    /// The reason the bridge gives to an error of a Domanda an Allegato stopped.
+    static let attachmentReason = "attachment"
 }
 
 nonisolated extension Session {

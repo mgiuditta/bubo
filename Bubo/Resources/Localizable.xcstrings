@@ -463,18 +463,18 @@
         }
       }
     },
-    "%@ → %@, gli allegati vanno solo a Claude o sul Mac" : {
+    "%@ → %@, gli allegati vanno solo a Claude, Copilot o sul Mac" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$@ → %2$@, attachments go only to Claude or on the Mac"
+            "value" : "%1$@ → %2$@, attachments go only to Claude, Copilot, or on the Mac"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "%1$@ → %2$@, gli allegati vanno solo a Claude o sul Mac"
+            "value" : "%1$@ → %2$@, gli allegati vanno solo a Claude, Copilot o sul Mac"
           }
         }
       }
@@ -6859,6 +6859,16 @@
         }
       }
     },
+    "Copilot non legge %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot can't read %@"
+          }
+        }
+      }
+    },
     "Copilot non legge né scrive la Memoria di Progetto." : {
       "localizations" : {
         "en" : {
@@ -11331,6 +11341,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your settings"
+          }
+        }
+      }
+    },
+    "Legge testo, immagini e cartelle. Chiedi a Claude, che apre ogni file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It reads text, images, and folders. Ask Claude, which opens any file."
+          }
+        }
+      }
+    },
+    "Legge testo, immagini e cartelle. Fai una nuova Domanda senza quel file." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It reads text, images, and folders. Ask a new question without that file."
           }
         }
       }
