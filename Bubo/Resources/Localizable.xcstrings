@@ -2159,6 +2159,9 @@
         }
       }
     },
+    "Acqua" : {
+
+    },
     "adesso" : {
       "localizations" : {
         "en" : {
@@ -2606,6 +2609,7 @@
       }
     },
     "Altra risposta" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -2724,6 +2728,12 @@
           }
         }
       }
+    },
+    "Altro…" : {
+
+    },
+    "Ambra" : {
+
     },
     "Ancora nessun Progetto con Spesa." : {
       "localizations" : {
@@ -3380,6 +3390,9 @@
           }
         }
       }
+    },
+    "Argento" : {
+
     },
     "Arriverà presto" : {
       "localizations" : {
@@ -4060,6 +4073,9 @@
         }
       }
     },
+    "Blu" : {
+
+    },
     "Bozza" : {
       "localizations" : {
         "en" : {
@@ -4301,6 +4317,9 @@
         }
       }
     },
+    "Bubo prende il colore del fornitore che risponde." : {
+
+    },
     "Bubo registra il tuo microfono e l'audio dell'app scelta, senza bot nella chiamata. Trascrive sul Mac e nel Secondo cervello salva solo la nota, non l'audio." : {
       "localizations" : {
         "en" : {
@@ -4310,6 +4329,9 @@
           }
         }
       }
+    },
+    "Bubo resta di questo colore con ogni fornitore." : {
+
     },
     "Bubo resta sempre nella barra dei menu." : {
       "localizations" : {
@@ -5806,6 +5828,9 @@
           }
         }
       }
+    },
+    "Colore di Bubo" : {
+
     },
     "Comandi" : {
       "localizations" : {
@@ -7518,6 +7543,9 @@
           }
         }
       }
+    },
+    "Domanda %lld" : {
+
     },
     "Domanda del %@" : {
       "localizations" : {
@@ -11002,6 +11030,9 @@
           }
         }
       }
+    },
+    "La tua risposta" : {
+
     },
     "La versione %@ di Claude Code è troppo vecchia per Bubo. Aggiornala nel Terminale." : {
       "localizations" : {
@@ -16826,6 +16857,9 @@
         }
       }
     },
+    "Rosa" : {
+
+    },
     "Salta" : {
       "localizations" : {
         "en" : {
@@ -18696,6 +18730,9 @@
         }
       }
     },
+    "Terracotta" : {
+
+    },
     "Testo troncato: apri Bubo per leggerlo tutto." : {
       "localizations" : {
         "en" : {
@@ -19162,6 +19199,9 @@
           }
         }
       }
+    },
+    "Tutte le Sessioni (%lld)" : {
+
     },
     "Tutti" : {
       "localizations" : {
@@ -19808,6 +19848,9 @@
         }
       }
     },
+    "Verde" : {
+
+    },
     "Verifica di nuovo" : {
       "localizations" : {
         "en" : {
@@ -19898,6 +19941,9 @@
           }
         }
       }
+    },
+    "Viola" : {
+
     },
     "Visore" : {
       "localizations" : {
