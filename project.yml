@@ -171,6 +171,9 @@ targets:
     postBuildScripts:
       - name: Ponte agente
         shell: /bin/zsh
+        # Ogni build: gli input elencati sotto non coprono gli altri file di bridge/src, e un ponte vecchio nell'app
+        # non si vede finché non si comporta male.
+        basedOnDependencyAnalysis: false
         script: |
           set -euo pipefail
           bun=$(command -v bun || echo "$HOME/.bun/bin/bun")
