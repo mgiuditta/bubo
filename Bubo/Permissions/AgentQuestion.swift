@@ -28,9 +28,11 @@ nonisolated struct AgentQuestion: Identifiable, Equatable, Sendable, Decodable {
         let options: [Option]
         /// Whether more than one option may be chosen.
         let allowsMultiple: Bool
+        /// Whether a written answer is accepted, under «Altro»: always for Claude, not when Copilot rules it out.
+        var allowsText = true
 
         private enum CodingKeys: String, CodingKey {
-            case question, header, options, allowsMultiple = "multiSelect"
+            case question, header, options, allowsMultiple = "multiSelect", allowsText = "freeform"
         }
     }
 
@@ -39,9 +41,10 @@ nonisolated struct AgentQuestion: Identifiable, Equatable, Sendable, Decodable {
         var options: [Int] = []
         var text = ""
 
-        /// Whether it answers `item`: a written answer, or exactly one option, or at least one when many are allowed.
+        /// Whether it answers `item`: a written answer where one is accepted, or exactly one option, or at least one
+        /// when many are allowed.
         func answers(_ item: Item) -> Bool {
-            if !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
+            if item.allowsText, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return true }
             return item.allowsMultiple ? !options.isEmpty : options.count == 1
         }
     }
@@ -57,5 +60,17 @@ nonisolated struct AgentQuestion: Identifiable, Equatable, Sendable, Decodable {
     /// Whether `replies` answer every question, in order.
     func isAnswered(by replies: [Reply]) -> Bool {
         replies.count == items.count && zip(replies, items).allSatisfy { $0.answers($1) }
+    }
+}
+
+extension AgentQuestion.Item {
+    /// Decodes a question from the bridge, where `freeform` is there only to rule a written answer out.
+    nonisolated init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        question = try container.decode(String.self, forKey: .question)
+        header = try container.decode(String.self, forKey: .header)
+        options = try container.decode([Option].self, forKey: .options)
+        allowsMultiple = try container.decode(Bool.self, forKey: .allowsMultiple)
+        allowsText = try container.decodeIfPresent(Bool.self, forKey: .allowsText) ?? true
     }
 }

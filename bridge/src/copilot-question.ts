@@ -4,7 +4,7 @@
 // i messaggi neutri del ponte: testo in streaming, Richieste di permesso, token (`usage`), chi ha risposto, fine.
 import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo,
   type PermissionRequest as CopilotRequest, type PermissionRequestResult, type SessionConfig, type SessionHooks,
-  type SessionEvent, type Tool } from "@github/copilot-sdk";
+  type SessionEvent, type Tool, type UserInputHandler } from "@github/copilot-sdk";
 import { homedir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { z } from "zod";
@@ -190,12 +190,13 @@ export function buboTools(conversation: string, askBubo: AskBubo): Tool<any>[] {
   ];
 }
 
-/** La sessione di una Domanda come `copilot` nel terminale: i suoi strumenti, e ogni Richiesta a `askPermission`. La
+/** La sessione di una Domanda come `copilot` nel terminale: i suoi strumenti, ogni Richiesta a `askPermission` e ogni
+ * domanda all'utente ad `askUser`. La
  * configurazione e le istruzioni della cartella solo se `trusted`. Con il Secondo cervello (`brain` e `askBubo`)
  * Profilo e Regole in coda al prompt di sistema, e in più `cerca` e `ricorda` di Bubo. Le cartelle escluse `hidden`
  * restano chiuse a ogni strumento. */
 export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain" | "hidden" | "trusted">,
-                                askPermission: AskPermission, askBubo?: AskBubo): SessionConfig {
+                                askPermission: AskPermission, askBubo?: AskBubo, askUser?: UserInputHandler): SessionConfig {
   const hidden = question.hidden ?? [];
   const trusted = question.trusted === true;
   return {
@@ -220,6 +221,7 @@ export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "
       }
       return reason ? decision(false, reason) : askPermission(asked);
     },
+    ...(askUser ? { onUserInputRequest: askUser } : {}),
   };
 }
 
@@ -248,6 +250,11 @@ export class CopilotQuestions {
   /** Risponde alla Richiesta `request`; `false` se non è di un turno Copilot. */
   answer(request: string, allowed: boolean): boolean {
     return this.permissions.answer(request, allowed);
+  }
+
+  /** Risponde alla domanda `request`; `false` se non è di una Domanda via Copilot. */
+  reply(request: string, replies: unknown): boolean {
+    return this.permissions.reply(request, replies);
   }
 
   /** Ferma la Domanda `id`; `false` se non è una Domanda via Copilot in corso. */
@@ -289,7 +296,8 @@ export class CopilotQuestions {
     try {
       // Una Domanda gira come la riga di comando: Modalità autonoma, il cancello chiede solo sui livelli 4–5.
       const askPermission: AskPermission = (asked) => this.permissions.ask(id, asked, stopped.signal, true);
-      session = await client.createSession(questionSession(question, askPermission, this.askBubo));
+      const askUser: UserInputHandler = (asked) => this.permissions.question(id, asked, stopped.signal);
+      session = await client.createSession(questionSession(question, askPermission, this.askBubo, askUser));
       if (stopped.signal.aborted) return undefined;
       let sent = 0;
       session.on((event: SessionEvent) => {

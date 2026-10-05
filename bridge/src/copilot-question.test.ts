@@ -6,6 +6,7 @@ import { copilotEnvironment, CopilotPermissions, type IsDangerous } from "./copi
 import { buboTools, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, questionSession, type AskBubo,
   type CopilotQuestionEvent } from "./copilot-question";
 import type { RiskQuestion } from "./gate";
+import { declined } from "./question";
 import type { BuboToolCall } from "./tools";
 
 // Il `copilot` finto: JSON-RPC del Copilot SDK su stdio, nessun turno pagato.
@@ -246,6 +247,29 @@ test("Ferma chiude la Domanda senza done né errore", async () => {
   await asking;
   expect(events.map((event) => event.type)).toEqual(["text"]);
   expect(questions.cancel("d")).toBe(false);
+});
+
+test("una domanda di copilot nella Domanda: a risposta libera vale «Altro», e se l'utente non risponde copilot lo sa", async () => {
+  for (const [replies, answer] of [[[{ options: [], text: "Un gufo" }], { answer: "Un gufo", wasFreeform: true }],
+                                   [undefined, { answer: declined, wasFreeform: true }]] as const) {
+    const { questions, events, next } = harness();
+    const asking = questions.ask({ id: "u", prompt: `chiedi ${JSON.stringify({ question: "Chi sei?" })}`, copilot: fake, cwd: folder() });
+    const asked = await next((event) => event.type === "question") as { request: string };
+    expect(asked).toMatchObject({ id: "u", questions: [{ question: "Chi sei?", options: [], multiSelect: false }] });
+    expect(questions.reply(asked.request, replies)).toBe(true);
+    await asking;
+    expect(JSON.parse(texts(events))).toEqual(answer);
+  }
+});
+
+test("Ferma chiude anche la domanda in attesa", async () => {
+  const { questions, events, next } = harness();
+  const asking = questions.ask({ id: "v", prompt: `chiedi ${JSON.stringify({ question: "Chi sei?", choices: ["Bubo"] })}`, copilot: fake, cwd: folder() });
+  const asked = await next((event) => event.type === "question") as { request: string };
+  questions.cancel("v");
+  await asking;
+  expect(events.map((event) => event.type)).toEqual(["question", "permissionWithdrawn"]);
+  expect(questions.reply(asked.request, [{ options: [0] }])).toBe(false);
 });
 
 test("un errore di copilot arriva come error", async () => {

@@ -99,7 +99,7 @@ struct AgentQuestionView: View {
 }
 
 /// One of the agent's questions: the question, its options numbered as in the command line, «Altro» last with a
-/// field for a written answer, and the preview of the option under the pointer or chosen, when the agent gives one.
+/// field for a written answer unless the agent rules it out, and the preview of the option under the pointer or chosen, when the agent gives one.
 private struct AgentQuestionItemView: View {
     let item: AgentQuestion.Item
     @Binding var reply: AgentQuestion.Reply
@@ -136,7 +136,8 @@ private struct AgentQuestionItemView: View {
                 options
             }
         }
-        .onAppear { writesOther = !reply.text.isEmpty }
+        // A question with no options, as Copilot asks, has only the written answer: its field is open from the start.
+        .onAppear { writesOther = item.allowsText && (!reply.text.isEmpty || item.options.isEmpty) }
     }
 
     private var options: some View {
@@ -149,11 +150,13 @@ private struct AgentQuestionItemView: View {
                 }
                 .onHover { hovered = $0 ? index : (hovered == index ? nil : hovered) }
             }
-            row(number: item.options.count + 1, label: String(localized: "Altro…"), detail: nil,
-                isChosen: writesOther) {
-                writesOther.toggle()
-                if writesOther, !item.allowsMultiple { reply.options = [] }
-                if !writesOther { reply.text = "" }
+            if item.allowsText {
+                row(number: item.options.count + 1, label: String(localized: "Altro…"), detail: nil,
+                    isChosen: writesOther) {
+                    writesOther.toggle()
+                    if writesOther, !item.allowsMultiple { reply.options = [] }
+                    if !writesOther { reply.text = "" }
+                }
             }
             if writesOther {
                 TextField("La tua risposta", text: $reply.text, axis: .vertical)

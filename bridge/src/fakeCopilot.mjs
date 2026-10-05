@@ -2,6 +2,8 @@
 // Un `copilot` finto per i test di `copilot.ts`: parla il JSON-RPC del Copilot SDK su stdio (`--stdio`), senza rete e
 // senza turni pagati. Il prompt sceglie la scena:
 // - "scrivi": chiede il permesso di scrivere `nota.txt` nella cartella della sessione e la scrive solo se approvato;
+// - "chiedi <json>": fa a Bubo la domanda `<json>` (`userInput.request`, come `ask_user`) e risponde con la risposta
+//   ricevuta, in JSON; se il turno si ferma prima, con `session.abort`, finisce lì;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error`;
 // - "token": due chiamate al modello, una di un subagente, con i loro token;
@@ -38,6 +40,16 @@ function emit(sessionId, type, data, ephemeral = false) {
 }
 
 const permissions = new Map();
+// Le risposte di Bubo alle richieste del finto `copilot` (`userInput.request`), per id.
+const replies = new Map();
+let nextRequest = 1;
+
+function request(method, params) {
+  const id = `fake-${nextRequest++}`;
+  const reply = new Promise((resolve) => replies.set(id, resolve));
+  write({ id, method, params });
+  return reply;
+}
 
 async function play(sessionId, prompt) {
   const session = sessions.get(sessionId);
@@ -60,6 +72,17 @@ async function play(sessionId, prompt) {
     } else {
       say(`Rifiutato: ${result.feedback ?? ""}`);
     }
+    idle();
+  } else if (prompt.startsWith("chiedi ")) {
+    let stopped = false;
+    session.stop = () => {
+      stopped = true;
+      emit(sessionId, "abort", { reason: "user" });
+      idle();
+    };
+    const answer = await request("userInput.request", { sessionId, ...JSON.parse(prompt.slice("chiedi ".length)) });
+    if (stopped) return;
+    say(JSON.stringify(answer ?? null));
     idle();
   } else if (prompt === "lungo") {
     say("Comincio");
@@ -115,7 +138,11 @@ async function play(sessionId, prompt) {
 }
 
 function handle(message) {
-  if (message.method === undefined) return;
+  if (message.method === undefined) {
+    replies.get(message.id)?.(message.result);
+    replies.delete(message.id);
+    return;
+  }
   const { id, method, params } = message;
   const reply = (result) => write({ id, result });
   switch (method) {

@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotPermissions, CopilotTurns, approvedByMode, type IsDangerous, mayApproveByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotPermissions, CopilotTurns, approvedByMode, type IsDangerous, mayApproveByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, userInputAnswer, userInputQuestion, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
 import type { RiskQuestion } from "./gate";
 import { ConversationStore } from "./store";
@@ -190,6 +190,43 @@ test("Ferma con una Richiesta aperta la ritira e la nega", async () => {
   expect(events).toContainEqual({ type: "permissionWithdrawn", id: "f", request: asked.request });
   expect(turns.answer(asked.request, true)).toBe(false);
   expect(existsSync(join(cwd, "nota.txt"))).toBe(false);
+});
+
+const libreria = JSON.stringify({ question: "Quale \x1b[31mlibreria\x1b[0m?", choices: ["Zod", "Valibot"] });
+
+test("una domanda di copilot arriva a Bubo come quelle di Claude, e la scelta torna a copilot", async () => {
+  const { turns, events, next } = harness();
+  const run = turns.run({ id: "q", prompt: `chiedi ${libreria}`, cwd: folder(), copilot: fake });
+  const asked = await next((event) => event.type === "question") as { request: string };
+  expect(asked).toEqual({ type: "question", id: "q", request: asked.request, questions: [
+    { question: "Quale libreria?", header: "", options: [{ label: "Zod" }, { label: "Valibot" }], multiSelect: false },
+  ] });
+  expect(turns.reply(asked.request, [{ options: [1] }])).toBe(true);
+  await run;
+  expect(JSON.parse(texts(events))).toEqual({ answer: "Valibot", wasFreeform: false });
+});
+
+test("Ferma con una domanda aperta la ritira, e la risposta tardi non arriva a nessuno", async () => {
+  const { turns, events, next } = harness();
+  const run = turns.run({ id: "w", prompt: `chiedi ${libreria}`, cwd: folder(), copilot: fake });
+  const asked = await next((event) => event.type === "question") as { request: string };
+  turns.cancel("w");
+  await run;
+  expect(events).toContainEqual({ type: "permissionWithdrawn", id: "w", request: asked.request });
+  expect(turns.reply(asked.request, [{ options: [0] }])).toBe(false);
+  expect(events.some((event) => event.type === "done" || event.type === "error")).toBe(false);
+});
+
+test("la risposta scritta vale se copilot la accetta; senza risposta valida copilot legge che l'utente non ha risposto", () => {
+  const asked = { question: "Nome?", choices: ["Bubo"] };
+  expect(userInputQuestion("r", { question: "Nome?" })?.questions).toEqual([{ question: "Nome?", header: "", options: [], multiSelect: false }]);
+  expect(userInputQuestion("r", { ...asked, allowFreeform: false })?.questions[0].freeform).toBe(false);
+  expect(userInputQuestion("r", { question: "Nome?", allowFreeform: false })).toBeUndefined();
+  expect(userInputAnswer(asked, [{ options: [], text: "  Gufo " }])).toEqual({ answer: "Gufo", wasFreeform: true });
+  expect(userInputAnswer({ ...asked, allowFreeform: false }, [{ options: [0], text: "Gufo" }])).toEqual({ answer: "Bubo", wasFreeform: false });
+  for (const replies of [undefined, [], [{ options: [] }], [{ options: [1] }], [{ options: [0, 0] }], [{ options: [0] }, { options: [0] }]]) {
+    expect(userInputAnswer(asked, replies)).toBeUndefined();
+  }
 });
 
 test("un errore di copilot chiude il turno con error", async () => {
