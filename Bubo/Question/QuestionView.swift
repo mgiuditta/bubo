@@ -5,7 +5,8 @@ import SwiftUI
 struct QuestionView: View {
     @Bindable var model: QuestionModel
     @Environment(HUDPresenter.self) private var hud
-    @State private var isPickingRetry = false
+    /// Whether the answer shows under the field, in its card; a chat shows it among its messages instead.
+    var showsOutcome = true
     /// The cloud endpoint picked in "Rifai con…" that waits for the user's consent before it receives anything.
     @State private var askingConsent: RetryAlternative?
     @State private var isAskingConsent = false
@@ -102,20 +103,20 @@ struct QuestionView: View {
                 attachmentReview(attachmentVerdict, endpoint: endpoint, alternative: reviewedAlternative)
             }
 
-            if hasOutcome {
+            if showsOutcome && hasOutcome {
                 outcome
             }
         }
         // On the whole field, not on the button: a failed answer offers "Rifai con…" too, without the reason line.
-        .popover(isPresented: $isPickingRetry, arrowEdge: .bottom) {
+        .popover(isPresented: $model.isPickingRetry, arrowEdge: showsOutcome ? .bottom : .top) {
             RetryWithList(alternatives: model.retryAlternatives, excluded: model.excludedEndpoints,
                           usesAPIKey: model.usesAPIKey, type: model.lastType, alwaysUse: $alwaysUse, pick: pick)
                 // The models of the Copilot plan, read when the user asks for the list: never in the background.
                 .task { await model.readCopilotModels() }
         }
         // "Usa sempre per «Tipo»" starts off every time "Rifai con…" opens.
-        .onChange(of: isPickingRetry) {
-            if isPickingRetry { alwaysUse = false }
+        .onChange(of: model.isPickingRetry) {
+            if model.isPickingRetry { alwaysUse = false }
         }
         // Ollama or LM Studio found on the Mac: proposed once, the first time the HUD opens after.
         // Not in the app that hosts the tests: it shares the user's defaults, and the proposal is made only once.
@@ -192,23 +193,7 @@ struct QuestionView: View {
                     .help("Chiudi la Domanda")
                     .accessibilityIdentifier("question.close")
             }
-            if let resumesAt = model.resumesAt {
-                HStack(spacing: Spacing.small) {
-                    Text("Riprendo alle \(resumesAt, format: .dateTime.hour().minute()).")
-                        .font(Typography.body(size: 13))
-                        .foregroundStyle(Palette.textSecondary)
-                    Button("Annulla", action: model.stop)
-                }
-            } else if let failure = model.failure {
-                QuestionNotice(failure: failure, model: model) { isPickingRetry = true }
-            } else if model.isAnswering && model.answer.isEmpty {
-                LoadingLabel("Sto pensando…")
-            } else if !model.answer.isEmpty {
-                QuestionAnswer(model: model) { isPickingRetry = true }
-            }
-            if let savedChange = model.savedChange {
-                SavedNoteLine(change: savedChange, undo: model.undoSavedChange)
-            }
+            QuestionOutcome(model: model)
         }
         .padding(Spacing.medium)
         .overlay {
@@ -227,7 +212,7 @@ struct QuestionView: View {
     /// Asks again with `alternative`, once the Allegati of the Domanda may go to it; or shows why they cannot, or asks
     /// to confirm them.
     private func pick(_ alternative: RetryAlternative) {
-        isPickingRetry = false
+        model.isPickingRetry = false
         closeAttachmentReview()
         guard case let .endpoint(endpoint) = alternative.target, !model.askedAttachments.isEmpty else {
             send(alternative)

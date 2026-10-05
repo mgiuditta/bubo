@@ -10,44 +10,36 @@ struct SessionTranscript: View {
 
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: Spacing.small) {
+            LazyVStack(alignment: .leading, spacing: Spacing.l) {
                 ForEach(lines) { line in
-                    TranscriptLineView(line: line, words: [], isCurrent: false)
+                    Group {
+                        if line.message.isFromUser {
+                            UserBubble(text: line.message.text)
+                        } else {
+                            AnswerProse(prose: line.message.text)
+                                .accessibilityElement(children: .contain)
+                                .accessibilityLabel("Claude")
+                        }
+                    }
+                    .chatEntrance()
                 }
                 if let pendingPrompt {
-                    PendingPrompt(text: pendingPrompt)
+                    UserBubble(text: pendingPrompt)
+                        .chatEntrance()
+                    // Where the answer will be, while the Sessione works on the turn.
+                    ThinkingDots()
+                        .chatEntrance()
                 }
             }
+            .animation(Motion.standard, value: lines.count)
+            .animation(Motion.standard, value: pendingPrompt)
             .frame(maxWidth: Spacing.readingWidth, alignment: .leading)
             .frame(maxWidth: .infinity)
             .padding(Spacing.l)
         }
         // A chat opens on its last message, and stays there as new ones arrive.
         .defaultScrollAnchor(.bottom)
-    }
-}
-
-/// What the user just sent, as their message, while the Sessione works on it.
-private struct PendingPrompt: View {
-    let text: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xxSmall) {
-            HStack(spacing: Spacing.xSmall) {
-                Text("Tu")
-                    .foregroundStyle(Palette.textSecondary)
-                ProgressView()
-                    .controlSize(.mini)
-                    .accessibilityLabel("Sta lavorando")
-            }
-            .font(Typography.mono(size: 10, weight: .medium))
-            .textCase(.uppercase)
-            Text(verbatim: text)
-                .font(Typography.body(size: 13))
-                .textSelection(.enabled)
-        }
-        .padding(Spacing.xSmall)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .defaultScrollAnchor(.bottom, for: .sizeChanges)
+        .scrollEdgeEffectStyle(.soft, for: .top)
     }
 }

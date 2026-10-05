@@ -16524,6 +16524,28 @@
         }
       }
     },
+    "Torna a %@" : {
+      "comment" : "VoiceOver label of the button above a Sessione that goes back to its Progetto; the argument is the Progetto's folder name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to %@"
+          }
+        }
+      }
+    },
+    "Torna alle Sessioni del Progetto" : {
+      "comment" : "Help of the button above a Sessione that goes back to its Progetto.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the Project's Sessions"
+          }
+        }
+      }
+    },
     "Totale" : {
       "comment" : "The Budget on all the Spesa, in the Budget settings.",
       "localizations" : {

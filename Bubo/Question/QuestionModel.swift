@@ -28,6 +28,12 @@ final class QuestionModel {
     private(set) var activeSkill: Skill?
     /// Whether an answer is on its way.
     private(set) var isAnswering = false
+    /// Whether "Rifai con…" is open: the chat under the field opens it from its answer, the field shows it.
+    var isPickingRetry = false
+    /// Whether the Domanda has started: something was asked, so the home shows it as a chat.
+    var hasConversation: Bool {
+        !turns.isEmpty || !lastPrompt.isEmpty || !answer.isEmpty || isAnswering || failure != nil
+    }
     /// Why the last Domanda got no answer, if it failed.
     private(set) var failure: QuestionFailure?
     /// The Quota last reported by `claude` through the bridge this model owns, or else the one saved at the last

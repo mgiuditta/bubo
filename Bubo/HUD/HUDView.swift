@@ -172,6 +172,26 @@ struct HUDView: View {
         }
     }
 
+    /// What still stands between the user and an answer, over the Domanda: the remedy for `claude`, the first
+    /// Richiesta di permesso.
+    @ViewBuilder
+    private var remedies: some View {
+        // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
+        // the first token, or until `claude` is ready.
+        if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
+            FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
+                .padding(.bottom, Spacing.small)
+        }
+        // The first Richiesta di permesso of the onboarding is answered here, not only in its Sessione.
+        if let sessions, let id = onboarding.sessionAwaitingFirstPermission,
+           let session = sessions.sessions.first(where: { $0.id == id }),
+           let pending = sessions.permissions.queues[id]?.first {
+            FirstPermissionCard(flow: onboarding, store: sessions, session: session, pending: pending)
+                .id(pending.id)
+                .padding(.bottom, Spacing.small)
+        }
+    }
+
     private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
@@ -185,55 +205,50 @@ struct HUDView: View {
                     TeamResourcesNotice(project: project)
                 }
             }
-            Spacer(minLength: Spacing.large)
-            // Smaller during the first launch: the steps, the Progetti and the input bar must fit under it.
-            HUDOrb()
-                .frame(maxWidth: showsOnboarding ? 200 : 360, maxHeight: showsOnboarding ? 200 : 360)
-                .padding(showsOnboarding ? Spacing.small : Spacing.l)
-                .overlay(alignment: .bottom) {
-                    if OrbControls.shared.isShowingDedica {
-                        Text(Dedica.message)
-                            .font(Typography.body(size: 13))
-                            .foregroundStyle(Palette.textSecondary)
-                    } else if let forecast = questions.intake.forecast {
-                        OrbCaption(forecast: forecast)
-                    }
-                }
-            if showsOnboarding {
-                OnboardingStage(flow: onboarding)
-                    // Laid out before the Orb: on a short window the Orb shrinks, the input bar stays in sight.
-                    .layoutPriority(1)
+            if !showsOnboarding && questions.hasConversation {
+                // A Domanda under way is a chat, with the Orb over it, as every Conversazione (ADR 0013).
+                remedies
+                QuestionDetail(question: nil, model: questions)
             } else {
-                // The empty home invites to ask the Secondo cervello (ADR 0013).
-                if questions.turns.isEmpty && questions.answer.isEmpty {
-                    HomeHeader(questions: questions)
-                        .padding(.bottom, Spacing.m)
+                Spacer(minLength: Spacing.large)
+                // Smaller during the first launch: the steps, the Progetti and the input bar must fit under it.
+                HUDOrb()
+                    .frame(maxWidth: showsOnboarding ? 200 : 360, maxHeight: showsOnboarding ? 200 : 360)
+                    .padding(showsOnboarding ? Spacing.small : Spacing.l)
+                    .overlay(alignment: .bottom) {
+                        if OrbControls.shared.isShowingDedica {
+                            Text(Dedica.message)
+                                .font(Typography.body(size: 13))
+                                .foregroundStyle(Palette.textSecondary)
+                        } else if let forecast = questions.intake.forecast {
+                            OrbCaption(forecast: forecast)
+                        }
+                    }
+                if showsOnboarding {
+                    OnboardingStage(flow: onboarding)
+                        // Laid out before the Orb: on a short window the Orb shrinks, the input bar stays in sight.
+                        .layoutPriority(1)
+                } else {
+                    // The empty home invites to ask the Secondo cervello (ADR 0013).
+                    if questions.turns.isEmpty && questions.answer.isEmpty {
+                        HomeHeader(questions: questions)
+                            .padding(.bottom, Spacing.m)
+                    }
+                    remedies
+                    QuestionView(model: questions)
+                        .frame(maxWidth: 560)
+                        // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
+                        .padding(.top, Spacing.medium)
                 }
-                // The first Sessione did not answer, or a Sessione found `claude` too old: the remedy stays until
-                // the first token, or until `claude` is ready.
-                if (onboarding.problem != nil && !onboarding.isCompleted) || onboarding.needsRemedy {
-                    FixCard(flow: onboarding, holdsSessions: sessions?.awaitingClaudeUpdate.isEmpty == false)
-                        .padding(.bottom, Spacing.small)
-                }
-                // The first Richiesta di permesso of the onboarding is answered here, not only in its Sessione.
-                if let sessions, let id = onboarding.sessionAwaitingFirstPermission,
-                   let session = sessions.sessions.first(where: { $0.id == id }),
-                   let pending = sessions.permissions.queues[id]?.first {
-                    FirstPermissionCard(flow: onboarding, store: sessions, session: session, pending: pending)
-                        .id(pending.id)
-                        .padding(.bottom, Spacing.small)
-                }
-                QuestionView(model: questions)
-                    .frame(maxWidth: 560)
-                    // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
-                    .padding(.top, Spacing.medium)
+                Spacer(minLength: Spacing.large)
             }
-            Spacer(minLength: Spacing.large)
             if let sessions {
                 PanelRow(terminals: sessions.terminals, previews: sessions.previews)
             }
         }
         .padding(.vertical, Spacing.medium)
+        // The empty home becomes a chat at the first prompt, and back at «Nuova Domanda»: a fade, not a jump.
+        .animation(Motion.standard, value: questions.hasConversation)
     }
 }
 

@@ -9,6 +9,7 @@ struct SessionDetail: View {
     @State private var reader: ConversationReader?
     /// What the user sent from here for the turn in progress, shown until the turn's conversation is read.
     @State private var sent: String?
+    @FocusState private var isComposerFocused: Bool
     @Environment(HUDPresenter.self) private var hud
 
     var body: some View {
@@ -18,7 +19,7 @@ struct SessionDetail: View {
                 hud.selection = .project(session.project)
             }
             .buttonStyle(.plain)
-            .font(.buboBody)
+            .font(.buboInterface)
             .foregroundStyle(Palette.textSecondary)
             .help("Torna alle Sessioni del Progetto")
             .accessibilityLabel("Torna a \(session.project.lastPathComponent)")
@@ -27,6 +28,8 @@ struct SessionDetail: View {
                 .padding(.horizontal, Spacing.l)
                 .padding(.top, Spacing.s)
             Divider().overlay(Palette.line).padding(.top, Spacing.m)
+            ChatOrb()
+                .padding(.top, Spacing.m)
             Group {
                 let lines = reader?.lines ?? []
                 if lines.isEmpty && pendingPrompt == nil {
@@ -43,6 +46,12 @@ struct SessionDetail: View {
         }
         // A finished turn adds its conversation: read it again.
         .task(id: "\(session.id)-\(session.conversations.last ?? "")-\(session.activity.rawValue)") { await load() }
+        // Opening a Sessione that can take a turn is opening it to write.
+        .onAppear { isComposerFocused = session.canTakeTurn }
+        // The turn ended: the field, disabled while it worked, takes the next message.
+        .onChange(of: session.canTakeTurn) { _, canTakeTurn in
+            if canTakeTurn { isComposerFocused = true }
+        }
     }
 
     private var composer: some View {
@@ -53,6 +62,7 @@ struct SessionDetail: View {
                 .font(.buboBody)
                 .lineLimit(1...6)
                 .onSubmit(send)
+                .focused($isComposerFocused)
                 .disabled(!session.canTakeTurn)
             // While it works the turn can be stopped, and continued afterwards.
             if session.isLive && session.isRunning {
