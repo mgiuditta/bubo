@@ -1281,8 +1281,10 @@ final class QuestionModel {
         var firstAudio: OSSignpostIntervalState?
         do {
             let bridge = try await readyBridge()
-            // In the Secondo cervello, as a Claude Domanda, only when the user allowed Copilot to read the notes.
-            let workplace = try Self.workplace(in: endpoints.allowsCopilotNotes ? secondBrain?.location : nil)
+            // In the Secondo cervello, as a Claude Domanda, only when the user allowed Copilot to read the notes;
+            // otherwise the notes stay closed to Copilot's tools too.
+            let workplace = try Self.copilotWorkplace(in: secondBrain?.location,
+                                                      sharesNotes: endpoints.allowsCopilotNotes)
             let classifier = RiskClassifier(workingDirectory: workplace.directory)
             let stream = bridge.askCopilotQuestion(
                 asked, in: workplace.directory, copilot: copilot, consents: endpoints.consents,
@@ -1508,6 +1510,16 @@ final class QuestionModel {
         guard let location, location.isReachable else { return (try directory(), ReadOnlyTurn()) }
         let hidden = location.excludedFolders.map { location.url.appending(path: $0, directoryHint: .isDirectory) }
         return (location.url, ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: hidden))
+    }
+
+    /// Where a Copilot Domanda runs, and what it must not touch: as a Claude Domanda's ``workplace(in:)`` when the user
+    /// allowed Copilot to read the notes; otherwise ``directory()``, with the whole Secondo cervello at `location`
+    /// closed, so that Copilot's own tools cannot read the notes the user kept from it.
+    static func copilotWorkplace(in location: SecondBrainLocation?,
+                                 sharesNotes: Bool) throws -> (directory: URL, readOnly: ReadOnlyTurn) {
+        if sharesNotes { return try workplace(in: location) }
+        let hidden = location.map { [$0.url] } ?? []
+        return (try directory(), ReadOnlyTurn(hiddenDirectories: hidden))
     }
 
     /// Where Domande run without a Secondo cervello: they have no Progetto, so an empty folder of Bubo's own.

@@ -1,9 +1,10 @@
 import { expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, realpathSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, realpathSync, symlinkSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import { copilotEnvironment, CopilotPermissions, type IsDangerous } from "./copilot";
-import { buboTools, CopilotQuestions, hiddenToolDenial, questionSession, type AskBubo, type CopilotQuestionEvent } from "./copilot-question";
+import { buboTools, CopilotQuestions, hiddenRequestDenial, hiddenToolDenial, questionSession, type AskBubo,
+  type CopilotQuestionEvent } from "./copilot-question";
 import type { RiskQuestion } from "./gate";
 import type { BuboToolCall } from "./tools";
 
@@ -47,11 +48,19 @@ test("la risposta arriva in streaming, con i token, chi ha risposto e done", asy
   expect(firstToken?.sinceAsked).toBeGreaterThanOrEqual(firstToken?.sinceSent ?? Infinity);
 });
 
-test("la sessione ha gli strumenti e la configurazione di copilot; modello e sforzo arrivano, i token di gh no", async () => {
+test("la sessione ha gli strumenti di copilot; modello e sforzo arrivano, i token di gh no", async () => {
   const { questions, events } = harness(copilotEnvironment({ ...process.env, GH_TOKEN: "x", GITHUB_TOKEN: "y", COPILOT_GITHUB_TOKEN: "z" }));
   await questions.ask({ id: "b", prompt: "sessione", copilot: fake, cwd: folder(), model: "gpt-6", effort: "high" });
-  expect(JSON.parse(texts(events))).toEqual({ availableTools: null, hooks: false, enableConfigDiscovery: true, tools: [],
-    systemMessage: null, model: "gpt-6", effort: "high", tokens: [] });
+  expect(JSON.parse(texts(events))).toEqual({ availableTools: null, hooks: false, enableConfigDiscovery: false,
+    instructionDiscovery: false, tools: [], systemMessage: null, model: "gpt-6", effort: "high", tokens: [] });
+});
+
+test("configurazione e istruzioni della cartella solo se l'utente se ne fida, come le impostazioni di Progetto di claude", async () => {
+  for (const trusted of [false, true]) {
+    const { questions, events } = harness();
+    await questions.ask({ id: "t", prompt: "sessione", copilot: fake, cwd: folder(), trusted });
+    expect(JSON.parse(texts(events))).toMatchObject({ enableConfigDiscovery: trusted, instructionDiscovery: trusted });
+  }
 });
 
 test("una lettura passa senza Richiesta: il cancello chiede a Bubo il livello, e sotto il 4 approva da sé", async () => {
@@ -125,6 +134,51 @@ test("grep e glob non attraversano una cartella esclusa; i nomi di copilot valgo
   expect(hiddenToolDenial("glob", { pattern: "../**" }, "/vault", hidden)).toBeDefined();
   expect(hiddenToolDenial("view", { path: "/vault/a.md" }, "/vault", hidden)).toBeUndefined();
   expect(hiddenToolDenial("bash", { command: "ls" }, "/vault", hidden)).toBeUndefined();
+});
+
+// Un Secondo cervello vero sul disco, con la cartella esclusa Privato e un symlink che vi porta.
+function vault() {
+  const cwd = folder();
+  mkdirSync(join(cwd, "Privato"));
+  mkdirSync(join(cwd, "Note"));
+  symlinkSync(join(cwd, "Privato"), join(cwd, "scorciatoia"));
+  symlinkSync(join(cwd, "giro"), join(cwd, "giro"));
+  return { cwd, hidden: [join(cwd, "Privato")] };
+}
+
+test("ogni percorso si risolve come nel cancello: symlink, «..», relativo, maiuscole; se non si sa dove finisce, negato", () => {
+  const { cwd, hidden } = vault();
+  for (const path of [join(cwd, "scorciatoia/diario.md"), "scorciatoia/diario.md", "Note/../Privato/a.md",
+                      join(cwd, "Note/../Privato/a.md"), "privato/a.md", "giro/a.md"]) {
+    expect(hiddenToolDenial("view", { path }, cwd, hidden)).toBeDefined();
+    expect(hiddenToolDenial("edit", { path }, cwd, hidden)).toBeDefined();
+  }
+  expect(hiddenToolDenial("view", { path: "Note/a.md" }, cwd, hidden)).toBeUndefined();
+  expect(hiddenToolDenial("grep", { pattern: "x", path: "Note" }, cwd, hidden)).toBeUndefined();
+});
+
+test("un comando non tocca una cartella esclusa: né i suoi percorsi, né sopra, né nel testo", () => {
+  const { cwd, hidden } = vault();
+  const shell = (fullCommandText: string, possiblePaths: string[] = []) =>
+    ({ kind: "shell", fullCommandText, possiblePaths, commands: [], possibleUrls: [] }) as never;
+  expect(hiddenRequestDenial(shell("cat x", ["scorciatoia/diario.md"]), cwd, hidden)).toBeDefined();
+  expect(hiddenRequestDenial(shell("grep -r x .", ["."]), cwd, hidden)).toBeDefined();
+  expect(hiddenRequestDenial(shell("cat Privato/diario.md"), cwd, hidden)).toBeDefined();
+  expect(hiddenRequestDenial(shell(`cat '${join(cwd, "Privato")}/diario.md'`), cwd, hidden)).toBeDefined();
+  expect(hiddenToolDenial("bash", { command: "ls privato" }, cwd, hidden)).toBeDefined();
+  expect(hiddenRequestDenial(shell("cat Note/a.md", ["Note/a.md"]), cwd, hidden)).toBeUndefined();
+  expect(hiddenRequestDenial(shell("echo PrivatoX"), cwd, hidden)).toBeUndefined();
+  const home = [join(homedir(), "Cervello")];
+  expect(hiddenRequestDenial(shell("cat ~/Cervello/nota.md"), "/tmp", home)).toBeDefined();
+  expect(hiddenRequestDenial(shell("cat $HOME/Cervello/nota.md"), "/tmp", home)).toBeDefined();
+});
+
+test("senza il consenso alle note, tutto il Secondo cervello è chiuso a una Domanda fuori di esso", async () => {
+  const { cwd: brain } = vault();
+  const cwd = folder();
+  const { questions, events } = harness(undefined, undefined, async () => false);
+  await questions.ask({ id: "q", prompt: `leggi ${join(brain, "Note/a.md")}`, copilot: fake, cwd, hidden: [brain] });
+  expect(texts(events)).toStartWith("negato: ");
 });
 
 test("con il Secondo cervello la sessione ha anche cerca e ricorda di Bubo, e Profilo e Regole in coda al prompt", async () => {
