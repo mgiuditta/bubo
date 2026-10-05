@@ -913,6 +913,7 @@ lines.on("line", (line) => {
       permissions.delete(command.request);
       break;
     case "question":
+      if (copilotPermissions.reply(command.request, command.answers)) break;
       questions.get(command.request)?.(command.answers);
       questions.delete(command.request);
       break;

@@ -2,13 +2,15 @@
 // che crea Bubo. Verso Bubo gli stessi messaggi neutri delle Sessioni Claude: testo, stato, Richieste di permesso, fine.
 import type { SessionMessage, SessionStoreEntry } from "@anthropic-ai/claude-agent-sdk";
 import { CopilotClient, RuntimeConnection, type CopilotSession, type PermissionRequest as CopilotRequest,
-  type PermissionRequestResult, type ResumeSessionConfig, type SessionConfig, type SessionEvent } from "@github/copilot-sdk";
+  type PermissionRequestResult, type ResumeSessionConfig, type SessionConfig, type SessionEvent, type UserInputRequest,
+  type UserInputResponse } from "@github/copilot-sdk";
 import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { unattendedReason, type RiskQuestion } from "./gate";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import { summary, writtenLines, type Edit, type Progress, type Read } from "./activity";
 import { CopilotUsage } from "./copilot-question";
+import { declined, notShown, replyLength, type AgentQuestion, type Reply } from "./question";
 import { dates, messages, transcriptLimit, type Message } from "./history";
 import type { ConversationStore } from "./store";
 import type { Denial } from "./unattended";
@@ -27,9 +29,11 @@ export type CopilotEvent =
   | { type: "ran"; id: string }
   | CopilotPermissionEvent;
 
-/** Una Richiesta di permesso di un turno di `copilot`, Sessione o Domanda, o il suo ritiro quando il turno si ferma. */
+/** Una Richiesta di permesso o una domanda (`ask_user`) di un turno di `copilot`, Sessione o Domanda, o il suo ritiro
+ * quando il turno si ferma. */
 export type CopilotPermissionEvent =
   | (PermissionRequest & { id: string })
+  | (AgentQuestion & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
   | (Denial & { type: "denial"; id: string });
 
@@ -106,6 +110,41 @@ export function permissionRequest(request: string, asked: CopilotRequest): Permi
   }
 }
 
+// La domanda di `ask_user` come quelle di `AskUserQuestion` di Claude: una sola, a scelta singola, senza etichetta, e
+// senza «Altro» se `copilot` non accetta una risposta scritta. `undefined` se non ha la forma promessa dall'SDK, o se
+// non ha né scelte né risposta scritta.
+export function userInputQuestion(request: string, asked: UserInputRequest): AgentQuestion | undefined {
+  const choices = asked.choices ?? [];
+  if (typeof asked.question !== "string" || !Array.isArray(choices) || !choices.every((choice) => typeof choice === "string")) return undefined;
+  const freeform = asked.allowFreeform !== false;
+  if (!freeform && choices.length === 0) return undefined;
+  return {
+    type: "question",
+    request,
+    questions: [{
+      question: clean(asked.question) ?? "",
+      header: "",
+      options: choices.map((choice) => ({ label: clean(choice) ?? "" })),
+      multiSelect: false,
+      ...(!freeform && { freeform: false as const }),
+    }],
+  };
+}
+
+// La risposta di Bubo per `ask_user`: la risposta scritta, se `copilot` la accetta, o la scelta originale, mai il testo
+// ripulito. `undefined` se `replies` non risponde alla domanda.
+export function userInputAnswer(asked: UserInputRequest, replies: unknown): UserInputResponse | undefined {
+  if (!Array.isArray(replies) || replies.length !== 1) return undefined;
+  const reply = replies[0] as Partial<Reply> | null;
+  if (typeof reply !== "object" || reply === null || !Array.isArray(reply.options)) return undefined;
+  const choices = asked.choices ?? [];
+  const text = asked.allowFreeform !== false && typeof reply.text === "string" ? reply.text.trim().slice(0, replyLength) : "";
+  if (text) return { answer: text, wasFreeform: true };
+  const [option, ...others] = reply.options;
+  if (others.length > 0 || !Number.isInteger(option) || option < 0 || option >= choices.length) return undefined;
+  return { answer: choices[option], wasFreeform: false };
+}
+
 // Le letture e le scritture dagli strumenti di `copilot`, come quelle di Claude: `view` legge; `create` ed `edit`
 // scrivono `file_text` e `new_str`; `str_replace_editor` fa l'uno o l'altro secondo `command`.
 export function toolActivity(tool: string, args: unknown): Edit | Read | undefined {
@@ -141,10 +180,11 @@ export function mayApproveByMode(asked: CopilotRequest): boolean {
 // Quanto aspetta Ferma la fine del turno dopo `abort`, prima di chiudere `copilot`: l'obiettivo è 2 s.
 const abortGrace = 1_500;
 
-// Le Richieste di permesso dei turni di `copilot`, Sessioni e Domande, in attesa della risposta di Bubo: un solo
-// cancello, lo stesso livelli 4–5 di Claude.
+// Le Richieste di permesso e le domande dei turni di `copilot`, Sessioni e Domande, in attesa della risposta di Bubo:
+// un solo cancello, lo stesso livelli 4–5 di Claude.
 export class CopilotPermissions {
   private readonly pending = new Map<string, (allowed: boolean) => void>();
+  private readonly questions = new Map<string, (replies: unknown) => void>();
 
   constructor(private readonly send: (event: CopilotPermissionEvent) => void,
               private readonly isDangerous: IsDangerous = async () => true) {}
@@ -195,6 +235,41 @@ export class CopilotPermissions {
     this.pending.delete(request);
     return decision(allowed, reached ? deniedByUser : deniedWithoutBubo);
   }
+
+  /** Risponde alla domanda `request` con le risposte di Bubo, una per domanda; `false` se non è di un turno Copilot. */
+  reply(request: string, replies: unknown): boolean {
+    const resolve = this.questions.get(request);
+    if (!resolve) return false;
+    this.questions.delete(request);
+    resolve(replies);
+    return true;
+  }
+
+  // `onUserInputRequest` del turno `id`: Bubo mostra la domanda come quelle di Claude. Senza una risposta valida, se Bubo
+  // non si raggiunge o se il turno si ferma, `copilot` legge che l'utente non ha risposto e va avanti senza.
+  async question(id: string, asked: UserInputRequest, signal: AbortSignal): Promise<UserInputResponse> {
+    const unanswered = (answer: string): UserInputResponse => ({ answer, wasFreeform: true });
+    if (signal.aborted) return unanswered(notShown);
+    const request = randomUUID();
+    const shown = userInputQuestion(request, asked);
+    if (!shown) return unanswered(notShown);
+    let reached = true;
+    const replies = await new Promise<unknown>((resolve) => {
+      this.questions.set(request, resolve);
+      signal.addEventListener("abort", () => {
+        resolve(undefined);
+        if (this.questions.delete(request)) this.send({ type: "permissionWithdrawn", id, request });
+      }, { once: true });
+      try {
+        this.send({ ...shown, id });
+      } catch {
+        reached = false;
+        resolve(undefined);
+      }
+    });
+    this.questions.delete(request);
+    return userInputAnswer(asked, replies) ?? unanswered(reached ? declined : notShown);
+  }
 }
 
 // I turni Copilot in corso, uno per `id`; le loro Richieste passano da `permissions`.
@@ -213,6 +288,11 @@ export class CopilotTurns {
   /** Risponde alla Richiesta `request`; `false` se non è di un turno Copilot. */
   answer(request: string, allowed: boolean): boolean {
     return this.permissions.answer(request, allowed);
+  }
+
+  /** Risponde alla domanda `request`; `false` se non è di un turno Copilot. */
+  reply(request: string, replies: unknown): boolean {
+    return this.permissions.reply(request, replies);
   }
 
   /** Ferma: `abort` del turno `id`, poi `copilot` chiuso se non finisce in tempo. */
@@ -251,6 +331,8 @@ export class CopilotTurns {
         streaming: true,
         onPermissionRequest: (asked) => this.permissions.ask(id, asked, stopped.signal, turn.permissionMode === "auto",
                                                              turn.unattended === true),
+        // Un'Esecuzione non ha nessuno a cui chiedere: senza gestore `copilot` non offre `ask_user`.
+        ...(turn.unattended ? {} : { onUserInputRequest: (asked) => this.permissions.question(id, asked, stopped.signal) }),
       };
       let prompt = turn.prompt;
       const { keep } = turn;

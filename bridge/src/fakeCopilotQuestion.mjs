@@ -6,6 +6,8 @@
 // - "strumento": chiede il permesso di eseguire un comando e risponde con la decisione ricevuta;
 // - "leggi <percorso>" e "scrivi <percorso>": passano dall'hook prima dello strumento (`view`, `create`) e poi chiedono
 //   il permesso di leggere o scrivere; rispondono "negato: <motivo>" se l'hook nega, o con la decisione ricevuta;
+// - "chiedi <json>": fa a Bubo la domanda `<json>` (`userInput.request`, come `ask_user`) e risponde con la risposta
+//   ricevuta, in JSON; se il turno si ferma prima, con `session.abort`, finisce lì;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error`;
 // - altro: risponde "Ciao mondo", con i token di due chiamate al modello e di un subagent.
@@ -97,6 +99,17 @@ async function play(sessionId, prompt) {
     say(await call("cerca", { testo: "gatto", fonte: "secondo-cervello" }));
     say(" | ");
     say(await call("ricorda", { testo: "Il gatto si chiama Bubo", titolo: "Gatto" }));
+    idle();
+  } else if (prompt.startsWith("chiedi ")) {
+    let stopped = false;
+    session.stop = () => {
+      stopped = true;
+      emit(sessionId, "abort", { reason: "user" });
+      idle();
+    };
+    const answer = await request("userInput.request", { sessionId, ...JSON.parse(prompt.slice("chiedi ".length)) });
+    if (stopped) return;
+    say(JSON.stringify(answer ?? null));
     idle();
   } else if (prompt === "lungo") {
     say("Comincio");

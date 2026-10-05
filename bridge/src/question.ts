@@ -8,6 +8,8 @@ export type ShownQuestion = {
   header: string;
   options: { label: string; description?: string; preview?: string }[];
   multiSelect: boolean;
+  /** `false` quando l'agente non accetta una risposta scritta: Bubo non mostra «Altro». */
+  freeform?: false;
 };
 
 export type AgentQuestion = { type: "question"; request: string; questions: ShownQuestion[] };

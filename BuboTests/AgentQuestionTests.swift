@@ -45,4 +45,44 @@ struct AgentQuestionTests {
     func everyQuestionNeedsAnAnswer(replies: [AgentQuestion.Reply], isAnswered: Bool) {
         #expect(Self.question.isAnswered(by: replies) == isAnswered)
     }
+
+    @Test func aCopilotQuestionDecodesAsOneQuestionWithItsChoices() throws {
+        let line = #"""
+            {"v":4,"type":"question","id":"c1","request":"q2","questions":[
+            {"question":"Quale libreria?","header":"","multiSelect":false,"options":[{"label":"Zod"},{"label":"Valibot"}]}]}
+            """#
+        let event = try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8))
+        #expect(event == .question(id: "c1", AgentQuestion(id: "q2", items: [
+            .init(question: "Quale libreria?", header: "", options: [.init(label: "Zod"), .init(label: "Valibot")],
+                  allowsMultiple: false),
+        ])))
+    }
+
+    @Test func aCopilotQuestionWithoutChoicesTakesOnlyAWrittenAnswer() throws {
+        let line = #"""
+            {"v":4,"type":"question","id":"c1","request":"q3","questions":[
+            {"question":"Chi sei?","header":"","multiSelect":false,"options":[]}]}
+            """#
+        guard case let .question(_, question) = try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) else {
+            Issue.record("Not a question")
+            return
+        }
+        #expect(question.items.first?.allowsText == true)
+        #expect(question.isAnswered(by: [.init(text: "Un gufo")]))
+        #expect(!question.isAnswered(by: [.init()]))
+    }
+
+    @Test func aCopilotQuestionThatRulesOutWrittenAnswersNeedsAChoice() throws {
+        let line = #"""
+            {"v":4,"type":"question","id":"c1","request":"q4","questions":[
+            {"question":"Procedo?","header":"","multiSelect":false,"freeform":false,"options":[{"label":"Sì"},{"label":"No"}]}]}
+            """#
+        guard case let .question(_, question) = try JSONDecoder().decode(BridgeEvent.self, from: Data(line.utf8)) else {
+            Issue.record("Not a question")
+            return
+        }
+        #expect(question.items.first?.allowsText == false)
+        #expect(!question.isAnswered(by: [.init(text: "Forse")]))
+        #expect(question.isAnswered(by: [.init(options: [1])]))
+    }
 }
