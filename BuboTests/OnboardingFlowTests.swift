@@ -10,6 +10,8 @@ struct OnboardingFlowTests {
 
     init() throws {
         defaults = try #require(UserDefaults(suiteName: "OnboardingFlowTests-\(UUID().uuidString)"))
+        // Past the step of the Motore, on Claude as before it existed (ADR 0014).
+        defaults.set(true, forKey: OnboardingFlow.engineChosenKey)
     }
 
     /// A flow that records the Sessioni it starts.

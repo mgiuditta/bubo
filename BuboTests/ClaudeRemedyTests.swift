@@ -195,6 +195,7 @@ struct ClaudeRemedyTests {
 
     @Test func theQuestionStartsWithinTwoSecondsOfTheInstallationWithoutPolling() async throws {
         let defaults = try #require(UserDefaults(suiteName: "ClaudeRemedyTests-\(UUID().uuidString)"))
+        defaults.set(true, forKey: OnboardingFlow.engineChosenKey)
         var started: [String] = []
         let flow = OnboardingFlow(hasSessions: false, defaults: defaults, detect: { await detect() }) { question, _ in
             started.append(question)

@@ -192,11 +192,22 @@ struct HUDView: View {
         }
     }
 
+    /// The Motore principale of the onboarding, as Bubo found it.
+    @ViewBuilder
+    private var enginePill: some View {
+        switch onboarding.primaryEngine {
+        case .claude:
+            if let readiness = onboarding.readiness { EnginePill(claude: readiness) }
+        case .copilot:
+            if let readiness = onboarding.copilotReadiness { EnginePill(copilot: readiness) }
+        }
+    }
+
     private var main: some View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 HUDHeader()
-                if let readiness = onboarding.readiness, !onboarding.isCompleted { ClaudePill(readiness: readiness) }
+                if !onboarding.isCompleted && onboarding.isEngineChosen { enginePill }
                 // Without `claude` there is no Quota: the Spesa of Copilot in its place (#729).
                 if questions.isClaudeMissing, let spent = questions.copilotSpesa {
                     CopilotSpendView(spent: spent) { hud.showCosts?() }

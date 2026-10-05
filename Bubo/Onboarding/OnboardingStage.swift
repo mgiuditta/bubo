@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The first launch under the Orb (spec 26): what the Orb says, what Bubo does, the two steps, the recent Progetti, and
-/// the input bar with three suggested questions. No window and no sheet: the Open panel appears only when the user asks for it.
+/// The first launch under the Orb (spec 26): what the Orb says, what Bubo does, the three steps; first the cards of the
+/// Motore (ADR 0014), then the recent Progetti and the input bar with three suggested questions. No window and no sheet: the Open panel appears only when the user asks for it.
 ///
 /// From the keyboard: ↑↓ choose among the recent Progetti, ↩ sends, ⌘O opens another folder. When something else
 /// answers Bubo's shortcut, the "Scorciatoia" step says so (spec 08).
@@ -23,7 +23,7 @@ struct OnboardingStage: View {
                 .foregroundStyle(Palette.textPrimary)
                 .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("onboarding.orbLine")
-            Text("Bubo usa Claude Code su questo Mac. Scegli la cartella di un Progetto e scrivi cosa fare: Claude legge i file e ti chiede il permesso prima di agire.")
+            Text(explanation)
                 .font(Typography.body(size: 13))
                 .foregroundStyle(Palette.textSecondary)
                 .multilineTextAlignment(.center)
@@ -32,11 +32,15 @@ struct OnboardingStage: View {
                 .frame(maxWidth: 480)
                 .accessibilityIdentifier("onboarding.explanation")
             OnboardingSteps(flow: flow)
-            if flow.needsRemedy { FixCard(flow: flow) }
-            if let hotKeys { ShortcutStep(hotKeys: hotKeys) }
-            if flow.readiness != nil { projects }
-            input
-            suggestions
+            if flow.isEngineChosen {
+                if flow.needsRemedy { FixCard(flow: flow) }
+                if let hotKeys { ShortcutStep(hotKeys: hotKeys) }
+                if !flow.isDetectingPrimaryEngine { projects }
+                input
+                suggestions
+            } else {
+                EngineStep(flow: flow)
+            }
             // A way out for who only wants to ask: the Domanda needs no Progetto.
             Button("Chiedi senza Progetto", action: flow.skip)
                 .font(Typography.body(size: 13))
@@ -45,6 +49,8 @@ struct OnboardingStage: View {
                 .accessibilityIdentifier("onboarding.skip")
         }
         .onAppear { isInputFocused = true }
+        // Past the Motore the input bar appears: the keyboard goes there.
+        .onChange(of: flow.isEngineChosen) { _, isChosen in isInputFocused = isChosen }
         // The focus stays in the input bar: VoiceOver hears what the Orb asks next without moving there.
         .onChange(of: String(localized: flow.orbLine)) { _, line in
             AccessibilityNotification.Announcement(line).post()
@@ -53,6 +59,27 @@ struct OnboardingStage: View {
             if case let .success(folder) = result { flow.choose(folder) }
         }
         .fileDialogDefaultDirectory(folderToOpen)
+    }
+
+    /// What Bubo does, with the Motore the user chose, or the choice still to make.
+    private var explanation: LocalizedStringResource {
+        guard flow.isEngineChosen else {
+            return "Bubo lavora con Claude Code o con GitHub Copilot CLI, sul tuo Mac. Scegli quale usare: lo cambi quando vuoi in Impostazioni › Modelli."
+        }
+        return switch flow.primaryEngine {
+        case .claude:
+            "Bubo usa Claude Code su questo Mac. Scegli la cartella di un Progetto e scrivi cosa fare: Claude legge i file e ti chiede il permesso prima di agire."
+        case .copilot:
+            "Bubo usa GitHub Copilot CLI su questo Mac. Scegli la cartella di un Progetto e scrivi cosa fare: Copilot legge i file e ti chiede il permesso prima di agire."
+        }
+    }
+
+    /// The placeholder of the input bar, which names the Motore that answers.
+    private var prompt: LocalizedStringKey {
+        switch flow.primaryEngine {
+        case .claude: "Chiedi qualcosa a Claude"
+        case .copilot: "Chiedi qualcosa a Copilot"
+        }
     }
 
     private var projects: some View {
@@ -111,7 +138,7 @@ struct OnboardingStage: View {
     }
 
     private var input: some View {
-        TextField("Chiedi qualcosa a Claude", text: $flow.draft)
+        TextField(prompt, text: $flow.draft)
             .textFieldStyle(.plain)
             .font(Typography.body(size: 15))
             .focused($isInputFocused)
@@ -119,7 +146,7 @@ struct OnboardingStage: View {
             .onKeyPress(.downArrow) { move(by: 1) }
             .onKeyPress(.upArrow) { move(by: -1) }
             // On macOS the title is only a placeholder, so VoiceOver would find a nameless field.
-            .accessibilityLabel("Chiedi qualcosa a Claude")
+            .accessibilityLabel(prompt)
             .accessibilityIdentifier("onboarding.prompt")
             .padding(Spacing.small)
             .background(Palette.surface, in: .rect(cornerRadius: CornerRadius.large))
@@ -185,6 +212,8 @@ struct OnboardingStage: View {
 #Preview {
     let flow = OnboardingFlow(hasSessions: false, defaults: UserDefaults(suiteName: "preview") ?? .standard) { _, _ in UUID() }
     flow.readiness = .ready(version: "2.1.286", method: "Max")
+    flow.chooseEngine(.claude)
+    flow.confirmEngine()
     flow.show([RecentProject(folder: URL(filePath: "/Users/ada/Sviluppo/bubo"), isProtected: false),
                RecentProject(folder: URL(filePath: "/Users/ada/Documents/tesi"), isProtected: true)])
     return OnboardingStage(flow: flow)
