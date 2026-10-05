@@ -254,7 +254,7 @@ struct HUDView: View {
 
 #Preview {
     HUDView(questions: QuestionModel(), sessions: nil, onboarding: OnboardingFlow(hasSessions: true) { _, _ in UUID() },
-            launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectClaude: {}, keepIndexFresh: {},
+            launch: LaunchSequence(startBridge: {}, isOnboarding: { false }, detectEngines: {}, keepIndexFresh: {},
                                    subscribeToMetrics: {}, startConfigurationSpare: {}, keepCLIHistoryFresh: {}),
             meetings: MeetingRecorder(secondBrain: SecondBrain(index: nil), engines: [], store: nil), neurons: { nil })
         .environment(HUDPresenter())

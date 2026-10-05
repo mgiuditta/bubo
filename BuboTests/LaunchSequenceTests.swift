@@ -18,7 +18,7 @@ struct LaunchSequenceTests {
             steps.names.append("ponte")
         } isOnboarding: {
             isOnboarding
-        } detectClaude: {
+        } detectEngines: {
             steps.names.append("claude")
         } keepIndexFresh: {
             steps.names.append("FSEvents")

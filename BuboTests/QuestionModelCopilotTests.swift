@@ -117,6 +117,45 @@ struct QuestionModelCopilotTests {
         #expect(preferences.choices.isEmpty)
     }
 
+    /// A Domanda model on a Mac with `copilot` and without `claude` (#719): no candidate, and the login shell finds none.
+    func modelWithoutClaude() throws -> QuestionModel {
+        let noShell = ProcessRunner { _, _ in ProcessOutput(exitCode: 1, standardOutput: "") }
+        let cli = ClaudeCLI(isOnline: { true }, locator: .onlyLoginShell(noShell))
+        let rules = try RuleClassifier(catalogo: Catalogo(bundle: .main))
+        let orb = OrbControls()
+        let intake = IntakePipeline(orb: orb, onDevice: .off) {
+            RequestClassifier(engines: [QuestionModelTests.FixedEngine(type: .writing)], rules: rules)
+        }
+        let endpoints = EndpointSettings(defaults: UserDefaults(suiteName: "QuestionModelCopilotTests-\(UUID().uuidString)")!)
+        endpoints.grantCopilotConsent()
+        return QuestionModel(cli: cli, orb: orb, intake: intake, bridgeExecutable: URL(filePath: "/bin/sh"),
+                             bridgeArguments: ["-c", Self.bridge], apiKey: { nil }, endpoints: endpoints,
+                             preferences: preferences, copilot: { URL(filePath: "/opt/homebrew/bin/copilot") })
+    }
+
+    // #719: with only `copilot`, a Domanda sent to Copilot answers.
+    @Test func withoutClaudeADomandaOnCopilotAnswers() async throws {
+        let model = try modelWithoutClaude()
+        preferences.set(.copilot(id: "gpt-6", name: "GPT-6"), for: .writing)
+
+        await QuestionModelTests.ask(model)
+
+        #expect(model.failure == nil)
+        #expect(model.answer == "da copilot")
+        #expect(model.routedAnswer?.provider == .openAI)
+    }
+
+    // #719: with only `copilot`, a turn of `claude` keeps its error and remedy.
+    @Test func withoutClaudeADomandaOnClaudeStillSaysClaudeIsMissing() async throws {
+        let model = try modelWithoutClaude()
+        await model.startBridge()
+
+        await QuestionModelTests.ask(model)
+
+        #expect(model.failure == .claudeMissing)
+        #expect(model.answer.isEmpty)
+    }
+
     @Test func withoutAPaidCopilotNothingIsListedNorSent() async throws {
         let model = await answeredModel(copilot: { nil })
         await model.readCopilotModels()

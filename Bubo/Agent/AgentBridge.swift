@@ -49,7 +49,9 @@ final class AgentBridge {
     /// - Parameter basics: The Profilo and the Regole of the Secondo cervello for the system prompt of each turn; `nil`
     ///   for none.
     /// - Parameter catalog: Receives the Claude models the account offers, read with the Quota.
-    init(executable: URL, arguments: [String] = [], environment: [String: String], trustGate: TrustGate = TrustGate(),
+    /// - Parameter hasClaude: Whether `environment` gives the bridge a `claude`; without one only Copilot answers.
+    init(executable: URL, arguments: [String] = [], environment: [String: String], hasClaude: Bool = true,
+         trustGate: TrustGate = TrustGate(),
          quota: @escaping (Quota) -> Void = { _ in }, catalog: @escaping (ModelCatalog) -> Void = { _ in },
          remember: @escaping (NoteRequest) async -> (reply: String, change: BrainChange?) = { _ in
              ("Non posso salvare note.", nil)
@@ -59,6 +61,7 @@ final class AgentBridge {
         self.executable = executable
         self.arguments = arguments
         self.environment = environment
+        self.hasClaude = hasClaude
         self.trustGate = trustGate
         self.quota = quota
         self.catalog = catalog
@@ -101,6 +104,9 @@ final class AgentBridge {
     private(set) var claude: (version: String, capabilities: Set<ClaudeCapability>)?
     /// The bridge's process identifier while it runs: each `claude` in progress is one of its children.
     var pid: pid_t? { process?.pid }
+    /// Whether the bridge was given a `claude`: without one it answers only for Copilot, and the turns of `claude` fail
+    /// with `QuestionFailure.claudeMissing` (#719).
+    let hasClaude: Bool
     /// Whether `claude` answers with the API key, paid per use and counted in the Budgets (ADR 0003).
     var usesAPIKey: Bool { environment["ANTHROPIC_API_KEY"] != nil }
 
@@ -167,7 +173,7 @@ final class AgentBridge {
             Task { @MainActor in self?.cancel(id) }
         }
         do {
-            let process = try runningProcess()
+            let process = try claudeProcess()
             answers[id] = continuation
             progressHandlers[id] = progress
             // Nobody answers in an Esecuzione: without a handler, a Richiesta is refused as it arrives.
@@ -273,7 +279,7 @@ final class AgentBridge {
         do {
             let directory = URL.temporaryDirectory.appending(path: "bubo-riassunto", directoryHint: .isDirectory)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            let process = try runningProcess()
+            let process = try claudeProcess()
             answers[id] = continuation
             usageHandlers[id] = usage
             try process.input.write(contentsOf: BridgeCommand.summarize(id: id, prompt: prompt, directory: directory,
@@ -361,6 +367,7 @@ final class AgentBridge {
     /// in a worktree. `claude` runs a local command, so no turn of the model and no Quota spent.
     /// A `claude` kept ready by ``warmConfiguration(for:)`` for the same settings answers in place of a new one.
     func configuration(of directory: URL) async throws -> ClaudeConfiguration {
+        guard hasClaude else { throw QuestionFailure.claudeMissing }
         let id = UUID().uuidString
         let settingSources = trustGate.settingSources(for: directory)
         let command = BridgeCommand.inspect(id: id, directory: directory, settingSources: settingSources,
@@ -379,7 +386,7 @@ final class AgentBridge {
     func warmConfiguration(for directory: URL) throws {
         let command = BridgeCommand.warmConfiguration(settingSources: trustGate.settingSources(for: directory),
                                                       projectConfigRoot: Self.projectConfigRoot(of: directory))
-        try runningProcess().input.write(contentsOf: command.line())
+        try claudeProcess().input.write(contentsOf: command.line())
     }
 
     /// Closes the `claude` kept ready by ``warmConfiguration(for:)``; with no bridge running, there is none.
@@ -414,6 +421,7 @@ final class AgentBridge {
     /// The Regole di permesso of `claude` in `directory` that widen the Sandbox, with the same settings as a Sessione
     /// there. `claude` answers on its control channel, so no turn of the model and no Quota spent.
     func sandboxRules(in directory: URL) async throws -> [SandboxWideningRule] {
+        guard hasClaude else { throw QuestionFailure.claudeMissing }
         let id = UUID().uuidString
         let command = BridgeCommand.readSandboxRules(id: id, directory: directory,
                                                      settingSources: trustGate.settingSources(for: directory),
@@ -524,7 +532,7 @@ final class AgentBridge {
     /// Asks for the Quota and the catalog of models without a Domanda; each reaches `quota` and `catalog` only if
     /// `claude` can tell it.
     func readQuota() throws {
-        try runningProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
+        try claudeProcess().input.write(contentsOf: BridgeCommand.readQuota.line())
     }
 
     /// Closes the bridge once the conversations in progress end; it serves no new ones.
@@ -543,6 +551,14 @@ final class AgentBridge {
         guard removeAnswer(id) != nil, let process else { return }
         try? process.input.write(contentsOf: BridgeCommand.cancel(id: id).line())
         closeIfIdle()
+    }
+
+    /// The running bridge, for a command that starts `claude`.
+    ///
+    /// - Throws: `QuestionFailure.claudeMissing` when the bridge has no `claude`.
+    private func claudeProcess() throws -> SpawnedProcess {
+        guard hasClaude else { throw QuestionFailure.claudeMissing }
+        return try runningProcess()
     }
 
     private func runningProcess() throws -> SpawnedProcess {
