@@ -1,6 +1,6 @@
 # Copilot solo per le Domande, le Sessioni restano Claude
 
-**Stato: Accettato, in parte sostituito da [ADR 0012](0012-copilot-cli-motore-di-sessione.md)** (2026-10-03): le Sessioni possono girare anche su Copilot; le Domande restano come qui. Ricerca: [486 — Claude e Copilot: insieme o uno solo?](../research/486-copilot-insieme-o-uno.md), che segue [486 — Bubo con GitHub Copilot](../research/486-copilot.md).
+**Stato: Accettato, in parte sostituito da [ADR 0012](0012-copilot-cli-motore-di-sessione.md)** (2026-10-03): le Sessioni possono girare anche su Copilot. **In parte superato da [ADR 0014](0014-copilot-alla-pari-nelle-domande.md)** (2026-10-05): la Domanda Copilot ha gli strumenti come nel terminale, e chi ha solo Copilot usa tutto Bubo. Ricerca: [486 — Claude e Copilot: insieme o uno solo?](../research/486-copilot-insieme-o-uno.md), che segue [486 — Bubo con GitHub Copilot](../research/486-copilot.md).
 
 Molti utenti hanno già GitHub Copilot, e il fondatore voleva capire se Bubo deve lavorare con Claude e Copilot insieme o con uno solo. GitHub Models è stato ritirato e `api.githubcopilot.com` non è documentato. L'unica strada consentita è il binario `copilot` dell'utente, pilotato dal Copilot SDK. Abbiamo valutato tre forme:
 

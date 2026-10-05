@@ -160,6 +160,24 @@ _Avoid_: tier, livello
 Il modello scelto dall'utente tra quelli di un server sul Mac (Ollama, LM Studio); il router lo usa solo per preferenza dell'utente o come ripiego, mai da solo. Apple FM non è il Modello locale.
 _Avoid_: modello offline, LLM locale
 
+### Motore
+
+**Motore**:
+Il programma agentico dell'utente che esegue Domande e Sessioni: `claude` o `copilot`, con il suo login.
+_Avoid_: fornitore (riservato a chi fornisce il modello), provider, backend, CLI
+
+**Motore principale**:
+Il **Motore** su cui partono Domande e Sessioni e girano i turni automatici; si sceglie nell'**Onboarding** e si cambia nelle Impostazioni.
+_Avoid_: motore predefinito, default
+
+**Riserva**:
+L'altro **Motore**, per chi li ha entrambi; entra solo quando il **Motore principale** ha finito la **Quota** o ha raggiunto un limite, mai per errori di rete, login o binario mancante.
+_Avoid_: fallback, ripiego, failover
+
+**Onboarding**:
+I passi guidati del primo avvio, a partire dalla scelta del **Motore**; non si va avanti finché il Motore scelto non è pronto.
+_Avoid_: setup, configurazione iniziale, wizard
+
 ### Permessi
 
 **Richiesta di permesso**:
@@ -305,6 +323,9 @@ _Avoid_: roadmap, MVP2, prossimamente, coming soon
 
 - Una **Consegna** diventa, per chi la riceve, una **Bozza** che deve avviare lui; il turno gira sempre col suo account
 - Un'**Automazione** arrivata come **Risorsa di squadra** parte disattivata e gira con l'account di chi la attiva
+
+- Una **Domanda** passa alla **Riserva** da sola, con un avviso; una **Sessione** si ferma e offre di continuare in una nuova **Sessione** sulla Riserva. La richiesta successiva riprova il **Motore principale**
+- I due **Motori** hanno gli stessi strumenti e lo stesso cancello sui **Livelli di rischio** 4–5
 
 - **Quota**, **Spesa** e **Valore a listino** hanno unità diverse (%, $, $ non pagati) e non si sommano mai
 - Un **Budget** vale solo sulla **Spesa**: l'abbonamento ha la **Quota**, i modelli sul Mac sono gratis
