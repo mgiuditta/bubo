@@ -97,6 +97,9 @@ nonisolated struct Session: Codable, Identifiable, Equatable, Sendable {
     var unstartedPrompt: String?
     /// The Budget spent that stopped the Sessione's turn, which waits for the user's choice (spec 18); `nil` otherwise.
     var budgetStop: BudgetGuard.Scope?
+    /// The Motore the Sessione can continue on, in a new Sessione, since its turn stopped for Quota or a limit and
+    /// that Motore, the Riserva, is ready (ADR 0014); `nil` otherwise.
+    var reserve: Engine?
     /// Whether the user turned on the Modalità autonoma; it counts only where `allowsAutonomy`, from the next turn.
     var isAutonomous = false
     /// The model · sforzo the user chose for the Sessione's turns, from the next one, without restarting it (spec 10,
@@ -241,6 +244,7 @@ nonisolated extension Session {
         issue = try container.decodeIfPresent(IssueLink.self, forKey: .issue)
         unstartedPrompt = try container.decodeIfPresent(String.self, forKey: .unstartedPrompt)
         budgetStop = try container.decodeIfPresent(BudgetGuard.Scope.self, forKey: .budgetStop)
+        reserve = try container.decodeIfPresent(Engine.self, forKey: .reserve)
         isAutonomous = try container.decodeIfPresent(Bool.self, forKey: .isAutonomous) ?? false
         model = try container.decodeIfPresent(Scala.Step.self, forKey: .model)
         engine = try container.decodeIfPresent(Engine.self, forKey: .engine) ?? .claude

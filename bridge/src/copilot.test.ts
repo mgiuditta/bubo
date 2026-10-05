@@ -232,7 +232,13 @@ test("la risposta scritta vale se copilot la accetta; senza risposta valida copi
 test("un errore di copilot chiude il turno con error", async () => {
   const { turns, events } = harness();
   await turns.run({ id: "g", prompt: "errore", cwd: folder(), copilot: fake });
-  expect(events.at(-1)).toEqual({ type: "error", id: "g", message: "Crediti finiti" });
+  expect(events.at(-1)).toEqual({ type: "error", id: "g", message: "fetch failed" });
+});
+
+test("la Quota finita di copilot chiude il turno con copilotLimit", async () => {
+  const { turns, events } = harness();
+  await turns.run({ id: "g", prompt: "crediti", cwd: folder(), copilot: fake });
+  expect(events.at(-1)).toEqual({ type: "copilotLimit", id: "g", message: "Crediti finiti" });
 });
 
 test("un copilot che non c'è è un errore del turno", async () => {

@@ -356,6 +356,21 @@ struct SessionRow: View {
                     .controlSize(.small)
                     .padding(.top, Spacing.xxSmall)
             }
+            if let reserve = session.reserve, session.activity == .errore, !isArchived {
+                // ADR 0014: never on its own; the stopped Sessione stays in the storico.
+                Button {
+                    Task { await store.continueOnReserve(session.id) }
+                } label: {
+                    switch reserve {
+                    case .claude: Text("Continua con Claude")
+                    case .copilot: Text("Continua con Copilot")
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                .help("Apre una nuova Sessione con l'ultima richiesta e un riassunto di questa")
+                .padding(.top, Spacing.xxSmall)
+            }
             if session.unstartedPrompt != nil && session.activity == .errore && !isArchived {
                 Button("Riprova") { store.retry(session.id) }
                     .buttonStyle(.borderedProminent)

@@ -5,7 +5,7 @@
 // - "chiedi <json>": fa a Bubo la domanda `<json>` (`userInput.request`, come `ask_user`) e risponde con la risposta
 //   ricevuta, in JSON; se il turno si ferma prima, con `session.abort`, finisce lì;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
-// - "errore": finisce con `session.error`;
+// - "errore": finisce con `session.error` di rete; "crediti": con `session.error` di Quota finita;
 // - "token": due chiamate al modello, una di un subagente, con i loro token;
 // - "ambiente": risponde con argomenti, cartella e token visti dal processo;
 // - "attività": legge, modifica, crea e lancia uno shell, poi riassume;
@@ -91,7 +91,10 @@ async function play(sessionId, prompt) {
       idle();
     };
   } else if (prompt === "errore") {
-    emit(sessionId, "session.error", { errorType: "quota", message: "Crediti finiti" });
+    emit(sessionId, "session.error", { errorType: "query", message: "fetch failed" });
+    idle();
+  } else if (prompt === "crediti") {
+    emit(sessionId, "session.error", { errorType: "quota", errorCode: "quota_exceeded", message: "Crediti finiti" });
     idle();
   } else if (prompt === "ambiente") {
     say(JSON.stringify({

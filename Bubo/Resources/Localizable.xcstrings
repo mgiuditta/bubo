@@ -3049,6 +3049,17 @@
         }
       }
     },
+    "Apre una nuova Sessione con l'ultima richiesta e un riassunto di questa" : {
+      "comment" : "Help of Continua con Claude / Copilot.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens a new Session with the last request and a summary of this one"
+          }
+        }
+      }
+    },
     "Apri" : {
       "localizations" : {
         "en" : {
@@ -6370,6 +6381,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continue"
+          }
+        }
+      }
+    },
+    "Continua con Claude" : {
+      "comment" : "Button: opens a new Sessione on Claude, the Riserva, after this one stopped at Copilot's limit.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with Claude"
+          }
+        }
+      }
+    },
+    "Continua con Copilot" : {
+      "comment" : "Button: opens a new Sessione on Copilot, the Riserva, after this one stopped at Claude's limit.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue with Copilot"
           }
         }
       }

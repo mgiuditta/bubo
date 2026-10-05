@@ -224,8 +224,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             sessions.ledger.record(usage, turn: turn, session: id, project: project)
         })
         let engines: [any SummaryEngine] = [claude, FoundationModelsSummaryEngine()]
-        return SessionSummarizer(sessions: sessions, secondBrain: secondBrain, index: searchIndex, engines: engines,
-                                 transcript: { conversation in try await sessions.transcript(ofConversation: conversation) })
+        let summarizer = SessionSummarizer(sessions: sessions, secondBrain: secondBrain, index: searchIndex,
+                                           engines: engines,
+                                           transcript: { conversation in try await sessions.transcript(ofConversation: conversation) })
+        // «Continua con …» starts from the summary of the stopped Sessione (ADR 0014).
+        sessions.summary = { [weak summarizer] id in try? await summarizer?.summary(of: id) }
+        return summarizer
     }
 
     private func makeLaunchSequence() -> LaunchSequence {

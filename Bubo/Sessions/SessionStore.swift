@@ -157,6 +157,14 @@ final class SessionStore {
     @ObservationIgnored var copilotConsents: () -> Set<String> = { EndpointSettings.shared.consents }
     /// The engine and model each Progetto's new Sessioni start on (ADR 0012).
     @ObservationIgnored var engines = ProjectEngineStore()
+    /// The user's `claude`, for whether Claude can take over a Sessione as the Riserva (ADR 0014); `nil` when there
+    /// is none.
+    @ObservationIgnored var locateClaude: () async -> URL? = { await ClaudeLocator().executableURL() }
+    /// The Motore principale, and whether the other Motore is the Riserva (ADR 0014).
+    @ObservationIgnored var primaryEngine: () -> PrimaryEngine = { PrimaryEngine.saved(in: .standard) }
+    /// The summary of a Sessione, which the Sessione continuing it on the Riserva starts from; `nil` when no model
+    /// could write one.
+    @ObservationIgnored var summary: (UUID) async -> SessionSummary? = { _ in nil }
     /// The models of the user's Copilot plan, for the choice of model; `nil` until read, empty when `copilot` is
     /// missing or signed out, and the choice then guides to its login.
     private(set) var copilotModels: [CopilotModel]?
@@ -446,6 +454,51 @@ final class SessionStore {
             await ended(session.id, succeeded)
         }
         return session.id
+    }
+
+    /// «Continua con …» of a Sessione stopped for Quota or a limit (ADR 0014): a new Sessione in the same Progetto, on
+    /// the Riserva, asked the stopped turn's prompt with a summary of the Sessione. The stopped Sessione stays as it
+    /// is, in the Colonna and in the storico.
+    ///
+    /// - Returns: The id of the new Sessione; `nil` when the Sessione `id` has no Riserva to continue on.
+    @discardableResult
+    func continueOnReserve(_ id: UUID) async -> UUID? {
+        guard let session = sessions.first(where: { $0.id == id }), let reserve = session.reserve,
+              let prompt = session.turnPrompt ?? session.prompt else { return nil }
+        update(id) { $0.reserve = nil }
+        let summary = await summary(id)
+        let continued = Self.continuation(of: prompt, summary: summary, stoppedOn: session.engine)
+        // Never on the checkout, so `start` cannot throw.
+        return try? start(continued, title: session.title, branch: Session.proposedBranch(for: session.title),
+                          in: session.project, choice: EngineChoice(engine: reserve))
+    }
+
+    /// The prompt of a Sessione continuing on the Riserva: why, what the stopped one did, then its last request.
+    static func continuation(of prompt: String, summary: SessionSummary?, stoppedOn engine: Session.Engine) -> String {
+        let stopped = switch engine {
+        case .claude: "Questa richiesta continua una Sessione che si è fermata per il limite di Claude."
+        case .copilot: "Questa richiesta continua una Sessione che si è fermata per il limite di Copilot."
+        }
+        let done = summary.map { "\n\nRiassunto della Sessione precedente:\n\n\($0.markdown)" } ?? ""
+        return stopped + done + "\n\nUltima richiesta:\n\n" + prompt
+    }
+
+    /// The Motore a Sessione on `engine` can continue on after `error`, in a new Sessione (ADR 0014): only for Quota
+    /// or a limit, with the Riserva on and the other Motore ready; never Copilot when the Sessione needs Claude.
+    private func reserve(after error: any Error, on engine: Session.Engine, in project: URL,
+                         agent: String?) async -> Session.Engine? {
+        guard primaryEngine().hasReserve else { return nil }
+        switch (engine, error) {
+        case (.claude, AgentBridgeError.limitReached):
+            guard !executionNeedsClaude(in: project, agent: agent),
+                  copilotConsents().contains(EndpointSettings.copilotConsentID),
+                  await locateCopilot() != nil else { return nil }
+            return .copilot
+        case (.copilot, AgentBridgeError.copilotLimitReached):
+            return await locateClaude() != nil ? .claude : nil
+        default:
+            return nil
+        }
     }
 
     /// Whether an Esecuzione in `project` run as `agent` must stay on Claude, whatever the Motore principale: Copilot
@@ -1355,8 +1408,10 @@ final class SessionStore {
             }
             Logger.sessions.error("Sessione failed: \(String(describing: error), privacy: .private)")
             onTurnFailure(id, error)
+            let reserve = await reserve(after: error, on: session.engine, in: session.project, agent: unattended?.agent)
             update(id) { session in
                 session.enter(.errore)
+                session.reserve = reserve
                 switch error {
                 case AgentBridgeError.sandboxUnavailable, AgentBridgeError.claudeOutdated,
                      CopilotFailure.consentMissing:
@@ -1370,6 +1425,7 @@ final class SessionStore {
                 case let AgentBridgeError.turnFailed(failure): failure.message
                 // ponytail: the three choices at the limit are in the Domanda; the Sessione says only why it stopped.
                 case AgentBridgeError.limitReached: String(localized: "Hai raggiunto il limite dell'abbonamento.")
+                case let AgentBridgeError.copilotLimitReached(message): message
                 case AgentBridgeError.signInRequired: String(localized: "L'accesso a Claude è scaduto.")
                 // The Sessione shows the Budget spent and the choices instead.
                 case AgentBridgeError.budgetExhausted: nil

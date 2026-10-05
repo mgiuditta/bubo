@@ -9,7 +9,7 @@ import { dirname } from "node:path";
 import { unattendedReason, type RiskQuestion } from "./gate";
 import { deniedByUser, deniedWithoutBubo, isTooLong, raw, clean, type PermissionRequest } from "./permission";
 import { summary, writtenLines, type Edit, type Progress, type Read } from "./activity";
-import { CopilotUsage } from "./copilot-question";
+import { CopilotUsage, isCopilotLimit } from "./copilot-question";
 import { declined, notShown, replyLength, type AgentQuestion, type Reply } from "./question";
 import { dates, messages, transcriptLimit, type Message } from "./history";
 import type { ConversationStore } from "./store";
@@ -23,6 +23,8 @@ export type CopilotEvent =
   | { type: "done"; id: string }
   | ({ type: "usage"; id: string } & TurnUsage)
   | { type: "error"; id: string; message: string }
+  /** Il turno si è fermato per Quota finita o un limite di Copilot: con la Riserva Bubo offre «Continua con Claude» (#727). */
+  | { type: "copilotLimit"; id: string; message: string }
   | (Progress & { id: string })
   | (Edit & { id: string })
   | (Read & { id: string })
@@ -311,7 +313,7 @@ export class CopilotTurns {
       useLoggedInUser: true,
       workingDirectory: turn.cwd,
     });
-    const finished = Promise.withResolvers<"done" | "stopped" | { error: string }>();
+    const finished = Promise.withResolvers<"done" | "stopped" | { error: string; isLimit: boolean }>();
     // Anche i token dei subagenti: li paga l'utente. Bubo ne fa la Spesa stimata (#542).
     const usage = new CopilotUsage();
     this.running.set(id, {
@@ -366,7 +368,7 @@ export class CopilotTurns {
         } else if (event.type === "session.idle") {
           finished.resolve("done");
         } else if (event.type === "session.error") {
-          finished.resolve({ error: clean(event.data.message) ?? event.data.errorType });
+          finished.resolve({ error: clean(event.data.message) ?? event.data.errorType, isLimit: isCopilotLimit(event.data) });
         }
       });
       this.send({ type: "state", id, state: "running" });
@@ -378,7 +380,7 @@ export class CopilotTurns {
         this.send({ type: "state", id, state: "idle" });
         this.send({ type: "done", id });
       } else if (end !== "stopped") {
-        this.send({ type: "error", id, message: end.error });
+        this.send({ type: end.isLimit ? "copilotLimit" : "error", id, message: end.error });
       }
     } catch (error) {
       if (!stopped.signal.aborted) this.send({ type: "error", id, message: error instanceof Error ? error.message : String(error) });
