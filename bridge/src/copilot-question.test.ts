@@ -112,6 +112,20 @@ test("le cartelle escluse restano chiuse a copilot: l'hook nega prima dello stru
   expect(texts(seen)).toBe("approve-once");
 });
 
+test("senza nessuno davanti il cancello condiviso nega i livelli 4–5 nel resoconto, e le cartelle escluse restano chiuse prima", async () => {
+  const events: CopilotQuestionEvent[] = [];
+  const permissions = new CopilotPermissions((event) => events.push(event), async () => true);
+  const signal = new AbortController().signal;
+  const config = questionSession({ id: "u", cwd: "/vault", hidden: ["/vault/Privato"] },
+                                 (asked) => permissions.ask("u", asked, signal, true, true));
+  expect(await config.onPermissionRequest?.({ kind: "read", path: "/vault/Privato/a.md" } as never, { sessionId: "s" }))
+    .toMatchObject({ kind: "reject", feedback: "Questa cartella è esclusa dal Secondo cervello: Bubo non la legge." });
+  expect(events).toEqual([]);
+  expect(await config.onPermissionRequest?.({ kind: "shell", fullCommandText: "rm -rf build", possiblePaths: [] } as never,
+                                            { sessionId: "s" })).toMatchObject({ kind: "reject" });
+  expect(events).toMatchObject([{ type: "denial", id: "u", tool: "Bash", command: "rm -rf build", source: "gate" }]);
+});
+
 test("anche una Richiesta di lettura o scrittura in una cartella esclusa è respinta, senza passare da Bubo", async () => {
   let asked = false;
   const config = questionSession({ id: "p", cwd: "/vault", hidden: ["/vault/Privato"] }, async () => {
