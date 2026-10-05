@@ -315,7 +315,7 @@ _Avoid_: roadmap, MVP2, prossimamente, coming soon
 - Una **Tinta** per fornitore, non per modello; un fornitore fuori elenco prende la **Tinta** neutra
 - Lo **Stato** dell'**Orb** riflette l'**Attività** della **Sessione** che l'utente ha davanti
 - La **Galassia** mostra un solo **Progetto** alla volta, vive fuori dall'**HUD** e non contiene mai l'**Orb**; non è una **Vista delle Sessioni**
-- Nella **Galassia** le **Sessioni** si distinguono per nome e segno, non per colore: la **Tinta** resta del fornitore, e le Sessioni sono tutte Claude
+- Nella **Galassia** le **Sessioni** si distinguono per nome e segno, non per colore: la **Tinta** resta del fornitore del **Motore** della Sessione
 - Ogni richiesta ha un solo **Tipo di richiesta**; il **Tipo di richiesta** non è la **Categoria** della **Variante**: "Correzione piccola" può mostrare una Variante di Codice o di Ricerca
 - Riprendere una conversazione della **Cronologia CLI** crea sempre una nuova **Sessione** (fork), mai la stessa
 - Un ingresso di sistema crea una **Domanda** con i suoi **Allegati**; diventa **Sessione** solo su proposta accettata, tranne un trascinamento nell'**HUD** con una **Sessione** davanti, che allega a quella
