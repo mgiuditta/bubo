@@ -12,7 +12,7 @@ import { budgetOf } from "./budget";
 import { turnFailure, type TurnFailure } from "./failure";
 import { claudeInfo, isBelowMinimum, isTooOldForAnthropic, type ClaudeInfo } from "./compat";
 import { configuration, type Configuration, type Instructions } from "./config";
-import { CopilotTurns, copiedMessages, copilotEnvironment, copilotProject, reasoningEffortOf } from "./copilot";
+import { CopilotPermissions, CopilotTurns, copiedMessages, copilotEnvironment, copilotProject, reasoningEffortOf } from "./copilot";
 import { CopilotQuestions, type CopilotQuestionEvent } from "./copilot-question";
 import { conversation, dates, firstPage, messages, transcriptLimit, type Conversation, type Message } from "./history";
 import { deniedOwnCard, deniedWithoutBubo, isAllowed, isLasting, isTooLong, needsItsOwnCard, networkRule, networkTool, permissionRequest, permissionResult, Subagents, type PermissionRequest } from "./permission";
@@ -41,7 +41,7 @@ const version = 4;
 type Command =
   | { v: number; type: "ask"; id: string; prompt: string; cwd: string; settingSources?: unknown; projectConfigRoot?: unknown; model?: unknown; env?: unknown; resume?: unknown; upTo?: unknown; keep?: unknown; sandbox?: unknown; preview?: unknown; rules?: unknown; remember?: unknown; permissionMode?: unknown; effort?: unknown; orb?: unknown; unattended?: unknown; dirs?: unknown; maxBudget?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilot"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; keep?: unknown; resume?: unknown; permissionMode?: unknown; unattended?: unknown }
-  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown }
+  | { v: number; type: "copilotQuestion"; id: string; prompt: string; cwd: string; copilot: string; model?: unknown; effort?: unknown; brain?: unknown; readOnly?: unknown }
   | { v: number; type: "copilotModels"; id: string; copilot: string }
   | { v: number; type: "cancel"; id: string }
   | { v: number; type: "found"; id: string; text: string }
@@ -215,10 +215,14 @@ const childEnv = { ...inherited };
 // Dove `claude` tiene la memoria automatica: la stessa cartella di configurazione del figlio.
 const configDirectory = childEnv.CLAUDE_CONFIG_DIR ?? `${homedir()}/.claude`;
 
-// Le Domande via Copilot (ADR 0011), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
+// Le Richieste di permesso di `copilot`, nelle Sessioni e nelle Domande: lo stesso cancello livelli 4–5 di Claude
+// (#722, #723), con il Livello di rischio che dà Bubo.
+const copilotPermissions = new CopilotPermissions(send, (id, question, signal) => riskFromBubo(id, signal)(question));
+
+// Le Domande via Copilot (ADR 0011, ADR 0014), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
 // `cerca` e `ricorda` delle Domande con il Secondo cervello rispondono da Bubo, come per `claude`.
 const copilotQuestions = new CopilotQuestions(send, copilotEnvironment(childEnv),
-  (call) => askBuboFor((id) => ({ ...call, id })));
+  (call) => askBuboFor((id) => ({ ...call, id })), copilotPermissions);
 
 // Solo un `copilot` assoluto: è il binario che Bubo ha trovato, mai uno cercato nel PATH del ponte.
 function isCopilotPath(copilot: unknown): copilot is string {
@@ -231,6 +235,7 @@ async function askCopilot(command: Extract<Command, { type: "copilotQuestion" }>
     id: command.id, prompt: command.prompt, cwd: command.cwd, copilot: command.copilot,
     model: typeof command.model === "string" ? command.model : undefined, effort: reasoningEffortOf(command.effort),
     brain: typeof command.brain === "string" && command.brain.length > 0 ? command.brain : undefined,
+    hidden: readOnlyOf(command.readOnly)?.hidden,
   });
   if (firstToken) console.error(`Domanda via Copilot: primo token in ${firstToken.sinceAsked} ms (${firstToken.sinceSent} ms dall'invio)`);
 }
@@ -249,8 +254,7 @@ const store = (() => {
 // Le Sessioni su `copilot` (ADR 0012), con l'ambiente del ponte meno i token che scavalcano il login dell'utente.
 // Bubo ne conserva le conversazioni nello stesso store di quelle di Claude.
 // I loro permessi passano dallo stesso cancello livelli 4–5 di Claude (#723).
-const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv), store,
-  (id, question, signal) => riskFromBubo(id, signal)(question));
+const copilotTurns = new CopilotTurns(send, copilotEnvironment(childEnv), store, copilotPermissions);
 
 const running = new Map<string, Query>();
 // Le conversazioni in corso che hanno `ricorda`: lo tengono anche quando cambia l'Anteprima.
@@ -904,7 +908,7 @@ lines.on("line", (line) => {
     case "previewResult": previewCalls.answer(command.call, command); break;
     case "risk": risks.get(command.request)?.(command.dangerous !== false); risks.delete(command.request); break;
     case "permission":
-      if (copilotTurns.answer(command.request, isAllowed(command.behavior))) break;
+      if (copilotPermissions.answer(command.request, isAllowed(command.behavior))) break;
       permissions.get(command.request)?.({ allowed: isAllowed(command.behavior), lasting: isLasting(command.scope) });
       permissions.delete(command.request);
       break;

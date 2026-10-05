@@ -78,7 +78,7 @@ struct CopilotNotesConsentTests {
     func theNotesGoOnlyWithTheirConsent(consents: [String], sharesNotes: Bool, expected: String) async throws {
         var searched: [String] = []
         let answer = try await Self.bridge().askCopilotQuestion(
-            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"), consents: Set(consents),
+            "Ciao", in: URL(filePath: "/tmp"), copilot: URL(filePath: "/opt/homebrew/bin/copilot"), consents: Set(consents),
             sharesNotes: sharesNotes,
             progress: { if case let .memory(.searched(query, _)) = $0 { searched.append(query) } }
         ).reduce("", +)

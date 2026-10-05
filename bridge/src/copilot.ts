@@ -25,6 +25,10 @@ export type CopilotEvent =
   | (Edit & { id: string })
   | (Read & { id: string })
   | { type: "ran"; id: string }
+  | CopilotPermissionEvent;
+
+/** Una Richiesta di permesso di un turno di `copilot`, Sessione o Domanda, o il suo ritiro quando il turno si ferma. */
+export type CopilotPermissionEvent =
   | (PermissionRequest & { id: string })
   | { type: "permissionWithdrawn"; id: string; request: string }
   | (Denial & { type: "denial"; id: string });
@@ -137,15 +141,70 @@ export function mayApproveByMode(asked: CopilotRequest): boolean {
 // Quanto aspetta Ferma la fine del turno dopo `abort`, prima di chiudere `copilot`: l'obiettivo è 2 s.
 const abortGrace = 1_500;
 
-// I turni Copilot in corso, uno per `id`, con le Richieste in attesa della risposta di Bubo.
+// Le Richieste di permesso dei turni di `copilot`, Sessioni e Domande, in attesa della risposta di Bubo: un solo
+// cancello, lo stesso livelli 4–5 di Claude.
+export class CopilotPermissions {
+  private readonly pending = new Map<string, (allowed: boolean) => void>();
+
+  constructor(private readonly send: (event: CopilotPermissionEvent) => void,
+              private readonly isDangerous: IsDangerous = async () => true) {}
+
+  /** Risponde alla Richiesta `request`; `false` se non è di un turno Copilot. */
+  answer(request: string, allowed: boolean): boolean {
+    const resolve = this.pending.get(request);
+    if (!resolve) return false;
+    this.pending.delete(request);
+    resolve(allowed);
+    return true;
+  }
+
+  // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude. Nella Modalità
+  // autonoma passa prima dal cancello: approva da sé, e chiede a Bubo solo sui livelli 4–5. Senza nessuno davanti
+  // (`isUnattended`) non chiede mai: quello che la modalità non approva da sé è negato, e finisce nel resoconto.
+  async ask(id: string, asked: CopilotRequest, signal: AbortSignal, isAutonomous: boolean,
+            isUnattended = false): Promise<PermissionRequestResult> {
+    if (signal.aborted) return decision(false, deniedWithoutBubo);
+    const request = randomUUID();
+    const shown = permissionRequest(request, asked);
+    if (isTooLong(shown)) return decision(false, deniedWithoutBubo);
+    const { tool, command, path, url } = shown;
+    let isDangerous = false;
+    if (isAutonomous && mayApproveByMode(asked)) {
+      isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
+      if (signal.aborted) return decision(false, deniedWithoutBubo);
+      if (!isDangerous) return approvedByMode;
+    }
+    if (isUnattended) {
+      this.send({ type: "denial", id, toolUseID: request, tool, command, path, url, suggestions: [], source: "gate" });
+      return decision(false, unattendedReason(isDangerous ? "Livello di rischio 4 o 5." : "Serve un'approvazione."));
+    }
+    let reached = true;
+    const allowed = await new Promise<boolean>((resolve) => {
+      this.pending.set(request, resolve);
+      signal.addEventListener("abort", () => {
+        resolve(false);
+        if (this.pending.delete(request)) this.send({ type: "permissionWithdrawn", id, request });
+      }, { once: true });
+      try {
+        this.send({ ...shown, id });
+      } catch {
+        reached = false;
+        resolve(false);
+      }
+    });
+    this.pending.delete(request);
+    return decision(allowed, reached ? deniedByUser : deniedWithoutBubo);
+  }
+}
+
+// I turni Copilot in corso, uno per `id`; le loro Richieste passano da `permissions`.
 export class CopilotTurns {
   private readonly running = new Map<string, { stop(): void }>();
-  private readonly permissions = new Map<string, (allowed: boolean) => void>();
 
   constructor(private readonly send: (event: CopilotEvent) => void,
               private readonly environment: Record<string, string>,
               private readonly copy?: Copy,
-              private readonly isDangerous: IsDangerous = async () => true) {}
+              private readonly permissions: CopilotPermissions = new CopilotPermissions(send)) {}
 
   has(id: string): boolean {
     return this.running.has(id);
@@ -153,11 +212,7 @@ export class CopilotTurns {
 
   /** Risponde alla Richiesta `request`; `false` se non è di un turno Copilot. */
   answer(request: string, allowed: boolean): boolean {
-    const resolve = this.permissions.get(request);
-    if (!resolve) return false;
-    this.permissions.delete(request);
-    resolve(allowed);
-    return true;
+    return this.permissions.answer(request, allowed);
   }
 
   /** Ferma: `abort` del turno `id`, poi `copilot` chiuso se non finisce in tempo. */
@@ -194,8 +249,8 @@ export class CopilotTurns {
         model: turn.model,
         reasoningEffort: turn.effort,
         streaming: true,
-        onPermissionRequest: (asked) => this.ask(id, asked, stopped.signal, turn.permissionMode === "auto",
-                                                turn.unattended === true),
+        onPermissionRequest: (asked) => this.permissions.ask(id, asked, stopped.signal, turn.permissionMode === "auto",
+                                                             turn.unattended === true),
       };
       let prompt = turn.prompt;
       const { keep } = turn;
@@ -256,44 +311,6 @@ export class CopilotTurns {
   private async earlier(keep: string): Promise<Message[]> {
     const entries = await this.copy?.load({ projectKey: copilotProject, sessionId: keep }).catch(() => null);
     return entries ? copiedMessages(entries) : [];
-  }
-
-  // `onPermissionRequest` del turno `id`: chiude sempre su "no", come `canUseTool` delle Sessioni Claude. Nella Modalità
-  // autonoma passa prima dal cancello: approva da sé, e chiede a Bubo solo sui livelli 4–5. Senza nessuno davanti
-  // (`isUnattended`) non chiede mai: quello che la modalità non approva da sé è negato, e finisce nel resoconto.
-  private async ask(id: string, asked: CopilotRequest, signal: AbortSignal, isAutonomous: boolean,
-                    isUnattended = false): Promise<PermissionRequestResult> {
-    if (signal.aborted) return decision(false, deniedWithoutBubo);
-    const request = randomUUID();
-    const shown = permissionRequest(request, asked);
-    if (isTooLong(shown)) return decision(false, deniedWithoutBubo);
-    const { tool, command, path, url } = shown;
-    let isDangerous = false;
-    if (isAutonomous && mayApproveByMode(asked)) {
-      isDangerous = await this.isDangerous(id, { tool, command, path, url }, signal).catch(() => true);
-      if (signal.aborted) return decision(false, deniedWithoutBubo);
-      if (!isDangerous) return approvedByMode;
-    }
-    if (isUnattended) {
-      this.send({ type: "denial", id, toolUseID: request, tool, command, path, url, suggestions: [], source: "gate" });
-      return decision(false, unattendedReason(isDangerous ? "Livello di rischio 4 o 5." : "Serve un'approvazione."));
-    }
-    let reached = true;
-    const allowed = await new Promise<boolean>((resolve) => {
-      this.permissions.set(request, resolve);
-      signal.addEventListener("abort", () => {
-        resolve(false);
-        if (this.permissions.delete(request)) this.send({ type: "permissionWithdrawn", id, request });
-      }, { once: true });
-      try {
-        this.send({ ...shown, id });
-      } catch {
-        reached = false;
-        resolve(false);
-      }
-    });
-    this.permissions.delete(request);
-    return decision(allowed, reached ? deniedByUser : deniedWithoutBubo);
   }
 }
 

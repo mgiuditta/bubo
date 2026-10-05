@@ -1247,8 +1247,8 @@ final class QuestionModel {
         }
     }
 
-    /// Streams the answer of `model`, a Copilot model the user picked or prefers, through the user's `copilot`: the
-    /// Domanda's text only, in a session without tools.
+    /// Streams the answer of `model`, a Copilot model the user picked or prefers, through the user's `copilot`: with its
+    /// tools, behind the same level 4–5 gate as a Claude Domanda, the excluded folders closed (ADR 0014).
     ///
     /// - Parameter speaksAnswer: Whether the Domanda was asked by voice, and Bubo says the Sintesi parlata.
     private func answer(_ richiesta: Richiesta, withCopilot model: CopilotModel, route: Route,
@@ -1280,13 +1280,18 @@ final class QuestionModel {
         var summary = speaksAnswer ? SpokenSummary() : nil
         var firstAudio: OSSignpostIntervalState?
         do {
-            let stream = try await readyBridge().askCopilotQuestion(
-                asked, copilot: copilot, consents: endpoints.consents, model: model == .configured ? nil : model.id,
-                effort: route.effort,
-                sharesNotes: endpoints.allowsCopilotNotes,
+            let bridge = try await readyBridge()
+            // In the Secondo cervello, as a Claude Domanda, only when the user allowed Copilot to read the notes.
+            let workplace = try Self.workplace(in: endpoints.allowsCopilotNotes ? secondBrain?.location : nil)
+            let classifier = RiskClassifier(workingDirectory: workplace.directory)
+            let stream = bridge.askCopilotQuestion(
+                asked, in: workplace.directory, copilot: copilot, consents: endpoints.consents,
+                model: model == .configured ? nil : model.id, effort: route.effort,
+                sharesNotes: endpoints.allowsCopilotNotes, readOnly: workplace.readOnly,
                 progress: { [weak self] progress in
                     if case let .memory(.saved(change)) = progress { self?.savedChange = change }
                 },
+                permissions: { [weak self] in self?.receive($0, from: bridge, classifier: classifier) },
                 usage: { [weak self] usage in
                     guard let self else { return }
                     // The Spesa estimated on GitHub's list prices, the same in the line and in the ledger.
@@ -1295,7 +1300,9 @@ final class QuestionModel {
                     ledger?.record(spesa, turn: turn, question: question, provider: Budgets.copilot)
                     routedAnswer?.budgetNotice = budgetNotice(after: spesa, of: Budgets.copilot)
                 },
-                answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 })
+                answeredBy: { [weak self] in self?.routedAnswer?.answeringModel = $0 },
+                // Without it every call counts as level 4–5 and the gate asks even for a read.
+                isDangerous: { classifier.risk(of: $0).isDangerous })
             for try await chunk in stream {
                 if waitingForFirstToken {
                     waitingForFirstToken = false

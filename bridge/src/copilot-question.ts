@@ -1,17 +1,20 @@
-// Le Domande via Copilot (ADR 0011): il Copilot SDK lancia il `copilot` dell'utente, con il suo login, in una sessione
-// senza tool, o con il Secondo cervello solo `cerca` e `ricorda` di Bubo (#678). Verso Bubo i messaggi neutri del
-// ponte: testo in streaming, token (`usage`), chi ha risposto, fine.
-import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo, type PermissionRequestResult,
-  type SessionConfig, type SessionEvent, type Tool } from "@github/copilot-sdk";
+// Le Domande via Copilot (ADR 0011, ADR 0014): il Copilot SDK lancia il `copilot` dell'utente, con il suo login, come
+// nel terminale: i suoi strumenti e la sua configurazione, in Modalità autonoma con lo stesso cancello livelli 4–5 delle
+// Domande Claude; con il Secondo cervello anche `cerca` e `ricorda` di Bubo (#678), mai le cartelle escluse. Verso Bubo
+// i messaggi neutri del ponte: testo in streaming, Richieste di permesso, token (`usage`), chi ha risposto, fine.
+import { CopilotClient, defineTool, RuntimeConnection, type CopilotSession, type ModelInfo,
+  type PermissionRequest as CopilotRequest, type PermissionRequestResult, type SessionConfig, type SessionHooks,
+  type SessionEvent, type Tool } from "@github/copilot-sdk";
 import { dirname } from "node:path";
 import { z } from "zod";
-import { close, withFolderFirst } from "./copilot";
-import { clean } from "./permission";
+import { close, CopilotPermissions, decision, withFolderFirst, type CopilotPermissionEvent } from "./copilot";
+import { clean, deniedWithoutBubo } from "./permission";
 import type { AnsweredBy } from "./router";
-import { rememberCall, rememberTool, searchCall, searchTool, type BuboToolCall } from "./tools";
+import { hiddenPathDenial, rememberCall, rememberTool, searchCall, searchTool, type BuboToolCall } from "./tools";
 import type { TurnUsage } from "./usage";
 
 type ReasoningEffort = NonNullable<SessionConfig["reasoningEffort"]>;
+type PreToolUseHandler = NonNullable<SessionHooks["onPreToolUse"]>;
 
 /** Un modello che il piano Copilot dell'utente offre, solo con quello che serve al router. */
 export type CopilotModel = {
@@ -29,20 +32,23 @@ export type CopilotQuestionEvent =
   | { type: "error"; id: string; message: string }
   | ({ type: "usage"; id: string } & TurnUsage)
   | ({ type: "answeredBy"; id: string } & AnsweredBy)
-  | { type: "copilotModels"; id: string; models: CopilotModel[] };
+  | { type: "copilotModels"; id: string; models: CopilotModel[] }
+  | CopilotPermissionEvent;
 
 export type CopilotQuestion = {
   id: string;
   prompt: string;
   /** Il `copilot` dell'utente, assoluto. */
   copilot: string;
-  /** Una cartella vuota di Bubo: nessuna istruzione di Progetto arriva a `copilot`. */
+  /** Dove gira la Domanda, come per Claude: il Secondo cervello, o una cartella vuota di Bubo. */
   cwd: string;
   model?: string;
   effort?: ReasoningEffort;
   /** Profilo e Regole del Secondo cervello, con il consenso dell'utente: in coda al prompt di sistema, con `cerca` e
-   * `ricorda`. Senza, una sessione senza strumenti né note. */
+   * `ricorda`. Senza, nessuna nota e nessuno strumento di Bubo. */
   brain?: string;
+  /** Le cartelle escluse del Secondo cervello, assolute: nessuno strumento di `copilot` le tocca. */
+  hidden?: string[];
 };
 
 /** Manda a Bubo una chiamata a `cerca` o `ricorda` e aspetta il testo con cui risponde (`found`). */
@@ -51,8 +57,42 @@ export type AskBubo = (call: BuboToolCall) => Promise<string>;
 /** Quanto ha aspettato una Domanda: dal comando di Bubo al primo testo, e dall'invio del prompt al primo testo. */
 export type FirstToken = { sinceAsked: number; sinceSent: number };
 
-// Una Domanda non usa strumenti di `copilot`: nessuno è disponibile, e una Richiesta che arrivasse comunque è respinta.
-export const refused: PermissionRequestResult = { kind: "reject", feedback: "Le Domande di Bubo non usano strumenti." };
+// Gli strumenti di `copilot` con il nome di quelli di Claude che le cartelle escluse fermano: chi scrive come `Write`,
+// chi cerca come `Grep` e `Glob` (non attraversano una cartella esclusa). Gli altri, se hanno un percorso, come `Read`.
+const guardedAs: Record<string, string> = {
+  view: "Read", grep: "Grep", rg: "Grep", glob: "Glob",
+  create: "Write", edit: "Write", str_replace_editor: "Write", str_replace: "Write", insert: "Write",
+};
+
+/** Perché lo strumento `tool` di `copilot` non può toccare `args` in una Domanda in `cwd` con le cartelle escluse
+ * `hidden`; `undefined` se può. Le stesse regole delle Domande Claude (`hiddenPathDenial`). */
+export function hiddenToolDenial(tool: string, args: unknown, cwd: string, hidden: string[]): string | undefined {
+  return hiddenPathDenial(guardedAs[tool] ?? "Read", args, cwd, hidden);
+}
+
+/** L'hook prima di ogni strumento che tiene `copilot` fuori dalle cartelle escluse: un errore nega, mai lascia passare
+ * (l'SDK conta come «nessuna decisione» un hook che lancia). */
+export function hiddenFoldersHook(cwd: string, hidden: string[]): PreToolUseHandler {
+  return (input) => {
+    let reason: string | undefined;
+    try {
+      reason = hiddenToolDenial(input.toolName, input.toolArgs, cwd, hidden);
+    } catch (error) {
+      reason = `Il cancello di Bubo non ha potuto controllare la chiamata: ${error instanceof Error ? error.message : error}`;
+    }
+    return reason ? { permissionDecision: "deny", permissionDecisionReason: reason } : undefined;
+  };
+}
+
+/** Una Richiesta di lettura o scrittura dentro una cartella esclusa: respinta prima del cancello. */
+function hiddenRequestDenial(asked: CopilotRequest, cwd: string, hidden: string[]): string | undefined {
+  if (asked.kind === "read") return hiddenToolDenial("view", { path: asked.path }, cwd, hidden);
+  if (asked.kind === "write") return hiddenToolDenial("create", { path: asked.fileName }, cwd, hidden);
+  return undefined;
+}
+
+/** Chiede il permesso per una Richiesta di `copilot` nella Domanda: dal cancello di `CopilotPermissions`. */
+export type AskPermission = (asked: CopilotRequest) => Promise<PermissionRequestResult>;
 
 /** `cerca` e `ricorda` di Bubo come strumenti della sessione della Domanda `conversation`: rispondono da Bubo, senza
  * Richiesta di permesso, e ogni scrittura va nel registro delle modifiche, annullabile. */
@@ -73,23 +113,32 @@ export function buboTools(conversation: string, askBubo: AskBubo): Tool<any>[] {
   ];
 }
 
-/** La sessione di una Domanda: nessuno strumento integrato né MCP, e ogni Richiesta respinta. Con il Secondo cervello
- * (`brain` e `askBubo`) Profilo e Regole in coda al prompt di sistema, e solo `cerca` e `ricorda` di Bubo. */
-export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain">,
-                                askBubo?: AskBubo): SessionConfig {
+/** La sessione di una Domanda come `copilot` nel terminale: i suoi strumenti e la sua configurazione, e ogni Richiesta
+ * a `askPermission`. Con il Secondo cervello (`brain` e `askBubo`) Profilo e Regole in coda al prompt di sistema, e in
+ * più `cerca` e `ricorda` di Bubo. Le cartelle escluse `hidden` restano chiuse a ogni strumento. */
+export function questionSession(question: Pick<CopilotQuestion, "id" | "cwd" | "model" | "effort" | "brain" | "hidden">,
+                                askPermission: AskPermission, askBubo?: AskBubo): SessionConfig {
+  const hidden = question.hidden ?? [];
   return {
     clientName: "bubo",
     workingDirectory: question.cwd,
     model: question.model,
     reasoningEffort: question.effort,
     streaming: true,
+    enableConfigDiscovery: true,
     ...(question.brain && askBubo
-      ? { tools: buboTools(question.id, askBubo), availableTools: [`custom:${searchTool.name}`, `custom:${rememberTool.name}`],
-          systemMessage: { mode: "append" as const, content: question.brain } }
-      : { availableTools: [] }),
-    enableSkills: false,
-    enableOnDemandInstructionDiscovery: false,
-    onPermissionRequest: () => refused,
+      ? { tools: buboTools(question.id, askBubo), systemMessage: { mode: "append" as const, content: question.brain } }
+      : {}),
+    ...(hidden.length > 0 ? { hooks: { onPreToolUse: hiddenFoldersHook(question.cwd, hidden) } } : {}),
+    onPermissionRequest: async (asked) => {
+      let reason: string | undefined;
+      try {
+        reason = hidden.length > 0 ? hiddenRequestDenial(asked, question.cwd, hidden) : undefined;
+      } catch {
+        reason = deniedWithoutBubo;
+      }
+      return reason ? decision(false, reason) : askPermission(asked);
+    },
   };
 }
 
@@ -108,10 +157,17 @@ export function copilotModelsOf(models: ModelInfo[]): CopilotModel[] {
 export class CopilotQuestions {
   private readonly running = new Map<string, () => void>();
 
-  /** `askBubo` risponde a `cerca` e `ricorda` delle Domande con il Secondo cervello; senza, nessuna li riceve. */
+  /** `askBubo` risponde a `cerca` e `ricorda` delle Domande con il Secondo cervello; senza, nessuna li riceve.
+   * `permissions` è il cancello delle Richieste, lo stesso delle Sessioni Copilot. */
   constructor(private readonly send: (event: CopilotQuestionEvent) => void,
               private readonly environment: Record<string, string>,
-              private readonly askBubo?: AskBubo) {}
+              private readonly askBubo?: AskBubo,
+              private readonly permissions: CopilotPermissions = new CopilotPermissions(send)) {}
+
+  /** Risponde alla Richiesta `request`; `false` se non è di un turno Copilot. */
+  answer(request: string, allowed: boolean): boolean {
+    return this.permissions.answer(request, allowed);
+  }
 
   /** Ferma la Domanda `id`; `false` se non è una Domanda via Copilot in corso. */
   cancel(id: string): boolean {
@@ -150,7 +206,9 @@ export class CopilotQuestions {
       void session?.abort().catch(() => {});
     });
     try {
-      session = await client.createSession(questionSession(question, this.askBubo));
+      // Una Domanda gira come la riga di comando: Modalità autonoma, il cancello chiede solo sui livelli 4–5.
+      const askPermission: AskPermission = (asked) => this.permissions.ask(id, asked, stopped.signal, true);
+      session = await client.createSession(questionSession(question, askPermission, this.askBubo));
       if (stopped.signal.aborted) return undefined;
       let sent = 0;
       session.on((event: SessionEvent) => {

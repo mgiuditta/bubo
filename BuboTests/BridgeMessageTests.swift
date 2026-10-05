@@ -106,6 +106,21 @@ struct BridgeMessageTests {
             + #""effort":"high","id":"c1","model":"gpt-6","prompt":"Ciao","type":"copilotQuestion","v":4}"# + "\n")
     }
 
+    @Test func aCopilotQuestionCarriesItsExcludedFoldersAsAClaudeOneDoes() throws {
+        let readOnly = ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [URL(filePath: "/vault/Privato")])
+        let copilot = try BridgeCommand.askCopilotQuestion(id: "c1", prompt: "Ciao", directory: URL(filePath: "/vault"),
+                                                           copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+                                                           readOnly: readOnly).line()
+        let claude = try BridgeCommand.ask(id: "c1", prompt: "Ciao", directory: URL(filePath: "/vault"), settingSources: [],
+                                           readOnly: readOnly).line()
+        let objects = try [copilot, claude].map { try #require(try JSONSerialization.jsonObject(with: $0) as? [String: Any]) }
+        for object in objects {
+            let sent = try #require(object["readOnly"] as? [String: Any])
+            #expect(sent["hidden"] as? [String] == ["/vault/Privato"])
+            #expect(sent["brain"] as? Bool == true)
+        }
+    }
+
     @Test func copilotModelsSkipAnEffortBuboDoesNotKnow() throws {
         let line = #"{"v":4,"type":"copilotModels","id":"m1","models":[{"id":"gpt-6","name":"GPT-6","multiplier":1,"#
             + #""supportedEfforts":["low","ultra"],"defaultEffort":"ultra"},{"id":"grok-5","name":"Grok 5"}]}"#

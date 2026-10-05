@@ -2,7 +2,7 @@ import { expect, test } from "bun:test";
 import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { CopilotTurns, approvedByMode, mayApproveByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
+import { CopilotPermissions, CopilotTurns, approvedByMode, type IsDangerous, mayApproveByMode, copiedEntry, copiedMessages, copilotEnvironment, copilotProject, decision, permissionRequest, reasoningEffortOf, toolActivity, withFolderFirst, type CopilotEvent } from "./copilot";
 import { deniedByUser } from "./permission";
 import type { RiskQuestion } from "./gate";
 import { ConversationStore } from "./store";
@@ -11,16 +11,17 @@ import { ConversationStore } from "./store";
 const fake = join(import.meta.dir, "fakeCopilot.mjs");
 
 function harness(environment: Record<string, string> = copilotEnvironment(process.env), copy?: ConversationStore,
-                 isDangerous?: ConstructorParameters<typeof CopilotTurns>[3]) {
+                 isDangerous?: IsDangerous) {
   const events: CopilotEvent[] = [];
   const waiting: Array<{ match: (event: CopilotEvent) => boolean; resolve: (event: CopilotEvent) => void }> = [];
-  const turns = new CopilotTurns((event) => {
+  const send = (event: CopilotEvent) => {
     events.push(event);
     for (const wait of waiting.splice(0)) {
       if (wait.match(event)) wait.resolve(event);
       else waiting.push(wait);
     }
-  }, environment, copy, isDangerous);
+  };
+  const turns = new CopilotTurns(send, environment, copy, new CopilotPermissions(send, isDangerous));
   const next = (match: (event: CopilotEvent) => boolean) => new Promise<CopilotEvent>((resolve) => {
     const seen = events.find(match);
     if (seen) resolve(seen);
