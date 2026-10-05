@@ -1,6 +1,36 @@
 {
   "sourceLanguage" : "it",
   "strings" : {
+    "Apri in Obsidian" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Obsidian"
+          }
+        }
+      }
+    },
+    "Apri il vault in Obsidian (⌘O)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the vault in Obsidian (⌘O)"
+          }
+        }
+      }
+    },
+    "Apri la nota in Obsidian (⌘O)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open the note in Obsidian (⌘O)"
+          }
+        }
+      }
+    },
     "%@" : {
       "shouldTranslate" : false
     },
