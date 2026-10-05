@@ -112,6 +112,22 @@ struct OnboardingEngineTests {
         #expect(flow.isEngineChosen)
     }
 
+    // ADR 0003: a `claude` without login answers with the API key the user saves in the Claude card.
+    @Test func aClaudeSignedOutIsReadyWithTheAPIKeyAndStaysSoAtRiprova() async {
+        let flow = makeFlow(Detections(claude: [.signedOut(version: "2.1.286")], copilot: [.missing]))
+        await flow.detectEngines()
+        #expect(flow.engineOption == .claude)
+        #expect(!flow.canConfirmEngine)
+
+        await flow.useAPIKey()
+        #expect(flow.isReady(.claude))
+        #expect(flow.canConfirmEngine)
+        await flow.recheckEngines()
+        #expect(flow.readiness == .ready(version: "2.1.286", method: "API key"))
+        flow.confirmEngine()
+        #expect(flow.isEngineChosen)
+    }
+
     @Test func entrambiNeedsBothReady() async {
         let flow = makeFlow(Detections(claude: [claudeReady], copilot: [.signedOut(version: "1.0.16")]))
         await flow.detectEngines()

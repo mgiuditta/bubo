@@ -2,12 +2,14 @@ import AppKit
 import SwiftUI
 
 /// What to do when a Motore of the step is not ready: why, the command to copy into the Terminal, and «Riprova», which
-/// asks `claude` and `copilot` again.
+/// asks `claude` and `copilot` again. A `claude` without login can answer with an API key instead, as in the remedy
+/// under the Orb (ADR 0003).
 struct EngineRemedy: View {
     let flow: OnboardingFlow
     let engine: Session.Engine
     /// The command for the executable Bubo found; `nil` until found, or when the remedy has none.
     @State private var command: String?
+    @State private var isEnteringKey = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xSmall) {
@@ -35,7 +37,13 @@ struct EngineRemedy: View {
                     ProgressView().controlSize(.small)
                         .accessibilityLabel("Controllo…")
                 }
+                if offersAPIKey {
+                    Button("Uso una API key") { isEnteringKey.toggle() }
+                        .buttonStyle(.link)
+                        .accessibilityAddTraits(isEnteringKey ? .isSelected : [])
+                }
             }
+            if offersAPIKey { APIKeyField(flow: flow, isEntering: $isEnteringKey) }
         }
         .accessibilityElement(children: .contain)
         .task(id: Key(claude: flow.readiness, copilot: flow.copilotReadiness)) { command = await findCommand() }
@@ -45,6 +53,12 @@ struct EngineRemedy: View {
     private struct Key: Equatable {
         let claude: ClaudeReadiness?
         let copilot: CopilotReadiness?
+    }
+
+    /// Whether the user may give `claude` an API key instead of signing in.
+    private var offersAPIKey: Bool {
+        guard engine == .claude, case .signedOut = flow.readiness else { return false }
+        return true
     }
 
     private var message: LocalizedStringResource {
