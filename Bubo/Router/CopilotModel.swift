@@ -11,6 +11,11 @@ nonisolated struct CopilotModel: Decodable, Equatable, Sendable {
     /// The effort the model uses when Bubo asks for none.
     var defaultEffort: Effort?
 
+    /// The model the user set in `copilot`, which Bubo leaves to `copilot` to pick: what the Motore principale
+    /// answers with when no preference names a model (ADR 0014).
+    static let configured = CopilotModel(
+        id: "", name: String(localized: "modello predefinito", comment: "The model the user set in copilot, in the reason line."))
+
     init(id: String, name: String, multiplier: Double? = nil, supportedEfforts: [Effort] = [], defaultEffort: Effort? = nil) {
         self.id = id
         self.name = name

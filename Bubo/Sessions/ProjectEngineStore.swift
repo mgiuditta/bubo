@@ -17,14 +17,16 @@ final class ProjectEngineStore {
             .flatMap { try? JSONDecoder().decode([String: EngineChoice].self, from: $0) } ?? [:]
     }
 
-    /// The choice the new Sessioni of `project` start on: Claude unless the user set another.
+    /// The choice the new Sessioni of `project` start on: the Motore principale, with its own default model, unless
+    /// the user set another.
     func choice(for project: URL) -> EngineChoice {
-        choices[project.standardizedFileURL.path] ?? .claude
+        choices[project.standardizedFileURL.path] ?? EngineChoice(engine: PrimaryEngine.saved(in: defaults).engine)
     }
 
     /// Makes the new Sessioni of `project` start on `choice`.
     func setChoice(_ choice: EngineChoice, for project: URL) {
-        choices[project.standardizedFileURL.path] = choice == .claude ? nil : choice
+        // Kept also when it is Claude's default: the Progetto stays on it when the Motore principale changes.
+        choices[project.standardizedFileURL.path] = choice
         defaults.set(try? JSONEncoder().encode(choices), forKey: Self.key)
     }
 }

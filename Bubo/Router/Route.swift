@@ -8,8 +8,8 @@ nonisolated struct Route: Equatable, Sendable {
         case onDevice
         /// An OpenAI-compatible endpoint the user prefers for the Tipo, with the model they set for it.
         case endpoint(OpenAICompatibleEndpoint)
-        /// A model of the user's Copilot plan, through `copilot` (ADR 0011): only on the user's explicit choice, never
-        /// the router's own.
+        /// A model of the user's Copilot plan, through `copilot` (ADR 0011): on the user's choice, or as the Motore
+        /// principale (ADR 0014).
         case copilot(CopilotModel)
     }
 

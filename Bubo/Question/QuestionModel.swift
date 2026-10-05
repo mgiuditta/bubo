@@ -386,6 +386,8 @@ final class QuestionModel {
         // Read only when the user opened "Rifai con…": until then a Copilot preference is taken on trust. Without
         // the user's consent it pauses, as a cloud endpoint does.
         routed.copilotModels = endpoints.allowsCopilot ? (copilotModels.isEmpty ? nil : copilotModels) : []
+        // Copilot as the Motore principale only with the user's consent, as a preference for it.
+        routed.primaryEngine = endpoints.allowsCopilot ? PrimaryEngine.saved(in: defaults).engine : .claude
         async let isOnline = cli.isOnline()
         var asked = Set(routed.choices.values.compactMap { choice -> String? in
             if case let .endpoint(id) = choice { id } else { nil }
@@ -1271,7 +1273,8 @@ final class QuestionModel {
         var firstAudio: OSSignpostIntervalState?
         do {
             let stream = try await readyBridge().askCopilotQuestion(
-                asked, copilot: copilot, consents: endpoints.consents, model: model.id, effort: route.effort,
+                asked, copilot: copilot, consents: endpoints.consents, model: model == .configured ? nil : model.id,
+                effort: route.effort,
                 sharesNotes: endpoints.allowsCopilotNotes,
                 progress: { [weak self] progress in
                     if case let .memory(.saved(change)) = progress { self?.savedChange = change }
