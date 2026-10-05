@@ -14,6 +14,11 @@ nonisolated struct ReadOnlyTurn: Equatable, Sendable {
     var isInSecondBrain = false
     /// The folders the agent must not read: the excluded folders of the Secondo cervello.
     var hiddenDirectories: [URL] = []
+
+    /// The turn as the bridge reads it, in `ask` and `copilotQuestion`.
+    var jsonObject: [String: Any] {
+        ["brain": isInSecondBrain, "hidden": hiddenDirectories.map(\.path)]
+    }
 }
 
 /// A command Bubo writes to the bridge, one JSON object per line.
@@ -103,13 +108,15 @@ enum BridgeCommand: Equatable {
     /// Asks `model` to answer `prompt` in one turn in the empty `directory`, with no tools, no settings and no copy of
     /// the conversation: the Riassunto di Sessione. The answer comes as for `ask`.
     case summarize(id: String, prompt: String, directory: URL, model: String?)
-    /// Asks the user's `copilot` to answer the Domanda `prompt` in the empty `directory`, in a session with no tools
-    /// (ADR 0011). `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the
-    /// reasoning effort; without it, the model's default. The answer comes as for `ask`, with `usage` and `answeredBy`.
-    /// `secondBrain` is the Profilo and the Regole of the Secondo cervello: with it the session also has Bubo's `cerca`
-    /// and `ricorda`, answered as for `ask` (#678).
+    /// Asks the user's `copilot` to answer the Domanda `prompt` in `directory`, with its own tools and configuration
+    /// as in the terminal, in the Modalità autonoma behind the same level 4–5 gate as a Claude Domanda (ADR 0014).
+    /// `model` is a Copilot model id; without it, the user's own choice in `copilot`. `effort` is the reasoning effort;
+    /// without it, the model's default. The answer comes as for `ask`, with `usage`, `answeredBy`, `risk` and the
+    /// Richieste di permesso. `secondBrain` is the Profilo and the Regole of the Secondo cervello: with it the session
+    /// also has Bubo's `cerca` and `ricorda`, answered as for `ask` (#678). `readOnly` keeps the excluded folders of the
+    /// Secondo cervello closed to every tool of `copilot`.
     case askCopilotQuestion(id: String, prompt: String, directory: URL, copilot: URL, model: String? = nil,
-                            effort: Effort? = nil, secondBrain: String? = nil)
+                            effort: Effort? = nil, secondBrain: String? = nil, readOnly: ReadOnlyTurn? = nil)
     /// Lists the models the Copilot plan of the user's `copilot` offers, answering the request `id`.
     case readCopilotModels(id: String, copilot: URL)
 
@@ -144,9 +151,7 @@ enum BridgeCommand: Equatable {
             if !readableDirectories.isEmpty { object["dirs"] = readableDirectories.map(\.path) }
             object["maxBudget"] = maxBudget.map { NSDecimalNumber(decimal: $0) }
             object["brain"] = secondBrain
-            if let readOnly {
-                object["readOnly"] = ["brain": readOnly.isInSecondBrain, "hidden": readOnly.hiddenDirectories.map(\.path)]
-            }
+            object["readOnly"] = readOnly?.jsonObject
         case let .askCopilot(id, prompt, directory, copilot, model, effort, keeping, resumes, permissionMode,
                              isUnattended):
             object = ["type": "copilot", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
@@ -205,11 +210,12 @@ enum BridgeCommand: Equatable {
         case let .summarize(id, prompt, directory, model):
             object = ["type": "summarize", "id": id, "prompt": prompt, "cwd": directory.path]
             object["model"] = model
-        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort, secondBrain):
+        case let .askCopilotQuestion(id, prompt, directory, copilot, model, effort, secondBrain, readOnly):
             object = ["type": "copilotQuestion", "id": id, "prompt": prompt, "cwd": directory.path, "copilot": copilot.path]
             object["model"] = model
             object["effort"] = effort?.rawValue
             object["brain"] = secondBrain
+            object["readOnly"] = readOnly?.jsonObject
         case let .readCopilotModels(id, copilot):
             object = ["type": "copilotModels", "id": id, "copilot": copilot.path]
         case let .answerPreview(call, reply):

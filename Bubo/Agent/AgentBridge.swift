@@ -296,28 +296,40 @@ final class AgentBridge {
         return answer
     }
 
-    /// Asks the user's `copilot` to answer the Domanda `prompt`, streaming the answer as it arrives (ADR 0011).
+    /// Asks the user's `copilot` to answer the Domanda `prompt` in `directory`, streaming the answer as it arrives
+    /// (ADR 0011, ADR 0014).
     ///
-    /// The session has no tools of `copilot`, and runs in an empty folder of Bubo: no Progetto's instructions reach it. `copilot`
-    /// answers with the user's own login: the bridge removes the tokens that would override it. Cancelling the
-    /// iteration stops the answer. Without the user's consent for Copilot nothing is sent, and the answer fails with
+    /// `copilot` runs as in the terminal, with its own tools and configuration, in the Modalità autonoma: the bridge's
+    /// gate approves by itself and asks only on levels 4–5, as for a Claude Domanda. `copilot` answers with the user's
+    /// own login: the bridge removes the tokens that would override it. Cancelling the iteration stops the answer.
+    /// Without the user's consent for Copilot nothing is sent, and the answer fails with
     /// `CopilotFailure.consentMissing`.
     ///
     /// - Parameters:
+    ///   - directory: Where the Domanda runs: the Secondo cervello, only with the user's consent for the notes, or an
+    ///     empty folder of Bubo.
     ///   - copilot: The user's `copilot`.
     ///   - consents: The clouds the user allowed, from ``EndpointSettings/consents``.
     ///   - model: A Copilot model id, from ``copilotModels(of:)``; `nil` for the user's own choice in `copilot`.
     ///   - effort: The reasoning effort; `nil` for the model's default.
     ///   - sharesNotes: Whether `copilot` gets the Profilo and the Regole of the Secondo cervello and Bubo's `cerca`
-    ///     and `ricorda`, its only tools (#678); only with the user's consent for the notes. Each write reaches
-    ///     `progress` as a line Salvato. Without a Secondo cervello, nothing changes.
+    ///     and `ricorda` (#678); only with the user's consent for the notes. Each write reaches `progress` as a line
+    ///     Salvato. Without a Secondo cervello, nothing changes.
+    ///   - readOnly: The excluded folders of the Secondo cervello, closed to every tool of `copilot`; `nil` for none.
+    ///   - progress: Receives the state of the answer, until it ends.
+    ///   - permissions: Receives the Richieste di permesso of levels 4–5, answered with
+    ///     `answerPermission(_:allows:isLasting:)`; `nil` refuses them all.
     ///   - usage: Receives the tokens of the answer, once, before it ends; without a figure (Spesa, #542).
     ///   - answeredBy: Learns the model that answered and its effort, once, just before the answer ends.
-    func askCopilotQuestion(_ prompt: String, copilot: URL, consents: Set<String>, model: String? = nil,
-                            effort: Effort? = nil, sharesNotes: Bool = false,
+    ///   - isDangerous: Tells the bridge's gate whether a call is level 4 or 5; `nil` counts every call as dangerous.
+    func askCopilotQuestion(_ prompt: String, in directory: URL, copilot: URL, consents: Set<String>,
+                            model: String? = nil, effort: Effort? = nil, sharesNotes: Bool = false,
+                            readOnly: ReadOnlyTurn? = nil,
                             progress: @escaping (AgentProgress) -> Void = { _ in },
+                            permissions: ((PermissionEvent) -> Void)? = nil,
                             usage: @escaping (TurnUsage) -> Void = { _ in },
-                            answeredBy: @escaping (AnsweringModel) -> Void = { _ in }) -> AsyncThrowingStream<String, any Error> {
+                            answeredBy: @escaping (AnsweringModel) -> Void = { _ in },
+                            isDangerous: ((PermissionRequest) -> Bool)? = nil) -> AsyncThrowingStream<String, any Error> {
         let id = UUID().uuidString
         let (answer, continuation) = AsyncThrowingStream.makeStream(of: String.self)
         continuation.onTermination = { [weak self] termination in
@@ -329,16 +341,17 @@ final class AgentBridge {
             return answer
         }
         do {
-            let directory = URL.temporaryDirectory.appending(path: "bubo-domanda-copilot", directoryHint: .isDirectory)
-            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let process = try runningProcess()
             answers[id] = continuation
             usageHandlers[id] = usage
             answeringHandlers[id] = answeredBy
             progressHandlers[id] = progress
+            permissionHandlers[id] = permissions
+            riskHandlers[id] = isDangerous
             let secondBrain = sharesNotes && consents.contains(EndpointSettings.copilotNotesConsentID) ? basics() : nil
             let command = BridgeCommand.askCopilotQuestion(id: id, prompt: prompt, directory: directory, copilot: copilot,
-                                                           model: model, effort: effort, secondBrain: secondBrain)
+                                                           model: model, effort: effort, secondBrain: secondBrain,
+                                                           readOnly: readOnly)
             try process.input.write(contentsOf: command.line())
         } catch let ProcessSpawnerError.failed(code) {
             continuation.finish(throwing: AgentBridgeError.spawnFailed(errno: code))

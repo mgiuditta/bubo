@@ -48,11 +48,33 @@ struct AgentBridgeTests {
         var usage: TurnUsage?
         var model: AnsweringModel?
         let answer = try await Self.collect(bridge.askCopilotQuestion(
-            "Ciao", copilot: URL(filePath: "/opt/homebrew/bin/copilot"), consents: [EndpointSettings.copilotConsentID],
+            "Ciao", in: URL(filePath: "/tmp"), copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+            consents: [EndpointSettings.copilotConsentID],
             usage: { usage = $0 }, answeredBy: { model = $0 }))
         #expect(answer == "copilotQuestion ciao")
         #expect(usage?.models.map(\.inputTokens) == [10])
         #expect(model == AnsweringModel(model: "gpt-6", effort: nil))
+    }
+
+    // #722: a Copilot Domanda runs where a Claude one does, its excluded folders closed, and the gate asks Bubo the level.
+    @Test func aCopilotQuestionRunsInItsWorkplaceAndAsksTheLevelOfItsCalls() async throws {
+        let bridge = Self.bridge(Self.answering(#"""
+            case "$line" in *'"cwd":"/vault"'*'"hidden":["/vault/Privato"]'*) place=chiusa ;; *) place=aperta ;; esac
+            echo "{\"v\":4,\"type\":\"risk\",\"id\":\"$id\",\"request\":\"r1\",\"tool\":\"Read\",\"path\":\"/vault/a.md\"}"
+            read risk
+            dangerous=$(echo "$risk" | sed 's/.*"dangerous":\([a-z]*\).*/\1/')
+            echo "{\"v\":4,\"type\":\"text\",\"id\":\"$id\",\"text\":\"$place $dangerous\"}"
+            echo "{\"v\":4,\"type\":\"done\",\"id\":\"$id\"}"
+            read _
+            """#))
+        var asked: [PermissionRequest] = []
+        let readOnly = ReadOnlyTurn(isInSecondBrain: true, hiddenDirectories: [URL(filePath: "/vault/Privato")])
+        let answer = try await Self.collect(bridge.askCopilotQuestion(
+            "Leggi a.md", in: URL(filePath: "/vault"), copilot: URL(filePath: "/opt/homebrew/bin/copilot"),
+            consents: [EndpointSettings.copilotConsentID], readOnly: readOnly,
+            isDangerous: { asked.append($0); return false }))
+        #expect(answer == "chiusa false")
+        #expect(asked.map(\.path) == ["/vault/a.md"])
     }
 
     // Spec 10: without the user's consent, neither a Domanda nor a turn of a Sessione reaches Copilot.
@@ -67,7 +89,7 @@ struct AgentBridgeTests {
         // Another cloud's consent is not Copilot's.
         let answer = isSessione
             ? bridge.askCopilot("Leggi main.swift", in: URL(filePath: "/tmp/w"), copilot: copilot, consents: ["openai"])
-            : bridge.askCopilotQuestion("Ciao", copilot: copilot, consents: ["openai"])
+            : bridge.askCopilotQuestion("Ciao", in: URL(filePath: "/tmp"), copilot: copilot, consents: ["openai"])
         await #expect(throws: CopilotFailure.consentMissing) { try await Self.collect(answer) }
         #expect(!FileManager.default.fileExists(atPath: log.path))
     }

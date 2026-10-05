@@ -4,6 +4,8 @@
 // - "sessione": risponde con gli strumenti chiesti dalla sessione, il modello e i token visti dal processo;
 // - "note": chiama `cerca` e poi `ricorda` e risponde con i loro risultati;
 // - "strumento": chiede il permesso di eseguire un comando e risponde con la decisione ricevuta;
+// - "leggi <percorso>" e "scrivi <percorso>": passano dall'hook prima dello strumento (`view`, `create`) e poi chiedono
+//   il permesso di leggere o scrivere; rispondono "negato: <motivo>" se l'hook nega, o con la decisione ricevuta;
 // - "lungo": comincia a rispondere e aspetta `session.abort`;
 // - "errore": finisce con `session.error`;
 // - altro: risponde "Ciao mondo", con i token di due chiamate al modello e di un subagent.
@@ -13,6 +15,16 @@ let buffer = Buffer.alloc(0);
 const sessions = new Map();
 const permissions = new Map();
 const toolResults = new Map();
+// Le risposte di Bubo alle richieste del finto `copilot` (`hooks.invoke`), per id.
+const replies = new Map();
+let nextRequest = 1;
+
+function request(method, params) {
+  const id = `fake-${nextRequest++}`;
+  const reply = new Promise((resolve) => replies.set(id, resolve));
+  write({ id, method, params });
+  return reply;
+}
 
 function write(message) {
   const body = Buffer.from(JSON.stringify({ jsonrpc: "2.0", ...message }));
@@ -35,6 +47,8 @@ async function play(sessionId, prompt) {
   if (prompt === "sessione") {
     say(JSON.stringify({
       availableTools: session.availableTools ?? null,
+      hooks: session.hooks ?? false,
+      enableConfigDiscovery: session.enableConfigDiscovery ?? false,
       tools: session.tools,
       systemMessage: session.systemMessage ?? null,
       model: session.model ?? null,
@@ -51,6 +65,26 @@ async function play(sessionId, prompt) {
     });
     const result = await answer;
     say(result.kind);
+    idle();
+  } else if (prompt.startsWith("leggi ") || prompt.startsWith("scrivi ")) {
+    const isRead = prompt.startsWith("leggi ");
+    const path = prompt.slice(prompt.indexOf(" ") + 1);
+    const hook = await request("hooks.invoke", { sessionId, hookType: "preToolUse",
+      input: { toolName: isRead ? "view" : "create", toolArgs: { path }, timestamp: Date.now(), cwd: session.cwd } });
+    if (hook?.output?.permissionDecision === "deny") {
+      say(`negato: ${hook.output.permissionDecisionReason}`);
+      idle();
+      return;
+    }
+    const requestId = randomUUID();
+    const answer = new Promise((resolve) => permissions.set(requestId, resolve));
+    emit(sessionId, "permission.requested", {
+      requestId,
+      permissionRequest: isRead
+        ? { kind: "read", path, intention: "Legge" }
+        : { kind: "write", fileName: path, intention: "Scrive", diff: "", canOfferSessionApproval: false },
+    });
+    say((await answer).kind);
     idle();
   } else if (prompt === "note") {
     const call = (toolName, args) => {
@@ -91,7 +125,11 @@ const models = [
 ];
 
 function handle(message) {
-  if (message.method === undefined) return;
+  if (message.method === undefined) {
+    replies.get(message.id)?.(message.result);
+    replies.delete(message.id);
+    return;
+  }
   const { id, method, params } = message;
   const reply = (result) => write({ id, result });
   switch (method) {
@@ -100,6 +138,7 @@ function handle(message) {
     case "session.create": {
       const sessionId = params.sessionId ?? randomUUID();
       sessions.set(sessionId, { model: params.model, effort: params.reasoningEffort, availableTools: params.availableTools,
+        hooks: params.hooks, enableConfigDiscovery: params.enableConfigDiscovery, cwd: params.workingDirectory,
         tools: (params.tools ?? []).map((tool) => ({ name: tool.name, skipPermission: tool.skipPermission ?? false })),
         systemMessage: params.systemMessage });
       return reply({ sessionId, workspacePath: params.workingDirectory });
