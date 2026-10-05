@@ -12,10 +12,7 @@ struct FixCard: View {
     /// Whether Sessioni wait for `claude` to be updated, and start on their own once it is.
     var holdsSessions = false
     @State private var isEnteringKey = false
-    @State private var key = ""
-    /// Whether a key is already in the keychain; `nil` until read.
-    @State private var hasSavedKey: Bool?
-    /// Why the last action failed, if it did. Never contains the key.
+    /// Why opening the Terminal failed, if it did.
     @State private var failure: String?
     /// The command that updates the `claude` Bubo found; `nil` until found, or when it is not outdated.
     @State private var updateCommand: String?
@@ -35,7 +32,7 @@ struct FixCard: View {
                 command(updateCommand)
             }
             actions
-            if isEnteringKey { keyField }
+            APIKeyField(flow: flow, isEntering: $isEnteringKey)
             notes
         }
         .padding(Spacing.medium)
@@ -170,10 +167,9 @@ struct FixCard: View {
             .accessibilityAddTraits(isEnteringKey ? .isSelected : [])
     }
 
-    /// Shows or hides the field for the API key, finding out whether one is already saved.
+    /// Shows or hides the field for the API key.
     private func toggleKeyField() {
         isEnteringKey.toggle()
-        Task { hasSavedKey = try? await APIKeyStore().containsKey() }
     }
 
     /// Opens the Terminal on the login of `claude`; the first question asks again when the user is back.
@@ -182,27 +178,7 @@ struct FixCard: View {
         openTerminal(RemedyCommand.login)
     }
 
-    private var keyField: some View {
-        HStack(spacing: Spacing.small) {
-            SecureField("API key", text: $key)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit(saveKey)
-                .accessibilityLabel("API key")
-            Button("Salva", action: saveKey)
-                .disabled(key.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            // A refused key is the one Bubo used: offering it again would not help.
-            if hasSavedKey == true && !flow.usesAPIKey {
-                Button("Usa quella salvata") { Task { await flow.useAPIKey() } }
-            }
-        }
-    }
-
     @ViewBuilder private var notes: some View {
-        if isEnteringKey && (!flow.usesAPIKey || flow.problem != nil) {
-            Text("La chiave resta nel Portachiavi di questo Mac e si paga a consumo.")
-                .font(Typography.body(size: 12))
-                .foregroundStyle(Palette.textSecondary)
-        }
         if flow.usesAPIKey && flow.readiness == .missing {
             Text("La API key è salvata, ma serve comunque Claude Code.")
                 .font(Typography.body(size: 12))
@@ -254,23 +230,6 @@ struct FixCard: View {
             failure = nil
         } catch {
             failure = error.localizedDescription
-        }
-    }
-
-    /// Saves the key in the keychain and answers with it from now on.
-    private func saveKey() {
-        let key = key.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !key.isEmpty else { return }
-        Task {
-            do {
-                try await APIKeyStore().save(key)
-                self.key = ""
-                failure = nil
-                isEnteringKey = false
-                await flow.useAPIKey()
-            } catch {
-                failure = error.localizedDescription
-            }
         }
     }
 }

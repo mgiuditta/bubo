@@ -11,6 +11,8 @@ struct OnboardingStepsTests {
 
     init() throws {
         defaults = try #require(UserDefaults(suiteName: "OnboardingStepsTests-\(UUID().uuidString)"))
+        // Past the step of the Motore, on Claude as before it existed (ADR 0014).
+        defaults.set(true, forKey: OnboardingFlow.engineChosenKey)
     }
 
     func makeFlow() -> OnboardingFlow {

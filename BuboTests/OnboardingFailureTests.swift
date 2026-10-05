@@ -13,6 +13,8 @@ struct OnboardingFailureTests {
 
     init() throws {
         defaults = try #require(UserDefaults(suiteName: "OnboardingFailureTests-\(UUID().uuidString)"))
+        // Past the step of the Motore, on Claude as before it existed (ADR 0014).
+        defaults.set(true, forKey: OnboardingFlow.engineChosenKey)
     }
 
     /// A clock that stands still: each wait ends only when the test calls `advance()`.
