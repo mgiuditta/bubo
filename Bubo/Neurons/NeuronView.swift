@@ -11,11 +11,15 @@ struct NeuronView: View {
     @State private var previewedNote: URL?
 
     var body: some View {
-        HSplitView {
+        // ponytail: not an HSplitView, which kept the list's width and spilled the map out of the window when the
+        // sidebar widened; the map takes what is left, the list stays 300 pt.
+        HStack(spacing: 0) {
             map
-                .frame(minWidth: 360)
+                .frame(minWidth: 0, maxWidth: .infinity)
+            Divider()
+                .overlay(Palette.line)
             NeuronList(model: model, open: open)
-                .frame(minWidth: 240, idealWidth: 300, maxWidth: 480)
+                .frame(width: 300)
         }
         .foregroundStyle(Palette.textPrimary)
         .background(Palette.ink)
