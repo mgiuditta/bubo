@@ -2,16 +2,27 @@
   "sourceLanguage" : "it",
   "strings" : {
     "Apri la Galassia di ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Open the Galaxy in ${applicationName}"
+          }
+        },
+        "it" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Apri la Galassia di ${applicationName}",
+              "Mostra la Galassia in ${applicationName}"
+            ]
           }
         }
       }
     },
     "Avvia una Sessione in ${applicationName}" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -22,16 +33,27 @@
       }
     },
     "Cerca nella cronologia di ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Search the history in ${applicationName}"
+          }
+        },
+        "it" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Cerca nella cronologia di ${applicationName}",
+              "Cerca nelle conversazioni di ${applicationName}"
+            ]
           }
         }
       }
     },
     "Cerca nelle conversazioni di ${applicationName}" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -42,16 +64,27 @@
       }
     },
     "Chiedi a ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ask ${applicationName}"
+          }
+        },
+        "it" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Chiedi a ${applicationName}",
+              "Fai una domanda a ${applicationName}"
+            ]
           }
         }
       }
     },
     "Fai una domanda a ${applicationName}" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -62,6 +95,7 @@
       }
     },
     "Mostra la Galassia in ${applicationName}" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -72,16 +106,27 @@
       }
     },
     "Nuova Sessione in ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "New Session in ${applicationName}"
+          }
+        },
+        "it" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Nuova Sessione in ${applicationName}",
+              "Avvia una Sessione in ${applicationName}"
+            ]
           }
         }
       }
     },
     "Registra la Riunione in ${applicationName}" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -92,11 +137,21 @@
       }
     },
     "Registra una Riunione con ${applicationName}" : {
+      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Record a Meeting with ${applicationName}"
+          }
+        },
+        "it" : {
+          "stringSet" : {
+            "state" : "new",
+            "values" : [
+              "Registra una Riunione con ${applicationName}",
+              "Registra la Riunione in ${applicationName}"
+            ]
           }
         }
       }
