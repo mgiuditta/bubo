@@ -128,9 +128,10 @@ nonisolated struct PanelPlacement: Equatable, Codable, Sendable {
         screenID = try container.decodeIfPresent(String.self, forKey: .screenID)
     }
 
-    /// Returns the zone remembered for the screen with `screenID`, or the default zone.
+    /// Returns the zone remembered for the screen with `screenID`, or the default zone; never the center, which an
+    /// older version could remember.
     func zone(on screenID: String) -> PanelZone {
-        zones[screenID] ?? Self.defaultZone
+        zones[screenID].flatMap { $0 == .center ? nil : $0 } ?? Self.defaultZone
     }
 
     /// Returns the size remembered for the screen with `screenID`, or the default size.
@@ -165,17 +166,27 @@ nonisolated struct PanelPlacement: Equatable, Codable, Sendable {
 
     /// Snaps a Panel released with its center at `center` and remembers the result.
     ///
-    /// The Panel goes to the screen under `center`, or the nearest one, with the size remembered there.
+    /// The Panel goes to the screen under `center`, or the nearest one, with the size remembered there. It never
+    /// stays in the middle of the screen: dropped there, it goes to the nearest edge.
     /// - Returns: The spot the Panel snaps to, or `nil` if there are no screens.
     @discardableResult
     mutating func drop(center: CGPoint, among screens: [PanelScreen]) -> PanelSpot? {
         let screen = screens.first { $0.visibleFrame.contains(center) }
             ?? screens.min { distance(from: center, to: $0.visibleFrame) < distance(from: center, to: $1.visibleFrame) }
         guard let screen else { return nil }
-        let zone = PanelZone(containing: center, in: screen.visibleFrame)
+        var zone = PanelZone(containing: center, in: screen.visibleFrame)
+        if zone == .center { zone = Self.nearestEdge(to: center, in: screen.visibleFrame) }
         zones[screen.id] = zone
         screenID = screen.id
         return PanelSpot(screen: screen, zone: zone, size: size(on: screen.id))
+    }
+
+    /// The edge zone of `frame` nearest to `point`, measured as a share of the frame's width and height.
+    private static func nearestEdge(to point: CGPoint, in frame: CGRect) -> PanelZone {
+        let dx = (point.x - frame.midX) / frame.width
+        let dy = (point.y - frame.midY) / frame.height
+        if abs(dx) > abs(dy) { return dx < 0 ? .left : .right }
+        return dy < 0 ? .bottom : .top
     }
 
     private func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {

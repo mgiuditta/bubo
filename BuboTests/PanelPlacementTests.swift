@@ -81,7 +81,7 @@ struct PanelPlacementTests {
         placement.drop(center: CGPoint(x: 100, y: 800), among: [main, external])
         placement.drop(center: CGPoint(x: 2700, y: 700), among: [main, external])
         #expect(placement.zone(on: main.id) == .topLeft)
-        #expect(placement.zone(on: external.id) == .center)
+        #expect(placement.zone(on: external.id) == .left)
         #expect(placement.zone(on: "unknown") == .bottomRight)
     }
 
@@ -89,14 +89,25 @@ struct PanelPlacementTests {
         var placement = PanelPlacement()
         placement.drop(center: CGPoint(x: 100, y: 800), among: [main, external])
         placement.drop(center: CGPoint(x: 2700, y: 700), among: [main, external])
-        #expect(placement.spot(among: [main]) == PanelSpot(screen: main, zone: .center))
+        #expect(placement.spot(among: [main]) == PanelSpot(screen: main, zone: .left))
     }
 
     @Test func reconnectedScreenGetsPanelBack() {
         var placement = PanelPlacement()
         placement.drop(center: CGPoint(x: 2700, y: 700), among: [main, external])
         _ = placement.spot(among: [main])
-        #expect(placement.spot(among: [main, external]) == PanelSpot(screen: external, zone: .center))
+        #expect(placement.spot(among: [main, external]) == PanelSpot(screen: external, zone: .left))
+    }
+
+    @Test(arguments: [
+        (CGPoint(x: 700, y: 437), PanelZone.left),
+        (CGPoint(x: 800, y: 437), .right),
+        (CGPoint(x: 720, y: 400), .bottom),
+        (CGPoint(x: 720, y: 500), .top),
+    ])
+    func dropInTheMiddleGoesToNearestEdge(center: CGPoint, zone: PanelZone) {
+        var placement = PanelPlacement()
+        #expect(placement.drop(center: center, among: [main])?.zone == zone)
     }
 
     @Test func dropOutsideEveryScreenGoesToNearestScreen() {

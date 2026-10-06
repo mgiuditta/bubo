@@ -16,6 +16,9 @@ struct BuboApp: App {
                 .environment(appDelegate.deliveries)
                 .environment(appDelegate.secondBrain)
                 .environment(appDelegate.questions)
+                // In full screen the toolbar stays, with the window buttons: they do not hide until the pointer goes to
+                // the top.
+                .windowToolbarFullScreenVisibility(.visible)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {

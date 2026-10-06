@@ -7,8 +7,6 @@ protocol QuestionAsking: AnyObject, Sendable {
     func ask(_ text: String, attachments: [Allegato])
 }
 
-extension QuestionModel: QuestionAsking {}
-
 /// "Chiedi a Bubo", from Spotlight and Comandi rapidi (spec 09): a text and optional files become a Domanda, sent at
 /// once without opening the HUD.
 struct AskBuboIntent: AppIntent {

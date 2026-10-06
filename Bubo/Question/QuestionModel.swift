@@ -3,7 +3,7 @@ import os
 
 /// A Domanda typed in the HUD, answered by `claude` through the agent bridge, or by Apple Foundation Models on the Mac.
 @Observable
-final class QuestionModel {
+final class QuestionModel: QuestionAsking {
     /// What the user is typing; each change asks the router for a new forecast, for the chip.
     var prompt = "" {
         didSet {

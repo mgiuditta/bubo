@@ -106,7 +106,8 @@ struct PanelBubbleView: View {
                 .animation(Motion.isReduced ? nil : Motion.standard, value: contentPhase)
             }
             .scrollBounceBehavior(.basedOnSize)
-            // Follows the answer as it streams once the bubble scrolls.
+            // Opens on the last turn, as a chat, and follows the answer as it streams once the bubble scrolls.
+            .defaultScrollAnchor(.bottom, for: .initialOffset)
             .defaultScrollAnchor(.bottom, for: .sizeChanges)
             .frame(maxHeight: bubble.maxHeight)
             .frame(width: Self.width, alignment: .leading)

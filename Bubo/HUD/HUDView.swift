@@ -17,6 +17,8 @@ struct HUDView: View {
     let meetings: MeetingRecorder
     /// The Neuroni of the current Secondo cervello; `nil` without one.
     let neurons: () -> NeuronModel?
+    /// The height of the first launch's scroll view: its content is at least as tall, to stay centred.
+    @State private var onboardingHeight: CGFloat = 0
 
     var body: some View {
         @Bindable var hud = hud
@@ -122,6 +124,20 @@ struct HUDView: View {
         .preferredColorScheme(.dark)
     }
 
+    /// The Orb of the home, with the Dedica or the forecast under it.
+    private var orb: some View {
+        HUDOrb()
+            .overlay(alignment: .bottom) {
+                if OrbControls.shared.isShowingDedica {
+                    Text(Dedica.message)
+                        .font(Typography.body(size: 13))
+                        .foregroundStyle(Palette.textSecondary)
+                } else if let forecast = questions.intake.forecast {
+                    OrbCaption(forecast: forecast)
+                }
+            }
+    }
+
     /// Whether the HUD shows the first launch in place of the Domanda: until the first Sessione starts.
     private var showsOnboarding: Bool {
         !onboarding.isCompleted && sessions?.sessions.isEmpty == true
@@ -225,37 +241,38 @@ struct HUDView: View {
                 // A Domanda under way is a chat, with the Orb over it, as every Conversazione (ADR 0013).
                 remedies
                 QuestionDetail(question: nil, model: questions)
+            } else if showsOnboarding {
+                // A short window scrolls the first launch, so the buttons under the steps stay reachable; a tall one
+                // keeps it centred.
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Spacer(minLength: Spacing.large)
+                        // Smaller during the first launch: the steps, the Progetti and the input bar come under it.
+                        orb
+                            .frame(width: 200, height: 200)
+                            .padding(Spacing.small)
+                        OnboardingStage(flow: onboarding)
+                        Spacer(minLength: Spacing.large)
+                    }
+                    .frame(maxWidth: .infinity, minHeight: onboardingHeight)
+                }
+                .scrollBounceBehavior(.basedOnSize)
+                .onGeometryChange(for: CGFloat.self, of: \.size.height) { onboardingHeight = $0 }
             } else {
                 Spacer(minLength: Spacing.large)
-                // Smaller during the first launch: the steps, the Progetti and the input bar must fit under it.
-                HUDOrb()
-                    .frame(maxWidth: showsOnboarding ? 200 : 360, maxHeight: showsOnboarding ? 200 : 360)
-                    .padding(showsOnboarding ? Spacing.small : Spacing.l)
-                    .overlay(alignment: .bottom) {
-                        if OrbControls.shared.isShowingDedica {
-                            Text(Dedica.message)
-                                .font(Typography.body(size: 13))
-                                .foregroundStyle(Palette.textSecondary)
-                        } else if let forecast = questions.intake.forecast {
-                            OrbCaption(forecast: forecast)
-                        }
-                    }
-                if showsOnboarding {
-                    OnboardingStage(flow: onboarding)
-                        // Laid out before the Orb: on a short window the Orb shrinks, the input bar stays in sight.
-                        .layoutPriority(1)
-                } else {
-                    // The empty home invites to ask the Secondo cervello (ADR 0013).
-                    if questions.turns.isEmpty && questions.answer.isEmpty {
-                        HomeHeader(questions: questions)
-                            .padding(.bottom, Spacing.m)
-                    }
-                    remedies
-                    QuestionView(model: questions)
-                        .frame(maxWidth: 560)
-                        // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
-                        .padding(.top, Spacing.medium)
+                orb
+                    .frame(maxWidth: 360, maxHeight: 360)
+                    .padding(Spacing.l)
+                // The empty home invites to ask the Secondo cervello (ADR 0013).
+                if questions.turns.isEmpty && questions.answer.isEmpty {
+                    HomeHeader(questions: questions)
+                        .padding(.bottom, Spacing.m)
                 }
+                remedies
+                QuestionView(model: questions)
+                    .frame(maxWidth: 560)
+                    // Apart from the Sessione's card above: the prompt is the Domanda's, not the Sessione's.
+                    .padding(.top, Spacing.medium)
                 Spacer(minLength: Spacing.large)
             }
             if let sessions {
