@@ -17,6 +17,8 @@ nonisolated struct PromptTriggerTests {
         ("Ti ricordi cosa ci aveva detto Daniele?", .me),
         ("Come eravamo rimasti con il fornitore?", .others),
         ("What did we decide about the release?", .others),
+        ("Non so, non mi ricordo qual è l'ultimo ticket di Savi.", .me),
+        ("A che punto è la migrazione del carrello?", .others),
     ])
     func answersQuestionsAboutThePast(text: String, speaker: MeetingLine.Speaker) {
         var trigger = PromptTrigger()
@@ -26,7 +28,7 @@ nonisolated struct PromptTriggerTests {
 
     @Test(arguments: [
         "Oggi facciamo il punto sullo sprint.",
-        "Cosa ne pensate di questa soluzione?",
+        "Va bene?",
         "Quando hai tempo guardiamo la merge request.",
     ])
     func letsOtherSentencesGoBy(text: String) {

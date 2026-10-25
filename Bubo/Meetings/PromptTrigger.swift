@@ -1,7 +1,7 @@
 import Foundation
 
-/// Decides which sentences of a meeting the Suggeritore answers: a question about the past («cosa avevamo deciso su…»,
-/// «chi doveva…», «quando è stato approvato…»), said by anyone.
+/// Decides which sentences of a meeting the Suggeritore answers: a question about the past or a memory gap («cosa avevamo
+/// deciso su…», «chi doveva…», «non mi ricordo qual è l'ultimo…»), or any real question, said by anyone.
 ///
 /// Pure, so the rules are tested without audio: the caller passes each sentence with the time it was heard.
 nonisolated struct PromptTrigger: Sendable {
@@ -48,9 +48,12 @@ nonisolated struct PromptTrigger: Sendable {
         return Question(text: text, reason: .lastQuestion)
     }
 
-    /// Whether `text` asks about something decided, said or owned before.
+    /// Whether `text` asks about something decided, said, owned or remembered before, or is a real question: one that
+    /// ends with «?» in at least four words.
     static func asksAboutThePast(_ text: String) -> Bool {
-        text.firstMatch(of: pastQuestion) != nil
+        let isQuestion = text.trimmingCharacters(in: .whitespacesAndNewlines).hasSuffix("?")
+            && text.split(separator: " ").count >= 4
+        return isQuestion || text.firstMatch(of: pastQuestion) != nil
     }
 
     /// A question about the past, in Italian and in English; built at each use, since a `Regex` is not `Sendable`.
@@ -60,8 +63,11 @@ nonisolated struct PromptTrigger: Sendable {
         | chi\ (?:doveva|deve|dovrebbe|aveva|si\ era\ preso|si\ è\ preso|se\ ne\ occupa|se\ ne\ doveva)
         | quando\ (?:abbiamo|avevamo|è\ stat[oa]|era\ stat[oa]|si\ era|si\ è)
         | (?:come|dove)\ (?:eravamo|siamo)\ rimasti
-        | (?:ti|vi)\ ricord(?:i|ate)\b
-        | l['’]ultima\ volta
+        | (?:ti|vi|mi)\ ricord(?:i|ate|o)\b
+        | ricordate\b
+        | qual\ (?:è|era)\b | quale\ era\b | quali\ (?:sono|erano)\b
+        | l['’]ultim[oa]\b | gli\ ultimi\b | le\ ultime\b
+        | a\ che\ punto | che\ fine\ ha\ fatto | come\ si\ chiama
         | (?:era|è)\ stat[oa]\ (?:deciso|decisa|approvat[oa]|concordat[oa])
         | what\ did\ we\ (?:decide|say|agree)
         | who\ (?:was\ supposed|was\ going|owns)
