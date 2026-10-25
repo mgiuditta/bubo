@@ -87,12 +87,16 @@ final class MeetingPrompter {
         var recording: WisprRecording?
         var transcribers: [MeetingLine.Speaker: LiveTranscriber] = [:]
         var feeds: [MeetingLine.Speaker: @Sendable (AVAudioPCMBuffer) -> Void] = [:]
+        var ends: [MeetingLine.Speaker: SpeechEndDetector] = [:]
+        var heard: [MeetingLine.Speaker: Int] = [:]
         while !Task.isCancelled {
             let folder = WisprRecording.current()
             if folder != recording?.folder {
                 for transcriber in transcribers.values { await transcriber.stop() }
                 transcribers = [:]
                 feeds = [:]
+                ends = [:]
+                heard = [:]
                 recording = folder.map(WisprRecording.init(folder:))
                 if recording != nil {
                     (transcribers, feeds) = await startTranscribing()
@@ -101,7 +105,18 @@ final class MeetingPrompter {
                     if answering == nil { orb.state = .idle }
                 }
             }
-            for (speaker, buffer) in recording?.newAudio() ?? [] { feeds[speaker]?(buffer) }
+            for (speaker, buffer) in recording?.newAudio() ?? [] {
+                guard let feed = feeds[speaker], let samples = buffer.int16ChannelData?[0] else { continue }
+                feed(buffer)
+                let count = Int(buffer.frameLength)
+                heard[speaker, default: 0] += count
+                // At the end of a sentence its text comes at once, as in `sbu-live`, not seconds later.
+                if ends[speaker, default: SpeechEndDetector()].hearsEnd(in: UnsafeBufferPointer(start: samples, count: count)) {
+                    // In the middle of the pause: audio the analyzer surely has, so it does not wait for more.
+                    let end = Double(heard[speaker] ?? 0) / WisprRecording.format.sampleRate - SpeechEndDetector.silence / 2
+                    await transcribers[speaker]?.finishSentence(at: end)
+                }
+            }
             // ponytail: polled every tenth of a second, as `sbu-live` did; FSEvents if it ever shows in Energy.
             try? await Task.sleep(for: .milliseconds(100))
         }

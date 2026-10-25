@@ -66,6 +66,27 @@ final class LiveTranscriber {
         return Self.feeder(converting: converter, into: input)
     }
 
+    /// Closes the sentence that ends `time` after the first buffer, so its text comes now instead of when the
+    /// transcriber would decide by itself, seconds later.
+    ///
+    /// Never waits more than a second: the analyzer may not have read up to `time` yet.
+    func finishSentence(at time: TimeInterval) async {
+        guard let analyzer else { return }
+        let finalizing = Task {
+            try await analyzer.finalize(through: CMTime(seconds: max(0, time), preferredTimescale: 16_000))
+        }
+        let timeout = Task {
+            try await Task.sleep(for: .seconds(1))
+            finalizing.cancel()
+        }
+        do {
+            try await finalizing.value
+        } catch {
+            Logger.meetings.error("Sentence not finalized: \(String(describing: error), privacy: .public)")
+        }
+        timeout.cancel()
+    }
+
     /// Ends the analysis; the buffers that still arrive are dropped.
     func stop() async {
         input?.finish()
