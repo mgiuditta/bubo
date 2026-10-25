@@ -263,7 +263,7 @@ Una conversazione registrata da Bubo (microfono e audio di un'app) o importata (
 _Avoid_: meeting, call, verbale
 
 **Suggeritore**:
-La finestra che l'utente apre dall'Orb durante una riunione registrata con Wispr Flow: ne legge l'audio mentre Wispr lo scrive, lo trascrive sul Mac, mostra le frasi degli ultimi due minuti e risponde in poche parole dal **Secondo cervello**, con le note citate, alle domande sul passato («cosa avevamo deciso su…», «chi doveva…»), all'ultima domanda sentita o a una domanda scritta. Chi guarda lo schermo condiviso non la vede. A Claude vanno solo la domanda e i frammenti trovati dall'**Indice**, mai l'audio né la trascrizione. Non è una **Riunione**: Bubo non registra e non salva niente.
+La finestra che l'utente apre dall'Orb durante una riunione registrata con Wispr Flow: ne legge l'audio mentre Wispr lo scrive, lo trascrive sul Mac, mostra le frasi degli ultimi due minuti e risponde in poche parole dal **Secondo cervello**, con le note citate, o con quello che Claude sa quando le note non bastano, alle domande sul passato («cosa avevamo deciso su…», «chi doveva…»), all'ultima domanda sentita o a una domanda scritta. Chi guarda lo schermo condiviso non la vede. A Claude vanno solo la domanda e i frammenti trovati dall'**Indice**, mai l'audio né la trascrizione. Non è una **Riunione**: Bubo non registra e non salva niente.
 _Avoid_: overlay, assistente live, copilota
 
 **Indice**:

@@ -3,7 +3,7 @@ import Observation
 import os
 
 /// The Suggeritore: while it is open it follows the meeting Wispr Flow records, transcribes it on the Mac and, at a
-/// question about the past, answers in a few words from the Secondo cervello, with the notes cited.
+/// question, answers in a few words from the Secondo cervello, with the notes cited, or from what Claude knows.
 ///
 /// Only the question and the fragments the Indice finds go to Claude, with the light model; the audio and the
 /// trascrizione stay on the Mac.
@@ -187,18 +187,21 @@ final class MeetingPrompter {
         change(&cards[position])
     }
 
-    /// What Claude reads: the rules of a glance-sized answer, the question and the fragments the Indice found.
+    /// What Claude reads: the rules of a glance-sized answer, the question and the fragments the Indice found; without
+    /// an answer in the notes, Claude answers from what it knows, and says so.
     nonisolated static func prompt(for question: String, notes: String) -> String {
         """
-        Sei il Suggeritore di Bubo: durante una riunione di lavoro l'utente o i colleghi chiedono di riunioni e \
-        decisioni passate, e tu rispondi usando solo le note qui sotto, trovate nel suo Secondo cervello.
+        Sei il Suggeritore di Bubo: durante una riunione di lavoro l'utente o i colleghi fanno domande. Rispondi \
+        prima con le note qui sotto, trovate nel suo Secondo cervello; se non bastano, con quello che sai tu, come un \
+        assistente normale.
 
         Regole:
         - Al massimo 50 parole, senza elenchi né titoli: l'utente la legge di sfuggita mentre parla.
-        - Prima il fatto più recente: una decisione o uno stato nuovo vale sui precedenti.
-        - Di' sempre la data della riunione o della nota e, se c'è, chi ha deciso o chi deve fare cosa.
-        - Cita una o due note, come indicato dopo i frammenti.
-        - Se le note non rispondono, scrivi solo: «Non c'è nelle note.»
+        - Dalle note: prima il fatto più recente, una decisione o uno stato nuovo vale sui precedenti; di' la data \
+          della riunione o della nota e, se c'è, chi ha deciso o chi deve fare cosa; cita una o due note, come \
+          indicato dopo i frammenti.
+        - Se le note non rispondono, comincia con «Non è nelle note:» e rispondi con le tue conoscenze, senza \
+          cercare altro e senza inventare fatti dell'utente o della sua azienda.
         - Rispondi nella lingua della domanda.
 
         Domanda: \(question)
@@ -206,6 +209,9 @@ final class MeetingPrompter {
         Note trovate:
 
         \(notes)
+
+        Le regole sopra valgono su quelle dei frammenti: se le note non rispondono, rispondi comunque con le tue \
+        conoscenze.
         """
     }
 
