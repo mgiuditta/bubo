@@ -49,6 +49,8 @@ final class MeetingRecorder {
 
     /// Opens the window of the Riunioni; set at launch.
     @ObservationIgnored var showWindow: () -> Void = {}
+    /// Opens the Suggeritore; set at launch.
+    @ObservationIgnored var showPrompter: () -> Void = {}
 
     /// The imports of recordings and trascrizioni, summarized as the recorded Riunioni.
     @ObservationIgnored private(set) lazy var imports = MeetingImporter(secondBrain: secondBrain) { [unowned self] transcript in

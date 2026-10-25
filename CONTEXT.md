@@ -262,6 +262,10 @@ _Avoid_: recap, log, diario
 Una conversazione registrata da Bubo (microfono e audio di un'app) o importata (audio, video, trascrizione), che diventa una nota nel **Secondo cervello** con trascrizione, riassunto, decisioni e azioni; l'**Indice** la cerca come le altre note.
 _Avoid_: meeting, call, verbale
 
+**Suggeritore**:
+La finestra che l'utente apre dall'Orb durante una riunione registrata con Wispr Flow: ne legge l'audio mentre Wispr lo scrive, lo trascrive sul Mac, mostra le frasi degli ultimi due minuti e risponde in poche parole dal **Secondo cervello**, con le note citate, alle domande sul passato («cosa avevamo deciso su…», «chi doveva…»), all'ultima domanda sentita o a una domanda scritta. Chi guarda lo schermo condiviso non la vede. A Claude vanno solo la domanda e i frammenti trovati dall'**Indice**, mai l'audio né la trascrizione. Non è una **Riunione**: Bubo non registra e non salva niente.
+_Avoid_: overlay, assistente live, copilota
+
 **Indice**:
 La copia, tenuta sul Mac e ricostruibile, del **Secondo cervello**, della **Memoria di Progetto** e delle conversazioni passate (**Sessioni** e **Cronologia CLI**), in cui si cerca per significato e per parole; non contiene il codice dei **Progetti**.
 _Avoid_: database vettoriale, vector store, indice semantico

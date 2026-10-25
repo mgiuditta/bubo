@@ -39,11 +39,17 @@ nonisolated enum MeetingTranscriber {
     }
 
     /// The transcriber of the main language of the Riunioni, its model downloaded first if needed.
-    private static func transcriber() async throws(MeetingFailure) -> SpeechTranscriber {
+    ///
+    /// - Parameter isLive: Whether it hears a Riunione while it is recorded, for the Suggeritore: then it reports the
+    ///   sentences as soon as it can, with their times, instead of at the end of the file.
+    static func transcriber(isLive: Bool = false) async throws(MeetingFailure) -> SpeechTranscriber {
         guard let locale = await SpeechTranscriber.supportedLocale(equivalentTo: MeetingLanguage.saved()) else {
             throw .languageUnsupported
         }
-        let transcriber = SpeechTranscriber(locale: locale, preset: .transcription)
+        let transcriber = isLive
+            ? SpeechTranscriber(locale: locale, transcriptionOptions: [], reportingOptions: [.fastResults],
+                                attributeOptions: [.audioTimeRange])
+            : SpeechTranscriber(locale: locale, preset: .transcription)
         do {
             if let request = try await AssetInventory.assetInstallationRequest(supporting: [transcriber]) {
                 try await request.downloadAndInstall()

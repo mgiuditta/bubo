@@ -94,6 +94,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         conversation.showConversation = { [weak self] in self?.panel.askInPanel() }
         return conversation
     }()
+    /// The Suggeritore: answers from the notes while a Riunione is recorded, when the user turned it on.
+    private(set) lazy var prompter = MeetingPrompter(index: searchIndex) { [questions] in
+        try await questions.readyBridge(needsClaude: true)
+    }
+    /// The Suggeritore's window, left out of screen sharing.
+    private(set) lazy var promptWindow = PromptWindow(prompter: prompter, questions: questions)
     /// The window of the Riunioni.
     private(set) lazy var meetingWindow = MeetingWindow(recorder: meetings, secondBrain: secondBrain, questions: questions,
                                                         brainSetup: brainSetup)
@@ -267,6 +273,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         SearchHistoryIntent.palette = self
         // "Registra una Riunione" opens the window of the Riunioni.
         meetings.showWindow = { [weak self] in self?.meetingWindow.show() }
+        prompter.show = { [weak self] in self?.promptWindow.show() }
+        meetings.showPrompter = { [weak self] in self?.prompter.open() }
         RecordMeetingIntent.recorder = meetings
         galaxies.focusOrb = { [weak self] id in self?.sessions?.orbFocus = id }
         // At once, within the turn that passes a Budget's threshold.

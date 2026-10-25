@@ -3,7 +3,7 @@ import Foundation
 /// A sentence of a Riunione's trascrizione: who said it, when from the start, and what.
 nonisolated struct MeetingLine: Equatable, Sendable {
     /// Whose track the sentence comes from: the two tracks already tell the user from the others.
-    enum Speaker: Equatable, Sendable {
+    enum Speaker: Hashable, Sendable {
         /// The microphone: the user.
         case me
         /// The app's audio: the other participants.

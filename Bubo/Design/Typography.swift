@@ -30,13 +30,13 @@ extension Font {
     /// Newsreader Medium 34: the logotype, the empty home and note titles. Scales with `.largeTitle`.
     static var buboDisplay: Font { .custom(Typography.displayFaceName, size: 34, relativeTo: .largeTitle) }
     /// SF Pro semibold 22 (the macOS `.title` style). Use `buboTitleStyle()` for its tracking.
-    static var buboTitle: Font { .title.weight(.semibold) }
+    nonisolated static var buboTitle: Font { .title.weight(.semibold) }
     /// SF Pro 15 (the macOS `.title3` style): the text of a conversation.
-    static var buboBody: Font { .title3 }
+    nonisolated static var buboBody: Font { .title3 }
     /// SF Pro 13 (the macOS `.body` style): controls and labels.
-    static var buboInterface: Font { .body }
+    nonisolated static var buboInterface: Font { .body }
     /// SF Mono 12 with tabular digits (the macOS `.callout` style): data, costs, durations, uppercase labels.
-    static var buboData: Font { .system(.callout, design: .monospaced).monospacedDigit() }
+    nonisolated static var buboData: Font { .system(.callout, design: .monospaced).monospacedDigit() }
 }
 
 extension View {
